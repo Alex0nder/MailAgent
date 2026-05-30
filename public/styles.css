@@ -341,6 +341,64 @@ section {
   font-size: 17px;
 }
 
+/* —— GitHub repo bar —— */
+.repo-bar {
+  padding: 0 24px 8px;
+  margin-top: -24px;
+}
+
+.repo-bar-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 14px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.repo-bar-link:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
+}
+
+.repo-bar-icon {
+  display: flex;
+  color: var(--text);
+}
+
+.repo-bar-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.repo-bar-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.repo-bar-text strong {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.repo-bar-meta {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.repo-bar-arrow {
+  color: var(--text-dim);
+  font-size: 18px;
+}
+
 /* —— Stack strip (tech chips) —— */
 .stack-strip {
   padding: 0 24px 56px;
