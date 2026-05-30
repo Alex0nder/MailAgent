@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QA guide — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="doc-page">
+    <header class="nav">
+      <div class="nav-inner">
+        <a href="/" class="logo">MailAgent</a>
+        <nav class="nav-links">
+          <a href="/docs/">API</a>
+          <a href="/docs/qa.html">QA guide</a>
+          <a href="https://github.com/Alex0nder/MailAgent" rel="noopener noreferrer">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="doc-main">
+      <h1>QA / E2E guide</h1>
+      <p class="doc-lead">
+        Open-source QA flows — temporary inbox per test run, OTP and magic links
+        without a shared <code>test@company.com</code>.
+        <a href="https://github.com/Alex0nder/MailAgent" rel="noopener noreferrer">Source on GitHub</a>.
+      </p>
+
+      <h2>Problems we solve</h2>
+      <table class="doc-table">
+        <thead><tr><th>Pain</th><th>Solution</th></tr></thead>
+        <tbody>
+          <tr><td>Shared inbox races in CI</td><td><code>label</code> per run / worker</td></tr>
+          <tr><td>Long waits in tests</td><td><code>POST /v1/inboxes/open</code></td></tr>
+          <tr><td>Wrong email picked</td><td><code>subjectContains</code> + allowlist</td></tr>
+          <tr><td>Parse HTML for OTP</td><td><code>verification.otp</code>, <code>primaryLink</code></td></tr>
+          <tr><td>Debug failed run</td><td><code>GET /v1/inboxes?label=...</code></td></tr>
+        </tbody>
+      </table>
+
+      <h2>CI quick start</h2>
+      <pre class="doc-pre"><code>export MAILAGENT_API_URL=https://api.webmailagent.com
+export MAILAGENT_API_KEY=your_key
+export RUN_ID="${GITHUB_RUN_ID:-local}"
+
+curl -sS -X POST "$MAILAGENT_API_URL/v1/inboxes/open" \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"label\": \"ci-$RUN_ID\",
+    \"service\": \"auth0\",
+    \"subjectContains\": \"verification\",
+    \"timeoutSeconds\": 120
+  }"</code></pre>
+
+      <h2>Recommended E2E order</h2>
+      <ol class="doc-list">
+        <li><code>POST /v1/inboxes</code> with <code>label</code> → get <code>address</code></li>
+        <li>Fill signup form on staging</li>
+        <li><code>GET /v1/inboxes/:id/wait?subjectContains=...</code> then <code>/extract</code></li>
+      </ol>
+
+      <h2>Playwright</h2>
+      <p>
+        Use env <code>MAILAGENT_API_URL</code> and <code>MAILAGENT_API_KEY</code> with the REST API above,
+        or request the <code>@mailagent/qa</code> helper package during pilot onboarding.
+      </p>
+      <pre class="doc-pre"><code>const res = await fetch(`${API}/v1/inboxes`, {
+  method: "POST",
+  headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" },
+  body: JSON.stringify({ label: `pw-${workerId}`, service: "auth0" }),
+});
+const { id, address } = await res.json();
+// page.fill email → wait → extract</code></pre>
+
+      <h2>QA fields</h2>
+      <table class="doc-table">
+        <thead><tr><th>Field</th><th>Where</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>label</code></td><td>create, open</td><td>CI run / worker id</td></tr>
+          <tr><td><code>subjectContains</code></td><td>open, wait</td><td>Filter by subject</td></tr>
+          <tr><td><code>callbackUrl</code></td><td>create, open</td><td>HTTPS webhook on new mail</td></tr>
+          <tr><td><code>deleteAfter</code></td><td>open</td><td><code>false</code> to keep inbox for debug</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Debug after failure</h2>
+      <pre class="doc-pre"><code>GET /v1/inboxes?label=ci-12345
+GET /v1/inboxes/:id/messages</code></pre>
+
+      <p>
+        <a href="/docs/">← API reference</a> · <a href="/">Landing</a> ·
+        <a href="mailto:hello@webmailagent.com?subject=MailAgent%20pilot%20access"
+          >hello@webmailagent.com</a
+        >
+      </p>
+    </main>
+
+    <footer class="footer">
+      <p class="footer-bottom"><a href="/">← Back to MailAgent</a></p>
+    </footer>
+  </body>
+</html>

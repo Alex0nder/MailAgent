@@ -774,3 +774,136 @@ section {
 .compare-table td:nth-child(3) {
   color: var(--text-muted);
 }
+
+/* —— Docs pages —— */
+.doc-page .doc-main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: calc(var(--nav-h) + 48px) 24px 80px;
+}
+
+.doc-page h1 {
+  margin: 0 0 12px;
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.doc-lead {
+  color: var(--text-muted);
+  font-size: 17px;
+  margin-bottom: 40px;
+}
+
+.doc-page h2 {
+  margin: 40px 0 12px;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.doc-page p {
+  color: var(--text-muted);
+  margin: 0 0 16px;
+}
+
+.doc-pre {
+  margin: 0 0 20px;
+  padding: 16px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.doc-pre code {
+  color: var(--text);
+}
+
+.doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.doc-table th,
+.doc-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.doc-table th {
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.doc-list {
+  color: var(--text-muted);
+  padding-left: 1.25rem;
+}
+
+.doc-list a {
+  color: var(--accent-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.doc-note {
+  margin-top: 48px;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+/* —— Open source —— */
+.pill-oss .pill-dot {
+  background: var(--code-green);
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+}
+
+.oss-section {
+  background: linear-gradient(180deg, rgba(74, 222, 128, 0.05) 0%, transparent 70%);
+}
+
+.oss-inner {
+  text-align: center;
+}
+
+.oss-desc {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.oss-list {
+  margin: 0 auto 28px;
+  padding: 0;
+  list-style: none;
+  max-width: 32rem;
+  text-align: left;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.oss-list li {
+  margin-bottom: 10px;
+  padding-left: 1.25rem;
+  position: relative;
+}
+
+.oss-list li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--code-green);
+  font-weight: 600;
+}
+
+.oss-ctas {
+  justify-content: center;
+}

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>API docs — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="doc-page">
+    <header class="nav">
+      <div class="nav-inner">
+        <a href="/" class="logo">MailAgent</a>
+        <nav class="nav-links">
+          <a href="/docs/">API</a>
+          <a href="/docs/qa.html">QA guide</a>
+          <a href="https://github.com/Alex0nder/MailAgent" rel="noopener noreferrer">GitHub</a>
+        </nav>
+        <div class="nav-actions">
+          <a
+            class="btn btn-primary"
+            href="https://github.com/Alex0nder/MailAgent"
+            rel="noopener noreferrer"
+            >Open source</a
+          >
+        </div>
+      </div>
+    </header>
+
+    <main class="doc-main">
+      <h1>API documentation</h1>
+      <p class="doc-lead">
+        MailAgent is <strong>open source</strong> —
+        <a href="https://github.com/Alex0nder/MailAgent" rel="noopener noreferrer">GitHub</a>.
+        Self-host or use hosted API at <code>https://api.webmailagent.com</code> with
+        <code>Authorization: Bearer &lt;API_KEY&gt;</code>.
+      </p>
+
+      <h2>Discovery</h2>
+      <pre class="doc-pre"><code>GET /v1</code></pre>
+      <p>
+        Returns endpoints, service presets, MCP tool names.
+        <a href="https://api.webmailagent.com/v1" rel="noopener noreferrer">Try it</a>
+        (requires API key).
+      </p>
+
+      <h2>Recommended: one-shot open</h2>
+      <pre class="doc-pre"><code>POST /v1/inboxes/open
+{
+  "service": "github",
+  "label": "ci-123",
+  "subjectContains": "verification",
+  "timeoutSeconds": 90,
+  "deleteAfter": false
+}</code></pre>
+      <p>Creates inbox → waits for allowed email → returns <code>verification.otp</code> and <code>verification.primaryLink</code>.</p>
+
+      <h2>Step-by-step flow</h2>
+      <table class="doc-table">
+        <thead>
+          <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>POST</code></td><td><code>/v1/inboxes</code></td><td>Create inbox (<code>ttlMinutes</code>, <code>service</code>, <code>label</code>, <code>callbackUrl</code>)</td></tr>
+          <tr><td><code>GET</code></td><td><code>/v1/inboxes?label=</code></td><td>List inboxes for a CI run</td></tr>
+          <tr><td><code>GET</code></td><td><code>/v1/inboxes/:id/wait</code></td><td>Wait for message (<code>subjectContains</code>, <code>timeout</code>)</td></tr>
+          <tr><td><code>GET</code></td><td><code>/v1/inboxes/:id/extract</code></td><td>OTP + links from latest message</td></tr>
+          <tr><td><code>GET</code></td><td><code>/v1/inboxes/:id/events</code></td><td>SSE stream</td></tr>
+          <tr><td><code>DELETE</code></td><td><code>/v1/inboxes/:id</code></td><td>Delete inbox</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Service presets</h2>
+      <p>
+        Set <code>service</code> to apply sender allowlists: <code>github</code>,
+        <code>stripe</code>, <code>auth0</code>, <code>google</code>, <code>vercel</code>,
+        <code>supabase</code>, <code>clerk</code>, and others — see
+        <code>GET /v1</code> for the full list.
+      </p>
+
+      <h2>More</h2>
+      <ul class="doc-list">
+        <li><a href="/docs/qa.html">QA / Playwright guide</a></li>
+        <li><a href="https://api.webmailagent.com/v1/openapi.json" rel="noopener noreferrer">OpenAPI 3.0</a></li>
+        <li><a href="/#mcp">MCP tools (landing)</a></li>
+      </ul>
+
+      <p class="doc-note">
+        <strong>Self-host:</strong> clone
+        <a href="https://github.com/Alex0nder/MailAgent" rel="noopener noreferrer">the repo</a>
+        and follow SETUP in README.
+        <strong>Hosted API:</strong>
+        <a href="mailto:hello@webmailagent.com?subject=MailAgent%20hosted%20API%20key"
+          >hello@webmailagent.com</a
+        >
+        for a key.
+      </p>
+    </main>
+
+    <footer class="footer">
+      <p class="footer-bottom"><a href="/">← Back to MailAgent</a></p>
+    </footer>
+  </body>
+</html>

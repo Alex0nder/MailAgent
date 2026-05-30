@@ -38,7 +38,7 @@ apiMetaRoutes.get("/", (c) => {
       label: "CI run id on create/open",
       subjectContains: "filter wait/open by subject",
       callbackUrl: "HTTPS POST on message.received",
-      docs: "/docs/QA.md",
+      docs: "https://webmailagent.com/docs/qa.html",
     },
   });
 });

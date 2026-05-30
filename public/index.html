@@ -6,7 +6,7 @@
     <title>MailAgent — Email verification for agents &amp; QA</title>
     <meta
       name="description"
-      content="Temporary inboxes, OTP and magic links for AI agents (MCP), Playwright E2E, and CI signup flows — API-first, not a browser burner."
+      content="Open-source email verification for AI agents and QA. Self-host on Cloudflare or use the API — temporary inboxes, MCP, Playwright."
     />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
@@ -36,11 +36,17 @@
           <a href="#qa">QA</a>
           <a href="#mcp">MCP</a>
           <a href="#how">How it works</a>
+          <a href="/docs/">Docs</a>
           <a href="https://github.com/Alex0nder/MailAgent" rel="noopener noreferrer">GitHub</a>
         </nav>
         <div class="nav-actions">
-          <a class="btn btn-ghost" href="https://github.com/Alex0nder/MailAgent#readme">Docs</a>
-          <a class="btn btn-primary" href="#get-started">Get started</a>
+          <a class="btn btn-ghost" href="/docs/qa.html">QA guide</a>
+          <a
+            class="btn btn-primary"
+            href="https://github.com/Alex0nder/MailAgent"
+            rel="noopener noreferrer"
+            >Open source</a
+          >
         </div>
       </div>
     </header>
@@ -50,23 +56,29 @@
         <div class="hero-glow" aria-hidden="true"></div>
         <div class="hero-inner">
           <div class="hero-copy">
-            <div class="pill">
+            <div class="pill pill-oss">
               <span class="pill-dot"></span>
-              Agents, Playwright &amp; CI
+              Open source — free for everyone
             </div>
             <h1>Email verification API for agents &amp; QA</h1>
             <p class="hero-lead">
               Disposable inbox, SSE wait, OTP and magic links — one call from MCP,
-              REST, or <code>@mailagent/qa</code> in Playwright. No shared Mailosaur
-              inbox, no manual copy-paste.
+              REST, or <code>@mailagent/qa</code> in Playwright. Clone the repo,
+              self-host on Cloudflare, or use our hosted API.
             </p>
             <div class="hero-ctas">
-              <a class="btn btn-primary" href="#get-started">Start building</a>
+              <a
+                class="btn btn-primary"
+                href="https://github.com/Alex0nder/MailAgent"
+                rel="noopener noreferrer"
+                >View on GitHub</a
+              >
+              <a class="btn btn-outline" href="#get-started">Get started</a>
               <a class="btn btn-outline" href="#qa">For QA teams</a>
             </div>
           </div>
 
-          <div class="code-panel" aria-label="Example MCP flow">
+          <div class="code-panel" data-panel="hero" aria-label="Example MCP flow">
             <div class="code-tabs">
               <span class="code-tab active">MCP</span>
               <span class="code-tab">Playwright</span>
@@ -145,6 +157,31 @@
           </ul>
         </div>
       </div>
+
+      <section id="open-source" class="oss-section">
+        <div class="section-inner oss-inner">
+          <p class="section-label">Open source</p>
+          <h2 class="section-title">For everyone — run it yourself</h2>
+          <p class="section-desc oss-desc">
+            Full source on GitHub: Worker, MCP server, QA SDK, and docs. No black
+            box — deploy on your Cloudflare account with your Resend inbound domain.
+          </p>
+          <ul class="oss-list">
+            <li>MIT license — free to use, fork, and self-host</li>
+            <li>Same stack we run in production (Workers, Queues, Durable Objects, Neon)</li>
+            <li>Hosted API at <code>api.webmailagent.com</code> optional — ask for a key</li>
+          </ul>
+          <div class="hero-ctas oss-ctas">
+            <a
+              class="btn btn-primary"
+              href="https://github.com/Alex0nder/MailAgent"
+              rel="noopener noreferrer"
+              >github.com/Alex0nder/MailAgent</a
+            >
+            <a class="btn btn-outline" href="/docs/">Self-host docs</a>
+          </div>
+        </div>
+      </section>
 
       <section id="features">
         <div class="section-inner">
@@ -272,7 +309,7 @@
             </article>
           </div>
 
-          <div class="code-panel qa-code-panel">
+          <div class="code-panel qa-code-panel" data-panel="qa">
             <div class="code-tabs">
               <span class="code-tab active">Playwright</span>
               <span class="code-tab">open (one-shot)</span>
@@ -295,12 +332,8 @@
           </div>
 
           <p class="qa-docs-link">
-            <a
-              href="https://github.com/Alex0nder/MailAgent/blob/main/docs/QA.md"
-              rel="noopener noreferrer"
-              >Read the QA guide</a
-            >
-            — labels, callbacks, CI env, Mailosaur comparison.
+            <a href="/docs/qa.html">Read the QA guide</a>
+            — labels, callbacks, CI env, Playwright flow.
           </p>
         </div>
       </section>
@@ -456,6 +489,12 @@
 <span class="t-cm"># → verification.otp, verification.primaryLink</span></code></pre>
             </div>
           </div>
+          <p class="qa-docs-link">
+            Full reference:
+            <a href="/docs/">API docs</a>
+            ·
+            <a href="https://api.webmailagent.com/v1/openapi.json" rel="noopener noreferrer">OpenAPI</a>
+          </p>
         </div>
       </section>
 
@@ -464,12 +503,23 @@
         <div class="cta-inner">
           <h2>Give your agent or test suite an inbox</h2>
           <p>
-            Deploy to Cloudflare, connect Resend inbound — MCP for Cursor,
-            <code>@mailagent/qa</code> for Playwright, REST for everything else.
+            <strong>Open source:</strong> clone and deploy in minutes.
+            <strong>Hosted API:</strong> optional — email us for a key on the shared
+            endpoint.
           </p>
           <div class="cta-buttons">
-            <a class="btn btn-primary" href="#docs">View API example</a>
-            <a class="btn btn-outline" href="#qa">QA guide</a>
+            <a
+              class="btn btn-primary"
+              href="https://github.com/Alex0nder/MailAgent"
+              rel="noopener noreferrer"
+              >Star on GitHub</a
+            >
+            <a class="btn btn-outline" href="/docs/">API docs</a>
+            <a
+              class="btn btn-outline"
+              href="mailto:hello@webmailagent.com?subject=MailAgent%20hosted%20API%20key"
+              >Hosted API key</a
+            >
           </div>
         </div>
       </section>
@@ -487,18 +537,32 @@
           </ul>
         </div>
         <div class="footer-col">
-          <h4>Developers</h4>
+          <h4>Open source</h4>
           <ul>
-            <li><a href="#docs">API</a></li>
             <li>
-              <a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/QA.md" rel="noopener noreferrer"
-                >QA docs</a
+              <a href="https://github.com/Alex0nder/MailAgent" rel="noopener noreferrer"
+                >GitHub</a
               >
             </li>
+            <li><a href="#open-source">Self-host</a></li>
+            <li><a href="/docs/">API docs</a></li>
+            <li><a href="/docs/qa.html">QA guide</a></li>
             <li>
-              <a href="https://github.com/Alex0nder/MailAgent" rel="noopener noreferrer">GitHub</a>
+              <a href="https://api.webmailagent.com/v1/openapi.json" rel="noopener noreferrer"
+                >OpenAPI</a
+              >
             </li>
-            <li><a href="#get-started">Get started</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <ul>
+            <li>
+              <a href="mailto:hello@webmailagent.com?subject=MailAgent%20pilot%20access"
+                >hello@webmailagent.com</a
+              >
+            </li>
+            <li><a href="#get-started">Pilot access</a></li>
           </ul>
         </div>
         <div class="footer-col">
@@ -518,52 +582,12 @@
           </ul>
         </div>
       </div>
-      <p class="footer-bottom">© MailAgent. Email verification for agents and QA automation.</p>
+      <p class="footer-bottom">
+        © MailAgent. Open-source email verification for agents and QA.
+        <a href="https://github.com/Alex0nder/MailAgent" rel="noopener noreferrer">Source</a>
+      </p>
     </footer>
 
-    <script>
-      // Minimal tab switcher for hero code panel
-      (function () {
-        const panel = document.querySelector(".hero .code-panel");
-        if (!panel) return;
-        const tabs = panel.querySelectorAll(".code-tab");
-        const pre = panel.querySelector("pre code");
-        const samples = {
-          MCP: `<span class="t-cm">// mailagent_wait_and_extract — one shot</span>
-<span class="t-kw">await</span> <span class="t-fn">mailagent_wait_and_extract</span>({
-  <span class="t-key">service</span>: <span class="t-str">"github"</span>,
-  <span class="t-key">timeoutSeconds</span>: <span class="t-str">90</span>,
-  <span class="t-key">deleteAfter</span>: <span class="t-str">true</span>,
-});
-
-<span class="t-cm">// → { address, verification: { otp, links } }</span>`,
-          API: `<span class="t-fn">POST</span> /v1/inboxes
-{ <span class="t-key">"service"</span>: <span class="t-str">"github"</span>, <span class="t-key">"ttlMinutes"</span>: <span class="t-str">15</span> }
-
-<span class="t-fn">GET</span> /v1/inboxes/:id/extract
-<span class="t-cm">// → { otp, links }</span>`,
-          Playwright: `<span class="t-kw">import</span> { createMailAgentQa } <span class="t-kw">from</span> <span class="t-str">"@mailagent/qa"</span>;
-
-<span class="t-kw">const</span> mail = <span class="t-fn">createMailAgentQa</span>();
-<span class="t-kw">const</span> { address, id } = <span class="t-kw">await</span> mail.<span class="t-fn">createInbox</span>({
-  <span class="t-key">label</span>: <span class="t-str">"pw-0-signup"</span>,
-});
-<span class="t-cm">// page.fill email → mail.waitForVerification(id)</span>`,
-          CLI: `<span class="t-fn">node</span> mcp/dist/cli.js open \\
-  --service github --json
-
-<span class="t-cm"># stdout: inbox + verification</span>`,
-        };
-        tabs.forEach((tab) => {
-          tab.style.cursor = "pointer";
-          tab.addEventListener("click", () => {
-            tabs.forEach((t) => t.classList.remove("active"));
-            tab.classList.add("active");
-            const label = tab.textContent.trim();
-            if (samples[label] && pre) pre.innerHTML = samples[label];
-          });
-        });
-      })();
-    </script>
+    <script src="/site.js" defer></script>
   </body>
 </html>
