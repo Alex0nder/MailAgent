@@ -49,12 +49,39 @@
         let html = `<p><strong>Plan:</strong> ${me.plan ?? "?"}</p>`;
         html += `<p>Active inboxes: ${me.usage?.activeInboxes ?? "?"} / ${me.limits?.maxActiveInboxes ?? "?"}</p>`;
         html += `<p>Rate limit: ${me.limits?.rateLimitPerMinute ?? "?"} req/min</p>`;
-        if (me.teamId) html += `<p>Team: <code>${me.teamId}</code></p>`;
+        if (me.teamId) {
+          html += `<p>Team: <code>${me.teamId}</code></p>`;
+          const team = await fetch(`${base}/v1/team`, { headers }).then((r) => r.json());
+          if (team.keys) {
+            html += `<h3>Team keys</h3><ul>`;
+            for (const k of team.keys) {
+              html += `<li><code>${k.hint}</code> ${k.label || ""}${k.current ? " (you)" : ""}</li>`;
+            }
+            html += `</ul>`;
+            html += `<button class="pro" id="invite">Create key (invite)</button>`;
+          }
+        }
         html += `<pre>${JSON.stringify({ me, stats }, null, 2)}</pre>`;
         if (me.plan === "free" && me.billing?.stripeEnabled) {
           html += `<button class="pro" id="upgrade">Upgrade to Pro</button>`;
         }
         out.innerHTML = html;
+        const invite = document.getElementById("invite");
+        if (invite) {
+          invite.onclick = async () => {
+            const label = prompt("Label for new key (optional):") || undefined;
+            const r = await fetch(`${base}/v1/team/keys`, {
+              method: "POST",
+              headers: { ...headers, "Content-Type": "application/json" },
+              body: JSON.stringify({ label }),
+            });
+            const d = await r.json();
+            if (d.key) {
+              prompt("Copy this key (shown once):", d.key);
+              load();
+            } else alert(d.error || "Failed");
+          };
+        }
         const up = document.getElementById("upgrade");
         if (up) {
           up.onclick = async () => {

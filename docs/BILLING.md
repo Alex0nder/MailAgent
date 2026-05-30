@@ -1,4 +1,37 @@
-# Billing (Stripe Pro)
+# Billing
+
+## Без Stripe (сейчас)
+
+Stripe **не нужен**. Секреты `STRIPE_*` не задавайте — billing просто выключен.
+
+**Вариант A — один hosted-ключ (проще всего):**
+
+```bash
+npm run issue:key
+npx wrangler secret put API_KEY   # или API_KEYS
+```
+
+План **legacy**: 120 req/min, до 500 активных inbox.
+
+**Вариант B — ключ в Neon (free, для пилотов с `team_id`):**
+
+```bash
+npm run issue:key:db -- pilot-name
+```
+
+План **free**: 60 req/min, 10 inbox. Pro вручную:
+
+```bash
+npm run team:plan -- TEAM_ID pro
+```
+
+`team_id` виден в `GET /v1/me` или в выводе `issue:key:db`.
+
+Dashboard и API работают без кнопки Upgrade.
+
+---
+
+## Stripe Pro (когда появится)
 
 ## Планы
 

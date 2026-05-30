@@ -9,6 +9,7 @@
     "smoke:prod": "node scripts/smoke-prod.mjs",
     "issue:key": "node scripts/issue-api-key.mjs",
     "issue:key:db": "node scripts/issue-api-key.mjs --register",
+    "team:plan": "node scripts/set-team-plan.mjs",
     "setup:check": "node scripts/setup-check.mjs",
     "deploy": "wrangler deploy",
     "check": "tsc --noEmit",

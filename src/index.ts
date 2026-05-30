@@ -10,6 +10,7 @@ import { inboxRoutes } from "./routes/inboxes";
 import { statsRoutes } from "./routes/stats";
 import { meRoutes } from "./routes/me";
 import { billingRoutes } from "./routes/billing";
+import { teamRoutes } from "./routes/team";
 import { webhookRoutes } from "./routes/webhooks";
 import { purgeExpired } from "./services/inbox";
 
@@ -27,6 +28,7 @@ app.route("/v1/inboxes", inboxRoutes);
 app.route("/v1/stats", statsRoutes);
 app.route("/v1/me", meRoutes);
 app.route("/v1/billing", billingRoutes);
+app.route("/v1/team", teamRoutes);
 
 app.notFound((c) => c.json({ error: "not_found" }, 404));
 

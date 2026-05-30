@@ -263,6 +263,23 @@ export async function countActiveInboxesForHint(
   return rows[0]?.n ?? 0;
 }
 
+/** Квота inbox на всю команду (все key_hint команды) */
+export async function countActiveInboxesForTeam(
+  env: Env,
+  teamId: string
+): Promise<number> {
+  const sql = getDb(env);
+  const rows = (await sql`
+    SELECT COUNT(*)::int AS n
+    FROM inboxes
+    WHERE expires_at > NOW()
+      AND api_key_hint IN (
+        SELECT key_hint FROM api_keys WHERE team_id = ${teamId}
+      )
+  `) as { n: number }[];
+  return rows[0]?.n ?? 0;
+}
+
 export async function purgeExpired(env: Env): Promise<{ inboxes: number }> {
   const sql = getDb(env);
   const deleted = await sql`

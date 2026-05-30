@@ -117,3 +117,78 @@ export async function findTeamByStripeSubscription(
   `) as { id: string }[];
   return rows[0] ?? null;
 }
+
+export interface TeamRow {
+  id: string;
+  name: string;
+  plan: string;
+  created_at: string;
+}
+
+export interface TeamKeyRow {
+  id: string;
+  key_hint: string;
+  label: string | null;
+  created_at: string;
+}
+
+export async function getTeam(
+  env: Env,
+  teamId: string
+): Promise<TeamRow | null> {
+  const sql = getDb(env);
+  const rows = (await sql`
+    SELECT id, name, plan, created_at FROM teams WHERE id = ${teamId} LIMIT 1
+  `) as TeamRow[];
+  return rows[0] ?? null;
+}
+
+export async function listTeamKeys(
+  env: Env,
+  teamId: string
+): Promise<TeamKeyRow[]> {
+  const sql = getDb(env);
+  return (await sql`
+    SELECT id, key_hint, label, created_at
+    FROM api_keys
+    WHERE team_id = ${teamId}
+    ORDER BY created_at ASC
+  `) as TeamKeyRow[];
+}
+
+export async function addTeamKey(
+  env: Env,
+  teamId: string,
+  input: { token: string; label?: string }
+): Promise<{ apiKeyId: string; hint: string }> {
+  const sql = getDb(env);
+  const apiKeyId = nanoid(10);
+  const hash = await apiKeyHashFromToken(input.token);
+  const hint = await apiKeyHintFromToken(input.token);
+  await sql`
+    INSERT INTO api_keys (id, team_id, key_hash, key_hint, label)
+    VALUES (${apiKeyId}, ${teamId}, ${hash}, ${hint}, ${input.label ?? null})
+  `;
+  return { apiKeyId, hint };
+}
+
+export async function revokeTeamKey(
+  env: Env,
+  teamId: string,
+  apiKeyId: string
+): Promise<boolean> {
+  const keys = await listTeamKeys(env, teamId);
+  if (keys.length <= 1) return false;
+  const sql = getDb(env);
+  const rows = await sql`
+    DELETE FROM api_keys
+    WHERE id = ${apiKeyId} AND team_id = ${teamId}
+    RETURNING id
+  `;
+  return rows.length > 0;
+}
+
+export async function countTeamKeys(env: Env, teamId: string): Promise<number> {
+  const keys = await listTeamKeys(env, teamId);
+  return keys.length;
+}

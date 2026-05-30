@@ -8,6 +8,7 @@ import { resolveExpectFrom } from "../lib/service-presets";
 import { listCallbackDeliveries } from "../services/callback-log";
 import {
   countActiveInboxesForHint,
+  countActiveInboxesForTeam,
   createInbox,
   deleteInbox,
   getInbox,
@@ -300,7 +301,10 @@ function formatInbox(inbox: InboxRow) {
 async function checkInboxQuota(
   c: import("hono").Context<{ Bindings: Env; Variables: ApiVariables }>
 ) {
-  const active = await countActiveInboxesForHint(c.env, c.get("apiKeyHint"));
+  const teamId = c.get("teamId");
+  const active = teamId
+    ? await countActiveInboxesForTeam(c.env, teamId)
+    : await countActiveInboxesForHint(c.env, c.get("apiKeyHint"));
   const max = c.get("maxActiveInboxes");
   if (active >= max) {
     return c.json(

@@ -1,32 +1,25 @@
 # MailAgent roadmap
 
-Текущий статус: **v0.3.0** — Phase 3 в работе.
+Текущий статус: **v0.3.0**
 
-## v0.2 ✅
-
-OpenAPI, callback log, rate limits, `api_key_hint`, debug UI.
-
-## Phase 3 — Growth
+## Phase 3 ✅ (без Stripe)
 
 | Задача | Статус |
 |--------|--------|
-| Планы free / pro + лимиты inbox | ✅ |
-| Ключи в Neon (`teams`, `api_keys`) | ✅ `npm run issue:key:db` |
-| `GET /v1/me` + `/dashboard.html` | ✅ |
-| Stripe Checkout + webhook | ✅ (нужны секреты) |
-| Пресеты (Figma, Notion, Linear, …) | ✅ |
-| Custom domain wizard | ✅ `/docs/custom-domain.html` |
-| npm publish `@mailagent/qa` | ⏳ |
-| Team admin (несколько ключей / invite) | 📋 |
+| Планы + лимиты | ✅ |
+| `GET /v1/me`, dashboard | ✅ |
+| Team admin (`/v1/team`, invite) | ✅ |
+| `team:plan` без Stripe | ✅ |
+| Пресеты, custom domain docs | ✅ |
+| Stripe | опционально позже |
+| npm publish `@mailagent/qa` | ⏳ `npm run publish:qa` |
 
-## Phase 1 хвост
+## Дальше
 
-| `npm run publish:qa` | ⏳ npm login |
-
-## Не делаем
-
-- Browser extension, webmail UI, marketing send.
+- npm publish `@mailagent/qa`
+- OpenAPI: paths `/v1/team`
+- Больше presets по запросу
 
 ## Фичи
 
-GitHub issue или hello@webmailagent.com.
+GitHub / hello@webmailagent.com

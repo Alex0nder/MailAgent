@@ -5,7 +5,7 @@ import type { ApiVariables } from "../lib/api-context";
 import { requireApiKey } from "../lib/auth";
 import { rateLimit } from "../lib/rate-limit";
 import { PLAN_LIMITS } from "../lib/plans";
-import { countActiveInboxesForHint } from "../services/inbox";
+import { countActiveInboxesForHint, countActiveInboxesForTeam } from "../services/inbox";
 
 export const meRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
 
@@ -15,8 +15,11 @@ meRoutes.use("*", rateLimit);
 meRoutes.get("/", async (c) => {
   const hint = c.get("apiKeyHint");
   const plan = c.get("apiPlan");
+  const teamId = c.get("teamId");
   const limits = PLAN_LIMITS[plan];
-  const activeInboxes = await countActiveInboxesForHint(c.env, hint);
+  const activeInboxes = teamId
+    ? await countActiveInboxesForTeam(c.env, teamId)
+    : await countActiveInboxesForHint(c.env, hint);
 
   return c.json({
     plan,
