@@ -1,6 +1,7 @@
 # MailAgent
 
 Временные inbox для **AI-агентов** и **QA/E2E**: webhook → очередь → Neon, SSE, OTP/magic link.  
+**Свой агент без нашего API:** [docs/INTEGRATE.md](./docs/INTEGRATE.md) — self-host, MCP, REST.  
 **Тестировщикам:** [docs/QA.md](./docs/QA.md) — label, subjectContains, callback, Playwright.
 
 **Лендинг + API** на одном Cloudflare Worker (`public/` + `/v1`).  
