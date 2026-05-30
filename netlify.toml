@@ -1,0 +1,4 @@
+# Netlify: только статический лендинг из public/ (без сборки Worker/MCP)
+[build]
+  publish = "public"
+  command = ""
