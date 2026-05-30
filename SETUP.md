@@ -67,13 +67,23 @@ npm run deploy
 
 Лендинг: **webmailagent.com** (Netlify). API: **api.webmailagent.com** (Worker).
 
-В **Cloudflare DNS** (зона `webmailagent.com`):
+**Не делайте** CNAME `api` → `*.workers.dev` — будет **522**.
 
-| Тип | Name | Content | Proxy |
-|-----|------|---------|-------|
-| CNAME | `api` | `mailagent.alex-young33rd.workers.dev` | DNS only |
+Правильно (один из способов):
 
-После `npm run deploy` и проверки:
+**A) Через Dashboard (проще)**  
+1. **Workers & Pages** → Worker `mailagent` → **Settings** → **Domains & Routes**  
+2. **Add** → **Custom domain** → `api.webmailagent.com`  
+3. Cloudflare сам создаст/обновит DNS-запись  
+4. Удалите старый CNAME на `workers.dev`, если есть  
+
+**B) Через CLI**  
+```bash
+npm run deploy
+npx wrangler domains add api.webmailagent.com
+```
+
+После деплоя и проверки:
 
 ```bash
 curl https://api.webmailagent.com/health
