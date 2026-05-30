@@ -42,10 +42,50 @@ ADDRESS=$(echo "$RESULT" | jq -r '.address')
 # curl "$MAILAGENT_API_URL/v1/inboxes/$INBOX_ID/wait?timeout=120&subjectContains=code"
 ```
 
-## Playwright (пример)
+## Playwright (`@mailagent/qa`)
+
+```bash
+npm run build:qa   # в репозитории MailAgent
+# в проекте тестов:
+npm install file:../MailAgent/packages/mailagent-qa
+```
 
 ```typescript
-// tests/helpers/mailagent.ts
+import { test, expect } from "@playwright/test";
+import { createMailAgentQa, MailAgentQa } from "@mailagent/qa";
+
+const mail = createMailAgentQa();
+
+test("signup with email verify", async ({ page }) => {
+  const inbox = await mail.createInbox({
+    label: MailAgentQa.runLabel("signup"),
+    service: "auth0",
+  });
+
+  await page.goto("/signup");
+  await page.fill('[name=email]', inbox.address);
+  await page.click('button[type=submit]');
+
+  const verification = await mail.waitForVerification(inbox.id, {
+    subjectContains: "verify",
+    timeoutSeconds: 120,
+  });
+
+  if (verification.otp) {
+    await page.fill('[name=code]', verification.otp);
+    await page.click('button[type=submit]');
+  }
+
+  await mail.deleteInbox(inbox.id);
+});
+```
+
+Полный пример: [examples/playwright/signup-email.spec.example.ts](../examples/playwright/signup-email.spec.example.ts).
+
+### Playwright (сырой fetch, без пакета)
+
+```typescript
+// tests/helpers/mailagent.ts — если не ставите @mailagent/qa
 const API = process.env.MAILAGENT_API_URL!;
 const KEY = process.env.MAILAGENT_API_KEY!;
 
@@ -75,18 +115,17 @@ export async function openTestInbox(opts: {
   }>;
 }
 
-// test
-test("signup with email verify", async ({ page }) => {
+// legacy one-shot (open до submit — только если API ждёт после create)
+test("signup with email verify (one-shot)", async ({ page }) => {
   const label = `pw-${test.info().parallelIndex}-${Date.now()}`;
-  const inboxPromise = openTestInbox({ label, subjectContains: "verify" });
 
   await page.goto("/signup");
-  const { address } = await inboxPromise; // или create отдельно, потом submit, потом wait
+  const { address } = await openTestInbox({ label, subjectContains: "verify" });
 
   await page.fill('[name=email]', address);
   await page.click('button[type=submit]');
 
-  const { verification } = await openTestInbox({ label }); // лучше: create → submit → GET wait
+  const { verification } = await openTestInbox({ label }); // предпочитайте create → submit → wait
   if (verification.otp) {
     await page.fill('[name=code]', verification.otp);
   }

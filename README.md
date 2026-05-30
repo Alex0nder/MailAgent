@@ -123,6 +123,7 @@ curl -N "https://.../v1/inboxes/<id>/events" \
 
 ```bash
 npm run build:mcp
+npm run build:qa   # пакет @mailagent/qa для Playwright
 ```
 
 В `.env` добавьте (см. `.env.example`):
@@ -170,7 +171,8 @@ Skill для агента: [`.cursor/skills/mailagent-mcp/SKILL.md`](.cursor/ski
 
 ### CLI (терминал / CI)
 
-После `npm run build:mcp`:
+После `npm run build:mcp
+npm run build:qa   # пакет @mailagent/qa для Playwright`:
 
 ```bash
 # один шаг: ящик + ждать OTP (service=dribbble)

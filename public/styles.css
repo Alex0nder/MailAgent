@@ -722,3 +722,55 @@ section {
   font-size: 13px;
   color: var(--text-dim);
 }
+
+/* —— QA section —— */
+.qa-section {
+  background: linear-gradient(180deg, rgba(99, 102, 241, 0.06) 0%, transparent 48%);
+}
+
+.qa-pain-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.qa-pain-card {
+  padding: 20px 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.qa-pain-card h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.qa-pain-card p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.qa-code-panel {
+  margin-bottom: 20px;
+}
+
+.qa-docs-link {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
+.qa-docs-link a {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.compare-table th:nth-child(3),
+.compare-table td:nth-child(3) {
+  color: var(--text-muted);
+}

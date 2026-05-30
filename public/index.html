@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>MailAgent — Email verification for AI agents</title>
+    <title>MailAgent — Email verification for agents &amp; QA</title>
     <meta
       name="description"
-      content="Temporary inboxes with MCP tools, SSE wait, and OTP extraction for Cursor agents and CI signup flows."
+      content="Temporary inboxes, OTP and magic links for AI agents (MCP), Playwright E2E, and CI signup flows — API-first, not a browser burner."
     />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
@@ -33,6 +33,7 @@
         </a>
         <nav class="nav-links">
           <a href="#features">Features</a>
+          <a href="#qa">QA</a>
           <a href="#mcp">MCP</a>
           <a href="#how">How it works</a>
           <a href="https://github.com/Alex0nder/MailAgent" rel="noopener noreferrer">GitHub</a>
@@ -51,22 +52,24 @@
           <div class="hero-copy">
             <div class="pill">
               <span class="pill-dot"></span>
-              Built for Cursor &amp; autonomous agents
+              Agents, Playwright &amp; CI
             </div>
-            <h1>Email verification API for agents</h1>
+            <h1>Email verification API for agents &amp; QA</h1>
             <p class="hero-lead">
-              Spin up a disposable inbox, wait for the OTP over SSE, extract magic
-              links — then delete. One MCP call from signup to verified.
+              Disposable inbox, SSE wait, OTP and magic links — one call from MCP,
+              REST, or <code>@mailagent/qa</code> in Playwright. No shared Mailosaur
+              inbox, no manual copy-paste.
             </p>
             <div class="hero-ctas">
               <a class="btn btn-primary" href="#get-started">Start building</a>
-              <a class="btn btn-outline" href="#mcp">View MCP tools</a>
+              <a class="btn btn-outline" href="#qa">For QA teams</a>
             </div>
           </div>
 
           <div class="code-panel" aria-label="Example MCP flow">
             <div class="code-tabs">
               <span class="code-tab active">MCP</span>
+              <span class="code-tab">Playwright</span>
               <span class="code-tab">API</span>
               <span class="code-tab">CLI</span>
             </div>
@@ -235,6 +238,73 @@
         </div>
       </section>
 
+      <section id="qa" class="qa-section">
+        <div class="section-inner">
+          <p class="section-label">For QA teams</p>
+          <h2 class="section-title">Stop fighting shared test inboxes</h2>
+          <p class="section-desc">
+            Each Playwright worker gets its own address. Filter by
+            <code>label</code>, narrow with <code>subjectContains</code>, optional
+            webhook when the letter lands — same API agents use.
+          </p>
+
+          <div class="qa-pain-grid">
+            <article class="qa-pain-card">
+              <h3>Parallel runs collide</h3>
+              <p>
+                <code>label=pw-0-…</code> per worker — list and debug inboxes for
+                one CI job without stepping on teammates.
+              </p>
+            </article>
+            <article class="qa-pain-card">
+              <h3>Wrong email in the pile</h3>
+              <p>
+                <code>subjectContains</code> and sender allowlists so you read the
+                signup OTP, not yesterday’s newsletter.
+              </p>
+            </article>
+            <article class="qa-pain-card">
+              <h3>Mailosaur bill &amp; lock-in</h3>
+              <p>
+                Self-hosted domain on Resend inbound. Pay for mail volume, not
+                per-seat QA SaaS — API you own.
+              </p>
+            </article>
+          </div>
+
+          <div class="code-panel qa-code-panel">
+            <div class="code-tabs">
+              <span class="code-tab active">Playwright</span>
+              <span class="code-tab">open (one-shot)</span>
+            </div>
+            <div class="code-body">
+              <pre><code><span class="t-kw">import</span> { createMailAgentQa, MailAgentQa } <span class="t-kw">from</span> <span class="t-str">"@mailagent/qa"</span>;
+
+<span class="t-kw">const</span> mail = <span class="t-fn">createMailAgentQa</span>();
+<span class="t-kw">const</span> { address, id } = <span class="t-kw">await</span> mail.<span class="t-fn">createInbox</span>({
+  <span class="t-key">label</span>: MailAgentQa.<span class="t-fn">runLabel</span>(<span class="t-str">"signup"</span>),
+  <span class="t-key">service</span>: <span class="t-str">"auth0"</span>,
+});
+
+<span class="t-cm">// … fill signup form with address …</span>
+
+<span class="t-kw">const</span> { otp } = <span class="t-kw">await</span> mail.<span class="t-fn">waitForVerification</span>(id, {
+  <span class="t-key">subjectContains</span>: <span class="t-str">"verify"</span>,
+});</code></pre>
+            </div>
+          </div>
+
+          <p class="qa-docs-link">
+            <a
+              href="https://github.com/Alex0nder/MailAgent/blob/main/docs/QA.md"
+              rel="noopener noreferrer"
+              >Read the QA guide</a
+            >
+            — labels, callbacks, CI env, Mailosaur comparison.
+          </p>
+        </div>
+      </section>
+
       <section id="mcp">
         <div class="section-inner">
           <p class="section-label">MCP</p>
@@ -317,6 +387,7 @@
               <tr>
                 <th></th>
                 <th>MailAgent</th>
+                <th>Mailosaur / QA SaaS</th>
                 <th>Typical burner mail</th>
               </tr>
             </thead>
@@ -324,26 +395,43 @@
               <tr>
                 <td>MCP / API-first</td>
                 <td class="compare-yes">Yes</td>
+                <td class="compare-yes">REST</td>
                 <td class="compare-muted">Browser UI</td>
               </tr>
               <tr>
                 <td>OTP + link extraction</td>
+                <td class="compare-yes">Built-in</td>
                 <td class="compare-yes">Built-in</td>
                 <td class="compare-muted">Manual</td>
               </tr>
               <tr>
                 <td>SSE wait</td>
                 <td class="compare-yes">Yes</td>
+                <td class="compare-muted">Poll</td>
                 <td class="compare-muted">—</td>
+              </tr>
+              <tr>
+                <td>Per-run isolated inbox</td>
+                <td class="compare-yes">label + API</td>
+                <td class="compare-yes">Yes</td>
+                <td class="compare-muted">Shared pool</td>
               </tr>
               <tr>
                 <td>Sender allowlist</td>
                 <td class="compare-yes">Yes</td>
+                <td class="compare-muted">Patterns</td>
                 <td class="compare-muted">Block in UI</td>
+              </tr>
+              <tr>
+                <td>Self-hosted domain</td>
+                <td class="compare-yes">Your Resend</td>
+                <td class="compare-muted">Their domain</td>
+                <td class="compare-muted">Their domain</td>
               </tr>
               <tr>
                 <td>Long-lived aliases</td>
                 <td class="compare-muted">TTL only</td>
+                <td class="compare-yes">Yes</td>
                 <td class="compare-yes">Yes</td>
               </tr>
             </tbody>
@@ -374,14 +462,14 @@
       <section class="cta-block" id="get-started">
         <div class="cta-glow" aria-hidden="true"></div>
         <div class="cta-inner">
-          <h2>Give your agent an inbox</h2>
+          <h2>Give your agent or test suite an inbox</h2>
           <p>
-            Deploy to Cloudflare, connect Resend inbound, add MCP to Cursor — and
-            run autonomous signups in minutes.
+            Deploy to Cloudflare, connect Resend inbound — MCP for Cursor,
+            <code>@mailagent/qa</code> for Playwright, REST for everything else.
           </p>
           <div class="cta-buttons">
             <a class="btn btn-primary" href="#docs">View API example</a>
-            <a class="btn btn-outline" href="#mcp">MCP tools</a>
+            <a class="btn btn-outline" href="#qa">QA guide</a>
           </div>
         </div>
       </section>
@@ -393,6 +481,7 @@
           <h4>Product</h4>
           <ul>
             <li><a href="#features">Features</a></li>
+            <li><a href="#qa">For QA</a></li>
             <li><a href="#mcp">MCP tools</a></li>
             <li><a href="#how">How it works</a></li>
           </ul>
@@ -401,6 +490,11 @@
           <h4>Developers</h4>
           <ul>
             <li><a href="#docs">API</a></li>
+            <li>
+              <a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/QA.md" rel="noopener noreferrer"
+                >QA docs</a
+              >
+            </li>
             <li>
               <a href="https://github.com/Alex0nder/MailAgent" rel="noopener noreferrer">GitHub</a>
             </li>
@@ -424,7 +518,7 @@
           </ul>
         </div>
       </div>
-      <p class="footer-bottom">© MailAgent. Email verification infrastructure for agents.</p>
+      <p class="footer-bottom">© MailAgent. Email verification for agents and QA automation.</p>
     </footer>
 
     <script>
@@ -448,6 +542,13 @@
 
 <span class="t-fn">GET</span> /v1/inboxes/:id/extract
 <span class="t-cm">// → { otp, links }</span>`,
+          Playwright: `<span class="t-kw">import</span> { createMailAgentQa } <span class="t-kw">from</span> <span class="t-str">"@mailagent/qa"</span>;
+
+<span class="t-kw">const</span> mail = <span class="t-fn">createMailAgentQa</span>();
+<span class="t-kw">const</span> { address, id } = <span class="t-kw">await</span> mail.<span class="t-fn">createInbox</span>({
+  <span class="t-key">label</span>: <span class="t-str">"pw-0-signup"</span>,
+});
+<span class="t-cm">// page.fill email → mail.waitForVerification(id)</span>`,
           CLI: `<span class="t-fn">node</span> mcp/dist/cli.js open \\
   --service github --json
 
