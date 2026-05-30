@@ -1,0 +1,38 @@
+# @mailagent/mcp
+
+MCP-сервер (stdio) для Cursor и других MCP-клиентов.
+
+## Cursor: рекомендации
+
+| Что | Рекомендация |
+|-----|----------------|
+| Протокол | [MCP](https://modelcontextprotocol.io) — открытый стандарт, Cursor = **клиент** |
+| SDK | `@modelcontextprotocol/sdk` + `zod` |
+| Транспорт для локального dev | **stdio** (Cursor запускает процесс) |
+| Конфиг | `.cursor/mcp.json` (проект) или `~/.cursor/mcp.json` (глобально) |
+| Секреты | `env` / `envFile` в mcp.json, не в чат |
+| Логи | только **stderr** |
+
+Документация Cursor: [Model Context Protocol](https://docs.cursor.com/context/model-context-protocol) (Settings → MCP → Add server).
+
+Отдельного «Cursor SDK для MCP» нет — пишете обычный MCP server, Cursor подключает его как subprocess.
+
+## Сборка
+
+```bash
+npm install
+npm run build
+```
+
+## Переменные
+
+- `MAILAGENT_API_URL` — base URL Worker (default `http://127.0.0.1:8787`)
+- `MAILAGENT_API_KEY` — Bearer token (= Worker `API_KEY`)
+
+## Локальный запуск (отладка)
+
+```bash
+MAILAGENT_API_URL=http://127.0.0.1:8787 MAILAGENT_API_KEY=xxx node dist/index.js
+```
+
+Процесс ждёт JSON-RPC на stdin; для теста используйте Cursor MCP logs.

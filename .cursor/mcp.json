@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "mailagent": {
+      "command": "node",
+      "args": ["mcp/dist/index.js"],
+      "envFile": ".env"
+    }
+  }
+}

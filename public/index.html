@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MailAgent — Email verification for AI agents</title>
+    <meta
+      name="description"
+      content="Temporary inboxes with MCP tools, SSE wait, and OTP extraction for Cursor agents and CI signup flows."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="nav">
+      <div class="nav-inner">
+        <a href="/" class="logo">
+          <span class="logo-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M4 6h16v12H4z" />
+              <path d="M4 6l8 7 8-7" />
+            </svg>
+          </span>
+          MailAgent
+        </a>
+        <nav class="nav-links">
+          <a href="#features">Features</a>
+          <a href="#mcp">MCP</a>
+          <a href="#how">How it works</a>
+          <a href="#docs">API</a>
+        </nav>
+        <div class="nav-actions">
+          <a class="btn btn-ghost" href="#docs">Docs</a>
+          <a class="btn btn-primary" href="#get-started">Get started</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-glow" aria-hidden="true"></div>
+        <div class="hero-inner">
+          <div class="hero-copy">
+            <div class="pill">
+              <span class="pill-dot"></span>
+              Built for Cursor &amp; autonomous agents
+            </div>
+            <h1>Email verification API for agents</h1>
+            <p class="hero-lead">
+              Spin up a disposable inbox, wait for the OTP over SSE, extract magic
+              links — then delete. One MCP call from signup to verified.
+            </p>
+            <div class="hero-ctas">
+              <a class="btn btn-primary" href="#get-started">Start building</a>
+              <a class="btn btn-outline" href="#mcp">View MCP tools</a>
+            </div>
+          </div>
+
+          <div class="code-panel" aria-label="Example MCP flow">
+            <div class="code-tabs">
+              <span class="code-tab active">MCP</span>
+              <span class="code-tab">API</span>
+              <span class="code-tab">CLI</span>
+            </div>
+            <div class="code-body">
+              <pre><code><span class="t-cm">// mailagent_wait_and_extract — one shot</span>
+<span class="t-kw">await</span> <span class="t-fn">mailagent_wait_and_extract</span>({
+  <span class="t-key">service</span>: <span class="t-str">"github"</span>,
+  <span class="t-key">timeoutSeconds</span>: <span class="t-str">90</span>,
+  <span class="t-key">deleteAfter</span>: <span class="t-str">true</span>,
+});
+
+<span class="t-cm">// → { address, verification: { otp, links } }</span></code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="stack-strip">
+        <div class="stack-inner">
+          <span class="stack-label">Runs on</span>
+          <span class="stack-item">Cloudflare Workers</span>
+          <span class="stack-item">Resend Inbound</span>
+          <span class="stack-item">Neon Postgres</span>
+          <span class="stack-item">Durable Objects (SSE)</span>
+          <span class="stack-item">Model Context Protocol</span>
+        </div>
+      </div>
+
+      <section id="features">
+        <div class="section-inner">
+          <p class="section-label">Features</p>
+          <h2 class="section-title">Everything an agent needs to verify email</h2>
+          <p class="section-desc">
+            Not a privacy burner for humans — programmatic inboxes with strict
+            sender allowlists and structured verification output.
+          </p>
+
+          <div class="features-grid">
+            <article class="feature-card">
+              <div class="feature-icon" aria-hidden="true">⚡</div>
+              <h3>SSE-first wait</h3>
+              <p>
+                Durable Object pushes new messages over
+                <code>/v1/inboxes/:id/events</code>. Poll fallback at 500ms when
+                needed.
+              </p>
+            </article>
+            <article class="feature-card">
+              <div class="feature-icon" aria-hidden="true">🔐</div>
+              <h3>Sender allowlist</h3>
+              <p>
+                <code>expectFrom</code> rejects unexpected senders. Presets for
+                GitHub, Stripe, Auth0, Google, Dribbble.
+              </p>
+            </article>
+            <article class="feature-card">
+              <div class="feature-icon" aria-hidden="true">🧩</div>
+              <h3>OTP + links</h3>
+              <p>
+                Verification codes and magic links parsed at ingest — ready for
+                your agent without reading raw MIME.
+              </p>
+            </article>
+            <article class="feature-card">
+              <div class="feature-icon" aria-hidden="true">📦</div>
+              <h3>Queue + idempotency</h3>
+              <p>
+                Webhook acks instantly; Resend events processed via Queues with
+                DLQ and deduped <code>provider_id</code>.
+              </p>
+            </article>
+            <article class="feature-card">
+              <div class="feature-icon" aria-hidden="true">⏱</div>
+              <h3>TTL inboxes</h3>
+              <p>
+                Short-lived addresses (default 30m). Hourly cron purge. Delete
+                after successful extract.
+              </p>
+            </article>
+            <article class="feature-card">
+              <div class="feature-icon" aria-hidden="true">🛠</div>
+              <h3>API + MCP + CLI</h3>
+              <p>
+                REST for backends, MCP tools for Cursor, JSON CLI for CI pipelines
+                — same flows everywhere.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="mcp">
+        <div class="section-inner">
+          <p class="section-label">MCP</p>
+          <h2 class="section-title">Tools your agent can call</h2>
+          <p class="section-desc">
+            Add <code>mailagent</code> to Cursor MCP. The agent creates inboxes,
+            waits, and returns structured verification — no inbox UI required.
+          </p>
+
+          <div class="tools-list">
+            <div class="tool-row">
+              <span class="tool-name">mailagent_wait_and_extract</span>
+              <span class="tool-desc">Create → wait (SSE) → OTP + links → delete</span>
+              <span class="tool-badge">Recommended</span>
+            </div>
+            <div class="tool-row">
+              <span class="tool-name">mailagent_create_inbox</span>
+              <span class="tool-desc">Temporary address with TTL and allowlist</span>
+            </div>
+            <div class="tool-row">
+              <span class="tool-name">mailagent_wait_for_message</span>
+              <span class="tool-desc">Block until first allowed email (up to 120s)</span>
+            </div>
+            <div class="tool-row">
+              <span class="tool-name">mailagent_extract_verification</span>
+              <span class="tool-desc">OTP and links from latest message</span>
+            </div>
+            <div class="tool-row">
+              <span class="tool-name">mailagent_delete_inbox</span>
+              <span class="tool-desc">Early cleanup after signup completes</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="how">
+        <div class="section-inner">
+          <p class="section-label">How it works</p>
+          <h2 class="section-title">Three steps to verified signup</h2>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">01</div>
+              <h3>Create inbox</h3>
+              <p>
+                Agent calls MCP or API. You get an address on your
+                <code>INBOX_DOMAIN</code> and an inbox id.
+              </p>
+            </div>
+            <div class="step">
+              <div class="step-num">02</div>
+              <h3>Submit on the service</h3>
+              <p>
+                Use the address on GitHub, Stripe, Auth0, etc. Resend inbound
+                webhook enqueues the message.
+              </p>
+            </div>
+            <div class="step">
+              <div class="step-num">03</div>
+              <h3>Extract &amp; continue</h3>
+              <p>
+                SSE delivers the event; OTP and links return to the agent. Inbox
+                deleted. Flow complete.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="compare">
+        <div class="section-inner">
+          <p class="section-label">Positioning</p>
+          <h2 class="section-title">Agents, not burner extensions</h2>
+          <p class="section-desc">
+            Consumer burner mail protects your personal inbox. MailAgent automates
+            verification for code.
+          </p>
+
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>MailAgent</th>
+                <th>Typical burner mail</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>MCP / API-first</td>
+                <td class="compare-yes">Yes</td>
+                <td class="compare-muted">Browser UI</td>
+              </tr>
+              <tr>
+                <td>OTP + link extraction</td>
+                <td class="compare-yes">Built-in</td>
+                <td class="compare-muted">Manual</td>
+              </tr>
+              <tr>
+                <td>SSE wait</td>
+                <td class="compare-yes">Yes</td>
+                <td class="compare-muted">—</td>
+              </tr>
+              <tr>
+                <td>Sender allowlist</td>
+                <td class="compare-yes">Yes</td>
+                <td class="compare-muted">Block in UI</td>
+              </tr>
+              <tr>
+                <td>Long-lived aliases</td>
+                <td class="compare-muted">TTL only</td>
+                <td class="compare-yes">Yes</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="docs">
+        <div class="section-inner">
+          <p class="section-label">API</p>
+          <h2 class="section-title">Simple REST, Bearer auth</h2>
+          <div class="code-panel">
+            <div class="code-tabs">
+              <span class="code-tab active">curl</span>
+            </div>
+            <div class="code-body">
+              <pre><code><span class="t-fn">curl</span> -X POST https://mailagent.workers.dev/v1/inboxes \
+  -H <span class="t-str">"Authorization: Bearer $API_KEY"</span> \
+  -H <span class="t-str">"Content-Type: application/json"</span> \
+  -d <span class="t-str">'{"service":"stripe","ttlMinutes":15}'</span>
+
+<span class="t-cm"># Wait via SSE</span>
+<span class="t-fn">curl</span> -N .../v1/inboxes/&lt;id&gt;/events \
+  -H <span class="t-str">"Authorization: Bearer $API_KEY"</span></code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="cta-block" id="get-started">
+        <div class="cta-glow" aria-hidden="true"></div>
+        <div class="cta-inner">
+          <h2>Give your agent an inbox</h2>
+          <p>
+            Deploy to Cloudflare, connect Resend inbound, add MCP to Cursor — and
+            run autonomous signups in minutes.
+          </p>
+          <div class="cta-buttons">
+            <a class="btn btn-primary" href="#docs">View API example</a>
+            <a class="btn btn-outline" href="#mcp">MCP tools</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-col">
+          <h4>Product</h4>
+          <ul>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#mcp">MCP tools</a></li>
+            <li><a href="#how">How it works</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Developers</h4>
+          <ul>
+            <li><a href="#docs">API</a></li>
+            <li><a href="#get-started">Get started</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Stack</h4>
+          <ul>
+            <li>
+              <a href="https://resend.com" rel="noopener noreferrer">Resend</a>
+            </li>
+            <li>
+              <a href="https://developers.cloudflare.com/workers/" rel="noopener noreferrer"
+                >Cloudflare Workers</a
+              >
+            </li>
+            <li>
+              <a href="https://modelcontextprotocol.io" rel="noopener noreferrer">MCP</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <p class="footer-bottom">© MailAgent. Email verification infrastructure for agents.</p>
+    </footer>
+
+    <script>
+      // Minimal tab switcher for hero code panel
+      (function () {
+        const panel = document.querySelector(".hero .code-panel");
+        if (!panel) return;
+        const tabs = panel.querySelectorAll(".code-tab");
+        const pre = panel.querySelector("pre code");
+        const samples = {
+          MCP: `<span class="t-cm">// mailagent_wait_and_extract — one shot</span>
+<span class="t-kw">await</span> <span class="t-fn">mailagent_wait_and_extract</span>({
+  <span class="t-key">service</span>: <span class="t-str">"github"</span>,
+  <span class="t-key">timeoutSeconds</span>: <span class="t-str">90</span>,
+  <span class="t-key">deleteAfter</span>: <span class="t-str">true</span>,
+});
+
+<span class="t-cm">// → { address, verification: { otp, links } }</span>`,
+          API: `<span class="t-fn">POST</span> /v1/inboxes
+{ <span class="t-key">"service"</span>: <span class="t-str">"github"</span>, <span class="t-key">"ttlMinutes"</span>: <span class="t-str">15</span> }
+
+<span class="t-fn">GET</span> /v1/inboxes/:id/extract
+<span class="t-cm">// → { otp, links }</span>`,
+          CLI: `<span class="t-fn">node</span> mcp/dist/cli.js open \\
+  --service github --json
+
+<span class="t-cm"># stdout: inbox + verification</span>`,
+        };
+        tabs.forEach((tab) => {
+          tab.style.cursor = "pointer";
+          tab.addEventListener("click", () => {
+            tabs.forEach((t) => t.classList.remove("active"));
+            tab.classList.add("active");
+            const label = tab.textContent.trim();
+            if (samples[label] && pre) pre.innerHTML = samples[label];
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>

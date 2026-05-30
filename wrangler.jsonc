@@ -1,0 +1,49 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "mailagent",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-01-15",
+  "compatibility_flags": ["nodejs_compat_v2"],
+  "vars": {
+    "DEFAULT_TTL_MINUTES": "30"
+  },
+  "queues": {
+    "producers": [
+      {
+        "binding": "MAIL_QUEUE",
+        "queue": "mailagent-email"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "mailagent-email",
+        "max_batch_size": 5,
+        "max_batch_timeout": 2,
+        "max_retries": 5,
+        "dead_letter_queue": "mailagent-email-dlq"
+      }
+    ]
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "INBOX_WAIT",
+        "class_name": "InboxWait"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["InboxWait"]
+    }
+  ],
+  "triggers": {
+    "crons": ["0 * * * *"]
+  },
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/v1/*", "/webhooks/*", "/health"]
+  }
+}

@@ -1,0 +1,223 @@
+#!/usr/bin/env node
+/**
+ * MailAgent MCP server для Cursor (stdio).
+ * Официальный SDK: https://github.com/modelcontextprotocol/typescript-sdk
+ * Логи только в stderr — stdout занят JSON-RPC.
+ */
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { z } from "zod";
+import { MailAgentClient } from "./client.js";
+import { SERVICE_NAMES } from "./service-presets.js";
+
+function toolText(data: unknown) {
+  return {
+    content: [
+      {
+        type: "text" as const,
+        text: JSON.stringify(data, null, 2),
+      },
+    ],
+  };
+}
+
+const server = new McpServer({
+  name: "mailagent",
+  version: "0.1.0",
+});
+
+server.registerTool(
+  "mailagent_create_inbox",
+  {
+    description:
+      "Create a temporary email inbox for agent workflows (signups, OTP, magic links). Returns inbox id and email address to use on external forms.",
+    inputSchema: {
+      ttlMinutes: z
+        .number()
+        .int()
+        .min(5)
+        .max(1440)
+        .optional()
+        .describe("Inbox lifetime in minutes (default from server, usually 30)"),
+      expectFrom: z
+        .union([z.string(), z.array(z.string())])
+        .optional()
+        .describe(
+          "Allowed sender(s): full email (noreply@service.com) or domain (service.com). Rejects other From addresses."
+        ),
+      allowedSenders: z
+        .union([z.string(), z.array(z.string())])
+        .optional()
+        .describe("Alias for expectFrom when multiple explicit senders are needed"),
+      service: z
+        .enum(SERVICE_NAMES)
+        .optional()
+        .describe(
+          `Preset expectFrom (${SERVICE_NAMES.join(", ")}). Example: dribbble → dribbble.com + m.dribbble.com`
+        ),
+    },
+  },
+  async ({ ttlMinutes, expectFrom, allowedSenders, service }) => {
+    const client = new MailAgentClient();
+    const inbox = await client.createInbox({
+      ttlMinutes,
+      service,
+      expectFrom,
+      allowedSenders,
+    });
+    return toolText({
+      ...inbox,
+      hint: "Use address on the signup form, then mailagent_wait_and_extract or wait + extract.",
+    });
+  }
+);
+
+const senderSchema = z
+  .union([z.string(), z.array(z.string())])
+  .optional()
+  .describe("Allowed sender email or domain (see mailagent_create_inbox)");
+
+server.registerTool(
+  "mailagent_wait_and_extract",
+  {
+    description:
+      "One-shot agent flow: optionally create inbox, wait via SSE for first allowed email, return OTP + links, delete inbox by default. Use service=dribbble for Dribbble signup.",
+    inputSchema: {
+      inboxId: z
+        .string()
+        .optional()
+        .describe("Existing inbox; if omitted, a new inbox is created"),
+      ttlMinutes: z.number().int().min(5).max(1440).optional(),
+      service: z
+        .enum(SERVICE_NAMES)
+        .optional()
+        .describe("Preset expectFrom (dribbble, github, …)"),
+      expectFrom: senderSchema,
+      allowedSenders: senderSchema,
+      timeoutSeconds: z
+        .number()
+        .int()
+        .min(5)
+        .max(120)
+        .optional()
+        .describe("Max wait (default 90, uses SSE then poll)"),
+      deleteAfter: z
+        .boolean()
+        .optional()
+        .describe("Delete inbox after success (default true)"),
+    },
+  },
+  async (args) => {
+    const client = new MailAgentClient();
+    const result = await client.waitAndExtract(args);
+    return toolText(result);
+  }
+);
+
+server.registerTool(
+  "mailagent_wait_for_message",
+  {
+    description:
+      "Block until the first email arrives (SSE, fallback poll). Use after submitting a form to the inbox address.",
+    inputSchema: {
+      inboxId: z.string().describe("Inbox id from mailagent_create_inbox"),
+      timeoutSeconds: z
+        .number()
+        .int()
+        .min(5)
+        .max(120)
+        .optional()
+        .describe("Max wait time in seconds (default 90)"),
+    },
+  },
+  async ({ inboxId, timeoutSeconds }) => {
+    const client = new MailAgentClient();
+    const result = await client.waitForMessage(
+      inboxId,
+      timeoutSeconds ?? 90
+    );
+    if ("error" in result && result.error === "timeout") {
+      return toolText({
+        error: "timeout",
+        inboxId,
+        hint: "No email yet. Retry with a longer timeout or check the sender used the correct address.",
+      });
+    }
+    return toolText(result);
+  }
+);
+
+server.registerTool(
+  "mailagent_list_messages",
+  {
+    description: "List all messages received for an inbox (newest first).",
+    inputSchema: {
+      inboxId: z.string().describe("Inbox id"),
+    },
+  },
+  async ({ inboxId }) => {
+    const client = new MailAgentClient();
+    return toolText(await client.listMessages(inboxId));
+  }
+);
+
+server.registerTool(
+  "mailagent_extract_verification",
+  {
+    description:
+      "Get OTP code and links from the latest email in the inbox (pre-parsed at ingest). Best after a message arrived.",
+    inputSchema: {
+      inboxId: z.string().describe("Inbox id"),
+    },
+  },
+  async ({ inboxId }) => {
+    const client = new MailAgentClient();
+    try {
+      return toolText(await client.extract(inboxId));
+    } catch (e) {
+      return toolText({
+        error: String(e),
+        hint: "Call mailagent_wait_for_message first if the inbox is empty.",
+      });
+    }
+  }
+);
+
+server.registerTool(
+  "mailagent_get_inbox",
+  {
+    description: "Get inbox status: address, expiry, message count.",
+    inputSchema: {
+      inboxId: z.string().describe("Inbox id"),
+    },
+  },
+  async ({ inboxId }) => {
+    const client = new MailAgentClient();
+    return toolText(await client.getInbox(inboxId));
+  }
+);
+
+server.registerTool(
+  "mailagent_delete_inbox",
+  {
+    description: "Delete inbox and all messages early (cleanup after verification).",
+    inputSchema: {
+      inboxId: z.string().describe("Inbox id"),
+    },
+  },
+  async ({ inboxId }) => {
+    const client = new MailAgentClient();
+    return toolText(await client.deleteInbox(inboxId));
+  }
+);
+
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error("mailagent-mcp: connected (stdio)");
+}
+
+main().catch((err) => {
+  console.error("mailagent-mcp fatal:", err);
+  process.exit(1);
+});

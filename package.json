@@ -1,0 +1,28 @@
+{
+  "name": "mailagent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --ip 127.0.0.1 --port 8787",
+    "verify": "node scripts/verify.mjs",
+    "setup:check": "node scripts/setup-check.mjs",
+    "deploy": "wrangler deploy",
+    "check": "tsc --noEmit",
+    "types": "wrangler types",
+    "db:migrate": "node scripts/migrate.mjs",
+    "build:mcp": "cd mcp && npm install && npm run build",
+    "test:allowlist": "npx tsx scripts/test-allowlist.ts"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
+    "hono": "^4.11.1",
+    "nanoid": "^5.1.6",
+    "resend": "^6.9.2"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260120.0",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.59.0"
+  }
+}

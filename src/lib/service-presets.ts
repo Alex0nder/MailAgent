@@ -1,0 +1,24 @@
+/** Пресеты expectFrom для популярных сервисов (агент / MCP / API) */
+
+export const SERVICE_EXPECT_FROM: Record<string, string[]> = {
+  dribbble: ["dribbble.com", "m.dribbble.com"],
+  github: ["github.com"],
+  google: ["google.com", "accounts.google.com"],
+  auth0: ["auth0.com"],
+  stripe: ["stripe.com"],
+};
+
+export function resolveExpectFrom(
+  service?: string,
+  extra?: string | string[]
+): string[] | undefined {
+  const key = service?.trim().toLowerCase();
+  const base = key ? SERVICE_EXPECT_FROM[key] : undefined;
+  if (!base && !extra) return undefined;
+  const extras = extra
+    ? Array.isArray(extra)
+      ? extra
+      : [extra]
+    : [];
+  return [...new Set([...(base ?? []), ...extras])];
+}

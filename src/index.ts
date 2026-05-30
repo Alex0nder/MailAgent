@@ -1,0 +1,37 @@
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import { InboxWait } from "./durable-objects/inbox-wait";
+import type { Env, EmailQueueMessage } from "./env";
+import { handleQueueBatch } from "./queue/consumer";
+import { healthRoutes } from "./routes/health";
+import { inboxRoutes } from "./routes/inboxes";
+import { webhookRoutes } from "./routes/webhooks";
+import { purgeExpired } from "./services/inbox";
+
+export { InboxWait };
+
+const app = new Hono<{ Bindings: Env }>();
+
+app.use("*", cors());
+
+app.route("/", healthRoutes);
+app.route("/webhooks", webhookRoutes);
+app.route("/v1/inboxes", inboxRoutes);
+
+app.notFound((c) => c.json({ error: "not_found" }, 404));
+
+export default {
+  fetch: app.fetch,
+
+  async queue(
+    batch: MessageBatch<EmailQueueMessage>,
+    env: Env
+  ): Promise<void> {
+    await handleQueueBatch(batch, env);
+  },
+
+  async scheduled(_controller: ScheduledController, env: Env): Promise<void> {
+    const result = await purgeExpired(env);
+    console.log("cron purge", result);
+  },
+};

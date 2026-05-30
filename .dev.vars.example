@@ -1,0 +1,5 @@
+DATABASE_URL=postgresql://USER:PASS@HOST/neondb?sslmode=require
+RESEND_API_KEY=re_xxx
+RESEND_WEBHOOK_SECRET=whsec_xxx
+API_KEY=local-dev-api-key-change-me
+INBOX_DOMAIN=your-id.resend.app
