@@ -31,28 +31,27 @@
           </span>
           MailAgent
         </a>
-        <nav class="nav-links">
+        <nav class="nav-links" aria-label="Primary">
           <a href="#features">Features</a>
           <a href="#qa">QA</a>
           <a href="#mcp">MCP</a>
-          <a href="#how">How it works</a>
           <a href="/docs/">Docs</a>
           <a href="/docs/integrate.html">Self-host</a>
-          <a href="https://github.com/Alex0nder/MailAgent" rel="noopener noreferrer">GitHub</a>
         </nav>
         <div class="nav-actions">
-          <a class="btn btn-ghost" href="/docs/qa.html">QA guide</a>
           <a
-            class="btn btn-primary"
+            class="btn btn-ghost nav-github"
             href="https://github.com/Alex0nder/MailAgent"
             rel="noopener noreferrer"
-            >Open source</a
+            >GitHub</a
           >
+          <a class="btn btn-primary" href="#get-started">Get started</a>
         </div>
       </div>
     </header>
 
     <main>
+      <div class="hero-block">
       <section class="hero">
         <div class="hero-glow" aria-hidden="true"></div>
         <div class="hero-inner">
@@ -74,8 +73,7 @@
                 rel="noopener noreferrer"
                 >View on GitHub</a
               >
-              <a class="btn btn-outline" href="#get-started">Get started</a>
-              <a class="btn btn-outline" href="#qa">For QA teams</a>
+              <a class="btn btn-outline" href="/docs/integrate.html">Self-host</a>
             </div>
           </div>
 
@@ -179,8 +177,9 @@
           </ul>
         </div>
       </div>
+      </div>
 
-      <section id="open-source" class="oss-section">
+      <section id="open-source" class="page-section oss-section">
         <div class="section-inner oss-inner">
           <p class="section-label">Open source</p>
           <h2 class="section-title">For everyone — run it yourself</h2>
@@ -198,14 +197,14 @@
               class="btn btn-primary"
               href="https://github.com/Alex0nder/MailAgent"
               rel="noopener noreferrer"
-              >github.com/Alex0nder/MailAgent</a
+              >View on GitHub</a
             >
             <a class="btn btn-outline" href="/docs/integrate.html">Integration guide</a>
           </div>
         </div>
       </section>
 
-      <section id="features">
+      <section id="features" class="page-section">
         <div class="section-inner">
           <p class="section-label">Features</p>
           <h2 class="section-title">Everything an agent needs to verify email</h2>
@@ -297,7 +296,7 @@
         </div>
       </section>
 
-      <section id="qa" class="qa-section">
+      <section id="qa" class="page-section qa-section">
         <div class="section-inner">
           <p class="section-label">For QA teams</p>
           <h2 class="section-title">Stop fighting shared test inboxes</h2>
@@ -360,7 +359,7 @@
         </div>
       </section>
 
-      <section id="mcp">
+      <section id="mcp" class="page-section">
         <div class="section-inner">
           <p class="section-label">MCP</p>
           <h2 class="section-title">Tools your agent can call</h2>
@@ -395,7 +394,7 @@
         </div>
       </section>
 
-      <section id="how">
+      <section id="how" class="page-section">
         <div class="section-inner">
           <p class="section-label">How it works</p>
           <h2 class="section-title">Three steps to verified signup</h2>
@@ -428,7 +427,7 @@
         </div>
       </section>
 
-      <section id="compare">
+      <section id="compare" class="page-section">
         <div class="section-inner">
           <p class="section-label">Positioning</p>
           <h2 class="section-title">Agents, not burner extensions</h2>
@@ -437,6 +436,7 @@
             verification for code.
           </p>
 
+          <div class="table-scroll">
           <table class="compare-table">
             <thead>
               <tr>
@@ -491,10 +491,11 @@
               </tr>
             </tbody>
           </table>
+          </div>
         </div>
       </section>
 
-      <section id="docs">
+      <section id="docs" class="page-section">
         <div class="section-inner">
           <p class="section-label">API</p>
           <h2 class="section-title">Simple REST, Bearer auth</h2>
@@ -559,15 +560,14 @@
           </ul>
         </div>
         <div class="footer-col">
-          <h4>Open source</h4>
+          <h4>Developers</h4>
           <ul>
             <li>
               <a href="https://github.com/Alex0nder/MailAgent" rel="noopener noreferrer"
                 >GitHub</a
               >
             </li>
-            <li><a href="/docs/integrate.html">Self-host guide</a></li>
-            <li><a href="#open-source">Open source</a></li>
+            <li><a href="/docs/integrate.html">Self-host</a></li>
             <li><a href="/docs/">API docs</a></li>
             <li><a href="/docs/qa.html">QA guide</a></li>
             <li>
@@ -575,17 +575,11 @@
                 >OpenAPI</a
               >
             </li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Contact</h4>
-          <ul>
             <li>
-              <a href="mailto:hello@webmailagent.com?subject=MailAgent%20pilot%20access"
+              <a href="mailto:hello@webmailagent.com?subject=MailAgent%20hosted%20API%20key"
                 >hello@webmailagent.com</a
               >
             </li>
-            <li><a href="#get-started">Pilot access</a></li>
           </ul>
         </div>
         <div class="footer-col">

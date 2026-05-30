@@ -1,4 +1,4 @@
-/* MailAgent landing — Resend-inspired dark dev aesthetic */
+/* MailAgent landing — spacing aligned with Resend marketing pages */
 
 :root {
   --bg: #000000;
@@ -21,8 +21,21 @@
   --radius-lg: 14px;
   --font: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: "Geist Mono", "SF Mono", "Fira Code", ui-monospace, monospace;
-  --max: 1120px;
+  --max: 1080px;
   --nav-h: 64px;
+  /* Resend-like rhythm: 24px → 32px horizontal, 96px section vertical */
+  --px: 24px;
+  --section-y: 96px;
+  --hero-top: 80px;
+  --stack-gap: 48px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --px: 32px;
+    --section-y: 120px;
+    --hero-top: 96px;
+  }
 }
 
 *,
@@ -45,9 +58,22 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+[id] {
+  scroll-margin-top: calc(var(--nav-h) + 20px);
+}
+
 a {
   color: inherit;
   text-decoration: none;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding: 0.15em 0.4em;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
 }
 
 img {
@@ -69,12 +95,12 @@ img {
 .nav-inner {
   max-width: var(--max);
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 var(--px);
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: 16px;
 }
 
 .logo {
@@ -104,9 +130,13 @@ img {
 .nav-links {
   display: none;
   align-items: center;
-  gap: 28px;
+  gap: 24px;
   font-size: 14px;
   color: var(--text-muted);
+}
+
+.nav-github {
+  display: none;
 }
 
 .nav-links a:hover {
@@ -119,9 +149,13 @@ img {
   gap: 10px;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 900px) {
   .nav-links {
     display: flex;
+  }
+
+  .nav-github {
+    display: inline-flex;
   }
 }
 
@@ -169,11 +203,15 @@ img {
   background: var(--surface);
 }
 
-/* —— Hero —— */
+/* —— Hero block (hero + repo + stack) —— */
+.hero-block {
+  padding-bottom: 0;
+}
+
 .hero {
   position: relative;
   overflow: hidden;
-  padding: 72px 24px 96px;
+  padding: var(--hero-top) var(--px) 0;
 }
 
 .hero-glow {
@@ -308,8 +346,8 @@ h1 {
 }
 
 /* —— Sections —— */
-section {
-  padding: 80px 24px;
+.page-section {
+  padding: var(--section-y) var(--px);
   border-top: 1px solid var(--border);
 }
 
@@ -324,27 +362,32 @@ section {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--text-dim);
-  margin-bottom: 12px;
+  margin: 0 0 16px;
 }
 
 .section-title {
-  margin: 0 0 16px;
+  margin: 0 0 20px;
   font-size: clamp(1.75rem, 3vw, 2.25rem);
   font-weight: 600;
   letter-spacing: -0.02em;
+  line-height: 1.15;
 }
 
 .section-desc {
-  margin: 0 0 48px;
+  margin: 0 0 56px;
   max-width: 36rem;
   color: var(--text-muted);
   font-size: 17px;
+  line-height: 1.6;
+}
+
+.section-desc:last-child {
+  margin-bottom: 0;
 }
 
 /* —— GitHub repo bar —— */
 .repo-bar {
-  padding: 0 24px 8px;
-  margin-top: -24px;
+  padding: var(--stack-gap) var(--px) 0;
 }
 
 .repo-bar-link {
@@ -401,8 +444,7 @@ section {
 
 /* —— Stack strip (tech chips) —— */
 .stack-strip {
-  padding: 0 24px 56px;
-  margin-top: -8px;
+  padding: 32px var(--px) var(--section-y);
 }
 
 .stack-inner {
@@ -650,6 +692,7 @@ section {
 /* —— Compare —— */
 .compare-table {
   width: 100%;
+  min-width: 640px;
   border-collapse: collapse;
   font-size: 14px;
   border: 1px solid var(--border);
@@ -686,10 +729,17 @@ section {
   color: var(--text-dim);
 }
 
+.table-scroll {
+  margin: 0 -4px;
+  padding: 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* —— CTA —— */
 .cta-block {
   text-align: center;
-  padding: 96px 24px;
+  padding: var(--section-y) var(--px);
   border-top: 1px solid var(--border);
   position: relative;
   overflow: hidden;
@@ -733,17 +783,23 @@ section {
 
 /* —— Footer —— */
 .footer {
-  padding: 48px 24px;
+  padding: 64px var(--px) 48px;
   border-top: 1px solid var(--border);
 }
 
 .footer-inner {
   max-width: var(--max);
   margin: 0 auto;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 32px;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
+}
+
+@media (min-width: 640px) {
+  .footer-inner {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px 48px;
+  }
 }
 
 .footer-col h4 {
@@ -783,14 +839,20 @@ section {
 
 /* —— QA section —— */
 .qa-section {
-  background: linear-gradient(180deg, rgba(99, 102, 241, 0.06) 0%, transparent 48%);
+  background: linear-gradient(180deg, rgba(99, 102, 241, 0.05) 0%, transparent 55%);
 }
 
 .qa-pain-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: 1fr;
   gap: 16px;
-  margin-bottom: 32px;
+  margin-bottom: 40px;
+}
+
+@media (min-width: 768px) {
+  .qa-pain-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .qa-pain-card {
@@ -818,14 +880,17 @@ section {
 }
 
 .qa-docs-link {
-  margin: 0;
+  margin: 24px 0 0;
   font-size: 15px;
+  line-height: 1.6;
   color: var(--text-muted);
 }
 
 .qa-docs-link a {
-  color: var(--accent);
+  color: var(--text);
   font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .compare-table th:nth-child(3),
@@ -837,7 +902,7 @@ section {
 .doc-page .doc-main {
   max-width: 720px;
   margin: 0 auto;
-  padding: calc(var(--nav-h) + 48px) 24px 80px;
+  padding: calc(var(--nav-h) + 48px) var(--px) var(--section-y);
 }
 
 .doc-page h1 {
@@ -926,7 +991,7 @@ section {
 }
 
 .oss-section {
-  background: linear-gradient(180deg, rgba(74, 222, 128, 0.05) 0%, transparent 70%);
+  background: linear-gradient(180deg, rgba(74, 222, 128, 0.04) 0%, transparent 60%);
 }
 
 .oss-inner {
@@ -936,6 +1001,7 @@ section {
 .oss-desc {
   margin-left: auto;
   margin-right: auto;
+  margin-bottom: 40px;
 }
 
 .oss-list {
