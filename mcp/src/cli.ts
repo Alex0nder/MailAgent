@@ -55,7 +55,7 @@ async function main() {
       timeoutSeconds: timeout,
       deleteAfter: false,
     });
-    console.log(jsonOut ? JSON.stringify(result, null, 2) : formatWait(result));
+    console.log(jsonOut ? JSON.stringify(result, null, 2) : formatWait(result as WaitResult));
     if ("error" in result && result.error === "timeout") process.exit(1);
     return;
   }
@@ -66,7 +66,7 @@ async function main() {
       timeoutSeconds: Number(opt(args, "--timeout") ?? "90"),
       deleteAfter: !flag(args, "--no-delete"),
     });
-    console.log(jsonOut ? JSON.stringify(result, null, 2) : formatOpen(result));
+    console.log(jsonOut ? JSON.stringify(result, null, 2) : formatOpen(result as WaitResult));
     if ("error" in result && result.error === "timeout") process.exit(1);
     return;
   }
@@ -74,9 +74,13 @@ async function main() {
   usage();
 }
 
-function formatWait(result: Record<string, unknown>): string {
+type WaitResult = Record<string, unknown> & {
+  verification?: { otp?: string; links?: string[]; primaryLink?: string };
+};
+
+function formatWait(result: WaitResult): string {
   if ("error" in result) return String(result.hint ?? result.error);
-  const v = result.verification as { otp?: string; links?: string[] } | undefined;
+  const v = result.verification;
   const lines = [
     `otp: ${v?.otp ?? "(none)"}`,
     ...(v?.links?.length ? v.links.map((l) => `link: ${l}`) : []),
@@ -84,12 +88,12 @@ function formatWait(result: Record<string, unknown>): string {
   return lines.join("\n");
 }
 
-function formatOpen(result: Record<string, unknown>): string {
+function formatOpen(result: WaitResult): string {
   if ("error" in result) return String(result.hint ?? result.error);
   const lines = [`address: ${result.address}`];
-  const v = result.verification as { otp?: string; links?: string[] } | undefined;
+  const v = result.verification;
   if (v?.otp) lines.push(`otp: ${v.otp}`);
-  const pl = v?.primaryLink as string | undefined;
+  const pl = v?.primaryLink;
   if (pl) lines.push(`primaryLink: ${pl}`);
   for (const l of v?.links ?? []) lines.push(`link: ${l}`);
   return lines.join("\n");

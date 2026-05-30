@@ -138,10 +138,8 @@ export class MailAgentClient {
     const parsed = text ? (JSON.parse(text) as OpenInboxResponse | OpenInboxTimeout) : {};
 
     if (res.status === 408) {
-      return {
-        error: "timeout" as const,
-        ...(parsed as OpenInboxTimeout),
-      };
+      const t = parsed as OpenInboxTimeout;
+      return { ...t, error: "timeout" as const };
     }
     if (!res.ok) {
       throw new Error(`MailAgent API ${res.status}: ${text}`);
