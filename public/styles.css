@@ -341,35 +341,115 @@ section {
   font-size: 17px;
 }
 
-/* —— Stack strip —— */
+/* —— Stack strip (tech chips) —— */
 .stack-strip {
-  padding: 32px 24px;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
+  padding: 0 24px 56px;
+  margin-top: -8px;
 }
 
 .stack-inner {
   max-width: var(--max);
   margin: 0 auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset,
+    0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+@media (min-width: 768px) {
+  .stack-inner {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 18px 28px;
+  }
+}
+
+.stack-label {
+  margin: 0;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.stack-list {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 32px 48px;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.stack-label {
+.stack-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px 7px 10px;
   font-size: 13px;
-  color: var(--text-dim);
-  width: 100%;
-  text-align: center;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    background 0.15s;
 }
 
-.stack-item {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-muted);
-  letter-spacing: -0.01em;
+.stack-chip:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
+}
+
+.stack-chip-icon {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.stack-chip-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.stack-chip-tag {
+  padding: 2px 6px;
+  margin-left: -2px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  border-radius: 4px;
 }
 
 /* —— Features grid —— */
@@ -398,6 +478,7 @@ section {
   background: var(--surface);
 }
 
+/* Stroke icons — Resend-style, matches logo mark */
 .feature-icon {
   width: 40px;
   height: 40px;
@@ -407,7 +488,12 @@ section {
   background: var(--surface);
   display: grid;
   place-items: center;
-  font-size: 18px;
+  color: var(--text-muted);
+}
+
+.feature-icon svg {
+  width: 20px;
+  height: 20px;
 }
 
 .feature-card h3 {

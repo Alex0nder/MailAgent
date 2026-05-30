@@ -63,6 +63,30 @@ npm run deploy
 Обновите Resend webhook URL на прод Worker.  
 `MAILAGENT_API_URL` в `.env` → URL после deploy.
 
+## 6. API на api.webmailagent.com (опционально)
+
+Лендинг: **webmailagent.com** (Netlify). API: **api.webmailagent.com** (Worker).
+
+В **Cloudflare DNS** (зона `webmailagent.com`):
+
+| Тип | Name | Content | Proxy |
+|-----|------|---------|-------|
+| CNAME | `api` | `mailagent.alex-young33rd.workers.dev` | DNS only |
+
+После `npm run deploy` и проверки:
+
+```bash
+curl https://api.webmailagent.com/health
+```
+
+В `.env` / MCP:
+
+```
+MAILAGENT_API_URL=https://api.webmailagent.com
+```
+
+Если deploy падает из‑за `routes` в `wrangler.jsonc` — зона должна быть в том же Cloudflare-аккаунте, либо уберите блок `routes` и привяжите домен в Dashboard → Workers → Custom Domains.
+
 ## 5. Cursor MCP
 
 После `npm run build:mcp` и заполненного `.env`:

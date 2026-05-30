@@ -27,5 +27,6 @@ export interface MessageNotifyPayload {
   subject: string;
   otp: string | null;
   links: string[];
+  primaryLink: string | null;
   receivedAt: string;
 }

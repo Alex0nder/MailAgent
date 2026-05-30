@@ -1,7 +1,12 @@
 import { Resend } from "resend";
 import type { Env } from "../env";
 import { isSenderAllowed } from "../lib/sender-allowlist";
-import { buildPreviewText, extractLinks, extractOtp } from "./extract";
+import {
+  buildPreviewText,
+  extractLinks,
+  extractOtp,
+  primaryLink,
+} from "./extract";
 import {
   findInboxByAddress,
   insertMessage,
@@ -70,6 +75,7 @@ function toNotifyPayload(row: MessageRow): MessageNotifyPayload {
     subject: row.subject,
     otp: row.otp,
     links,
+    primaryLink: primaryLink(links),
     receivedAt: row.received_at,
   };
 }

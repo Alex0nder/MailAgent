@@ -22,7 +22,7 @@ description: >-
 
 1. Создаёт inbox (если `inboxId` не передан)
 2. Ждёт первое письмо от разрешённого отправителя (`expectFrom`)
-3. Возвращает `verification.otp` и `verification.links`
+3. Возвращает `verification.otp`, `verification.links`, `verification.primaryLink` (лучший magic link)
 4. По умолчанию удаляет inbox (`deleteAfter: true`)
 
 Пример аргументов:

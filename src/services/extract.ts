@@ -41,6 +41,11 @@ function linkScore(url: string): number {
   return LINK_VERIFY.test(url) ? 2 : 0;
 }
 
+/** Лучшая ссылка для verify (уже отсортирована в extractLinks) */
+export function primaryLink(links: string[]): string | null {
+  return links[0] ?? null;
+}
+
 export function buildPreviewText(text: string | null | undefined, max = 2000): string | null {
   if (!text) return null;
   const trimmed = text.trim();

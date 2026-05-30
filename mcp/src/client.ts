@@ -208,6 +208,7 @@ export class MailAgentClient {
               textPreview: null,
               otp: payload.otp,
               links: payload.links,
+              primaryLink: payload.primaryLink ?? payload.links[0] ?? null,
               receivedAt: payload.receivedAt,
             },
           };
@@ -271,12 +272,14 @@ export interface MessageSummary {
   textPreview: string | null;
   otp: string | null;
   links: string[];
+  primaryLink?: string | null;
   receivedAt: string;
 }
 
 export interface ExtractResponse {
   otp: string | null;
   links: string[];
+  primaryLink: string | null;
   from: string;
   subject: string;
   messageId: string;
@@ -305,5 +308,6 @@ interface NotifyPayload {
   subject: string;
   otp: string | null;
   links: string[];
+  primaryLink: string | null;
   receivedAt: string;
 }

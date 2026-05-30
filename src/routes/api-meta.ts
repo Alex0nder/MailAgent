@@ -11,6 +11,7 @@ apiMetaRoutes.get("/", (c) => {
     version: "0.1.0",
     description: "Temporary inboxes for AI agent email verification",
     auth: "Authorization: Bearer <API_KEY>",
+    openapi: "/v1/openapi.json",
     endpoints: {
       open: { method: "POST", path: "/v1/inboxes/open", note: "create + wait + extract (+ delete)" },
       createInbox: { method: "POST", path: "/v1/inboxes" },

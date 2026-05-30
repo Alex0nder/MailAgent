@@ -8,6 +8,7 @@ import {
   getInbox,
   listMessages,
 } from "../services/inbox";
+import { primaryLink } from "../services/extract";
 import { waitForFirstMessage } from "../services/wait";
 
 export const inboxRoutes = new Hono<{ Bindings: Env }>();
@@ -166,13 +167,15 @@ function formatMessage(m: {
   links_json: unknown;
   received_at: string;
 }) {
+  const links = parseLinks(m.links_json);
   return {
     id: m.id,
     from: m.from_addr,
     subject: m.subject,
     textPreview: m.text_preview,
     otp: m.otp,
-    links: parseLinks(m.links_json),
+    links,
+    primaryLink: primaryLink(links),
     receivedAt: m.received_at,
   };
 }
@@ -184,9 +187,11 @@ function formatVerification(m: {
   otp: string | null;
   links_json: unknown;
 }) {
+  const links = parseLinks(m.links_json);
   return {
     otp: m.otp,
-    links: parseLinks(m.links_json),
+    links,
+    primaryLink: primaryLink(links),
     from: m.from_addr,
     subject: m.subject,
     messageId: m.id,

@@ -1,5 +1,5 @@
 /** Быстрая проверка extract OTP/links */
-import { extractLinks, extractOtp } from "../src/services/extract";
+import { extractLinks, extractOtp, primaryLink } from "../src/services/extract";
 
 const sample = `
 Your code is 847291
@@ -8,4 +8,6 @@ Unsubscribe: https://example.com/unsubscribe
 `;
 
 console.log("otp:", extractOtp(sample));
-console.log("links:", extractLinks(sample));
+const links = extractLinks(sample);
+console.log("links:", links);
+console.log("primaryLink:", primaryLink(links));

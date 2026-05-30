@@ -43,6 +43,14 @@ async function main() {
   }
   console.log("OK /health", health.json);
 
+  const meta = await req("/v1");
+  if (!meta.res.ok) fail(`GET /v1 ${meta.res.status}`);
+  console.log("OK /v1 discovery", meta.json?.services?.length, "services");
+
+  const openapi = await req("/v1/openapi.json");
+  if (!openapi.res.ok) fail(`GET /v1/openapi.json ${openapi.res.status}`);
+  console.log("OK /v1/openapi.json");
+
   if (!apiKey) {
     fail("Нужен MAILAGENT_API_KEY или API_KEY в env");
   }

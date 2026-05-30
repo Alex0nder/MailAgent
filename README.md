@@ -72,6 +72,7 @@ Authorization: Bearer <API_KEY>
 | Метод | Путь | Описание |
 |-------|------|----------|
 | `GET` | `/v1` | Discovery: endpoints, presets, MCP tools |
+| `GET` | `/v1/openapi.json` | OpenAPI 3.0 (агенты) |
 | `POST` | `/v1/inboxes/open` | **One-shot:** create → wait → extract → delete |
 | `POST` | `/v1/inboxes` | Создать inbox (`ttlMinutes`, `service`, `expectFrom`, `allowedSenders`) |
 | `GET` | `/v1/inboxes/:id` | Статус |
@@ -215,4 +216,4 @@ GitHub Actions: `.github/workflows/deploy-worker.yml` — секреты `CLOUDF
 
 - R2 для сырых MIME
 - Scoped API keys per tenant
-- `api.webmailagent.com` → Worker (Cloudflare DNS)
+- `api.webmailagent.com` → Worker — см. [SETUP.md](./SETUP.md) §6

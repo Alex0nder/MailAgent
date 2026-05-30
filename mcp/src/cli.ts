@@ -89,6 +89,8 @@ function formatOpen(result: Record<string, unknown>): string {
   const lines = [`address: ${result.address}`];
   const v = result.verification as { otp?: string; links?: string[] } | undefined;
   if (v?.otp) lines.push(`otp: ${v.otp}`);
+  const pl = v?.primaryLink as string | undefined;
+  if (pl) lines.push(`primaryLink: ${pl}`);
   for (const l of v?.links ?? []) lines.push(`link: ${l}`);
   return lines.join("\n");
 }
