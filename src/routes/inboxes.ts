@@ -1,6 +1,8 @@
 import { Hono } from "hono";
 import type { Env } from "../env";
+import type { ApiVariables } from "../lib/api-context";
 import { requireApiKey } from "../lib/auth";
+import { rateLimit } from "../lib/rate-limit";
 import { parseCallbackUrl } from "../lib/callback-url";
 import { resolveExpectFrom } from "../lib/service-presets";
 import {
@@ -14,9 +16,10 @@ import {
 import { primaryLink } from "../services/extract";
 import { waitForFirstMessage } from "../services/wait";
 
-export const inboxRoutes = new Hono<{ Bindings: Env }>();
+export const inboxRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
 
 inboxRoutes.use("*", requireApiKey);
+inboxRoutes.use("*", rateLimit);
 
 /** One-shot: create → wait → extract → delete (для агентов и CI) */
 type CreateBody = {
@@ -43,7 +46,10 @@ inboxRoutes.post("/open", async (c) => {
   const clean = rejectInvalidCallback(opts);
   if ("error" in clean) return c.json(clean, 400);
 
-  const inbox = await createInbox(c.env, clean);
+  const inbox = await createInbox(c.env, {
+    ...clean,
+    apiKeyHint: c.get("apiKeyHint"),
+  });
   const timeoutSec = Math.min(Number(body.timeoutSeconds ?? 90), 120);
   const message = await waitForFirstMessage(c.env, inbox.id, timeoutSec, {
     subjectContains: body.subjectContains,
@@ -82,7 +88,11 @@ inboxRoutes.post("/open", async (c) => {
 inboxRoutes.get("/", async (c) => {
   const label = c.req.query("label");
   const limit = Number(c.req.query("limit") ?? "20");
-  const rows = await listInboxes(c.env, { label, limit });
+  const rows = await listInboxes(c.env, {
+    label,
+    limit,
+    apiKeyHint: c.get("apiKeyHint"),
+  });
   return c.json({
     inboxes: rows.map((row) => ({
       ...formatInbox(row),
@@ -102,12 +112,17 @@ inboxRoutes.post("/", async (c) => {
   const clean = rejectInvalidCallback(opts);
   if ("error" in clean) return c.json(clean, 400);
 
-  const inbox = await createInbox(c.env, clean);
+  const inbox = await createInbox(c.env, {
+    ...clean,
+    apiKeyHint: c.get("apiKeyHint"),
+  });
   return c.json({ id: inbox.id, ...formatInbox(inbox) }, 201);
 });
 
 inboxRoutes.get("/:id", async (c) => {
-  const inbox = await getInbox(c.env, c.req.param("id"));
+  const inbox = await getInbox(c.env, c.req.param("id"), {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
   if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
   const messages = await listMessages(c.env, inbox.id);
   return c.json({
@@ -118,7 +133,9 @@ inboxRoutes.get("/:id", async (c) => {
 });
 
 inboxRoutes.get("/:id/messages", async (c) => {
-  const inbox = await getInbox(c.env, c.req.param("id"));
+  const inbox = await getInbox(c.env, c.req.param("id"), {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
   if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
   const messages = await listMessages(c.env, inbox.id);
   return c.json({
@@ -127,7 +144,9 @@ inboxRoutes.get("/:id/messages", async (c) => {
 });
 
 inboxRoutes.get("/:id/extract", async (c) => {
-  const inbox = await getInbox(c.env, c.req.param("id"));
+  const inbox = await getInbox(c.env, c.req.param("id"), {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
   if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
   const messages = await listMessages(c.env, inbox.id);
   const latest = messages[0];
@@ -137,7 +156,9 @@ inboxRoutes.get("/:id/extract", async (c) => {
 
 /** SSE: ждём первое письмо (надёжнее long-poll 120s на Workers) */
 inboxRoutes.get("/:id/events", async (c) => {
-  const inbox = await getInbox(c.env, c.req.param("id"));
+  const inbox = await getInbox(c.env, c.req.param("id"), {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
   if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
 
   const id = c.env.INBOX_WAIT.idFromName(inbox.id);
@@ -147,7 +168,9 @@ inboxRoutes.get("/:id/events", async (c) => {
 
 /** Fallback poll: ?timeout=60, interval 2s */
 inboxRoutes.get("/:id/wait", async (c) => {
-  const inbox = await getInbox(c.env, c.req.param("id"));
+  const inbox = await getInbox(c.env, c.req.param("id"), {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
   if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
 
   const timeoutSec = Math.min(Number(c.req.query("timeout") ?? 60), 120);
@@ -160,7 +183,9 @@ inboxRoutes.get("/:id/wait", async (c) => {
 });
 
 inboxRoutes.delete("/:id", async (c) => {
-  const ok = await deleteInbox(c.env, c.req.param("id"));
+  const ok = await deleteInbox(c.env, c.req.param("id"), {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
   if (!ok) return c.json({ error: "inbox_not_found" }, 404);
   return c.json({ deleted: true });
 });

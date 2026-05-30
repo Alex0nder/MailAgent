@@ -11,6 +11,7 @@ export interface InboxRow {
   allowed_senders: string[];
   label: string | null;
   callback_url: string | null;
+  api_key_hint: string | null;
 }
 
 export interface MessageRow {
@@ -34,6 +35,7 @@ export async function createInbox(
     allowedSenders?: string | string[];
     label?: string;
     callbackUrl?: string | null;
+    apiKeyHint?: string;
   }
 ): Promise<InboxRow> {
   const sql = getDb(env);
@@ -43,14 +45,15 @@ export async function createInbox(
   );
   const label = options?.label?.trim().slice(0, 128) || null;
   const callbackUrl = options?.callbackUrl ?? null;
+  const apiKeyHint = options?.apiKeyHint?.slice(0, 16) ?? null;
   const id = nanoid(12);
   const local = `inbox-${id}`;
   const address = `${local}@${env.INBOX_DOMAIN}`;
   const expiresAt = new Date(Date.now() + ttl * 60_000).toISOString();
 
   await sql`
-    INSERT INTO inboxes (id, address, expires_at, allowed_senders, label, callback_url)
-    VALUES (${id}, ${address}, ${expiresAt}, ${allowed}, ${label}, ${callbackUrl})
+    INSERT INTO inboxes (id, address, expires_at, allowed_senders, label, callback_url, api_key_hint)
+    VALUES (${id}, ${address}, ${expiresAt}, ${allowed}, ${label}, ${callbackUrl}, ${apiKeyHint})
   `;
 
   return {
@@ -61,21 +64,36 @@ export async function createInbox(
     allowed_senders: allowed,
     label,
     callback_url: callbackUrl,
+    api_key_hint: apiKeyHint,
   };
 }
 
 /** QA: найти inbox прогона (отладка после падения теста) */
 export async function listInboxes(
   env: Env,
-  options?: { label?: string; limit?: number }
+  options?: { label?: string; limit?: number; apiKeyHint?: string }
 ): Promise<InboxRow[]> {
   const sql = getDb(env);
   const limit = Math.min(options?.limit ?? 20, 50);
   const label = options?.label?.trim();
+  const hint = options?.apiKeyHint;
+
+  if (label && hint) {
+    const rows = (await sql`
+      SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, api_key_hint
+      FROM inboxes
+      WHERE label = ${label}
+        AND expires_at > NOW()
+        AND (api_key_hint IS NULL OR api_key_hint = ${hint})
+      ORDER BY created_at DESC
+      LIMIT ${limit}
+    `) as InboxRow[];
+    return rows.map(mapInboxRow);
+  }
 
   if (label) {
     const rows = (await sql`
-      SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url
+      SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, api_key_hint
       FROM inboxes
       WHERE label = ${label}
         AND expires_at > NOW()
@@ -85,8 +103,20 @@ export async function listInboxes(
     return rows.map(mapInboxRow);
   }
 
+  if (hint) {
+    const rows = (await sql`
+      SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, api_key_hint
+      FROM inboxes
+      WHERE expires_at > NOW()
+        AND (api_key_hint IS NULL OR api_key_hint = ${hint})
+      ORDER BY created_at DESC
+      LIMIT ${limit}
+    `) as InboxRow[];
+    return rows.map(mapInboxRow);
+  }
+
   const rows = (await sql`
-    SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url
+    SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, api_key_hint
     FROM inboxes
     WHERE expires_at > NOW()
     ORDER BY created_at DESC
@@ -95,16 +125,33 @@ export async function listInboxes(
   return rows.map(mapInboxRow);
 }
 
-export async function getInbox(env: Env, id: string): Promise<InboxRow | null> {
+export async function getInbox(
+  env: Env,
+  id: string,
+  options?: { apiKeyHint?: string }
+): Promise<InboxRow | null> {
   const sql = getDb(env);
   const rows = (await sql`
-    SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url
+    SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, api_key_hint
     FROM inboxes
     WHERE id = ${id}
       AND expires_at > NOW()
     LIMIT 1
   `) as InboxRow[];
-  return rows[0] ? mapInboxRow(rows[0]) : null;
+  const row = rows[0] ? mapInboxRow(rows[0]) : null;
+  if (!row) return null;
+  if (!inboxAccessible(row, options?.apiKeyHint)) return null;
+  return row;
+}
+
+/** Legacy inbox без hint — видны любому ключу; с hint — только владельцу */
+export function inboxAccessible(
+  row: InboxRow,
+  apiKeyHint: string | undefined
+): boolean {
+  if (!row.api_key_hint) return true;
+  if (!apiKeyHint) return false;
+  return row.api_key_hint === apiKeyHint;
 }
 
 export async function findInboxByAddress(
@@ -114,7 +161,7 @@ export async function findInboxByAddress(
   const sql = getDb(env);
   const normalized = address.trim().toLowerCase();
   const rows = (await sql`
-    SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url
+    SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, api_key_hint
     FROM inboxes
     WHERE LOWER(address) = ${normalized}
       AND expires_at > NOW()
@@ -130,10 +177,17 @@ function mapInboxRow(row: InboxRow): InboxRow {
     allowed_senders: Array.isArray(allowed) ? allowed : [],
     label: row.label ?? null,
     callback_url: row.callback_url ?? null,
+    api_key_hint: row.api_key_hint ?? null,
   };
 }
 
-export async function deleteInbox(env: Env, id: string): Promise<boolean> {
+export async function deleteInbox(
+  env: Env,
+  id: string,
+  options?: { apiKeyHint?: string }
+): Promise<boolean> {
+  const inbox = await getInbox(env, id, options);
+  if (!inbox) return false;
   const sql = getDb(env);
   const rows = await sql`DELETE FROM inboxes WHERE id = ${id} RETURNING id`;
   return rows.length > 0;

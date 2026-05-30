@@ -1,15 +1,19 @@
-import type { Context } from "hono";
+import type { Context, Next } from "hono";
 import type { Env } from "../env";
+import { isAuthorizedBearer } from "./api-keys";
+import type { ApiVariables } from "./api-context";
+import { apiKeyHintFromToken, bearerToken } from "./api-key-hint";
 
-/** Bearer API_KEY для всех /v1/* маршрутов */
+/** Bearer API_KEY или любой ключ из API_KEYS; кладёт apiKeyHint в context */
 export async function requireApiKey(
-  c: Context<{ Bindings: Env }>,
-  next: () => Promise<void>
+  c: Context<{ Bindings: Env; Variables: ApiVariables }>,
+  next: Next
 ) {
   const header = c.req.header("Authorization");
-  const expected = `Bearer ${c.env.API_KEY}`;
-  if (!header || header !== expected) {
+  if (!isAuthorizedBearer(c.env, header)) {
     return c.json({ error: "unauthorized" }, 401);
   }
+  const token = bearerToken(header)!;
+  c.set("apiKeyHint", await apiKeyHintFromToken(token));
   await next();
 }

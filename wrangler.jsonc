@@ -6,8 +6,16 @@
   "compatibility_date": "2026-01-15",
   "compatibility_flags": ["nodejs_compat_v2"],
   "vars": {
-    "DEFAULT_TTL_MINUTES": "30"
+    "DEFAULT_TTL_MINUTES": "30",
+    "RATE_LIMIT_PER_MINUTE": "120"
   },
+  "kv_namespaces": [
+    {
+      "binding": "RATE_LIMIT",
+      "id": "e9ce5a89a90f47b4993e1a7f78b31a1b",
+      "preview_id": "ebef170c6d9f4c5d8496c6862f6bc374"
+    }
+  ],
   "queues": {
     "producers": [
       {

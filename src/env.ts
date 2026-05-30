@@ -5,10 +5,15 @@ export interface Env {
   RESEND_API_KEY: string;
   RESEND_WEBHOOK_SECRET: string;
   API_KEY: string;
+  /** Опционально: ключи пилотов через запятую (hosted) */
+  API_KEYS?: string;
   INBOX_DOMAIN: string;
   DEFAULT_TTL_MINUTES: string;
   MAIL_QUEUE: Queue<EmailQueueMessage>;
   INBOX_WAIT: DurableObjectNamespace;
+  /** Опционально: rate limit per API key (hosted) */
+  RATE_LIMIT?: KVNamespace;
+  RATE_LIMIT_PER_MINUTE?: string;
 }
 
 export interface EmailQueueMessage {

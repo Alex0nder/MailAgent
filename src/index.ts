@@ -7,6 +7,7 @@ import { apiMetaRoutes } from "./routes/api-meta";
 import { openapiRoutes } from "./routes/openapi";
 import { healthRoutes } from "./routes/health";
 import { inboxRoutes } from "./routes/inboxes";
+import { statsRoutes } from "./routes/stats";
 import { webhookRoutes } from "./routes/webhooks";
 import { purgeExpired } from "./services/inbox";
 
@@ -21,6 +22,7 @@ app.route("/webhooks", webhookRoutes);
 app.route("/v1", apiMetaRoutes);
 app.route("/v1", openapiRoutes);
 app.route("/v1/inboxes", inboxRoutes);
+app.route("/v1/stats", statsRoutes);
 
 app.notFound((c) => c.json({ error: "not_found" }, 404));
 

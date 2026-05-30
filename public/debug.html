@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MailAgent Debug — inboxes by label</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      .debug-wrap { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+      .debug-wrap h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+      .debug-wrap p { color: var(--muted, #666); margin-bottom: 1.5rem; }
+      .debug-form label { display: block; font-size: 0.8rem; margin-bottom: 0.25rem; }
+      .debug-form input { width: 100%; margin-bottom: 1rem; padding: 0.5rem 0.65rem; font: inherit; border: 1px solid #ddd; border-radius: 6px; }
+      .debug-form button { padding: 0.55rem 1rem; border: none; border-radius: 6px; background: #000; color: #fff; cursor: pointer; }
+      .debug-err { color: #b00020; margin-top: 1rem; }
+      .inbox-list { list-style: none; padding: 0; margin-top: 1.5rem; }
+      .inbox-list li { border: 1px solid #eee; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.5rem; cursor: pointer; }
+      .inbox-list li:hover { background: #fafafa; }
+      .inbox-list .addr { font-family: ui-monospace, monospace; font-size: 0.85rem; }
+      .msg-panel { margin-top: 1.5rem; padding: 1rem; background: #f8f8f8; border-radius: 8px; font-size: 0.9rem; }
+      .msg-panel pre { white-space: pre-wrap; word-break: break-word; }
+    </style>
+  </head>
+  <body>
+    <div class="debug-wrap">
+      <p><a href="/">← MailAgent</a></p>
+      <h1>Debug inboxes</h1>
+      <p>Read-only QA view: list inboxes for your API key (optional <code>label</code> filter).</p>
+      <form class="debug-form" id="form">
+        <label for="base">API base URL</label>
+        <input id="base" type="url" value="https://api.webmailagent.com" required />
+        <label for="key">Bearer API key</label>
+        <input id="key" type="password" placeholder="ma_…" required autocomplete="off" />
+        <label for="label">Label (optional)</label>
+        <input id="label" type="text" placeholder="ci-run-42" />
+        <button type="submit">Load inboxes</button>
+      </form>
+      <p class="debug-err" id="err" hidden></p>
+      <ul class="inbox-list" id="list"></ul>
+      <div class="msg-panel" id="detail" hidden></div>
+    </div>
+    <script>
+      const STORAGE_KEY = "mailagent_debug_key";
+      const baseEl = document.getElementById("base");
+      const keyEl = document.getElementById("key");
+      const labelEl = document.getElementById("label");
+      const errEl = document.getElementById("err");
+      const listEl = document.getElementById("list");
+      const detailEl = document.getElementById("detail");
+
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) keyEl.value = saved;
+
+      document.getElementById("form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errEl.hidden = true;
+        detailEl.hidden = true;
+        listEl.innerHTML = "";
+        const base = baseEl.value.replace(/\/$/, "");
+        const key = keyEl.value.trim();
+        localStorage.setItem(STORAGE_KEY, key);
+        const label = labelEl.value.trim();
+        const q = label ? `?label=${encodeURIComponent(label)}&limit=50` : "?limit=50";
+        try {
+          const res = await fetch(`${base}/v1/inboxes${q}`, {
+            headers: { Authorization: `Bearer ${key}` },
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            errEl.textContent = data.error || res.statusText;
+            errEl.hidden = false;
+            return;
+          }
+          const inboxes = data.inboxes || [];
+          if (!inboxes.length) {
+            errEl.textContent = "No active inboxes.";
+            errEl.hidden = false;
+            return;
+          }
+          for (const box of inboxes) {
+            const li = document.createElement("li");
+            li.innerHTML = `<strong>${box.id}</strong><br /><span class="addr">${box.address}</span>${box.label ? `<br />label: ${box.label}` : ""}`;
+            li.addEventListener("click", () => loadMessages(base, key, box.id));
+            listEl.appendChild(li);
+          }
+        } catch (err) {
+          errEl.textContent = String(err);
+          errEl.hidden = false;
+        }
+      });
+
+      async function loadMessages(base, key, id) {
+        detailEl.hidden = false;
+        detailEl.innerHTML = "Loading…";
+        const res = await fetch(`${base}/v1/inboxes/${id}/messages`, {
+          headers: { Authorization: `Bearer ${key}` },
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          detailEl.innerHTML = `<p class="debug-err">${data.error || res.statusText}</p>`;
+          return;
+        }
+        detailEl.innerHTML = `<h2>Inbox ${id}</h2><pre>${JSON.stringify(data.messages, null, 2)}</pre>`;
+      }
+    </script>
+  </body>
+</html>

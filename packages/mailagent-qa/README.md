@@ -1,53 +1,21 @@
 # @mailagent/qa
 
-Хелпер для E2E: временный inbox, OTP и magic link в Playwright / Cypress / CI.
-
-## Установка (из репозитория)
+Playwright / Cypress helpers for [MailAgent](https://webmailagent.com) test inboxes.
 
 ```bash
-npm install file:../packages/mailagent-qa
-# или после publish: npm install @mailagent/qa
+npm install @mailagent/qa
 ```
 
-## Env
+```ts
+import { MailAgentQA } from "@mailagent/qa";
 
-```bash
-export MAILAGENT_API_URL=https://api.webmailagent.com
-export MAILAGENT_API_KEY=your_key
-```
-
-## Playwright
-
-```typescript
-import { test, expect } from "@playwright/test";
-import { createMailAgentQa, MailAgentQa } from "@mailagent/qa";
-
-const mail = createMailAgentQa();
-
-test("signup with email verification", async ({ page }) => {
-  const label = MailAgentQa.runLabel("signup");
-  const { address, id } = await mail.createInbox({
-    label,
-    service: "auth0",
-  });
-
-  await page.goto("/signup");
-  await page.fill('[name="email"]', address);
-  await page.click('button[type="submit"]');
-
-  const { otp, primaryLink } = await mail.waitForVerification(id, {
-    subjectContains: "verify",
-    timeoutSeconds: 120,
-  });
-
-  if (otp) {
-    await page.fill('[name="code"]', otp);
-    await page.click('button[type="submit"]');
-  }
-  await expect(page).toHaveURL(/dashboard/);
-
-  await mail.deleteInbox(id);
+const mail = new MailAgentQA({
+  baseUrl: process.env.MAILAGENT_API_URL!,
+  apiKey: process.env.MAILAGENT_API_KEY!,
 });
+
+const inbox = await mail.createInbox({ label: "ci-run-42", ttlMinutes: 15 });
+const { otp } = await mail.waitForVerification(inbox.id, { timeoutSeconds: 90 });
 ```
 
-Полный гайд: [docs/QA.md](../../docs/QA.md)
+See [QA docs](https://webmailagent.com/docs/qa.html).

@@ -1,6 +1,7 @@
 # MailAgent
 
 Временные inbox для **AI-агентов** и **QA/E2E**: webhook → очередь → Neon, SSE, OTP/magic link.  
+**Roadmap:** [docs/ROADMAP.md](./docs/ROADMAP.md)  
 **Свой агент без нашего API:** [docs/INTEGRATE.md](./docs/INTEGRATE.md) — self-host, MCP, REST.  
 **Тестировщикам:** [docs/QA.md](./docs/QA.md) — label, subjectContains, callback, Playwright.
 
@@ -85,6 +86,7 @@ Authorization: Bearer <API_KEY>
 | `GET` | `/v1/inboxes/:id/events` | **SSE** — ждать новое письмо |
 | `GET` | `/v1/inboxes/:id/wait?timeout=60` | Poll fallback (каждые 500ms) |
 | `DELETE` | `/v1/inboxes/:id` | Удалить |
+| `GET` | `/v1/stats` | Счётчики inbox / messages (24h) |
 | `POST` | `/webhooks/resend` | Webhook Resend (без API key) |
 | `GET` | `/health` | DB ping |
 

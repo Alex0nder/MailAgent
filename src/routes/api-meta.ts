@@ -23,6 +23,7 @@ apiMetaRoutes.get("/", (c) => {
       events: { method: "GET", path: "/v1/inboxes/:id/events", note: "SSE" },
       wait: { method: "GET", path: "/v1/inboxes/:id/wait" },
       deleteInbox: { method: "DELETE", path: "/v1/inboxes/:id" },
+      stats: { method: "GET", path: "/v1/stats", note: "usage counters" },
       health: { method: "GET", path: "/health" },
     },
     services: Object.keys(SERVICE_EXPECT_FROM),
