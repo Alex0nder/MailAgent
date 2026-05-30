@@ -6,14 +6,21 @@ import { listMessages, type MessageRow } from "./inbox";
 export async function waitForFirstMessage(
   env: Env,
   inboxId: string,
-  timeoutSec: number
+  timeoutSec: number,
+  options?: { subjectContains?: string }
 ): Promise<MessageRow | null> {
   const cap = Math.min(Math.max(timeoutSec, 5), 120);
+  const needle = options?.subjectContains?.trim().toLowerCase();
   const deadline = Date.now() + cap * 1000;
 
   while (Date.now() < deadline) {
     const messages = await listMessages(env, inboxId);
-    if (messages.length > 0) return messages[0];
+    const match = needle
+      ? messages.find((m) =>
+          m.subject.toLowerCase().includes(needle)
+        )
+      : messages[0];
+    if (match) return match;
     await sleep(500);
   }
   return null;

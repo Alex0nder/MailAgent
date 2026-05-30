@@ -7,9 +7,11 @@ import {
   extractOtp,
   primaryLink,
 } from "./extract";
+import { fireInboxCallback } from "./callback";
 import {
   findInboxByAddress,
   insertMessage,
+  type InboxRow,
   type MessageRow,
 } from "./inbox";
 import type { EmailQueueMessage, MessageNotifyPayload } from "../env";
@@ -22,7 +24,10 @@ export function createResendClient(env: Env) {
 export async function processInboundEmail(
   env: Env,
   job: EmailQueueMessage,
-  notify: (inboxId: string, payload: MessageNotifyPayload) => Promise<void>
+  notify: (
+    inbox: InboxRow,
+    payload: MessageNotifyPayload
+  ) => Promise<void>
 ): Promise<void> {
   const resend = createResendClient(env);
 
@@ -61,7 +66,16 @@ export async function processInboundEmail(
 
   if (!row) return;
 
-  await notify(inbox.id, toNotifyPayload(row));
+  const payload = toNotifyPayload(row);
+  await notify(inbox, payload);
+
+  if (inbox.callback_url) {
+    await fireInboxCallback(inbox.callback_url, {
+      ...payload,
+      address: inbox.address,
+      label: inbox.label,
+    });
+  }
 }
 
 function toNotifyPayload(row: MessageRow): MessageNotifyPayload {

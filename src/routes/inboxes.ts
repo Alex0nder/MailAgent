@@ -1,12 +1,15 @@
 import { Hono } from "hono";
 import type { Env } from "../env";
 import { requireApiKey } from "../lib/auth";
+import { parseCallbackUrl } from "../lib/callback-url";
 import { resolveExpectFrom } from "../lib/service-presets";
 import {
   createInbox,
   deleteInbox,
   getInbox,
+  listInboxes,
   listMessages,
+  type InboxRow,
 } from "../services/inbox";
 import { primaryLink } from "../services/extract";
 import { waitForFirstMessage } from "../services/wait";
@@ -16,30 +19,35 @@ export const inboxRoutes = new Hono<{ Bindings: Env }>();
 inboxRoutes.use("*", requireApiKey);
 
 /** One-shot: create → wait → extract → delete (для агентов и CI) */
+type CreateBody = {
+  ttlMinutes?: number;
+  service?: string;
+  expectFrom?: string | string[];
+  allowedSenders?: string | string[];
+  label?: string;
+  callbackUrl?: string;
+  subjectContains?: string;
+  timeoutSeconds?: number;
+  deleteAfter?: boolean;
+};
+
 inboxRoutes.post("/open", async (c) => {
-  let body: {
-    ttlMinutes?: number;
-    service?: string;
-    expectFrom?: string | string[];
-    allowedSenders?: string | string[];
-    timeoutSeconds?: number;
-    deleteAfter?: boolean;
-  } = {};
+  let body: CreateBody = {};
   try {
     body = await c.req.json();
   } catch {
     body = {};
   }
 
-  const expectFrom = resolveExpectFrom(body.service, body.expectFrom);
-  const inbox = await createInbox(c.env, {
-    ttlMinutes: body.ttlMinutes,
-    expectFrom,
-    allowedSenders: body.allowedSenders,
-  });
+  const opts = inboxOptionsFromBody(body);
+  const clean = rejectInvalidCallback(opts);
+  if ("error" in clean) return c.json(clean, 400);
 
+  const inbox = await createInbox(c.env, clean);
   const timeoutSec = Math.min(Number(body.timeoutSeconds ?? 90), 120);
-  const message = await waitForFirstMessage(c.env, inbox.id, timeoutSec);
+  const message = await waitForFirstMessage(c.env, inbox.id, timeoutSec, {
+    subjectContains: body.subjectContains,
+  });
 
   if (!message) {
     if (body.deleteAfter !== false) {
@@ -48,10 +56,8 @@ inboxRoutes.post("/open", async (c) => {
     return c.json(
       {
         error: "timeout",
-        inboxId: inbox.id,
-        address: inbox.address,
-        allowedSenders: inbox.allowed_senders,
-        hint: "No email yet. Check Resend inbound, webhook, and expectFrom.",
+        ...formatInbox(inbox),
+        hint: "No matching email. Check webhook, expectFrom, subjectContains.",
       },
       408
     );
@@ -63,9 +69,8 @@ inboxRoutes.post("/open", async (c) => {
 
   return c.json(
     {
+      ...formatInbox(inbox),
       inboxId: inbox.id,
-      address: inbox.address,
-      allowedSenders: inbox.allowed_senders,
       verification,
       deleted,
     },
@@ -73,31 +78,32 @@ inboxRoutes.post("/open", async (c) => {
   );
 });
 
+/** QA: список inbox по label (например label=ci-run-42) */
+inboxRoutes.get("/", async (c) => {
+  const label = c.req.query("label");
+  const limit = Number(c.req.query("limit") ?? "20");
+  const rows = await listInboxes(c.env, { label, limit });
+  return c.json({
+    inboxes: rows.map((row) => ({
+      ...formatInbox(row),
+      id: row.id,
+    })),
+  });
+});
+
 inboxRoutes.post("/", async (c) => {
-  let body: {
-    ttlMinutes?: number;
-    service?: string;
-    expectFrom?: string | string[];
-    allowedSenders?: string | string[];
-  } = {};
+  let body: CreateBody = {};
   try {
     body = await c.req.json();
   } catch {
     body = {};
   }
-  const expectFrom = resolveExpectFrom(body.service, body.expectFrom);
-  const inbox = await createInbox(c.env, {
-    ttlMinutes: body.ttlMinutes,
-    expectFrom,
-    allowedSenders: body.allowedSenders,
-  });
-  return c.json({
-    id: inbox.id,
-    address: inbox.address,
-    expiresAt: inbox.expires_at,
-    createdAt: inbox.created_at,
-    allowedSenders: inbox.allowed_senders,
-  }, 201);
+  const opts = inboxOptionsFromBody(body);
+  const clean = rejectInvalidCallback(opts);
+  if ("error" in clean) return c.json(clean, 400);
+
+  const inbox = await createInbox(c.env, clean);
+  return c.json({ id: inbox.id, ...formatInbox(inbox) }, 201);
 });
 
 inboxRoutes.get("/:id", async (c) => {
@@ -105,10 +111,8 @@ inboxRoutes.get("/:id", async (c) => {
   if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
   const messages = await listMessages(c.env, inbox.id);
   return c.json({
+    ...formatInbox(inbox),
     id: inbox.id,
-    address: inbox.address,
-    expiresAt: inbox.expires_at,
-    allowedSenders: inbox.allowed_senders,
     messageCount: messages.length,
   });
 });
@@ -147,7 +151,10 @@ inboxRoutes.get("/:id/wait", async (c) => {
   if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
 
   const timeoutSec = Math.min(Number(c.req.query("timeout") ?? 60), 120);
-  const message = await waitForFirstMessage(c.env, inbox.id, timeoutSec);
+  const subjectContains = c.req.query("subjectContains") ?? undefined;
+  const message = await waitForFirstMessage(c.env, inbox.id, timeoutSec, {
+    subjectContains,
+  });
   if (!message) return c.json({ error: "timeout" }, 408);
   return c.json({ message: formatMessage(message) });
 });
@@ -195,6 +202,40 @@ function formatVerification(m: {
     from: m.from_addr,
     subject: m.subject,
     messageId: m.id,
+  };
+}
+
+function inboxOptionsFromBody(body: CreateBody) {
+  const expectFrom = resolveExpectFrom(body.service, body.expectFrom);
+  const callbackUrl = parseCallbackUrl(body.callbackUrl);
+  return {
+    ttlMinutes: body.ttlMinutes,
+    expectFrom,
+    allowedSenders: body.allowedSenders,
+    label: body.label,
+    callbackUrl,
+    callbackInvalid: Boolean(body.callbackUrl && !callbackUrl),
+  };
+}
+
+function rejectInvalidCallback(
+  opts: ReturnType<typeof inboxOptionsFromBody>
+) {
+  if (opts.callbackInvalid) {
+    return { error: "invalid_callback_url" as const };
+  }
+  const { callbackInvalid: _, ...rest } = opts;
+  return rest;
+}
+
+function formatInbox(inbox: InboxRow) {
+  return {
+    address: inbox.address,
+    expiresAt: inbox.expires_at,
+    createdAt: inbox.created_at,
+    allowedSenders: inbox.allowed_senders,
+    label: inbox.label,
+    callbackUrl: inbox.callback_url,
   };
 }
 

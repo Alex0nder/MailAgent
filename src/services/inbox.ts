@@ -9,6 +9,8 @@ export interface InboxRow {
   expires_at: string;
   created_at: string;
   allowed_senders: string[];
+  label: string | null;
+  callback_url: string | null;
 }
 
 export interface MessageRow {
@@ -30,6 +32,8 @@ export async function createInbox(
     ttlMinutes?: number;
     expectFrom?: string | string[];
     allowedSenders?: string | string[];
+    label?: string;
+    callbackUrl?: string | null;
   }
 ): Promise<InboxRow> {
   const sql = getDb(env);
@@ -37,14 +41,16 @@ export async function createInbox(
   const allowed = normalizeAllowedSenders(
     options?.allowedSenders ?? options?.expectFrom
   );
+  const label = options?.label?.trim().slice(0, 128) || null;
+  const callbackUrl = options?.callbackUrl ?? null;
   const id = nanoid(12);
   const local = `inbox-${id}`;
   const address = `${local}@${env.INBOX_DOMAIN}`;
   const expiresAt = new Date(Date.now() + ttl * 60_000).toISOString();
 
   await sql`
-    INSERT INTO inboxes (id, address, expires_at, allowed_senders)
-    VALUES (${id}, ${address}, ${expiresAt}, ${allowed})
+    INSERT INTO inboxes (id, address, expires_at, allowed_senders, label, callback_url)
+    VALUES (${id}, ${address}, ${expiresAt}, ${allowed}, ${label}, ${callbackUrl})
   `;
 
   return {
@@ -53,13 +59,46 @@ export async function createInbox(
     expires_at: expiresAt,
     created_at: new Date().toISOString(),
     allowed_senders: allowed,
+    label,
+    callback_url: callbackUrl,
   };
+}
+
+/** QA: найти inbox прогона (отладка после падения теста) */
+export async function listInboxes(
+  env: Env,
+  options?: { label?: string; limit?: number }
+): Promise<InboxRow[]> {
+  const sql = getDb(env);
+  const limit = Math.min(options?.limit ?? 20, 50);
+  const label = options?.label?.trim();
+
+  if (label) {
+    const rows = (await sql`
+      SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url
+      FROM inboxes
+      WHERE label = ${label}
+        AND expires_at > NOW()
+      ORDER BY created_at DESC
+      LIMIT ${limit}
+    `) as InboxRow[];
+    return rows.map(mapInboxRow);
+  }
+
+  const rows = (await sql`
+    SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url
+    FROM inboxes
+    WHERE expires_at > NOW()
+    ORDER BY created_at DESC
+    LIMIT ${limit}
+  `) as InboxRow[];
+  return rows.map(mapInboxRow);
 }
 
 export async function getInbox(env: Env, id: string): Promise<InboxRow | null> {
   const sql = getDb(env);
   const rows = (await sql`
-    SELECT id, address, expires_at, created_at, allowed_senders
+    SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url
     FROM inboxes
     WHERE id = ${id}
       AND expires_at > NOW()
@@ -75,7 +114,7 @@ export async function findInboxByAddress(
   const sql = getDb(env);
   const normalized = address.trim().toLowerCase();
   const rows = (await sql`
-    SELECT id, address, expires_at, created_at, allowed_senders
+    SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url
     FROM inboxes
     WHERE LOWER(address) = ${normalized}
       AND expires_at > NOW()
@@ -89,6 +128,8 @@ function mapInboxRow(row: InboxRow): InboxRow {
   return {
     ...row,
     allowed_senders: Array.isArray(allowed) ? allowed : [],
+    label: row.label ?? null,
+    callback_url: row.callback_url ?? null,
   };
 }
 

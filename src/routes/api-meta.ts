@@ -9,11 +9,13 @@ apiMetaRoutes.get("/", (c) => {
   return c.json({
     name: "MailAgent",
     version: "0.1.0",
-    description: "Temporary inboxes for AI agent email verification",
+    description:
+      "Temporary inboxes for AI agents and QA/E2E (OTP, magic links, CI labels)",
     auth: "Authorization: Bearer <API_KEY>",
     openapi: "/v1/openapi.json",
     endpoints: {
       open: { method: "POST", path: "/v1/inboxes/open", note: "create + wait + extract (+ delete)" },
+      listInboxes: { method: "GET", path: "/v1/inboxes?label=", note: "QA filter" },
       createInbox: { method: "POST", path: "/v1/inboxes" },
       getInbox: { method: "GET", path: "/v1/inboxes/:id" },
       messages: { method: "GET", path: "/v1/inboxes/:id/messages" },
@@ -30,6 +32,13 @@ apiMetaRoutes.get("/", (c) => {
       "mailagent_wait_for_message",
       "mailagent_extract_verification",
       "mailagent_delete_inbox",
+      "mailagent_list_inboxes",
     ],
+    qa: {
+      label: "CI run id on create/open",
+      subjectContains: "filter wait/open by subject",
+      callbackUrl: "HTTPS POST on message.received",
+      docs: "/docs/QA.md",
+    },
   });
 });

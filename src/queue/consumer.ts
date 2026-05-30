@@ -1,4 +1,5 @@
 import type { Env, EmailQueueMessage, MessageNotifyPayload } from "../env";
+import type { InboxRow } from "../services/inbox";
 import { processInboundEmail } from "../services/resend-mail";
 
 export async function handleQueueBatch(
@@ -7,8 +8,8 @@ export async function handleQueueBatch(
 ): Promise<void> {
   for (const msg of batch.messages) {
     try {
-      await processInboundEmail(env, msg.body, (inboxId, payload) =>
-        notifyInbox(env, inboxId, payload)
+      await processInboundEmail(env, msg.body, (inbox, payload) =>
+        notifyInbox(env, inbox, payload)
       );
       msg.ack();
     } catch (err) {
@@ -20,10 +21,10 @@ export async function handleQueueBatch(
 
 async function notifyInbox(
   env: Env,
-  inboxId: string,
+  inbox: InboxRow,
   payload: MessageNotifyPayload
 ): Promise<void> {
-  const id = env.INBOX_WAIT.idFromName(inboxId);
+  const id = env.INBOX_WAIT.idFromName(inbox.id);
   const stub = env.INBOX_WAIT.get(id);
   await stub.fetch("http://do/notify", {
     method: "POST",

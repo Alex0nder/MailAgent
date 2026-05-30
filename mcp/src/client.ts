@@ -17,7 +17,11 @@ export class MailAgentClient {
     this.apiKey = apiKey;
   }
 
-  private async request<T>(
+  request<T>(path: string, init?: RequestInit): Promise<T> {
+    return this.requestInternal<T>(path, init);
+  }
+
+  private async requestInternal<T>(
     path: string,
     init?: RequestInit
   ): Promise<T> {
@@ -52,6 +56,8 @@ export class MailAgentClient {
     const body: Record<string, unknown> = {};
     if (options?.ttlMinutes !== undefined) body.ttlMinutes = options.ttlMinutes;
     if (options?.service) body.service = options.service;
+    if (options?.label) body.label = options.label;
+    if (options?.callbackUrl) body.callbackUrl = options.callbackUrl;
     const expectFrom = resolveExpectFrom(
       options?.service,
       options?.expectFrom
@@ -107,6 +113,9 @@ export class MailAgentClient {
     };
     if (options.ttlMinutes !== undefined) body.ttlMinutes = options.ttlMinutes;
     if (options.service) body.service = options.service;
+    if (options.label) body.label = options.label;
+    if (options.callbackUrl) body.callbackUrl = options.callbackUrl;
+    if (options.subjectContains) body.subjectContains = options.subjectContains;
     const expectFrom = resolveExpectFrom(
       options.service,
       options.expectFrom
@@ -237,6 +246,10 @@ export interface CreateInboxOptions {
   service?: string;
   expectFrom?: string | string[];
   allowedSenders?: string | string[];
+  /** QA: id прогона CI / parallel worker */
+  label?: string;
+  /** QA: HTTPS webhook при письме */
+  callbackUrl?: string;
 }
 
 export interface WaitAndExtractOptions {
@@ -245,6 +258,10 @@ export interface WaitAndExtractOptions {
   service?: string;
   expectFrom?: string | string[];
   allowedSenders?: string | string[];
+  label?: string;
+  callbackUrl?: string;
+  /** QA: ждать письмо с подстрокой в subject */
+  subjectContains?: string;
   timeoutSeconds?: number;
   /** Default true — удалить inbox после успешного extract */
   deleteAfter?: boolean;

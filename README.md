@@ -1,6 +1,7 @@
 # MailAgent
 
-Временные inbox для AI-агентов: быстрый webhook → очередь → Neon, ожидание письма через SSE (Durable Object).
+Временные inbox для **AI-агентов** и **QA/E2E**: webhook → очередь → Neon, SSE, OTP/magic link.  
+**Тестировщикам:** [docs/QA.md](./docs/QA.md) — label, subjectContains, callback, Playwright.
 
 **Лендинг + API** на одном Cloudflare Worker (`public/` + `/v1`).  
 Прод: [webmailagent.com](https://webmailagent.com) (после DNS) · API: [api.webmailagent.com](https://api.webmailagent.com).  

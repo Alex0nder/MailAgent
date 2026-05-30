@@ -55,15 +55,26 @@ server.registerTool(
         .describe(
           `Preset expectFrom (${SERVICE_NAMES.join(", ")}). Example: dribbble → dribbble.com + m.dribbble.com`
         ),
+      label: z
+        .string()
+        .optional()
+        .describe("QA/CI run id — find inboxes via list after failed test"),
+      callbackUrl: z
+        .string()
+        .url()
+        .optional()
+        .describe("HTTPS webhook when email arrives (CI hooks)"),
     },
   },
-  async ({ ttlMinutes, expectFrom, allowedSenders, service }) => {
+  async ({ ttlMinutes, expectFrom, allowedSenders, service, label, callbackUrl }) => {
     const client = new MailAgentClient();
     const inbox = await client.createInbox({
       ttlMinutes,
       service,
       expectFrom,
       allowedSenders,
+      label,
+      callbackUrl,
     });
     return toolText({
       ...inbox,
@@ -105,12 +116,41 @@ server.registerTool(
         .boolean()
         .optional()
         .describe("Delete inbox after success (default true)"),
+      label: z.string().optional().describe("QA/CI run id"),
+      callbackUrl: z.string().url().optional(),
+      subjectContains: z
+        .string()
+        .optional()
+        .describe("Wait for email whose subject includes this text"),
     },
   },
   async (args) => {
     const client = new MailAgentClient();
     const result = await client.waitAndExtract(args);
     return toolText(result);
+  }
+);
+
+server.registerTool(
+  "mailagent_list_inboxes",
+  {
+    description:
+      "List active inboxes by label (QA: debug failed CI run, find address/ids).",
+    inputSchema: {
+      label: z
+        .string()
+        .optional()
+        .describe("Filter by label, e.g. ci-12345 or pw-worker-2"),
+      limit: z.number().int().min(1).max(50).optional(),
+    },
+  },
+  async ({ label, limit }) => {
+    const client = new MailAgentClient();
+    const q = new URLSearchParams();
+    if (label) q.set("label", label);
+    if (limit) q.set("limit", String(limit));
+    const path = `/v1/inboxes${q.toString() ? `?${q}` : ""}`;
+    return toolText(await client.request<{ inboxes: unknown[] }>(path));
   }
 );
 
