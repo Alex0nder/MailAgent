@@ -8,7 +8,7 @@ export const apiMetaRoutes = new Hono();
 apiMetaRoutes.get("/", (c) => {
   return c.json({
     name: "MailAgent",
-    version: "0.1.0",
+    version: "0.2.0",
     description:
       "Temporary inboxes for AI agents and QA/E2E (OTP, magic links, CI labels)",
     auth: "Authorization: Bearer <API_KEY>",
@@ -22,6 +22,11 @@ apiMetaRoutes.get("/", (c) => {
       extract: { method: "GET", path: "/v1/inboxes/:id/extract" },
       events: { method: "GET", path: "/v1/inboxes/:id/events", note: "SSE" },
       wait: { method: "GET", path: "/v1/inboxes/:id/wait" },
+      callbackLog: {
+        method: "GET",
+        path: "/v1/inboxes/:id/callbacks",
+        note: "QA webhook delivery log",
+      },
       deleteInbox: { method: "DELETE", path: "/v1/inboxes/:id" },
       stats: { method: "GET", path: "/v1/stats", note: "usage counters" },
       health: { method: "GET", path: "/health" },

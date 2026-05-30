@@ -5,6 +5,7 @@ import { requireApiKey } from "../lib/auth";
 import { rateLimit } from "../lib/rate-limit";
 import { parseCallbackUrl } from "../lib/callback-url";
 import { resolveExpectFrom } from "../lib/service-presets";
+import { listCallbackDeliveries } from "../services/callback-log";
 import {
   createInbox,
   deleteInbox,
@@ -129,6 +130,27 @@ inboxRoutes.get("/:id", async (c) => {
     ...formatInbox(inbox),
     id: inbox.id,
     messageCount: messages.length,
+  });
+});
+
+inboxRoutes.get("/:id/callbacks", async (c) => {
+  const inbox = await getInbox(c.env, c.req.param("id"), {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
+  if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const limit = Number(c.req.query("limit") ?? "20");
+  const rows = await listCallbackDeliveries(c.env, inbox.id, limit);
+  return c.json({
+    deliveries: rows.map((row) => ({
+      id: row.id,
+      callbackUrl: row.callback_url,
+      messageId: row.message_id,
+      statusCode: row.status_code,
+      ok: row.ok,
+      error: row.error_text,
+      durationMs: row.duration_ms,
+      createdAt: row.created_at,
+    })),
   });
 });
 

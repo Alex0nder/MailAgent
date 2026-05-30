@@ -70,10 +70,15 @@ export async function processInboundEmail(
   await notify(inbox, payload);
 
   if (inbox.callback_url) {
-    await fireInboxCallback(inbox.callback_url, {
-      ...payload,
-      address: inbox.address,
-      label: inbox.label,
+    await fireInboxCallback(env, {
+      inboxId: inbox.id,
+      messageId: row.id,
+      callbackUrl: inbox.callback_url,
+      payload: {
+        ...payload,
+        address: inbox.address,
+        label: inbox.label,
+      },
     });
   }
 }

@@ -1,50 +1,48 @@
 # MailAgent roadmap
 
-Текущий статус: **v0.1.1** — open source, hosted API, MCP, QA SDK, лендинг.
+Текущий статус: **v0.2.0** — Phase 2 закрыт.
 
-## Сейчас (v0.1) ✅
+## Сейчас (v0.2) ✅
 
 - REST + SSE + Queues + OTP/links
 - MCP + `@mailagent/qa`
-- `label`, `subjectContains`, `callbackUrl`
+- QA: `label`, `subjectContains`, `callbackUrl`, delivery log
+- Multi API keys, rate limits, `api_key_hint`, `/debug.html`
+- OpenAPI 3.0: `/v1/openapi.json`
 - Self-host docs, MIT
 
 ## Phase 1 — Hosted pilots ✅
 
 | Задача | Статус |
 |--------|--------|
-| Несколько API keys (`API_KEYS`) | ✅ |
-| `GET /v1/stats` | ✅ |
-| `npm run smoke:prod` | ✅ |
-| `npm run issue:key` | ✅ |
-| Миграция `003` на Neon prod | ⏳ `npm run db:migrate` на prod |
-| npm publish `@mailagent/qa` | ⏳ `npm run publish:qa` (нужен npm login) |
+| `API_KEYS`, stats, smoke, issue:key | ✅ |
+| npm publish `@mailagent/qa` | ⏳ `npm run publish:qa` |
 
-## Phase 2 — Product hardening (в работе)
+## Phase 2 — Product hardening ✅
 
 | Задача | Статус |
 |--------|--------|
-| Rate limits (KV) per key | ✅ `RATE_LIMIT` + 120/min |
-| `api_key_hint` на inbox | ✅ миграция `004` |
-| Debug UI `/debug.html` | ✅ |
-| OpenAPI = полная схема | 📋 |
-| Webhook delivery log | 📋 |
+| Rate limits (KV) | ✅ |
+| `api_key_hint` | ✅ |
+| Debug UI | ✅ |
+| OpenAPI полная схема | ✅ |
+| Webhook delivery log | ✅ `GET …/callbacks` |
 
-## Phase 3 — Growth (позже)
+## Phase 3 — Growth (дальше)
 
 | Задача | Зачем |
 |--------|--------|
 | Stripe / free tier | Монетизация hosted |
-| Team keys + dashboard | B2B QA команды |
-| Custom inbox domain wizard | Бренд вместо `*.resend.app` |
-| Больше presets (Figma, Notion, …) | Меньше `expectFrom` вручную |
+| Team keys + dashboard | B2B QA |
+| Custom inbox domain wizard | Свой домен вместо `*.resend.app` |
+| Presets (Figma, Notion, …) | Меньше ручного `expectFrom` |
 
 ## Не делаем
 
-- Browser extension для людей (burner mail)
+- Browser extension (burner mail)
 - Полноценный webmail UI
-- Marketing email sending (это Resend, не мы)
+- Marketing email (Resend)
 
-## Как предложить фичу
+## Фичи
 
 Issue на GitHub или hello@webmailagent.com.

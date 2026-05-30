@@ -85,6 +85,7 @@ Authorization: Bearer <API_KEY>
 | `GET` | `/v1/inboxes/:id/extract` | OTP + ссылки из последнего письма |
 | `GET` | `/v1/inboxes/:id/events` | **SSE** — ждать новое письмо |
 | `GET` | `/v1/inboxes/:id/wait?timeout=60` | Poll fallback (каждые 500ms) |
+| `GET` | `/v1/inboxes/:id/callbacks` | Лог доставки `callbackUrl` (QA) |
 | `DELETE` | `/v1/inboxes/:id` | Удалить |
 | `GET` | `/v1/stats` | Счётчики inbox / messages (24h) |
 | `POST` | `/webhooks/resend` | Webhook Resend (без API key) |

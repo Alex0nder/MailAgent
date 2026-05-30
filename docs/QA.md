@@ -181,4 +181,13 @@ curl -sS "$MAILAGENT_API_URL/v1/inboxes/INBOX_ID/messages" \
 | `callbackUrl` | create, open | HTTPS webhook при письме |
 | `deleteAfter` | open | `false` — оставить для отладки |
 
-Миграция: `npm run db:migrate` (файл `003_qa_fields.sql`).
+### Лог callback (webhook не сработал?)
+
+```bash
+curl -sS "$MAILAGENT_API_URL/v1/inboxes/INBOX_ID/callbacks" \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" | jq .
+```
+
+Ответ: `deliveries[]` с `ok`, `statusCode`, `error`, `durationMs`. UI: [/debug.html](https://webmailagent.com/debug.html).
+
+Миграции: `npm run db:migrate` (`003_qa_fields.sql`, `005_callback_deliveries.sql`).

@@ -1,0 +1,413 @@
+/** OpenAPI 3.0 — полная схема REST API MailAgent */
+
+const bearer = [{ bearerAuth: [] }];
+
+const err = {
+  type: "object",
+  properties: {
+    error: { type: "string" },
+  },
+} as const;
+
+const inboxBody = {
+  type: "object",
+  properties: {
+    ttlMinutes: { type: "integer", minimum: 1, maximum: 1440 },
+    service: {
+      type: "string",
+      description: "Preset allowlist (github, google, …)",
+    },
+    expectFrom: {
+      oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
+    },
+    allowedSenders: {
+      oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
+    },
+    label: { type: "string", maxLength: 128 },
+    callbackUrl: { type: "string", format: "uri", description: "HTTPS webhook" },
+  },
+} as const;
+
+const openBody = {
+  allOf: [
+    inboxBody,
+    {
+      type: "object",
+      properties: {
+        subjectContains: { type: "string" },
+        timeoutSeconds: { type: "integer", maximum: 120, default: 90 },
+        deleteAfter: { type: "boolean", default: true },
+      },
+    },
+  ],
+} as const;
+
+const inbox = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    address: { type: "string" },
+    expiresAt: { type: "string", format: "date-time" },
+    createdAt: { type: "string", format: "date-time" },
+    allowedSenders: { type: "array", items: { type: "string" } },
+    label: { type: "string", nullable: true },
+    callbackUrl: { type: "string", nullable: true },
+    messageCount: { type: "integer" },
+  },
+} as const;
+
+const message = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    from: { type: "string" },
+    subject: { type: "string" },
+    textPreview: { type: "string", nullable: true },
+    otp: { type: "string", nullable: true },
+    links: { type: "array", items: { type: "string" } },
+    primaryLink: { type: "string", nullable: true },
+    receivedAt: { type: "string", format: "date-time" },
+  },
+} as const;
+
+const verification = {
+  type: "object",
+  properties: {
+    otp: { type: "string", nullable: true },
+    links: { type: "array", items: { type: "string" } },
+    primaryLink: { type: "string", nullable: true },
+    from: { type: "string" },
+    subject: { type: "string" },
+    messageId: { type: "string" },
+  },
+} as const;
+
+const callbackDelivery = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    callbackUrl: { type: "string" },
+    messageId: { type: "string", nullable: true },
+    statusCode: { type: "integer", nullable: true },
+    ok: { type: "boolean" },
+    error: { type: "string", nullable: true },
+    durationMs: { type: "integer", nullable: true },
+    createdAt: { type: "string", format: "date-time" },
+  },
+} as const;
+
+export const openApiSpec = {
+  openapi: "3.0.3",
+  info: {
+    title: "MailAgent API",
+    version: "0.2.0",
+    description:
+      "Temporary inboxes for AI agents and QA. Bearer auth on /v1 except webhooks.",
+  },
+  servers: [
+    { url: "https://api.webmailagent.com", description: "Hosted" },
+    { url: "http://127.0.0.1:8787", description: "Local wrangler dev" },
+  ],
+  tags: [
+    { name: "meta", description: "Discovery and stats" },
+    { name: "inboxes", description: "Temporary inboxes" },
+    { name: "webhooks", description: "Inbound email (Resend)" },
+    { name: "health", description: "Health check" },
+  ],
+  components: {
+    securitySchemes: {
+      bearerAuth: { type: "http", scheme: "bearer" },
+    },
+    schemas: {
+      Error: err,
+      InboxCreate: inboxBody,
+      InboxOpen: openBody,
+      Inbox: inbox,
+      Message: message,
+      Verification: verification,
+      CallbackDelivery: callbackDelivery,
+    },
+    responses: {
+      Unauthorized: {
+        description: "Missing or invalid Bearer token",
+        content: { "application/json": { schema: err } },
+      },
+      NotFound: {
+        description: "Resource not found",
+        content: { "application/json": { schema: err } },
+      },
+      RateLimited: {
+        description: "Too many requests per API key",
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                error: { type: "string", example: "rate_limit_exceeded" },
+                limitPerMinute: { type: "integer" },
+                retryAfterSeconds: { type: "integer" },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  paths: {
+    "/health": {
+      get: {
+        tags: ["health"],
+        summary: "Health check",
+        security: [],
+        responses: {
+          "200": {
+            description: "OK",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    status: { type: "string" },
+                    db: { type: "boolean" },
+                    version: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/v1": {
+      get: {
+        tags: ["meta"],
+        summary: "API discovery",
+        security: bearer,
+        responses: { "200": { description: "Endpoints, presets, MCP tools" } },
+      },
+    },
+    "/v1/openapi.json": {
+      get: {
+        tags: ["meta"],
+        summary: "OpenAPI document",
+        security: [],
+        responses: { "200": { description: "This schema" } },
+      },
+    },
+    "/v1/stats": {
+      get: {
+        tags: ["meta"],
+        summary: "Usage counters",
+        security: bearer,
+        responses: {
+          "200": {
+            description: "Active inboxes, messages 24h, limits",
+          },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "429": { $ref: "#/components/responses/RateLimited" },
+        },
+      },
+    },
+    "/v1/inboxes": {
+      get: {
+        tags: ["inboxes"],
+        summary: "List inboxes (optional label filter)",
+        security: bearer,
+        parameters: [
+          { name: "label", in: "query", schema: { type: "string" } },
+          { name: "limit", in: "query", schema: { type: "integer", maximum: 50 } },
+        ],
+        responses: {
+          "200": {
+            description: "Inboxes for current API key",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    inboxes: { type: "array", items: inbox },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      post: {
+        tags: ["inboxes"],
+        summary: "Create inbox",
+        security: bearer,
+        requestBody: {
+          content: { "application/json": { schema: { $ref: "#/components/schemas/InboxCreate" } } },
+        },
+        responses: {
+          "201": {
+            content: {
+              "application/json": { schema: inbox },
+            },
+          },
+          "400": { description: "invalid_callback_url" },
+        },
+      },
+    },
+    "/v1/inboxes/open": {
+      post: {
+        tags: ["inboxes"],
+        summary: "Create, wait, extract, optional delete",
+        security: bearer,
+        requestBody: {
+          content: { "application/json": { schema: { $ref: "#/components/schemas/InboxOpen" } } },
+        },
+        responses: {
+          "200": { description: "Verification payload" },
+          "408": { description: "timeout" },
+        },
+      },
+    },
+    "/v1/inboxes/{id}": {
+      get: {
+        tags: ["inboxes"],
+        summary: "Get inbox",
+        security: bearer,
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { content: { "application/json": { schema: inbox } } },
+          "404": { $ref: "#/components/responses/NotFound" },
+        },
+      },
+      delete: {
+        tags: ["inboxes"],
+        summary: "Delete inbox",
+        security: bearer,
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": {
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: { deleted: { type: "boolean" } },
+                },
+              },
+            },
+          },
+          "404": { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
+    "/v1/inboxes/{id}/messages": {
+      get: {
+        tags: ["inboxes"],
+        summary: "List messages",
+        security: bearer,
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": {
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    messages: { type: "array", items: message },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/v1/inboxes/{id}/extract": {
+      get: {
+        tags: ["inboxes"],
+        summary: "OTP and links from latest message",
+        security: bearer,
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": {
+            content: {
+              "application/json": { schema: verification },
+            },
+          },
+          "404": { description: "no_messages" },
+        },
+      },
+    },
+    "/v1/inboxes/{id}/wait": {
+      get: {
+        tags: ["inboxes"],
+        summary: "Poll until first message",
+        security: bearer,
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string" } },
+          { name: "timeout", in: "query", schema: { type: "integer", maximum: 120 } },
+          { name: "subjectContains", in: "query", schema: { type: "string" } },
+        ],
+        responses: {
+          "200": {
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: { message: message },
+                },
+              },
+            },
+          },
+          "408": { description: "timeout" },
+        },
+      },
+    },
+    "/v1/inboxes/{id}/events": {
+      get: {
+        tags: ["inboxes"],
+        summary: "SSE stream for new messages",
+        security: bearer,
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "text/event-stream" },
+        },
+      },
+    },
+    "/v1/inboxes/{id}/callbacks": {
+      get: {
+        tags: ["inboxes"],
+        summary: "Callback delivery log (QA webhook debug)",
+        security: bearer,
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string" } },
+          { name: "limit", in: "query", schema: { type: "integer", maximum: 50 } },
+        ],
+        responses: {
+          "200": {
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    deliveries: {
+                      type: "array",
+                      items: callbackDelivery,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          "404": { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
+    "/webhooks/resend": {
+      post: {
+        tags: ["webhooks"],
+        summary: "Resend inbound email",
+        security: [],
+        responses: {
+          "200": { description: "Accepted" },
+          "401": { description: "Invalid webhook signature" },
+        },
+      },
+    },
+  },
+} as const;

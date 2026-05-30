@@ -110,7 +110,14 @@
           detailEl.innerHTML = `<p class="debug-err">${data.error || res.statusText}</p>`;
           return;
         }
-        detailEl.innerHTML = `<h2>Inbox ${id}</h2><pre>${JSON.stringify(data.messages, null, 2)}</pre>`;
+        const cbRes = await fetch(`${base}/v1/inboxes/${id}/callbacks`, {
+          headers: { Authorization: `Bearer ${key}` },
+        });
+        const cbData = await cbRes.json().catch(() => ({}));
+        detailEl.innerHTML =
+          `<h2>Inbox ${id}</h2>` +
+          `<h3>Messages</h3><pre>${JSON.stringify(data.messages, null, 2)}</pre>` +
+          `<h3>Callback log</h3><pre>${JSON.stringify(cbData.deliveries || cbData, null, 2)}</pre>`;
       }
     </script>
   </body>
