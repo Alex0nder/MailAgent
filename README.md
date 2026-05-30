@@ -71,6 +71,8 @@ Authorization: Bearer <API_KEY>
 
 | Метод | Путь | Описание |
 |-------|------|----------|
+| `GET` | `/v1` | Discovery: endpoints, presets, MCP tools |
+| `POST` | `/v1/inboxes/open` | **One-shot:** create → wait → extract → delete |
 | `POST` | `/v1/inboxes` | Создать inbox (`ttlMinutes`, `service`, `expectFrom`, `allowedSenders`) |
 | `GET` | `/v1/inboxes/:id` | Статус |
 | `GET` | `/v1/inboxes/:id/messages` | Письма |
@@ -176,7 +178,16 @@ node mcp/dist/cli.js inbox create --service dribbble
 node mcp/dist/cli.js wait <inboxId> --json
 ```
 
-Пресеты `service`: `dribbble`, `github`, `google`, `auth0`, `stripe`.
+Пресеты `service`: `dribbble`, `github`, `google`, `auth0`, `stripe`, `vercel`, `supabase`, `clerk`, `discord`, `openai`, `resend`, `firebase`.
+
+### One-shot (агент / CI)
+
+```bash
+curl -s -X POST https://mailagent.<worker>/v1/inboxes/open \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"service":"github","timeoutSeconds":90}' | jq
+```
 
 ### Отладка MCP
 
@@ -196,7 +207,12 @@ node mcp/dist/cli.js wait <inboxId> --json
 
 Пустой `allowedSenders` = принимать всех (только для dev).
 
+## CI (Worker)
+
+GitHub Actions: `.github/workflows/deploy-worker.yml` — секреты `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
+
 ## Дальше
 
 - R2 для сырых MIME
 - Scoped API keys per tenant
+- `api.webmailagent.com` → Worker (Cloudflare DNS)

@@ -1,0 +1,11 @@
+/** Быстрая проверка extract OTP/links */
+import { extractLinks, extractOtp } from "../src/services/extract";
+
+const sample = `
+Your code is 847291
+Or click https://github.com/users/confirm?token=abc
+Unsubscribe: https://example.com/unsubscribe
+`;
+
+console.log("otp:", extractOtp(sample));
+console.log("links:", extractLinks(sample));

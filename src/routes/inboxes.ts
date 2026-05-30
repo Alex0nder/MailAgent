@@ -8,10 +8,69 @@ import {
   getInbox,
   listMessages,
 } from "../services/inbox";
+import { waitForFirstMessage } from "../services/wait";
 
 export const inboxRoutes = new Hono<{ Bindings: Env }>();
 
 inboxRoutes.use("*", requireApiKey);
+
+/** One-shot: create → wait → extract → delete (для агентов и CI) */
+inboxRoutes.post("/open", async (c) => {
+  let body: {
+    ttlMinutes?: number;
+    service?: string;
+    expectFrom?: string | string[];
+    allowedSenders?: string | string[];
+    timeoutSeconds?: number;
+    deleteAfter?: boolean;
+  } = {};
+  try {
+    body = await c.req.json();
+  } catch {
+    body = {};
+  }
+
+  const expectFrom = resolveExpectFrom(body.service, body.expectFrom);
+  const inbox = await createInbox(c.env, {
+    ttlMinutes: body.ttlMinutes,
+    expectFrom,
+    allowedSenders: body.allowedSenders,
+  });
+
+  const timeoutSec = Math.min(Number(body.timeoutSeconds ?? 90), 120);
+  const message = await waitForFirstMessage(c.env, inbox.id, timeoutSec);
+
+  if (!message) {
+    if (body.deleteAfter !== false) {
+      await deleteInbox(c.env, inbox.id);
+    }
+    return c.json(
+      {
+        error: "timeout",
+        inboxId: inbox.id,
+        address: inbox.address,
+        allowedSenders: inbox.allowed_senders,
+        hint: "No email yet. Check Resend inbound, webhook, and expectFrom.",
+      },
+      408
+    );
+  }
+
+  const verification = formatVerification(message);
+  const deleted = body.deleteAfter !== false;
+  if (deleted) await deleteInbox(c.env, inbox.id);
+
+  return c.json(
+    {
+      inboxId: inbox.id,
+      address: inbox.address,
+      allowedSenders: inbox.allowed_senders,
+      verification,
+      deleted,
+    },
+    201
+  );
+});
 
 inboxRoutes.post("/", async (c) => {
   let body: {
@@ -68,13 +127,7 @@ inboxRoutes.get("/:id/extract", async (c) => {
   const messages = await listMessages(c.env, inbox.id);
   const latest = messages[0];
   if (!latest) return c.json({ error: "no_messages" }, 404);
-  return c.json({
-    otp: latest.otp,
-    links: parseLinks(latest.links_json),
-    from: latest.from_addr,
-    subject: latest.subject,
-    messageId: latest.id,
-  });
+  return c.json(formatVerification(latest));
 });
 
 /** SSE: ждём первое письмо (надёжнее long-poll 120s на Workers) */
@@ -92,21 +145,10 @@ inboxRoutes.get("/:id/wait", async (c) => {
   const inbox = await getInbox(c.env, c.req.param("id"));
   if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
 
-  const timeoutSec = Math.min(
-    Number(c.req.query("timeout") ?? 60),
-    90
-  );
-  const deadline = Date.now() + timeoutSec * 1000;
-
-  while (Date.now() < deadline) {
-    const messages = await listMessages(c.env, inbox.id);
-    if (messages.length > 0) {
-      return c.json({ message: formatMessage(messages[0]) });
-    }
-    await sleep(500);
-  }
-
-  return c.json({ error: "timeout" }, 408);
+  const timeoutSec = Math.min(Number(c.req.query("timeout") ?? 60), 120);
+  const message = await waitForFirstMessage(c.env, inbox.id, timeoutSec);
+  if (!message) return c.json({ error: "timeout" }, 408);
+  return c.json({ message: formatMessage(message) });
 });
 
 inboxRoutes.delete("/:id", async (c) => {
@@ -135,6 +177,22 @@ function formatMessage(m: {
   };
 }
 
+function formatVerification(m: {
+  id: string;
+  from_addr: string;
+  subject: string;
+  otp: string | null;
+  links_json: unknown;
+}) {
+  return {
+    otp: m.otp,
+    links: parseLinks(m.links_json),
+    from: m.from_addr,
+    subject: m.subject,
+    messageId: m.id,
+  };
+}
+
 function parseLinks(raw: unknown): string[] {
   if (Array.isArray(raw)) return raw as string[];
   if (typeof raw === "string") {
@@ -145,8 +203,4 @@ function parseLinks(raw: unknown): string[] {
     }
   }
   return [];
-}
-
-function sleep(ms: number) {
-  return new Promise((r) => setTimeout(r, ms));
 }

@@ -35,7 +35,9 @@ description: >-
 }
 ```
 
-Пресеты `service`: `dribbble`, `github`, `google`, `auth0`, `stripe`. Для Dribbble обязательно `dribbble` (письма с `m.dribbble.com`).
+Пресеты `service`: `dribbble`, `github`, `google`, `auth0`, `stripe`, `vercel`, `supabase`, `clerk`, `discord`, `openai`, `resend`, `firebase`. Для Dribbble обязательно `dribbble` (письма с `m.dribbble.com`).
+
+`mailagent_wait_and_extract` без `inboxId` вызывает **POST /v1/inboxes/open** на Worker (один round-trip).
 
 Ожидание письма: **SSE** (`/events`), fallback poll 500ms. Домен в allowlist матчит **поддомены** (`m.dribbble.com` при `dribbble.com`).
 

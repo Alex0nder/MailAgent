@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 import { InboxWait } from "./durable-objects/inbox-wait";
 import type { Env, EmailQueueMessage } from "./env";
 import { handleQueueBatch } from "./queue/consumer";
+import { apiMetaRoutes } from "./routes/api-meta";
 import { healthRoutes } from "./routes/health";
 import { inboxRoutes } from "./routes/inboxes";
 import { webhookRoutes } from "./routes/webhooks";
@@ -16,6 +17,7 @@ app.use("*", cors());
 
 app.route("/", healthRoutes);
 app.route("/webhooks", webhookRoutes);
+app.route("/v1", apiMetaRoutes);
 app.route("/v1/inboxes", inboxRoutes);
 
 app.notFound((c) => c.json({ error: "not_found" }, 404));

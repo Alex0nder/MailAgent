@@ -66,23 +66,13 @@ export class MailAgentClient {
     });
   }
 
-  /** create (optional) → SSE wait → extract → delete (optional) */
+  /** create → wait → extract → delete; без inboxId — один POST /v1/inboxes/open */
   async waitAndExtract(options: WaitAndExtractOptions) {
-    let inboxId = options.inboxId;
-    let address: string | undefined;
-    let created: CreateInboxResponse | undefined;
-
-    if (!inboxId) {
-      created = await this.createInbox({
-        ttlMinutes: options.ttlMinutes,
-        service: options.service,
-        expectFrom: options.expectFrom,
-        allowedSenders: options.allowedSenders,
-      });
-      inboxId = created.id;
-      address = created.address;
+    if (!options.inboxId) {
+      return this.openInbox(options);
     }
 
+    const inboxId = options.inboxId;
     const wait = await this.waitForMessage(
       inboxId,
       options.timeoutSeconds ?? 90
@@ -91,8 +81,6 @@ export class MailAgentClient {
       return {
         error: "timeout" as const,
         inboxId,
-        address: address ?? created?.address,
-        allowedSenders: created?.allowedSenders,
         hint: "No email yet. Check Resend receiving/MX, webhook, and expectFrom.",
       };
     }
@@ -100,8 +88,6 @@ export class MailAgentClient {
     const verification = await this.extract(inboxId);
     const result = {
       inboxId,
-      address: address ?? created?.address,
-      allowedSenders: created?.allowedSenders,
       message: "message" in wait ? wait.message : undefined,
       verification,
     };
@@ -111,6 +97,47 @@ export class MailAgentClient {
       return { ...result, deleted: true };
     }
     return result;
+  }
+
+  /** Серверный one-shot (poll на Worker) */
+  async openInbox(options: WaitAndExtractOptions) {
+    const body: Record<string, unknown> = {
+      timeoutSeconds: options.timeoutSeconds ?? 90,
+      deleteAfter: options.deleteAfter !== false,
+    };
+    if (options.ttlMinutes !== undefined) body.ttlMinutes = options.ttlMinutes;
+    if (options.service) body.service = options.service;
+    const expectFrom = resolveExpectFrom(
+      options.service,
+      options.expectFrom
+    );
+    if (expectFrom?.length) body.expectFrom = expectFrom;
+    if (options.allowedSenders !== undefined) {
+      body.allowedSenders = options.allowedSenders;
+    }
+
+    const res = await fetch(`${this.base}/v1/inboxes/open`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    const text = await res.text();
+    const parsed = text ? (JSON.parse(text) as OpenInboxResponse | OpenInboxTimeout) : {};
+
+    if (res.status === 408) {
+      return {
+        error: "timeout" as const,
+        ...(parsed as OpenInboxTimeout),
+      };
+    }
+    if (!res.ok) {
+      throw new Error(`MailAgent API ${res.status}: ${text}`);
+    }
+    return parsed as OpenInboxResponse;
   }
 
   getInbox(id: string) {
@@ -253,6 +280,22 @@ export interface ExtractResponse {
   from: string;
   subject: string;
   messageId: string;
+}
+
+export interface OpenInboxResponse {
+  inboxId: string;
+  address: string;
+  allowedSenders: string[];
+  verification: ExtractResponse;
+  deleted: boolean;
+}
+
+export interface OpenInboxTimeout {
+  error: string;
+  inboxId?: string;
+  address?: string;
+  allowedSenders?: string[];
+  hint?: string;
 }
 
 interface NotifyPayload {

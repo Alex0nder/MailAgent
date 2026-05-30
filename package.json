@@ -12,7 +12,8 @@
     "types": "wrangler types",
     "db:migrate": "node scripts/migrate.mjs",
     "build:mcp": "cd mcp && npm install && npm run build",
-    "test:allowlist": "npx tsx scripts/test-allowlist.ts"
+    "test:allowlist": "npx tsx scripts/test-allowlist.ts",
+    "test:extract": "npx tsx scripts/test-extract.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
