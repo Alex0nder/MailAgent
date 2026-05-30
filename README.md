@@ -2,7 +2,9 @@
 
 Временные inbox для AI-агентов: быстрый webhook → очередь → Neon, ожидание письма через SSE (Durable Object).
 
-**Лендинг:** после `npm run dev` или деплоя откройте `/` — статика из `public/` (стиль Resend, тёмная тема).
+**Лендинг + API** на одном Cloudflare Worker (`public/` + `/v1`).  
+Прод: [webmailagent.com](https://webmailagent.com) (после DNS) · API: [api.webmailagent.com](https://api.webmailagent.com).  
+Перенос с Netlify: **[docs/HOSTING-CLOUDFLARE.md](./docs/HOSTING-CLOUDFLARE.md)**.
 
 ## Стек
 

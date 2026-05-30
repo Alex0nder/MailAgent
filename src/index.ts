@@ -24,8 +24,36 @@ app.route("/v1/inboxes", inboxRoutes);
 
 app.notFound((c) => c.json({ error: "not_found" }, 404));
 
+/** API → Hono; остальное → статика public/; www → apex */
+async function handleFetch(
+  request: Request,
+  env: Env,
+  ctx: ExecutionContext
+): Promise<Response> {
+  const url = new URL(request.url);
+
+  if (url.hostname === "www.webmailagent.com") {
+    return Response.redirect(
+      `https://webmailagent.com${url.pathname}${url.search}`,
+      301
+    );
+  }
+
+  const path = url.pathname;
+  const isApi =
+    path.startsWith("/v1") ||
+    path.startsWith("/webhooks") ||
+    path === "/health";
+
+  if (isApi) {
+    return app.fetch(request, env, ctx);
+  }
+
+  return env.ASSETS.fetch(request);
+}
+
 export default {
-  fetch: app.fetch,
+  fetch: handleFetch,
 
   async queue(
     batch: MessageBatch<EmailQueueMessage>,

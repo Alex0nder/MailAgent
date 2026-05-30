@@ -1,4 +1,4 @@
-# Netlify: только статический лендинг из public/ (без сборки Worker/MCP)
+# Опционально: Netlify. Прод-лендинг рекомендуется на Cloudflare Worker — см. docs/HOSTING-CLOUDFLARE.md
 [build]
   publish = "public"
   command = ""
