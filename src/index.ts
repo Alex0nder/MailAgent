@@ -26,13 +26,44 @@ app.route("/v1/stats", statsRoutes);
 
 app.notFound((c) => c.json({ error: "not_found" }, 404));
 
-/** API → Hono; остальное → статика public/; www → apex */
+/** Cloudflare отдаёт http:// без редиректа, если не включён Always Use HTTPS */
+function isInsecureRequest(request: Request): boolean {
+  const proto = request.headers.get("X-Forwarded-Proto");
+  if (proto === "http") return true;
+  const visitor = request.headers.get("CF-Visitor");
+  if (visitor) {
+    try {
+      const parsed = JSON.parse(visitor) as { scheme?: string };
+      return parsed.scheme === "http";
+    } catch {
+      /* ignore malformed header */
+    }
+  }
+  return new URL(request.url).protocol === "http:";
+}
+
+const HTTPS_HOSTS = new Set([
+  "webmailagent.com",
+  "www.webmailagent.com",
+  "api.webmailagent.com",
+]);
+
+/** API → Hono; остальное → статика public/; www → apex; http → https */
 async function handleFetch(
   request: Request,
   env: Env,
   ctx: ExecutionContext
 ): Promise<Response> {
   const url = new URL(request.url);
+
+  if (isInsecureRequest(request) && HTTPS_HOSTS.has(url.hostname)) {
+    const host =
+      url.hostname === "www.webmailagent.com" ? "webmailagent.com" : url.hostname;
+    return Response.redirect(
+      `https://${host}${url.pathname}${url.search}`,
+      301
+    );
+  }
 
   if (url.hostname === "www.webmailagent.com") {
     return Response.redirect(

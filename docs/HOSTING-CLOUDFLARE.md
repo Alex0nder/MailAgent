@@ -42,8 +42,19 @@ npm run deploy
 
 ```bash
 curl -sI https://webmailagent.com | head -5
+curl -sI http://webmailagent.com | grep -i location   # должен быть 301 → https
 curl -s https://api.webmailagent.com/health
 ```
+
+### HTTPS / «Подключение не защищено»
+
+Сертификат Cloudflare для apex обычно появляется через несколько минут после Custom Domain.
+
+Если Chrome пишет «не защищено», но в меню есть «Действительный сертификат» — вы на **http://**, не на **https://**.
+
+1. **Cloudflare** → **SSL/TLS** → **Edge Certificates** → включить **Always Use HTTPS**
+2. Worker уже редиректит `http` → `https` (см. `src/index.ts`)
+3. Открывайте `https://webmailagent.com` или обновите закладку
 
 ## Netlify
 
