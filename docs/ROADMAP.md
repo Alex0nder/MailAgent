@@ -1,48 +1,32 @@
 # MailAgent roadmap
 
-Текущий статус: **v0.2.0** — Phase 2 закрыт.
+Текущий статус: **v0.3.0** — Phase 3 в работе.
 
-## Сейчас (v0.2) ✅
+## v0.2 ✅
 
-- REST + SSE + Queues + OTP/links
-- MCP + `@mailagent/qa`
-- QA: `label`, `subjectContains`, `callbackUrl`, delivery log
-- Multi API keys, rate limits, `api_key_hint`, `/debug.html`
-- OpenAPI 3.0: `/v1/openapi.json`
-- Self-host docs, MIT
+OpenAPI, callback log, rate limits, `api_key_hint`, debug UI.
 
-## Phase 1 — Hosted pilots ✅
+## Phase 3 — Growth
 
 | Задача | Статус |
 |--------|--------|
-| `API_KEYS`, stats, smoke, issue:key | ✅ |
-| npm publish `@mailagent/qa` | ⏳ `npm run publish:qa` |
+| Планы free / pro + лимиты inbox | ✅ |
+| Ключи в Neon (`teams`, `api_keys`) | ✅ `npm run issue:key:db` |
+| `GET /v1/me` + `/dashboard.html` | ✅ |
+| Stripe Checkout + webhook | ✅ (нужны секреты) |
+| Пресеты (Figma, Notion, Linear, …) | ✅ |
+| Custom domain wizard | ✅ `/docs/custom-domain.html` |
+| npm publish `@mailagent/qa` | ⏳ |
+| Team admin (несколько ключей / invite) | 📋 |
 
-## Phase 2 — Product hardening ✅
+## Phase 1 хвост
 
-| Задача | Статус |
-|--------|--------|
-| Rate limits (KV) | ✅ |
-| `api_key_hint` | ✅ |
-| Debug UI | ✅ |
-| OpenAPI полная схема | ✅ |
-| Webhook delivery log | ✅ `GET …/callbacks` |
-
-## Phase 3 — Growth (дальше)
-
-| Задача | Зачем |
-|--------|--------|
-| Stripe / free tier | Монетизация hosted |
-| Team keys + dashboard | B2B QA |
-| Custom inbox domain wizard | Свой домен вместо `*.resend.app` |
-| Presets (Figma, Notion, …) | Меньше ручного `expectFrom` |
+| `npm run publish:qa` | ⏳ npm login |
 
 ## Не делаем
 
-- Browser extension (burner mail)
-- Полноценный webmail UI
-- Marketing email (Resend)
+- Browser extension, webmail UI, marketing send.
 
 ## Фичи
 
-Issue на GitHub или hello@webmailagent.com.
+GitHub issue или hello@webmailagent.com.

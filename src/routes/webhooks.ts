@@ -47,3 +47,27 @@ webhookRoutes.post("/resend", async (c) => {
   await c.env.MAIL_QUEUE.send(job);
   return c.json({ ok: true, queued: true });
 });
+
+/** Stripe: subscription lifecycle → teams.plan */
+webhookRoutes.post("/stripe", async (c) => {
+  if (!c.env.STRIPE_WEBHOOK_SECRET?.trim()) {
+    return c.json({ error: "not_configured" }, 503);
+  }
+  const payload = await c.req.text();
+  try {
+    const { handleStripeWebhook } = await import("../services/billing");
+    await handleStripeWebhook(
+      c.env,
+      payload,
+      c.req.header("stripe-signature")
+    );
+    return c.json({ received: true });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "webhook_error";
+    if (msg === "invalid_stripe_signature") {
+      return c.json({ error: msg }, 400);
+    }
+    console.warn("stripe webhook", msg);
+    return c.json({ error: msg }, 400);
+  }
+});

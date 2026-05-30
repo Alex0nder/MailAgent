@@ -29,6 +29,12 @@ apiMetaRoutes.get("/", (c) => {
       },
       deleteInbox: { method: "DELETE", path: "/v1/inboxes/:id" },
       stats: { method: "GET", path: "/v1/stats", note: "usage counters" },
+      me: { method: "GET", path: "/v1/me", note: "plan + limits for key" },
+      billingCheckout: {
+        method: "POST",
+        path: "/v1/billing/checkout",
+        note: "Stripe Pro (registered keys)",
+      },
       health: { method: "GET", path: "/health" },
     },
     services: Object.keys(SERVICE_EXPECT_FROM),

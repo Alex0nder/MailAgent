@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Custom inbox domain — MailAgent</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="page-section" style="max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem">
+      <p><a href="/docs/">← Docs</a></p>
+      <h1>Custom inbox domain</h1>
+      <p>
+        By default MailAgent creates addresses on your Resend receiving domain
+        (<code>INBOX_DOMAIN</code>, e.g. <code>abc123.resend.app</code>). To use
+        your own subdomain (e.g. <code>inbox.yourcompany.com</code>), configure
+        Resend receiving + DNS.
+      </p>
+      <h2>1. Resend receiving domain</h2>
+      <ol>
+        <li>Resend Dashboard → <strong>Domains</strong> → add domain or use existing.</li>
+        <li>Enable <strong>Receiving</strong> and add MX records Resend shows.</li>
+        <li>Copy the receiving hostname (e.g. <code>your-id.resend.app</code>).</li>
+      </ol>
+      <h2>2. MailAgent Worker</h2>
+      <pre><code>npx wrangler secret put INBOX_DOMAIN
+# paste: your-id.resend.app</code></pre>
+      <h2>3. Webhook</h2>
+      <p>Point Resend inbound webhook to:</p>
+      <pre><code>https://api.webmailagent.com/webhooks/resend</code></pre>
+      <h2>4. Verify</h2>
+      <pre><code>curl -s -X POST "$MAILAGENT_API_URL/v1/inboxes" \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"ttlMinutes":5}' | jq .address</code></pre>
+      <p>Send a test email to that address from an allowed sender.</p>
+      <h2>Branded subdomain (advanced)</h2>
+      <p>
+        Resend may offer custom receiving on your apex/subdomain per their docs.
+        MailAgent does not proxy SMTP — all mail flows through Resend inbound → webhook.
+      </p>
+      <p>Questions: <a href="mailto:hello@webmailagent.com">hello@webmailagent.com</a></p>
+    </main>
+  </body>
+</html>

@@ -13,6 +13,17 @@ export const SERVICE_EXPECT_FROM: Record<string, string[]> = {
   openai: ["openai.com"],
   resend: ["resend.com"],
   firebase: ["firebase.google.com", "google.com"],
+  figma: ["figma.com", "mail.figma.com"],
+  notion: ["notion.so", "makenotion.com"],
+  linear: ["linear.app"],
+  slack: ["slack.com"],
+  shopify: ["shopify.com"],
+  atlassian: ["atlassian.com", "jira.com"],
+  aws: ["amazon.com", "aws.amazon.com"],
+  microsoft: ["microsoft.com", "outlook.com"],
+  apple: ["apple.com", "icloud.com"],
+  twilio: ["twilio.com"],
+  posthog: ["posthog.com"],
 };
 
 export const SERVICE_NAMES = Object.keys(SERVICE_EXPECT_FROM) as [

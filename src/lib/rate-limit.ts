@@ -14,7 +14,7 @@ export async function rateLimit(
   }
 
   const hint = c.get("apiKeyHint");
-  const limit = Math.max(1, Number(c.env.RATE_LIMIT_PER_MINUTE) || 120);
+  const limit = Math.max(1, c.get("rateLimitPerMinute"));
   const bucket = Math.floor(Date.now() / 60_000);
   const key = `rl:${hint}:${bucket}`;
   const raw = await kv.get(key);

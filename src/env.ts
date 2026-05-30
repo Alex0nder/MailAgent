@@ -14,6 +14,10 @@ export interface Env {
   /** Опционально: rate limit per API key (hosted) */
   RATE_LIMIT?: KVNamespace;
   RATE_LIMIT_PER_MINUTE?: string;
+  STRIPE_SECRET_KEY?: string;
+  STRIPE_WEBHOOK_SECRET?: string;
+  /** Price id (price_…) для Pro подписки */
+  STRIPE_PRICE_PRO?: string;
 }
 
 export interface EmailQueueMessage {

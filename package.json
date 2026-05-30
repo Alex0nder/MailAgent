@@ -8,6 +8,7 @@
     "verify": "node scripts/verify.mjs",
     "smoke:prod": "node scripts/smoke-prod.mjs",
     "issue:key": "node scripts/issue-api-key.mjs",
+    "issue:key:db": "node scripts/issue-api-key.mjs --register",
     "setup:check": "node scripts/setup-check.mjs",
     "deploy": "wrangler deploy",
     "check": "tsc --noEmit",

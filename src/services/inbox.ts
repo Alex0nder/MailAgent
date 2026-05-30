@@ -249,6 +249,20 @@ export async function insertMessage(
   return rows[0] ?? null;
 }
 
+export async function countActiveInboxesForHint(
+  env: Env,
+  apiKeyHint: string
+): Promise<number> {
+  const sql = getDb(env);
+  const rows = (await sql`
+    SELECT COUNT(*)::int AS n
+    FROM inboxes
+    WHERE expires_at > NOW()
+      AND api_key_hint = ${apiKeyHint}
+  `) as { n: number }[];
+  return rows[0]?.n ?? 0;
+}
+
 export async function purgeExpired(env: Env): Promise<{ inboxes: number }> {
   const sql = getDb(env);
   const deleted = await sql`

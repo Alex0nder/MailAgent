@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MailAgent Dashboard</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      .dash { max-width: 640px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+      .dash h1 { font-size: 1.5rem; }
+      .dash label { display: block; font-size: 0.8rem; margin: 0.75rem 0 0.25rem; }
+      .dash input { width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px; }
+      .dash button { margin-top: 1rem; padding: 0.55rem 1rem; background: #000; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+      .dash .card { margin-top: 1.5rem; padding: 1rem; border: 1px solid #eee; border-radius: 8px; }
+      .dash pre { font-size: 0.8rem; overflow: auto; }
+      .dash .pro { margin-top: 0.75rem; }
+    </style>
+  </head>
+  <body>
+    <div class="dash">
+      <p><a href="/">← MailAgent</a></p>
+      <h1>Dashboard</h1>
+      <p>Plan, usage, and billing for your API key.</p>
+      <label for="base">API base</label>
+      <input id="base" type="url" value="https://api.webmailagent.com" />
+      <label for="key">API key</label>
+      <input id="key" type="password" autocomplete="off" />
+      <button type="button" id="load">Refresh</button>
+      <div class="card" id="out">Enter API key and refresh.</div>
+    </div>
+    <script>
+      const KEY = "mailagent_dashboard_key";
+      const baseEl = document.getElementById("base");
+      const keyEl = document.getElementById("key");
+      const out = document.getElementById("out");
+      if (localStorage.getItem(KEY)) keyEl.value = localStorage.getItem(KEY);
+
+      async function load() {
+        const base = baseEl.value.replace(/\/$/, "");
+        const key = keyEl.value.trim();
+        if (!key) return;
+        localStorage.setItem(KEY, key);
+        out.textContent = "Loading…";
+        const headers = { Authorization: `Bearer ${key}` };
+        const [me, stats] = await Promise.all([
+          fetch(`${base}/v1/me`, { headers }).then((r) => r.json()),
+          fetch(`${base}/v1/stats`, { headers }).then((r) => r.json()),
+        ]);
+        let html = `<p><strong>Plan:</strong> ${me.plan ?? "?"}</p>`;
+        html += `<p>Active inboxes: ${me.usage?.activeInboxes ?? "?"} / ${me.limits?.maxActiveInboxes ?? "?"}</p>`;
+        html += `<p>Rate limit: ${me.limits?.rateLimitPerMinute ?? "?"} req/min</p>`;
+        if (me.teamId) html += `<p>Team: <code>${me.teamId}</code></p>`;
+        html += `<pre>${JSON.stringify({ me, stats }, null, 2)}</pre>`;
+        if (me.plan === "free" && me.billing?.stripeEnabled) {
+          html += `<button class="pro" id="upgrade">Upgrade to Pro</button>`;
+        }
+        out.innerHTML = html;
+        const up = document.getElementById("upgrade");
+        if (up) {
+          up.onclick = async () => {
+            const r = await fetch(`${base}/v1/billing/checkout`, {
+              method: "POST",
+              headers: { ...headers, "Content-Type": "application/json" },
+              body: "{}",
+            });
+            const d = await r.json();
+            if (d.url) location.href = d.url;
+            else alert(d.error || "Checkout failed");
+          };
+        }
+      }
+      document.getElementById("load").onclick = load;
+      if (new URLSearchParams(location.search).get("billing") === "success") {
+        setTimeout(load, 500);
+      }
+    </script>
+  </body>
+</html>

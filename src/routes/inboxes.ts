@@ -7,6 +7,7 @@ import { parseCallbackUrl } from "../lib/callback-url";
 import { resolveExpectFrom } from "../lib/service-presets";
 import { listCallbackDeliveries } from "../services/callback-log";
 import {
+  countActiveInboxesForHint,
   createInbox,
   deleteInbox,
   getInbox,
@@ -47,6 +48,9 @@ inboxRoutes.post("/open", async (c) => {
   const clean = rejectInvalidCallback(opts);
   if ("error" in clean) return c.json(clean, 400);
 
+  const quotaErr = await checkInboxQuota(c);
+  if (quotaErr) return quotaErr;
+
   const inbox = await createInbox(c.env, {
     ...clean,
     apiKeyHint: c.get("apiKeyHint"),
@@ -58,7 +62,9 @@ inboxRoutes.post("/open", async (c) => {
 
   if (!message) {
     if (body.deleteAfter !== false) {
-      await deleteInbox(c.env, inbox.id);
+      await deleteInbox(c.env, inbox.id, {
+        apiKeyHint: c.get("apiKeyHint"),
+      });
     }
     return c.json(
       {
@@ -72,7 +78,9 @@ inboxRoutes.post("/open", async (c) => {
 
   const verification = formatVerification(message);
   const deleted = body.deleteAfter !== false;
-  if (deleted) await deleteInbox(c.env, inbox.id);
+  if (deleted) {
+    await deleteInbox(c.env, inbox.id, { apiKeyHint: c.get("apiKeyHint") });
+  }
 
   return c.json(
     {
@@ -112,6 +120,9 @@ inboxRoutes.post("/", async (c) => {
   const opts = inboxOptionsFromBody(body);
   const clean = rejectInvalidCallback(opts);
   if ("error" in clean) return c.json(clean, 400);
+
+  const quotaErr = await checkInboxQuota(c);
+  if (quotaErr) return quotaErr;
 
   const inbox = await createInbox(c.env, {
     ...clean,
@@ -284,6 +295,25 @@ function formatInbox(inbox: InboxRow) {
     label: inbox.label,
     callbackUrl: inbox.callback_url,
   };
+}
+
+async function checkInboxQuota(
+  c: import("hono").Context<{ Bindings: Env; Variables: ApiVariables }>
+) {
+  const active = await countActiveInboxesForHint(c.env, c.get("apiKeyHint"));
+  const max = c.get("maxActiveInboxes");
+  if (active >= max) {
+    return c.json(
+      {
+        error: "inbox_limit_reached",
+        plan: c.get("apiPlan"),
+        active,
+        max,
+      },
+      429
+    );
+  }
+  return null;
 }
 
 function parseLinks(raw: unknown): string[] {
