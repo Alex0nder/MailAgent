@@ -17,6 +17,7 @@ apiMetaRoutes.get("/", (c) => {
       hub: "GET /v1/agent",
       verify: "POST /v1/agent/verify",
       recipes: "GET /v1/agent/recipes/:service",
+      remoteMcp: "POST /mcp (JSON-RPC, Bearer)",
       docs: "https://webmailagent.com/docs/agents.html",
     },
     endpoints: {

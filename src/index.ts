@@ -12,6 +12,7 @@ import { meRoutes } from "./routes/me";
 import { billingRoutes } from "./routes/billing";
 import { teamRoutes } from "./routes/team";
 import { agentRoutes } from "./routes/agent";
+import { mcpHttpRoutes } from "./routes/mcp-http";
 import { webhookRoutes } from "./routes/webhooks";
 import { purgeExpired } from "./services/inbox";
 
@@ -31,6 +32,7 @@ app.route("/v1/me", meRoutes);
 app.route("/v1/billing", billingRoutes);
 app.route("/v1/team", teamRoutes);
 app.route("/v1/agent", agentRoutes);
+app.route("/mcp", mcpHttpRoutes);
 
 app.notFound((c) => c.json({ error: "not_found" }, 404));
 
@@ -84,6 +86,7 @@ async function handleFetch(
   const isApi =
     path.startsWith("/v1") ||
     path.startsWith("/webhooks") ||
+    path.startsWith("/mcp") ||
     path === "/health";
 
   if (isApi) {

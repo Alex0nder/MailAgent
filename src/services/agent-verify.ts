@@ -1,7 +1,7 @@
 /** Agent verify: inbox → wait → extract + primaryAction для LLM */
 import type { Env } from "../env";
 import { parseCallbackUrl } from "../lib/callback-url";
-import { buildPrimaryAction } from "../lib/agent-recipes";
+import { buildPrimaryAction, resolveAgentLabel } from "../lib/agent-recipes";
 import { resolveExpectFrom } from "../lib/service-presets";
 import { primaryLink } from "../services/extract";
 import {
@@ -23,6 +23,7 @@ export type VerifyInput = {
   subjectContains?: string;
   timeoutSeconds?: number;
   deleteAfter?: boolean;
+  runId?: string;
   apiKeyHint: string;
 };
 
@@ -45,6 +46,10 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
   }
 
   const expectFrom = resolveExpectFrom(input.service, input.expectFrom);
+  const label = resolveAgentLabel({
+    label: input.label,
+    runId: input.runId,
+  });
   let inbox: InboxRow;
 
   if (input.inboxId) {
@@ -60,7 +65,7 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
       ttlMinutes: input.ttlMinutes,
       expectFrom,
       allowedSenders: input.allowedSenders,
-      label: input.label,
+      label,
       callbackUrl,
       apiKeyHint: input.apiKeyHint,
     });

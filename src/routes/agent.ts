@@ -31,6 +31,7 @@ type VerifyBody = {
   subjectContains?: string;
   timeoutSeconds?: number;
   deleteAfter?: boolean;
+  runId?: string;
 };
 
 agentRoutes.get("/", (c) => {

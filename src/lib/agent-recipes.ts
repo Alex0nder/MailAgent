@@ -113,3 +113,15 @@ export function buildPrimaryAction(verification: {
       "Email arrived but no OTP/link was extracted. Call GET /v1/inboxes/:id/messages and inspect textPreview.",
   };
 }
+
+/** label + runId для трассировки прогона агента */
+export function resolveAgentLabel(args: {
+  label?: string;
+  runId?: string;
+}): string | undefined {
+  const run = args.runId?.trim();
+  const lab = args.label?.trim();
+  if (run && lab) return `agent-${run}:${lab}`.slice(0, 128);
+  if (run) return `agent-${run}`.slice(0, 128);
+  return lab?.slice(0, 128);
+}

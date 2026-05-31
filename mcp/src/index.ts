@@ -59,6 +59,10 @@ server.registerTool(
         .string()
         .optional()
         .describe("QA/CI run id — find inboxes via list after failed test"),
+      runId: z
+        .string()
+        .optional()
+        .describe("Agent session id → label agent-{runId}"),
       callbackUrl: z
         .string()
         .url()
@@ -66,14 +70,19 @@ server.registerTool(
         .describe("HTTPS webhook when email arrives (CI hooks)"),
     },
   },
-  async ({ ttlMinutes, expectFrom, allowedSenders, service, label, callbackUrl }) => {
+  async ({ ttlMinutes, expectFrom, allowedSenders, service, label, runId, callbackUrl }) => {
     const client = new MailAgentClient();
+    const resolvedLabel = runId
+      ? label
+        ? `agent-${runId}:${label}`.slice(0, 128)
+        : `agent-${runId}`.slice(0, 128)
+      : label;
     const inbox = await client.createInbox({
       ttlMinutes,
       service,
       expectFrom,
       allowedSenders,
-      label,
+      label: resolvedLabel,
       callbackUrl,
     });
     return toolText({
@@ -102,7 +111,11 @@ server.registerTool(
       service: z.enum(SERVICE_NAMES).optional(),
       expectFrom: senderSchema,
       allowedSenders: senderSchema,
-      label: z.string().optional(),
+      label: z.string().optional().describe("QA/CI run id"),
+      runId: z
+        .string()
+        .optional()
+        .describe("Agent session id → label agent-{runId} for tracing"),
       callbackUrl: z.string().url().optional(),
       subjectContains: z.string().optional(),
       timeoutSeconds: z.number().int().min(5).max(120).optional(),

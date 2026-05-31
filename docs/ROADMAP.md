@@ -1,27 +1,19 @@
 # MailAgent roadmap
 
-**v0.3.0** — agent-first API
+**v0.3.1** — remote MCP + agent tracing
 
-## Agent layer ✅
+## Agent ✅
 
-| Задача | Статус |
-|--------|--------|
-| `POST /v1/agent/verify` + primaryAction | ✅ |
-| `GET /v1/agent/recipes` | ✅ |
-| MCP `mailagent_verify_signup` | ✅ |
-| CLI `mailagent verify` | ✅ |
-| `/docs/agents.html` | ✅ |
+| Remote MCP `POST /mcp` | ✅ JSON-RPC + Bearer |
+| `runId` → label tracing | ✅ |
+| verify + recipes + stdio MCP | ✅ |
 
-## Hosted / teams ✅
+## Publish ⏳
 
-Plans, team keys, dashboard — без Stripe.
+`npm run publish:mcp` / `publish:qa` (npm login)
 
 ## Дальше
 
-- npm publish `@mailagent/mcp` / `@mailagent/qa`
-- Remote MCP (HTTP) на hosted API
-- Agent run labels + tracing
-
-## Фичи
-
-GitHub / hello@webmailagent.com
+- MCP Streamable HTTP / SSE session
+- Agent run dashboard (filter `label=agent-*`)
+- OAuth on remote MCP (optional)

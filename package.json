@@ -17,6 +17,7 @@
     "db:migrate": "node scripts/migrate.mjs",
     "build:mcp": "cd mcp && npm install && npm run build",
     "build:qa": "cd packages/mailagent-qa && npm install && npm run build",
+    "publish:mcp": "npm run build:mcp && cd mcp && npm publish --access public",
     "publish:qa": "npm run build:qa && cd packages/mailagent-qa && npm publish --access public",
     "test:allowlist": "npx tsx scripts/test-allowlist.ts",
     "test:extract": "npx tsx scripts/test-extract.ts"

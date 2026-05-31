@@ -82,6 +82,25 @@ MAILAGENT_API_KEY=ma_… \
 GET /v1/agent/recipes/github</code></pre>
       <p>Presets: github, google, dribbble, stripe, auth0, figma, notion, linear, slack, … — see <code>GET /v1/agent</code>.</p>
 
+      <h2 id="remote-mcp">Remote MCP (hosted)</h2>
+      <p>No local subprocess — connect agents directly to the API:</p>
+      <pre class="doc-pre"><code>POST https://api.webmailagent.com/mcp
+Authorization: Bearer &lt;API_KEY&gt;
+Content-Type: application/json
+
+{"jsonrpc":"2.0","id":1,"method":"tools/list"}</code></pre>
+      <p>Call a tool:</p>
+      <pre class="doc-pre"><code>{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "mailagent_verify_signup",
+    "arguments": { "service": "github", "runId": "cursor-session-42" }
+  }
+}</code></pre>
+      <p><code>runId</code> → label <code>agent-{runId}</code> for tracing via <code>GET /v1/inboxes?label=agent-…</code></p>
+
       <h2>Security</h2>
       <ul>
         <li>Always set <code>service</code> or <code>expectFrom</code> (allowlist senders)</li>

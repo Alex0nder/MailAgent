@@ -1,8 +1,16 @@
 {
   "name": "@mailagent/mcp",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.2.0",
+  "description": "MailAgent MCP server (stdio) for Cursor and AI agents — email verification inboxes",
   "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Alex0nder/MailAgent.git",
+    "directory": "mcp"
+  },
+  "homepage": "https://webmailagent.com/docs/agents.html",
+  "keywords": ["mcp", "mailagent", "email", "verification", "agents", "cursor"],
   "bin": {
     "mailagent-mcp": "./dist/index.js",
     "mailagent": "./dist/cli.js"
