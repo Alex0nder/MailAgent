@@ -7,6 +7,7 @@
     "dev": "wrangler dev --ip 127.0.0.1 --port 8787",
     "verify": "node scripts/verify.mjs",
     "smoke:prod": "node scripts/smoke-prod.mjs",
+    "smoke:agent": "node scripts/smoke-agent.mjs",
     "issue:key": "node scripts/issue-api-key.mjs",
     "issue:key:db": "node scripts/issue-api-key.mjs --register",
     "team:plan": "node scripts/set-team-plan.mjs",
@@ -17,8 +18,10 @@
     "db:migrate": "node scripts/migrate.mjs",
     "build:mcp": "cd mcp && npm install && npm run build",
     "build:qa": "cd packages/mailagent-qa && npm install && npm run build",
+    "build:agent": "cd packages/mailagent-agent && npm install && npm run build",
     "publish:mcp": "npm run build:mcp && cd mcp && npm publish --access public",
     "publish:qa": "npm run build:qa && cd packages/mailagent-qa && npm publish --access public",
+    "publish:agent": "npm run build:agent && cd packages/mailagent-agent && npm publish --access public",
     "test:allowlist": "npx tsx scripts/test-allowlist.ts",
     "test:extract": "npx tsx scripts/test-extract.ts"
   },

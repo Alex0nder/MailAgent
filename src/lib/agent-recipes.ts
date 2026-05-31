@@ -125,3 +125,12 @@ export function resolveAgentLabel(args: {
   if (run) return `agent-${run}`.slice(0, 128);
   return lab?.slice(0, 128);
 }
+
+/** Парсинг runId из label `agent-{runId}` или `agent-{runId}:suffix` */
+export function parseRunIdFromLabel(label: string | null): string | null {
+  if (!label?.startsWith("agent-")) return null;
+  const rest = label.slice("agent-".length);
+  const colon = rest.indexOf(":");
+  const id = colon >= 0 ? rest.slice(0, colon) : rest;
+  return id || null;
+}

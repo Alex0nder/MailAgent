@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agent runs — MailAgent</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      .runs { max-width: 800px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+      .runs label { display: block; font-size: 0.8rem; margin-top: 0.75rem; }
+      .runs input { width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px; }
+      .runs button { margin-top: 1rem; padding: 0.5rem 1rem; background: #000; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+      .run-card { border: 1px solid #eee; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
+      .run-card h3 { margin: 0 0 0.5rem; font-size: 1rem; }
+      .run-card ul { margin: 0; padding-left: 1.2rem; font-size: 0.85rem; }
+      .run-card code { font-size: 0.8rem; }
+    </style>
+  </head>
+  <body>
+    <div class="runs">
+      <p><a href="/dashboard.html">← Dashboard</a> · <a href="/docs/agents.html">Agent docs</a></p>
+      <h1>Agent runs</h1>
+      <p>Active inboxes grouped by <code>runId</code> (<code>label=agent-{runId}</code>).</p>
+      <label for="base">API base</label>
+      <input id="base" type="url" value="https://api.webmailagent.com" />
+      <label for="key">API key</label>
+      <input id="key" type="password" autocomplete="off" />
+      <label for="filter">Filter runId (optional)</label>
+      <input id="filter" type="text" placeholder="cursor-session-42" />
+      <button type="button" id="load">Load runs</button>
+      <div id="list"></div>
+    </div>
+    <script>
+      const KEY = "mailagent_dashboard_key";
+      const baseEl = document.getElementById("base");
+      const keyEl = document.getElementById("key");
+      const filterEl = document.getElementById("filter");
+      const listEl = document.getElementById("list");
+      if (localStorage.getItem(KEY)) keyEl.value = localStorage.getItem(KEY);
+
+      document.getElementById("load").onclick = async () => {
+        const base = baseEl.value.replace(/\/$/, "");
+        const key = keyEl.value.trim();
+        if (!key) return;
+        localStorage.setItem(KEY, key);
+        listEl.textContent = "Loading…";
+        const q = new URLSearchParams();
+        const runId = filterEl.value.trim();
+        if (runId) q.set("runId", runId);
+        const path = runId ? `/v1/agent/runs/${encodeURIComponent(runId)}` : `/v1/agent/runs?${q}`;
+        const res = await fetch(`${base}${path}`, {
+          headers: { Authorization: `Bearer ${key}` },
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          listEl.textContent = data.error || res.statusText;
+          return;
+        }
+        const runs = data.runs ?? (data.runId ? [data] : []);
+        if (!runs.length) {
+          listEl.innerHTML = "<p>No active agent runs. Use <code>runId</code> in MCP or POST /v1/agent/verify.</p>";
+          return;
+        }
+        listEl.innerHTML = runs
+          .map(
+            (r) => `<div class="run-card">
+              <h3><code>${r.runId}</code> · ${r.inboxCount} inbox(es)</h3>
+              <p style="font-size:0.8rem;color:#666">Latest: ${r.latestAt}</p>
+              <ul>${r.inboxes
+                .map(
+                  (i) =>
+                    `<li><code>${i.id}</code> ${i.address} <a href="/debug.html">debug</a></li>`
+                )
+                .join("")}</ul>
+            </div>`
+          )
+          .join("");
+      };
+    </script>
+  </body>
+</html>

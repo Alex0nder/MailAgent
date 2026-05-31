@@ -99,7 +99,14 @@ Content-Type: application/json
     "arguments": { "service": "github", "runId": "cursor-session-42" }
   }
 }</code></pre>
-      <p><code>runId</code> → label <code>agent-{runId}</code> for tracing via <code>GET /v1/inboxes?label=agent-…</code></p>
+      <p><code>runId</code> → label <code>agent-{runId}</code> for tracing via <code>GET /v1/inboxes?label=agent-…</code> or <a href="/agent-runs.html">Agent runs UI</a>.</p>
+
+      <h2>SDK</h2>
+      <pre class="doc-pre"><code>npm install @mailagent/agent
+
+import { MailAgent } from "@mailagent/agent";
+const mail = new MailAgent({ baseUrl, apiKey });
+await mail.verifySignup({ service: "github", runId: "session-1" });</code></pre>
 
       <h2>Security</h2>
       <ul>

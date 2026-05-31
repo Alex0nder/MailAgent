@@ -61,6 +61,7 @@
             html += `<button class="pro" id="invite">Create key (invite)</button>`;
           }
         }
+        html += `<p><a href="/agent-runs.html">Agent runs →</a></p>`;
         html += `<pre>${JSON.stringify({ me, stats }, null, 2)}</pre>`;
         if (me.plan === "free" && me.billing?.stripeEnabled) {
           html += `<button class="pro" id="upgrade">Upgrade to Pro</button>`;

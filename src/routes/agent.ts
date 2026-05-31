@@ -10,6 +10,7 @@ import {
 } from "../lib/agent-recipes";
 import { SERVICE_EXPECT_FROM } from "../lib/service-presets";
 import { runAgentVerify } from "../services/agent-verify";
+import { listAgentRuns } from "../services/agent-runs";
 import {
   countActiveInboxesForHint,
   countActiveInboxesForTeam,
@@ -51,6 +52,8 @@ agentRoutes.get("/", (c) => {
     ],
     services: Object.keys(SERVICE_EXPECT_FROM),
     recipes: "/v1/agent/recipes",
+    runs: "GET /v1/agent/runs",
+    remoteMcp: "POST /mcp",
     docs: "https://webmailagent.com/docs/agents.html",
     cli: "npx @mailagent/mcp mailagent open --service github --json",
   });
@@ -64,6 +67,27 @@ agentRoutes.get("/recipes/:service", (c) => {
   const recipe = getAgentRecipe(c.req.param("service"));
   if (!recipe) return c.json({ error: "unknown_service" }, 404);
   return c.json(recipe);
+});
+
+/** Активные прогоны агентов (label agent-*) */
+agentRoutes.get("/runs", async (c) => {
+  const limit = Number(c.req.query("limit") ?? "30");
+  const runId = c.req.query("runId") ?? undefined;
+  const runs = await listAgentRuns(c.env, c.get("apiKeyHint"), {
+    limit,
+    runId,
+  });
+  return c.json({ runs });
+});
+
+agentRoutes.get("/runs/:runId", async (c) => {
+  const runs = await listAgentRuns(c.env, c.get("apiKeyHint"), {
+    runId: c.req.param("runId"),
+    limit: 50,
+  });
+  const run = runs[0];
+  if (!run) return c.json({ error: "run_not_found" }, 404);
+  return c.json(run);
 });
 
 agentRoutes.post("/verify", async (c) => {

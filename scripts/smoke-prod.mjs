@@ -26,7 +26,7 @@ async function get(path) {
 async function main() {
   console.log("Smoke prod →", base);
 
-  for (const path of ["/health", "/v1", "/v1/stats"]) {
+  for (const path of ["/health", "/v1", "/v1/stats", "/v1/agent"]) {
     const { res, json } = await get(path);
     console.log(path, res.status, JSON.stringify(json).slice(0, 120));
     if (!res.ok) process.exit(1);

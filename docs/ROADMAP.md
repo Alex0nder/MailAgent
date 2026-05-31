@@ -1,19 +1,24 @@
 # MailAgent roadmap
 
-**v0.3.1** — remote MCP + agent tracing
+**v0.3.1**
 
 ## Agent ✅
 
-| Remote MCP `POST /mcp` | ✅ JSON-RPC + Bearer |
-| `runId` → label tracing | ✅ |
-| verify + recipes + stdio MCP | ✅ |
+| Remote MCP `/mcp` | ✅ |
+| `runId` tracing | ✅ |
+| `GET /v1/agent/runs` + UI | ✅ |
+| `npm run smoke:agent` | ✅ |
 
 ## Publish ⏳
 
-`npm run publish:mcp` / `publish:qa` (npm login)
+```bash
+npm login
+npm run publish:mcp
+npm run publish:qa
+```
 
 ## Дальше
 
-- MCP Streamable HTTP / SSE session
-- Agent run dashboard (filter `label=agent-*`)
-- OAuth on remote MCP (optional)
+- MCP Streamable HTTP (SSE sessions)
+- `@mailagent/agent` thin SDK
+- OAuth on remote MCP
