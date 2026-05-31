@@ -89,6 +89,42 @@ const senderSchema = z
   .describe("Allowed sender email or domain (see mailagent_create_inbox)");
 
 server.registerTool(
+  "mailagent_verify_signup",
+  {
+    description:
+      "Preferred agent flow: create inbox (or reuse inboxId), wait for verification email, return agent.primaryAction with OTP or magic link and clear instruction. Use service preset (github, google, dribbble, …).",
+    inputSchema: {
+      inboxId: z
+        .string()
+        .optional()
+        .describe("Existing inbox after form submit; omit to create new"),
+      ttlMinutes: z.number().int().min(5).max(1440).optional(),
+      service: z.enum(SERVICE_NAMES).optional(),
+      expectFrom: senderSchema,
+      allowedSenders: senderSchema,
+      label: z.string().optional(),
+      callbackUrl: z.string().url().optional(),
+      subjectContains: z.string().optional(),
+      timeoutSeconds: z.number().int().min(5).max(120).optional(),
+      deleteAfter: z.boolean().optional(),
+    },
+  },
+  async (args) => {
+    const client = new MailAgentClient();
+    const result = await client.verifySignup(args);
+    if (result.status === "timeout" || result.error) {
+      return toolText({
+        ...result,
+        hint:
+          result.hint ??
+          "Submit the email address on the signup form, then retry with inboxId or longer timeout.",
+      });
+    }
+    return toolText(result);
+  }
+);
+
+server.registerTool(
   "mailagent_wait_and_extract",
   {
     description:
@@ -168,13 +204,18 @@ server.registerTool(
         .max(120)
         .optional()
         .describe("Max wait time in seconds (default 90)"),
+      subjectContains: z
+        .string()
+        .optional()
+        .describe("Only accept email whose subject contains this text"),
     },
   },
-  async ({ inboxId, timeoutSeconds }) => {
+  async ({ inboxId, timeoutSeconds, subjectContains }) => {
     const client = new MailAgentClient();
     const result = await client.waitForMessage(
       inboxId,
-      timeoutSeconds ?? 90
+      timeoutSeconds ?? 90,
+      { subjectContains }
     );
     if ("error" in result && result.error === "timeout") {
       return toolText({

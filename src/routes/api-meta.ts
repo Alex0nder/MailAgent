@@ -13,6 +13,12 @@ apiMetaRoutes.get("/", (c) => {
       "Temporary inboxes for AI agents and QA/E2E (OTP, magic links, CI labels)",
     auth: "Authorization: Bearer <API_KEY>",
     openapi: "/v1/openapi.json",
+    agent: {
+      hub: "GET /v1/agent",
+      verify: "POST /v1/agent/verify",
+      recipes: "GET /v1/agent/recipes/:service",
+      docs: "https://webmailagent.com/docs/agents.html",
+    },
     endpoints: {
       open: { method: "POST", path: "/v1/inboxes/open", note: "create + wait + extract (+ delete)" },
       listInboxes: { method: "GET", path: "/v1/inboxes?label=", note: "QA filter" },
@@ -42,6 +48,7 @@ apiMetaRoutes.get("/", (c) => {
     },
     services: Object.keys(SERVICE_EXPECT_FROM),
     mcpTools: [
+      "mailagent_verify_signup",
       "mailagent_wait_and_extract",
       "mailagent_create_inbox",
       "mailagent_wait_for_message",

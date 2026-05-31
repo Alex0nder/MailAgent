@@ -10,6 +10,7 @@ function usage() {
   console.error(`Usage:
   mailagent inbox create [--service dribbble] [--ttl 30] [--json]
   mailagent wait <inboxId> [--timeout 90] [--json]
+  mailagent verify [--service github] [--inbox ID] [--timeout 90] [--json]
   mailagent open [--service dribbble] [--timeout 90] [--no-delete] [--json]
 
 Services: ${SERVICE_NAMES.join(", ")}
@@ -60,6 +61,19 @@ async function main() {
     return;
   }
 
+  if (cmd === "verify") {
+    const result = await client.verifySignup({
+      service: opt(args, "--service"),
+      inboxId: opt(args, "--inbox"),
+      subjectContains: opt(args, "--subject"),
+      timeoutSeconds: Number(opt(args, "--timeout") ?? "90"),
+      deleteAfter: !flag(args, "--no-delete"),
+    });
+    console.log(jsonOut ? JSON.stringify(result, null, 2) : formatVerify(result));
+    if (result.status === "timeout" || result.error) process.exit(1);
+    return;
+  }
+
   if (cmd === "open") {
     const result = await client.waitAndExtract({
       service: opt(args, "--service"),
@@ -85,6 +99,17 @@ function formatWait(result: WaitResult): string {
     `otp: ${v?.otp ?? "(none)"}`,
     ...(v?.links?.length ? v.links.map((l) => `link: ${l}`) : []),
   ];
+  return lines.join("\n");
+}
+
+function formatVerify(result: WaitResult & { agent?: { primaryAction?: { type: string; value?: string; instruction?: string } } }): string {
+  if (result.error || result.status === "timeout") {
+    return String(result.hint ?? result.error ?? "timeout");
+  }
+  const pa = result.agent?.primaryAction;
+  const lines = [`address: ${(result.email as { address?: string })?.address ?? result.address}`];
+  if (pa?.value) lines.push(`${pa.type}: ${pa.value}`);
+  if (pa?.instruction) lines.push(`→ ${pa.instruction}`);
   return lines.join("\n");
 }
 

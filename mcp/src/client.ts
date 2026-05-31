@@ -72,6 +72,41 @@ export class MailAgentClient {
     });
   }
 
+  /** POST /v1/agent/verify — ответ с agent.primaryAction для LLM */
+  async verifySignup(options: WaitAndExtractOptions) {
+    const body: Record<string, unknown> = {
+      timeoutSeconds: options.timeoutSeconds ?? 90,
+      deleteAfter: options.deleteAfter !== false,
+    };
+    if (options.inboxId) body.inboxId = options.inboxId;
+    if (options.ttlMinutes !== undefined) body.ttlMinutes = options.ttlMinutes;
+    if (options.service) body.service = options.service;
+    if (options.label) body.label = options.label;
+    if (options.callbackUrl) body.callbackUrl = options.callbackUrl;
+    if (options.subjectContains) body.subjectContains = options.subjectContains;
+    const expectFrom = resolveExpectFrom(options.service, options.expectFrom);
+    if (expectFrom?.length) body.expectFrom = expectFrom;
+    if (options.allowedSenders !== undefined) {
+      body.allowedSenders = options.allowedSenders;
+    }
+
+    const res = await fetch(`${this.base}/v1/agent/verify`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    const text = await res.text();
+    const parsed = text ? JSON.parse(text) : {};
+    if (!res.ok) {
+      return { ...parsed, error: parsed.error ?? parsed.status ?? "verify_failed" };
+    }
+    return parsed as AgentVerifyResponse;
+  }
+
   /** create → wait → extract → delete; без inboxId — один POST /v1/inboxes/open */
   async waitAndExtract(options: WaitAndExtractOptions) {
     if (!options.inboxId) {
@@ -81,7 +116,8 @@ export class MailAgentClient {
     const inboxId = options.inboxId;
     const wait = await this.waitForMessage(
       inboxId,
-      options.timeoutSeconds ?? 90
+      options.timeoutSeconds ?? 90,
+      { subjectContains: options.subjectContains }
     );
     if ("error" in wait && wait.error === "timeout") {
       return {
@@ -158,12 +194,27 @@ export class MailAgentClient {
   }
 
   /** SSE → fallback poll /wait (500ms на сервере) */
-  async waitForMessage(id: string, timeoutSec: number) {
+  async waitForMessage(
+    id: string,
+    timeoutSec: number,
+    options?: { subjectContains?: string }
+  ) {
     const t = Math.min(Math.max(timeoutSec, 5), 120);
 
     const existing = await this.listMessages(id);
-    if (existing.messages.length > 0) {
+    if (existing.messages.length > 0 && !options?.subjectContains) {
       return { message: existing.messages[0] };
+    }
+
+    if (options?.subjectContains) {
+      const pollCap = Math.min(t, 90);
+      const q = new URLSearchParams({
+        timeout: String(pollCap),
+        subjectContains: options.subjectContains,
+      });
+      return this.request<{ message: MessageSummary } | { error: string }>(
+        `/v1/inboxes/${id}/wait?${q}`
+      );
     }
 
     try {
@@ -325,4 +376,22 @@ interface NotifyPayload {
   links: string[];
   primaryLink: string | null;
   receivedAt: string;
+}
+
+export interface AgentPrimaryAction {
+  type: "otp" | "magic_link" | "link" | "manual";
+  value?: string;
+  instruction: string;
+}
+
+export interface AgentVerifyResponse {
+  status: "verified" | "timeout";
+  email?: { inboxId: string; address: string };
+  verification?: ExtractResponse;
+  agent?: {
+    primaryAction: AgentPrimaryAction;
+    service: string | null;
+  };
+  error?: string;
+  hint?: string;
 }

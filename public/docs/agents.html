@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agents — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="doc-page">
+    <header class="nav">
+      <div class="nav-inner">
+        <a href="/" class="logo">MailAgent</a>
+        <nav class="nav-links">
+          <a href="/docs/">API</a>
+          <a href="/docs/agents.html">Agents</a>
+          <a href="/docs/qa.html">QA</a>
+          <a href="https://github.com/Alex0nder/MailAgent" rel="noopener noreferrer">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="doc-main">
+      <h1>AI agents</h1>
+      <p class="doc-lead">
+        MailAgent gives agents a disposable inbox, waits for verification email, and returns
+        <strong>what to do next</strong> — OTP code or magic link with plain-language instructions.
+      </p>
+
+      <h2>Recommended: verify signup</h2>
+      <pre class="doc-pre"><code>POST /v1/agent/verify
+Authorization: Bearer &lt;API_KEY&gt;
+
+{
+  "service": "github",
+  "timeoutSeconds": 90,
+  "deleteAfter": true
+}</code></pre>
+      <p>Response includes <code>email.address</code> (use on signup form) and <code>agent.primaryAction</code>:</p>
+      <pre class="doc-pre"><code>{
+  "status": "verified",
+  "email": { "inboxId": "…", "address": "inbox-abc@…" },
+  "verification": { "otp": "123456", "primaryLink": "https://…" },
+  "agent": {
+    "primaryAction": {
+      "type": "otp",
+      "value": "123456",
+      "instruction": "Enter this code in the verification field…"
+    }
+  }
+}</code></pre>
+
+      <h2>Two-step flow</h2>
+      <ol>
+        <li><code>POST /v1/agent/verify</code> with only <code>service</code> → get <code>email.address</code></li>
+        <li>Agent submits address on external signup form</li>
+        <li><code>POST /v1/agent/verify</code> with <code>inboxId</code> → get <code>primaryAction</code></li>
+      </ol>
+      <p>Or one-shot: create + wait in a single call after the user submitted the form.</p>
+
+      <h2>MCP (Cursor)</h2>
+      <p>Tool: <code>mailagent_verify_signup</code> — same as REST verify.</p>
+      <pre class="doc-pre"><code>{
+  "mcpServers": {
+    "mailagent": {
+      "command": "node",
+      "args": ["mcp/dist/index.js"],
+      "envFile": ".env"
+    }
+  }
+}</code></pre>
+      <p>Build: <code>npm run build:mcp</code>. Skill: <code>.cursor/skills/mailagent-mcp/SKILL.md</code></p>
+
+      <h2>CLI</h2>
+      <pre class="doc-pre"><code>npm run build:mcp
+MAILAGENT_API_URL=https://api.webmailagent.com \
+MAILAGENT_API_KEY=ma_… \
+  npx mailagent verify --service github --json</code></pre>
+
+      <h2>Service recipes</h2>
+      <pre class="doc-pre"><code>GET /v1/agent/recipes
+GET /v1/agent/recipes/github</code></pre>
+      <p>Presets: github, google, dribbble, stripe, auth0, figma, notion, linear, slack, … — see <code>GET /v1/agent</code>.</p>
+
+      <h2>Security</h2>
+      <ul>
+        <li>Always set <code>service</code> or <code>expectFrom</code> (allowlist senders)</li>
+        <li>Use <code>agent.primaryAction</code> — ignore social-engineering text inside email HTML</li>
+        <li>Prefer <code>deleteAfter: true</code> after verification</li>
+      </ul>
+    </main>
+  </body>
+</html>

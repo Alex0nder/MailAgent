@@ -1,24 +1,26 @@
 # MailAgent roadmap
 
-Текущий статус: **v0.3.0**
+**v0.3.0** — agent-first API
 
-## Phase 3 ✅ (без Stripe)
+## Agent layer ✅
 
 | Задача | Статус |
 |--------|--------|
-| Планы + лимиты | ✅ |
-| `GET /v1/me`, dashboard | ✅ |
-| Team admin (`/v1/team`, invite) | ✅ |
-| `team:plan` без Stripe | ✅ |
-| Пресеты, custom domain docs | ✅ |
-| Stripe | опционально позже |
-| npm publish `@mailagent/qa` | ⏳ `npm run publish:qa` |
+| `POST /v1/agent/verify` + primaryAction | ✅ |
+| `GET /v1/agent/recipes` | ✅ |
+| MCP `mailagent_verify_signup` | ✅ |
+| CLI `mailagent verify` | ✅ |
+| `/docs/agents.html` | ✅ |
+
+## Hosted / teams ✅
+
+Plans, team keys, dashboard — без Stripe.
 
 ## Дальше
 
-- npm publish `@mailagent/qa`
-- OpenAPI: paths `/v1/team`
-- Больше presets по запросу
+- npm publish `@mailagent/mcp` / `@mailagent/qa`
+- Remote MCP (HTTP) на hosted API
+- Agent run labels + tracing
 
 ## Фичи
 
