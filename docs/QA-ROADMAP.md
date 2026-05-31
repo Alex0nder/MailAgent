@@ -1,0 +1,203 @@
+# План для QA / E2E-тестировщиков
+
+Что уже есть, что критично добавить, и в каком порядке.
+
+**Статус продукта для QA:** v0.3 — можно пилотить в CI, есть SDK и debug UI.
+
+---
+
+## Уже работает (можно использовать сегодня)
+
+| Возможность | Как |
+|-------------|-----|
+| Изолированный inbox на прогон | `label` / `MailAgentQa.runLabel()` |
+| Фильтр по теме письма | `subjectContains` на wait/open |
+| Allowlist отправителя | `service` или `expectFrom` |
+| OTP + magic link без парсинга HTML | `verification.otp`, `primaryLink` |
+| One-shot после submit | `create` → форма → `waitForVerification` |
+| Отладка после падения | `/debug.html`, `GET /v1/inboxes?label=` |
+| Webhook в CI | `callbackUrl` + `GET …/callbacks` |
+| Playwright SDK | `@mailagent/qa` (локально `file:`) |
+| Параллельные воркеры | label с worker index + timestamp |
+| Agent trace (опционально) | `runId` → `agent-{runId}` + `/agent-runs.html` |
+
+Документация: [docs/QA.md](./QA.md), [public/docs/qa.html](https://webmailagent.com/docs/qa.html).
+
+---
+
+## P0 — must-have для команды QA (1–2 недели)
+
+### 1. npm publish `@mailagent/qa`
+
+**Зачем:** установка `npm install @mailagent/qa` без `file:../MailAgent`, версионирование, lockfile в проекте тестов.
+
+**Сделать:**
+```bash
+npm login
+npm run publish:qa
+```
+
+**Критерий готовности:** README в репо тестов с одной строкой install.
+
+---
+
+### 2. GitHub Action / GitLab CI template
+
+**Зачем:** copy-paste job с секретами `MAILAGENT_API_*`, пример signup-теста, артефакт inbox id при падении.
+
+**Сделать:** `.github/workflows/mailagent-qa.example.yml` + секция в QA.md.
+
+**Критерий:** новый репозиторий подключает MailAgent за 10 минут.
+
+---
+
+### 3. Playwright global fixture
+
+**Зачем:** один `test.extend({ mail })` — create/wait/delete автоматически, меньше boilerplate.
+
+**Сделать:** `packages/mailagent-qa/playwright.fixture.ts` + пример в `examples/playwright/`.
+
+**Критерий:** тест из 15 строк вместо 40.
+
+---
+
+### 4. Улучшенная ошибка при timeout
+
+**Зачем:** при 408 сразу в exception — последние messages (from, subject), inbox id, hint.
+
+**Сделать:** в `@mailagent/qa` — `waitForVerification` при timeout вызывает `list messages` и кладёт в `MailAgentTimeoutError.details`.
+
+**Критерий:** в CI log видно «письмо не пришло» vs «пришло, но subject не матчится».
+
+---
+
+## P1 — сильно упрощает жизнь (2–4 недели)
+
+### 5. Cleanup suite: delete by label prefix
+
+**Зачем:** после nightly не копятся inbox; не упираться в лимит 10/100.
+
+**API:** `DELETE /v1/inboxes?labelPrefix=ci-123` или SDK `mail.cleanupLabel("ci-123")`.
+
+---
+
+### 6. Cypress helper
+
+**Зачем:** половина команд на Cypress, не Playwright.
+
+**Сделать:** `@mailagent/qa/cypress` или отдельный `cypress-mailagent` с `cy.task`.
+
+---
+
+### 7. Staging / mock inbound без реального SMTP
+
+**Зачем:** тестировать пайплайн OTP без зависимости от Resend/staging-почты.
+
+**Уже есть:** `scripts/simulate-inbound.mjs` — оформить как **док + CI job** «contract test» без внешней почты.
+
+---
+
+### 8. Матрица `service` presets + документация
+
+**Зачем:** QA знает, какой preset для staging Auth0 vs prod Auth0.
+
+**Сделать:** таблица в QA.md: сервис → домены → типичный OTP/link → `subjectContains` пример.
+
+---
+
+### 9. Callback cookbook (smee.io / webhook.site)
+
+**Зачем:** async тесты без poll — ждать webhook вместо `wait`.
+
+**Сделать:** пошаговый гайд + пример assert на `callbackUrl` + `/callbacks` log.
+
+---
+
+### 10. Отдельный QA-ключ и team invite
+
+**Зачем:** QA-команда не делит один `API_KEY` с агентами.
+
+**Уже есть:** `npm run issue:key:db`, `/v1/team/keys`, dashboard.
+
+**Сделать:** короткий runbook «QA team onboarding» в QA.md.
+
+---
+
+## P2 — nice-to-have (backlog)
+
+| # | Фича | Зачем QA |
+|---|------|----------|
+| 11 | Retry wrapper `waitWithRetry(3)` | Flaky сеть / медленный staging |
+| 12 | `GET /v1/inboxes/:id/messages?subjectContains=` | Несколько писем в одном inbox |
+| 13 | Allure / ReportPortal attachment | inbox id + messages в отчёте |
+| 14 | Mailosaur / MailSlurp migration guide | Переезд с другого провайдера |
+| 15 | Rate limit headers в API | Понимать 429 в CI |
+| 16 | Slack notify on mail timeout | Nightly алерт |
+| 17 | TTL override per env (`QA_TTL_MINUTES=60`) | Длинные staging flows |
+| 18 | Visual debug: screenshot + inbox link in PR comment | GitHub Action bot |
+
+---
+
+## Рекомендуемый flow для нового проекта QA
+
+```mermaid
+sequenceDiagram
+  participant T as Test
+  participant M as MailAgent API
+  participant App as Staging app
+  participant Mail as Resend inbound
+
+  T->>M: POST /v1/inboxes (label=ci-42)
+  M-->>T: address
+  T->>App: signup with address
+  App->>Mail: send verification
+  Mail->>M: webhook
+  T->>M: GET /wait?subjectContains=verify
+  M-->>T: otp / primaryLink
+  T->>App: submit OTP
+  T->>M: DELETE inbox (optional)
+```
+
+---
+
+## Чеклист перед пилотом QA
+
+- [ ] `MAILAGENT_API_URL` + `MAILAGENT_API_KEY` в CI secrets
+- [ ] Staging шлёт письма с домена из `service` preset
+- [ ] Resend webhook → `/webhooks/resend` жив (health + тестовое письмо)
+- [ ] `label` уникален на job (`GITHUB_RUN_ID`, worker index)
+- [ ] `deleteAfter: false` на отладку, `true` в prod CI
+- [ ] При падении — `/debug.html` или `GET /v1/inboxes?label=`
+- [ ] `npm run smoke:agent` зелёный после деплоя
+
+---
+
+## Метрики успеха пилота
+
+| Метрика | Цель |
+|---------|------|
+| Flaky rate email step | < 2% (после subjectContains + allowlist) |
+| Время ожидания письма p95 | < 90 s |
+| Время отладки падения | < 5 min (label → debug UI) |
+| Setup нового репо | < 30 min |
+
+---
+
+## Связь с agent roadmap
+
+| Agent | QA |
+|-------|-----|
+| `POST /v1/agent/verify` | То же + `POST /v1/inboxes/open` |
+| `runId` | Аналог `label` с префиксом `agent-` |
+| Remote MCP | QA обычно REST/SDK |
+| `@mailagent/agent` | `@mailagent/qa` для тестов |
+
+---
+
+## Следующий шаг (рекомендация)
+
+1. **Ты:** `npm run deploy` (Cloudflare login) + `npm run smoke:agent`
+2. **Мы:** P0 пункты 2–4 (CI template, fixture, timeout details)
+3. **Publish:** `@mailagent/qa` на npm
+
+Issues / hello@webmailagent.com — приоритеты можно сдвинуть под ваш стек (Playwright-only vs Cypress-heavy).

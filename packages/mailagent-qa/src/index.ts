@@ -110,7 +110,20 @@ export class MailAgentQa {
 
     const wait = await this.requestRaw(`/v1/inboxes/${inboxId}/wait?${q}`);
     if (wait.status === 408) {
-      throw new MailAgentTimeoutError("No email received", { inboxId });
+      const messages = await this.requestRaw(
+        `/v1/inboxes/${inboxId}/messages`
+      ).catch(() => null);
+      throw new MailAgentTimeoutError("No email received", {
+        inboxId,
+        subjectContains: options?.subjectContains,
+        messages:
+          messages?.ok && messages.json && typeof messages.json === "object"
+            ? (messages.json as { messages?: unknown[] }).messages
+            : undefined,
+        hint: options?.subjectContains
+          ? "Try broader subjectContains or check expectFrom/service allowlist."
+          : "Check staging sends mail and Resend webhook is configured.",
+      });
     }
     if (!wait.ok) throw new Error(`wait failed: ${wait.status}`);
 

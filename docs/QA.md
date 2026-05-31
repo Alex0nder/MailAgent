@@ -82,6 +82,12 @@ test("signup with email verify", async ({ page }) => {
 
 Полный пример: [examples/playwright/signup-email.spec.example.ts](../examples/playwright/signup-email.spec.example.ts).
 
+**Fixture:** [examples/playwright/mailagent.fixture.ts](../examples/playwright/mailagent.fixture.ts) — `testInbox` с auto-delete.
+
+**CI:** [examples/github-actions/qa-email.yml](../examples/github-actions/qa-email.yml).
+
+**Roadmap для QA:** [QA-ROADMAP.md](./QA-ROADMAP.md) — P0/P1/P2.
+
 ### Playwright (сырой fetch, без пакета)
 
 ```typescript

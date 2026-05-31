@@ -1,0 +1,32 @@
+/**
+ * Playwright fixture: авто-cleanup inbox после теста.
+ * Usage: import { test, expect } from "./mailagent.fixture";
+ */
+import { test as base, expect } from "@playwright/test";
+import {
+  createMailAgentQa,
+  MailAgentQa,
+  type InboxInfo,
+} from "@mailagent/qa";
+
+type MailFixtures = {
+  mail: MailAgentQa;
+  testInbox: InboxInfo;
+};
+
+export const test = base.extend<MailFixtures>({
+  mail: async ({}, use) => {
+    await use(createMailAgentQa());
+  },
+
+  testInbox: async ({ mail }, use) => {
+    const inbox = await mail.createInbox({
+      label: MailAgentQa.runLabel("pw"),
+      ttlMinutes: 30,
+    });
+    await use(inbox);
+    await mail.deleteInbox(inbox.id).catch(() => {});
+  },
+});
+
+export { expect };

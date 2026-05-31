@@ -1,0 +1,49 @@
+# Example: MailAgent in GitHub Actions (QA signup flow)
+# Copy to .github/workflows/qa-email.yml and set secrets:
+#   MAILAGENT_API_URL, MAILAGENT_API_KEY
+
+name: QA email verify
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  signup-email:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Smoke MailAgent API
+        env:
+          MAILAGENT_API_URL: ${{ secrets.MAILAGENT_API_URL }}
+          MAILAGENT_API_KEY: ${{ secrets.MAILAGENT_API_KEY }}
+        run: |
+          curl -sf "$MAILAGENT_API_URL/health" | jq .
+          curl -sf "$MAILAGENT_API_URL/v1/agent" \
+            -H "Authorization: Bearer $MAILAGENT_API_KEY" | jq .
+
+      - name: Playwright E2E
+        env:
+          MAILAGENT_API_URL: ${{ secrets.MAILAGENT_API_URL }}
+          MAILAGENT_API_KEY: ${{ secrets.MAILAGENT_API_KEY }}
+          CI: "true"
+        run: npx playwright test
+
+      - name: Debug hint on failure
+        if: failure()
+        env:
+          MAILAGENT_API_URL: ${{ secrets.MAILAGENT_API_URL }}
+          MAILAGENT_API_KEY: ${{ secrets.MAILAGENT_API_KEY }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          echo "List inboxes for this run:"
+          curl -sS "$MAILAGENT_API_URL/v1/inboxes?label=ci-$RUN_ID" \
+            -H "Authorization: Bearer $MAILAGENT_API_KEY" | jq .
