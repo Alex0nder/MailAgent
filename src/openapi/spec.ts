@@ -249,6 +249,37 @@ export const openApiSpec = {
           "400": { description: "invalid_callback_url" },
         },
       },
+      delete: {
+        tags: ["inboxes"],
+        summary: "Bulk delete by label prefix (QA cleanup)",
+        security: bearer,
+        parameters: [
+          {
+            name: "labelPrefix",
+            in: "query",
+            required: true,
+            schema: { type: "string", minLength: 3 },
+            description: "Delete inboxes where label LIKE prefix% (scoped to API key)",
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Deleted inbox ids",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    deleted: { type: "integer" },
+                    ids: { type: "array", items: { type: "string" } },
+                  },
+                },
+              },
+            },
+          },
+          "400": { description: "labelPrefix_required | labelPrefix_too_short" },
+        },
+      },
     },
     "/v1/inboxes/open": {
       post: {

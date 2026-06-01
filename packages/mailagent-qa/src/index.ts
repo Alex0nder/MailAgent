@@ -147,6 +147,17 @@ export class MailAgentQa {
     await this.request(`/v1/inboxes/${inboxId}`, { method: "DELETE" });
   }
 
+  /** Удалить все inbox с label, начинающимся с prefix (CI cleanup) */
+  async cleanupLabelPrefix(labelPrefix: string): Promise<{ deleted: number; ids: string[] }> {
+    const q = encodeURIComponent(labelPrefix);
+    return this.request(`/v1/inboxes?labelPrefix=${q}`, { method: "DELETE" });
+  }
+
+  /** Алиас: cleanupLabelPrefix("ci-12345") после job */
+  async cleanupRun(runId: string): Promise<{ deleted: number; ids: string[] }> {
+    return this.cleanupLabelPrefix(`ci-${runId}`);
+  }
+
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
     const res = await this.requestRaw(path, init);
     if (!res.ok) {

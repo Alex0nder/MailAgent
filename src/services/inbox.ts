@@ -193,6 +193,26 @@ export async function deleteInbox(
   return rows.length > 0;
 }
 
+/** QA: удалить все inbox с label LIKE prefix% (только свой api_key_hint) */
+export async function deleteInboxesByLabelPrefix(
+  env: Env,
+  labelPrefix: string,
+  apiKeyHint: string
+): Promise<string[]> {
+  const prefix = labelPrefix.trim().slice(0, 64);
+  if (prefix.length < 3) return [];
+
+  const sql = getDb(env);
+  const pattern = `${prefix}%`;
+  const rows = await sql`
+    DELETE FROM inboxes
+    WHERE label LIKE ${pattern}
+      AND (api_key_hint IS NULL OR api_key_hint = ${apiKeyHint})
+    RETURNING id
+  `;
+  return rows.map((r: { id: string }) => r.id);
+}
+
 export async function listMessages(
   env: Env,
   inboxId: string

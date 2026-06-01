@@ -37,6 +37,16 @@ jobs:
           CI: "true"
         run: npx playwright test
 
+      - name: Cleanup MailAgent inboxes
+        if: always()
+        env:
+          MAILAGENT_API_URL: ${{ secrets.MAILAGENT_API_URL }}
+          MAILAGENT_API_KEY: ${{ secrets.MAILAGENT_API_KEY }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          curl -sS -X DELETE "$MAILAGENT_API_URL/v1/inboxes?labelPrefix=ci-$RUN_ID" \
+            -H "Authorization: Bearer $MAILAGENT_API_KEY" | jq .
+
       - name: Debug hint on failure
         if: failure()
         env:

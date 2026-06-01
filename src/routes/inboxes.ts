@@ -11,6 +11,7 @@ import {
   countActiveInboxesForTeam,
   createInbox,
   deleteInbox,
+  deleteInboxesByLabelPrefix,
   getInbox,
   listInboxes,
   listMessages,
@@ -130,6 +131,24 @@ inboxRoutes.post("/", async (c) => {
     apiKeyHint: c.get("apiKeyHint"),
   });
   return c.json({ id: inbox.id, ...formatInbox(inbox) }, 201);
+});
+
+/** QA: bulk delete по префиксу label (после nightly / suite) */
+inboxRoutes.delete("/", async (c) => {
+  const labelPrefix = c.req.query("labelPrefix")?.trim();
+  if (!labelPrefix) {
+    return c.json({ error: "labelPrefix_required" }, 400);
+  }
+  if (labelPrefix.length < 3) {
+    return c.json({ error: "labelPrefix_too_short", minLength: 3 }, 400);
+  }
+
+  const ids = await deleteInboxesByLabelPrefix(
+    c.env,
+    labelPrefix,
+    c.get("apiKeyHint")
+  );
+  return c.json({ deleted: ids.length, ids });
 });
 
 inboxRoutes.get("/:id", async (c) => {

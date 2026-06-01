@@ -84,7 +84,22 @@ test("signup with email verify", async ({ page }) => {
 
 **Fixture:** [examples/playwright/mailagent.fixture.ts](../examples/playwright/mailagent.fixture.ts) — `testInbox` с auto-delete.
 
-**CI:** [examples/github-actions/qa-email.yml](../examples/github-actions/qa-email.yml).
+**CI:** [examples/github-actions/qa-email.yml](../examples/github-actions/qa-email.yml) — в конце job `DELETE /v1/inboxes?labelPrefix=ci-$RUN_ID`.
+
+**Cleanup после suite:**
+
+```typescript
+// один prefix на прогон CI
+const label = mail.runLabel(); // ci-1234567890-1
+await mail.cleanupLabelPrefix(label.split("-").slice(0, 2).join("-")); // ci-1234567890
+// или для GitHub Actions run id:
+await mail.cleanupRun(process.env.GITHUB_RUN_ID!);
+```
+
+```bash
+curl -X DELETE "$MAILAGENT_API_URL/v1/inboxes?labelPrefix=ci-$GITHUB_RUN_ID" \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY"
+```
 
 **Roadmap для QA:** [QA-ROADMAP.md](./QA-ROADMAP.md) — P0/P1/P2.
 

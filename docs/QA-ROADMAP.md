@@ -27,7 +27,7 @@
 
 ## P0 — must-have для команды QA (1–2 недели)
 
-### 1. npm publish `@mailagent/qa`
+### 1. npm publish `@mailagent/qa` ✅
 
 **Зачем:** установка `npm install @mailagent/qa` без `file:../MailAgent`, версионирование, lockfile в проекте тестов.
 
@@ -41,45 +41,45 @@ npm run publish:qa
 
 ---
 
-### 2. GitHub Action / GitLab CI template
+### 2. GitHub Action / GitLab CI template ✅
 
 **Зачем:** copy-paste job с секретами `MAILAGENT_API_*`, пример signup-теста, артефакт inbox id при падении.
 
-**Сделать:** `.github/workflows/mailagent-qa.example.yml` + секция в QA.md.
+**Сделать:** `examples/github-actions/qa-email.yml` + секция в QA.md.
 
 **Критерий:** новый репозиторий подключает MailAgent за 10 минут.
 
 ---
 
-### 3. Playwright global fixture
+### 3. Playwright global fixture ✅
 
 **Зачем:** один `test.extend({ mail })` — create/wait/delete автоматически, меньше boilerplate.
 
-**Сделать:** `packages/mailagent-qa/playwright.fixture.ts` + пример в `examples/playwright/`.
+**Сделать:** `examples/playwright/mailagent.fixture.ts` + пример в `examples/playwright/`.
 
 **Критерий:** тест из 15 строк вместо 40.
 
 ---
 
-### 4. Улучшенная ошибка при timeout
+### 4. Улучшенная ошибка при timeout ✅
 
 **Зачем:** при 408 сразу в exception — последние messages (from, subject), inbox id, hint.
 
-**Сделать:** в `@mailagent/qa` — `waitForVerification` при timeout вызывает `list messages` и кладёт в `MailAgentTimeoutError.details`.
+**Сделано:** в `@mailagent/qa@0.1.2+` — `waitForVerification` при timeout вызывает `list messages` и кладёт в `MailAgentTimeoutError.details`.
 
 **Критерий:** в CI log видно «письмо не пришло» vs «пришло, но subject не матчится».
 
 ---
 
-## P1 — сильно упрощает жизнь (2–4 недели)
-
-### 5. Cleanup suite: delete by label prefix
+### 5. Cleanup suite: delete by label prefix ✅
 
 **Зачем:** после nightly не копятся inbox; не упираться в лимит 10/100.
 
-**API:** `DELETE /v1/inboxes?labelPrefix=ci-123` или SDK `mail.cleanupLabel("ci-123")`.
+**API:** `DELETE /v1/inboxes?labelPrefix=ci-123` или SDK `mail.cleanupLabelPrefix("ci-123")` / `mail.cleanupRun("123")`.
 
 ---
+
+## P1 — сильно упрощает жизнь (2–4 недели)
 
 ### 6. Cypress helper
 
