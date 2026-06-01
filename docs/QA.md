@@ -103,6 +103,14 @@ curl -X DELETE "$MAILAGENT_API_URL/v1/inboxes?labelPrefix=ci-$GITHUB_RUN_ID" \
 
 **Roadmap для QA:** [QA-ROADMAP.md](./QA-ROADMAP.md) — P0/P1/P2.
 
+**Доп. гайды:**
+
+- [QA-PRESETS.md](./QA-PRESETS.md) — матрица `service` / `expectFrom`
+- [QA-CALLBACK.md](./QA-CALLBACK.md) — smee.io, webhook, `/callbacks`
+- [QA-ONBOARDING.md](./QA-ONBOARDING.md) — отдельный QA-ключ и team
+- Contract test без SMTP: `npm run test:contract:qa` (нужен `DATABASE_URL`)
+- Cypress: [examples/cypress/](../examples/cypress/)
+
 ### Playwright (сырой fetch, без пакета)
 
 ```typescript
@@ -161,7 +169,9 @@ test("signup with email verify (one-shot)", async ({ page }) => {
 
 ## Callback (webhook в CI)
 
-Если есть публичный URL (smee.io, ngrok, staging hook):
+Подробный гайд: [QA-CALLBACK.md](./QA-CALLBACK.md) (smee.io, webhook.site, отладка `/callbacks`).
+
+Кратко — если есть публичный URL (smee.io, ngrok, staging hook):
 
 ```json
 {

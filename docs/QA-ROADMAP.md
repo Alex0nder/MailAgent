@@ -81,45 +81,43 @@ npm run publish:qa
 
 ## P1 — сильно упрощает жизнь (2–4 недели)
 
-### 6. Cypress helper
+### 6. Cypress helper ✅
 
 **Зачем:** половина команд на Cypress, не Playwright.
 
-**Сделать:** `@mailagent/qa/cypress` или отдельный `cypress-mailagent` с `cy.task`.
+**Сделано:** `@mailagent/qa/cypress` — `createMailAgentCypressTasks()`, примеры в `examples/cypress/`.
 
 ---
 
-### 7. Staging / mock inbound без реального SMTP
+### 7. Staging / mock inbound без реального SMTP ✅
 
 **Зачем:** тестировать пайплайн OTP без зависимости от Resend/staging-почты.
 
-**Уже есть:** `scripts/simulate-inbound.mjs` — оформить как **док + CI job** «contract test» без внешней почты.
+**Сделано:** `npm run test:contract:qa`, `scripts/contract-qa.mjs`, `examples/github-actions/contract-qa.yml`.
 
 ---
 
-### 8. Матрица `service` presets + документация
+### 8. Матрица `service` presets + документация ✅
 
 **Зачем:** QA знает, какой preset для staging Auth0 vs prod Auth0.
 
-**Сделать:** таблица в QA.md: сервис → домены → типичный OTP/link → `subjectContains` пример.
+**Сделано:** [QA-PRESETS.md](./QA-PRESETS.md).
 
 ---
 
-### 9. Callback cookbook (smee.io / webhook.site)
+### 9. Callback cookbook (smee.io / webhook.site) ✅
 
 **Зачем:** async тесты без poll — ждать webhook вместо `wait`.
 
-**Сделать:** пошаговый гайд + пример assert на `callbackUrl` + `/callbacks` log.
+**Сделано:** [QA-CALLBACK.md](./QA-CALLBACK.md).
 
 ---
 
-### 10. Отдельный QA-ключ и team invite
+### 10. Отдельный QA-ключ и team invite ✅
 
 **Зачем:** QA-команда не делит один `API_KEY` с агентами.
 
-**Уже есть:** `npm run issue:key:db`, `/v1/team/keys`, dashboard.
-
-**Сделать:** короткий runbook «QA team onboarding» в QA.md.
+**Сделано:** [QA-ONBOARDING.md](./QA-ONBOARDING.md) — `issue:key:db`, dashboard, CI secrets.
 
 ---
 
@@ -196,8 +194,9 @@ sequenceDiagram
 
 ## Следующий шаг (рекомендация)
 
-1. **Ты:** `npm run deploy` (Cloudflare login) + `npm run smoke:agent`
-2. **Мы:** P0 пункты 2–4 (CI template, fixture, timeout details)
-3. **Publish:** `@mailagent/qa` на npm
+**P1 закрыт.** Дальше — P2 из таблицы ниже или:
 
-Issues / hello@webmailagent.com — приоритеты можно сдвинуть под ваш стек (Playwright-only vs Cypress-heavy).
+1. `npm run deploy` + `npm run smoke:agent`
+2. `npm run publish:qa` → `@mailagent/qa@0.1.4`
+3. `npm run test:contract:qa` в CI (секрет `DATABASE_URL`)
+4. P2: retry wrapper, `messages?subjectContains=`, rate limit headers в ответах

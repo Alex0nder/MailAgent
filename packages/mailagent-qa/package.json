@@ -1,6 +1,6 @@
 {
   "name": "@mailagent/qa",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Playwright/Cypress helpers for MailAgent test inboxes",
   "repository": {
     "type": "git",
@@ -16,6 +16,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./cypress": {
+      "types": "./dist/cypress.d.ts",
+      "import": "./dist/cypress.js"
     }
   },
   "files": ["dist"],

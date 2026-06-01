@@ -1,0 +1,32 @@
+# Contract test: create inbox → simulate message in DB → wait/extract (no real SMTP).
+# Secrets: MAILAGENT_API_URL, MAILAGENT_API_KEY, DATABASE_URL (Neon, same as worker)
+
+name: MailAgent contract QA
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "src/**"
+      - "scripts/contract-qa.mjs"
+      - "scripts/simulate-inbound.mjs"
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install
+        run: npm ci
+
+      - name: Contract QA (API + simulate inbound)
+        env:
+          MAILAGENT_API_URL: ${{ secrets.MAILAGENT_API_URL }}
+          MAILAGENT_API_KEY: ${{ secrets.MAILAGENT_API_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run test:contract:qa

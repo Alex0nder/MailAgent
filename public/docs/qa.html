@@ -96,6 +96,21 @@ const { id, address } = await res.json();
         </tbody>
       </table>
 
+      <h2>Cypress</h2>
+      <pre class="doc-pre"><code>import { createMailAgentCypressTasks } from "@mailagent/qa/cypress";
+// setupNodeEvents: on("task", createMailAgentCypressTasks())</code></pre>
+      <p>
+        Example:
+        <a href="https://github.com/Alex0nder/MailAgent/tree/main/examples/cypress">examples/cypress</a>
+      </p>
+
+      <h2>More guides</h2>
+      <ul>
+        <li><a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/QA-PRESETS.md">Service presets matrix</a></li>
+        <li><a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/QA-CALLBACK.md">Callback cookbook</a></li>
+        <li><a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/QA-ONBOARDING.md">QA team onboarding</a></li>
+      </ul>
+
       <h2>Debug after failure</h2>
       <pre class="doc-pre"><code>GET /v1/inboxes?label=ci-12345
 GET /v1/inboxes/:id/messages</code></pre>

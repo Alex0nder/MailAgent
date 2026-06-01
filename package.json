@@ -23,7 +23,8 @@
     "publish:qa": "npm run build:qa && cd packages/mailagent-qa && npm publish --access public",
     "publish:agent": "npm run build:agent && cd packages/mailagent-agent && npm publish --access public",
     "test:allowlist": "npx tsx scripts/test-allowlist.ts",
-    "test:extract": "npx tsx scripts/test-extract.ts"
+    "test:extract": "npx tsx scripts/test-extract.ts",
+    "test:contract:qa": "node scripts/contract-qa.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
