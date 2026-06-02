@@ -211,10 +211,16 @@ export const openApiSpec = {
     "/v1/inboxes": {
       get: {
         tags: ["inboxes"],
-        summary: "List inboxes (optional label filter)",
+        summary: "List inboxes (label or labelPrefix filter)",
         security: bearer,
         parameters: [
           { name: "label", in: "query", schema: { type: "string" } },
+          {
+            name: "labelPrefix",
+            in: "query",
+            schema: { type: "string", minLength: 3 },
+            description: "label LIKE prefix%",
+          },
           { name: "limit", in: "query", schema: { type: "integer", maximum: 50 } },
         ],
         responses: {

@@ -109,6 +109,7 @@ curl -X DELETE "$MAILAGENT_API_URL/v1/inboxes?labelPrefix=ci-$GITHUB_RUN_ID" \
 - [QA-CALLBACK.md](./QA-CALLBACK.md) — smee.io, webhook, `/callbacks`
 - [QA-ONBOARDING.md](./QA-ONBOARDING.md) — отдельный QA-ключ и team
 - [QA-MIGRATION.md](./QA-MIGRATION.md) — Mailosaur / MailSlurp
+- [QA-CI-ALERTS.md](./QA-CI-ALERTS.md) — Slack webhook, PR comment на failure
 - Contract test без SMTP: `npm run test:contract:qa` (нужен `DATABASE_URL`)
 - Cypress: [examples/cypress/](../examples/cypress/)
 

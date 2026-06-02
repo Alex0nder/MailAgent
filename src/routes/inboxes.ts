@@ -95,12 +95,17 @@ inboxRoutes.post("/open", async (c) => {
   );
 });
 
-/** QA: список inbox по label (например label=ci-run-42) */
+/** QA: список inbox по label или labelPrefix */
 inboxRoutes.get("/", async (c) => {
   const label = c.req.query("label");
+  const labelPrefix = c.req.query("labelPrefix")?.trim();
+  if (labelPrefix && labelPrefix.length < 3) {
+    return c.json({ error: "labelPrefix_too_short", minLength: 3 }, 400);
+  }
   const limit = Number(c.req.query("limit") ?? "20");
   const rows = await listInboxes(c.env, {
     label,
+    labelPrefix,
     limit,
     apiKeyHint: c.get("apiKeyHint"),
   });
@@ -109,6 +114,7 @@ inboxRoutes.get("/", async (c) => {
       ...formatInbox(row),
       id: row.id,
     })),
+    ...(labelPrefix ? { labelPrefix } : {}),
   });
 });
 

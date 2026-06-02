@@ -130,9 +130,9 @@ npm run publish:qa
 | 13 | Allure attachment | ✅ `formatAllureAttachment`, example |
 | 14 | Mailosaur / MailSlurp guide | ✅ [QA-MIGRATION.md](./QA-MIGRATION.md) |
 | 15 | Rate limit headers | ✅ `X-RateLimit-*`, `Retry-After` |
-| 16 | Slack notify on timeout | backlog (внешний webhook) |
+| 16 | Slack notify on timeout | ✅ `@mailagent/qa/notify`, `ci:mailagent-alerts` |
 | 17 | `QA_TTL_MINUTES` env | ✅ SDK |
-| 18 | PR comment + screenshot | backlog (custom Action) |
+| 18 | PR comment + screenshot | ✅ PR comment + artifact upload example |
 
 ---
 

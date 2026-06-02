@@ -21,7 +21,7 @@ export const test = base.extend<MailFixtures>({
 
   testInbox: async ({ mail }, use) => {
     const inbox = await mail.createInbox({
-      label: MailAgentQa.runLabel("pw"),
+      label: MailAgentQa.ciLabel("pw"),
       ttlMinutes: 30,
     });
     await use(inbox);

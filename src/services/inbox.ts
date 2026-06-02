@@ -71,12 +71,41 @@ export async function createInbox(
 /** QA: найти inbox прогона (отладка после падения теста) */
 export async function listInboxes(
   env: Env,
-  options?: { label?: string; limit?: number; apiKeyHint?: string }
+  options?: {
+    label?: string;
+    labelPrefix?: string;
+    limit?: number;
+    apiKeyHint?: string;
+  }
 ): Promise<InboxRow[]> {
   const sql = getDb(env);
   const limit = Math.min(options?.limit ?? 20, 50);
   const label = options?.label?.trim();
+  const labelPrefix = options?.labelPrefix?.trim().slice(0, 64);
   const hint = options?.apiKeyHint;
+
+  if (labelPrefix && labelPrefix.length >= 3) {
+    const pattern = `${labelPrefix}%`;
+    const rows = hint
+      ? ((await sql`
+          SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, api_key_hint
+          FROM inboxes
+          WHERE label LIKE ${pattern}
+            AND expires_at > NOW()
+            AND (api_key_hint IS NULL OR api_key_hint = ${hint})
+          ORDER BY created_at DESC
+          LIMIT ${limit}
+        `) as InboxRow[])
+      : ((await sql`
+          SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, api_key_hint
+          FROM inboxes
+          WHERE label LIKE ${pattern}
+            AND expires_at > NOW()
+          ORDER BY created_at DESC
+          LIMIT ${limit}
+        `) as InboxRow[]);
+    return rows.map(mapInboxRow);
+  }
 
   if (label && hint) {
     const rows = (await sql`

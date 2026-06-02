@@ -222,6 +222,27 @@ export class MailAgentQa {
     return `${origin.replace(/\/$/, "")}/debug.html?inbox=${encodeURIComponent(inboxId)}`;
   }
 
+  /** Label для CI: ci-{GITHUB_RUN_ID}-{worker}-{ts} */
+  static ciLabel(prefix = "ci"): string {
+    const run = process.env.GITHUB_RUN_ID ?? process.env.CI ?? "local";
+    return MailAgentQa.runLabel(`${prefix}-${run}`);
+  }
+
+  async listInboxesByPrefix(labelPrefix: string, limit = 50): Promise<InboxInfo[]> {
+    const q = new URLSearchParams({
+      labelPrefix,
+      limit: String(limit),
+    });
+    const data = await this.request<{ inboxes: Array<InboxInfo & { id: string }> }>(
+      `/v1/inboxes?${q}`
+    );
+    return data.inboxes.map((row) => ({
+      id: row.id,
+      address: row.address,
+      label: row.label,
+    }));
+  }
+
   async listInboxes(label: string): Promise<InboxInfo[]> {
     const q = new URLSearchParams({ label });
     const data = await this.request<{ inboxes: Array<InboxInfo & { id: string }> }>(
