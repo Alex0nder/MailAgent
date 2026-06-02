@@ -200,4 +200,4 @@ sequenceDiagram
 
 1. `npm run deploy` + `npm run publish:qa` → `@mailagent/qa@0.1.5`
 2. P2 backlog: Slack alert, PR comment bot (внешние интеграции)
-3. Agent: MCP OAuth, Streamable HTTP
+3. Agent: MCP OAuth, Streamable HTTP ✅ (Bearer + sessions; OAuth IdP backlog)

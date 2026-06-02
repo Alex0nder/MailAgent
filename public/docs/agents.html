@@ -83,12 +83,31 @@ GET /v1/agent/recipes/github</code></pre>
       <p>Presets: github, google, dribbble, stripe, auth0, figma, notion, linear, slack, … — see <code>GET /v1/agent</code>.</p>
 
       <h2 id="remote-mcp">Remote MCP (hosted)</h2>
-      <p>No local subprocess — connect agents directly to the API:</p>
+      <p>No local subprocess — connect agents directly to the API.</p>
+
+      <h3>JSON-RPC (stateless)</h3>
       <pre class="doc-pre"><code>POST https://api.webmailagent.com/mcp
 Authorization: Bearer &lt;API_KEY&gt;
 Content-Type: application/json
 
 {"jsonrpc":"2.0","id":1,"method":"tools/list"}</code></pre>
+
+      <h3>Streamable HTTP (sessions)</h3>
+      <p>
+        <code>initialize</code> → response header <code>Mcp-Session-Id</code>.
+        Subsequent requests include that header. SSE channel:
+        <code>GET /mcp</code> with <code>Accept: text/event-stream</code>.
+        End session: <code>DELETE /mcp</code>.
+      </p>
+      <pre class="doc-pre"><code>POST /mcp  method: initialize
+→ Mcp-Session-Id: mcp_…
+
+POST /mcp  Mcp-Session-Id + tools/call
+GET  /mcp  Mcp-Session-Id + Accept: text/event-stream
+DELETE /mcp  Mcp-Session-Id</code></pre>
+      <p>Auth meta: <code>GET /mcp/auth</code> (Bearer API key; OAuth roadmap).</p>
+      <p>Smoke after deploy: <code>npm run smoke:agent</code></p>
+
       <p>Call a tool:</p>
       <pre class="doc-pre"><code>{
   "jsonrpc": "2.0",
@@ -106,6 +125,8 @@ Content-Type: application/json
 
 import { MailAgent } from "@mailagent/agent";
 const mail = new MailAgent({ baseUrl, apiKey });
+const { sessionId } = await mail.connectMcp();
+await mail.callMcpTool("mailagent_verify_signup", { service: "github", runId: "s1" }, sessionId);
 await mail.verifySignup({ service: "github", runId: "session-1" });</code></pre>
 
       <h2>Security</h2>

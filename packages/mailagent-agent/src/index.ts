@@ -85,14 +85,52 @@ export class MailAgent {
     return this.request<{ runs: unknown[] }>(`/v1/agent/runs?${q}`);
   }
 
-  /** POST /mcp tools/call wrapper */
-  async callMcpTool(name: string, args: Record<string, unknown>) {
+  /** POST /mcp — initialize + optional Streamable HTTP session */
+  async connectMcp(clientInfo?: { name?: string; version?: string }) {
     const res = await fetch(`${this.base}/mcp`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${this.apiKey}`,
         "Content-Type": "application/json",
+        Accept: "application/json, text/event-stream",
       },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 0,
+        method: "initialize",
+        params: {
+          protocolVersion: "2024-11-05",
+          capabilities: {},
+          clientInfo: {
+            name: clientInfo?.name ?? "@mailagent/agent",
+            version: clientInfo?.version ?? "0.1.0",
+          },
+        },
+      }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(JSON.stringify(json));
+    return {
+      sessionId: res.headers.get("Mcp-Session-Id"),
+      result: json.result,
+    };
+  }
+
+  /** POST /mcp tools/call wrapper */
+  async callMcpTool(
+    name: string,
+    args: Record<string, unknown>,
+    sessionId?: string | null
+  ) {
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${this.apiKey}`,
+      "Content-Type": "application/json",
+    };
+    if (sessionId) headers["Mcp-Session-Id"] = sessionId;
+
+    const res = await fetch(`${this.base}/mcp`, {
+      method: "POST",
+      headers,
       body: JSON.stringify({
         jsonrpc: "2.0",
         id: 1,
@@ -103,5 +141,20 @@ export class MailAgent {
     const json = await res.json();
     if (!res.ok) throw new Error(JSON.stringify(json));
     return json.result;
+  }
+
+  /** End MCP session (Streamable HTTP) */
+  async disconnectMcp(sessionId: string): Promise<void> {
+    const res = await fetch(`${this.base}/mcp`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+        "Mcp-Session-Id": sessionId,
+      },
+    });
+    if (!res.ok && res.status !== 204) {
+      const text = await res.text();
+      throw new Error(`disconnectMcp ${res.status}: ${text}`);
+    }
   }
 }
