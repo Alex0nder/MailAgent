@@ -210,21 +210,26 @@ export async function deleteInboxesByLabelPrefix(
       AND (api_key_hint IS NULL OR api_key_hint = ${apiKeyHint})
     RETURNING id
   `;
-  return rows.map((r: { id: string }) => r.id);
+  return rows.map((r) => String((r as { id: string }).id));
 }
 
 export async function listMessages(
   env: Env,
-  inboxId: string
+  inboxId: string,
+  options?: { subjectContains?: string }
 ): Promise<MessageRow[]> {
   const sql = getDb(env);
-  return (await sql`
+  const needle = options?.subjectContains?.trim().toLowerCase();
+  const rows = (await sql`
     SELECT id, inbox_id, provider_id, from_addr, subject,
            text_preview, html_preview, otp, links_json, received_at
     FROM messages
     WHERE inbox_id = ${inboxId}
     ORDER BY received_at DESC
   `) as MessageRow[];
+
+  if (!needle) return rows;
+  return rows.filter((m) => m.subject.toLowerCase().includes(needle));
 }
 
 export async function insertMessage(

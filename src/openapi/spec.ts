@@ -329,9 +329,17 @@ export const openApiSpec = {
     "/v1/inboxes/{id}/messages": {
       get: {
         tags: ["inboxes"],
-        summary: "List messages",
+        summary: "List messages (optional subject filter)",
         security: bearer,
-        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string" } },
+          {
+            name: "subjectContains",
+            in: "query",
+            schema: { type: "string" },
+            description: "Case-insensitive substring match on subject",
+          },
+        ],
         responses: {
           "200": {
             content: {

@@ -23,6 +23,12 @@ export type MailAgentCypressTasks = {
     timeoutSeconds?: number;
     subjectContains?: string;
   }) => Promise<Verification>;
+  mailagentWaitWithRetry: (args: {
+    inboxId: string;
+    timeoutSeconds?: number;
+    subjectContains?: string;
+    retries?: number;
+  }) => Promise<Verification>;
   mailagentDeleteInbox: (inboxId: string) => Promise<null>;
   mailagentCleanupRun: (runId: string) => Promise<{ deleted: number; ids: string[] }>;
 };
@@ -53,6 +59,16 @@ export function createMailAgentCypressTasks(
 
     async mailagentWaitVerification({ inboxId, ...opts }) {
       return mail.waitForVerification(inboxId, opts);
+    },
+
+    async mailagentWaitWithRetry(args: {
+      inboxId: string;
+      timeoutSeconds?: number;
+      subjectContains?: string;
+      retries?: number;
+    }) {
+      const { inboxId, retries, ...opts } = args;
+      return mail.waitWithRetry(inboxId, opts, retries ?? 3);
     },
 
     async mailagentDeleteInbox(inboxId) {

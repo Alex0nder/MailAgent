@@ -3,6 +3,15 @@ import type { Context, Next } from "hono";
 import type { Env } from "../env";
 import type { ApiVariables } from "./api-context";
 
+function rateLimitHeaders(limit: number, used: number, bucket: number) {
+  const resetSec = Math.ceil(((bucket + 1) * 60_000) / 1000);
+  return {
+    "X-RateLimit-Limit": String(limit),
+    "X-RateLimit-Remaining": String(Math.max(0, limit - used)),
+    "X-RateLimit-Reset": String(resetSec),
+  };
+}
+
 export async function rateLimit(
   c: Context<{ Bindings: Env; Variables: ApiVariables }>,
   next: Next
@@ -22,16 +31,26 @@ export async function rateLimit(
 
   if (count >= limit) {
     const secIntoMinute = Math.floor((Date.now() / 1000) % 60);
+    const retryAfter = 60 - secIntoMinute;
+    for (const [k, v] of Object.entries(rateLimitHeaders(limit, limit, bucket))) {
+      c.header(k, v);
+    }
+    c.header("Retry-After", String(retryAfter));
     return c.json(
       {
         error: "rate_limit_exceeded",
         limitPerMinute: limit,
-        retryAfterSeconds: 60 - secIntoMinute,
+        retryAfterSeconds: retryAfter,
       },
       429
     );
   }
 
-  await kv.put(key, String(count + 1), { expirationTtl: 120 });
+  const used = count + 1;
+  for (const [k, v] of Object.entries(rateLimitHeaders(limit, used, bucket))) {
+    c.header(k, v);
+  }
+
+  await kv.put(key, String(used), { expirationTtl: 120 });
   await next();
 }

@@ -45,6 +45,23 @@ export interface OpenResult {
   label?: string | null;
 }
 
+export interface MessageSummary {
+  id?: string;
+  from?: string;
+  subject?: string;
+  receivedAt?: string;
+  otp?: string | null;
+}
+
+export interface DebugContext {
+  inboxId: string;
+  address?: string;
+  label?: string | null;
+  apiMessagesUrl: string;
+  debugUiUrl: string;
+  messages: MessageSummary[];
+}
+
 export class MailAgentQa {
   private readonly base: string;
   private readonly apiKey: string;
@@ -56,16 +73,31 @@ export class MailAgentQa {
     this.base = (config.apiUrl ?? process.env.MAILAGENT_API_URL ?? "https://api.webmailagent.com").replace(/\/$/, "");
   }
 
+  /** TTL из env `QA_TTL_MINUTES` (1–1440), иначе дефолт API */
+  static qaTtlMinutes(): number | undefined {
+    const raw = process.env.QA_TTL_MINUTES?.trim();
+    if (!raw) return undefined;
+    const n = Number(raw);
+    if (!Number.isFinite(n)) return undefined;
+    return Math.min(1440, Math.max(1, Math.floor(n)));
+  }
+
   /** Уникальный label для параллельных воркеров Playwright */
   static runLabel(prefix = "pw"): string {
     const w = process.env.PLAYWRIGHT_WORKER_INDEX ?? process.env.CI_NODE_INDEX ?? "0";
     return `${prefix}-${w}-${Date.now()}`;
   }
 
+  private withQaDefaults<T extends CreateInboxOptions>(options: T): T {
+    const ttlMinutes = options.ttlMinutes ?? MailAgentQa.qaTtlMinutes();
+    if (ttlMinutes === undefined) return options;
+    return { ...options, ttlMinutes };
+  }
+
   async createInbox(options: CreateInboxOptions = {}): Promise<InboxInfo> {
     const body = await this.request<{ id: string; address: string; label?: string }>(
       "/v1/inboxes",
-      { method: "POST", body: JSON.stringify(options) }
+      { method: "POST", body: JSON.stringify(this.withQaDefaults(options)) }
     );
     return { id: body.id, address: body.address, label: body.label };
   }
@@ -77,7 +109,7 @@ export class MailAgentQa {
       body: JSON.stringify({
         timeoutSeconds: 90,
         deleteAfter: false,
-        ...options,
+        ...this.withQaDefaults(options),
       }),
     });
 
@@ -110,16 +142,14 @@ export class MailAgentQa {
 
     const wait = await this.requestRaw(`/v1/inboxes/${inboxId}/wait?${q}`);
     if (wait.status === 408) {
-      const messages = await this.requestRaw(
-        `/v1/inboxes/${inboxId}/messages`
-      ).catch(() => null);
+      const messages = await this.listMessages(inboxId, {
+        subjectContains: options?.subjectContains,
+      }).catch(() => []);
       throw new MailAgentTimeoutError("No email received", {
         inboxId,
         subjectContains: options?.subjectContains,
-        messages:
-          messages?.ok && messages.json && typeof messages.json === "object"
-            ? (messages.json as { messages?: unknown[] }).messages
-            : undefined,
+        messages,
+        debugUiUrl: this.debugUiUrl(inboxId),
         hint: options?.subjectContains
           ? "Try broader subjectContains or check expectFrom/service allowlist."
           : "Check staging sends mail and Resend webhook is configured.",
@@ -129,6 +159,67 @@ export class MailAgentQa {
 
     const ext = await this.request<Verification>(`/v1/inboxes/${inboxId}/extract`);
     return ext;
+  }
+
+  /** Повтор wait при timeout (flaky staging / сеть) */
+  async waitWithRetry(
+    inboxId: string,
+    options?: { timeoutSeconds?: number; subjectContains?: string },
+    retries = 3,
+    delayMs = 3000
+  ): Promise<Verification> {
+    let last: MailAgentTimeoutError | undefined;
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        return await this.waitForVerification(inboxId, options);
+      } catch (e) {
+        if (e instanceof MailAgentTimeoutError && attempt < retries) {
+          last = e;
+          await sleep(delayMs * attempt);
+          continue;
+        }
+        throw e;
+      }
+    }
+    throw last ?? new MailAgentTimeoutError("No email after retries", { inboxId, retries });
+  }
+
+  async listMessages(
+    inboxId: string,
+    options?: { subjectContains?: string }
+  ): Promise<MessageSummary[]> {
+    const q = new URLSearchParams();
+    if (options?.subjectContains) q.set("subjectContains", options.subjectContains);
+    const path = q.size
+      ? `/v1/inboxes/${inboxId}/messages?${q}`
+      : `/v1/inboxes/${inboxId}/messages`;
+    const data = await this.request<{ messages: MessageSummary[] }>(path);
+    return data.messages ?? [];
+  }
+
+  /** Контекст для Allure / ReportPortal / CI log */
+  async getDebugContext(
+    inboxId: string,
+    options?: { subjectContains?: string; address?: string; label?: string | null }
+  ): Promise<DebugContext> {
+    const messages = await this.listMessages(inboxId, {
+      subjectContains: options?.subjectContains,
+    }).catch(() => []);
+    return {
+      inboxId,
+      address: options?.address,
+      label: options?.label,
+      apiMessagesUrl: `${this.base}/v1/inboxes/${inboxId}/messages`,
+      debugUiUrl: this.debugUiUrl(inboxId),
+      messages,
+    };
+  }
+
+  debugUiUrl(inboxId: string): string {
+    const origin = this.base.includes("api.")
+      ? this.base.replace("://api.", "://")
+      : "https://webmailagent.com";
+    return `${origin.replace(/\/$/, "")}/debug.html?inbox=${encodeURIComponent(inboxId)}`;
   }
 
   async listInboxes(label: string): Promise<InboxInfo[]> {
@@ -161,6 +252,9 @@ export class MailAgentQa {
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
     const res = await this.requestRaw(path, init);
     if (!res.ok) {
+      if (res.status === 429) {
+        throw new MailAgentRateLimitError(res.json, res.headers);
+      }
       throw new Error(`MailAgent ${res.status}: ${JSON.stringify(res.json)}`);
     }
     return res.json as T;
@@ -184,8 +278,49 @@ export class MailAgentQa {
         json = { raw: text };
       }
     }
-    return { ok: res.ok, status: res.status, json };
+    const headers: Record<string, string> = {};
+    res.headers.forEach((v, k) => {
+      headers[k.toLowerCase()] = v;
+    });
+    return { ok: res.ok, status: res.status, json, headers };
   }
+}
+
+function sleep(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+export class MailAgentRateLimitError extends Error {
+  constructor(
+    readonly body: unknown,
+    readonly headers: Record<string, string>
+  ) {
+    const retry = headers["retry-after"];
+    super(
+      `MailAgent rate limit${retry ? `, retry after ${retry}s` : ""}: ${JSON.stringify(body)}`
+    );
+    this.name = "MailAgentRateLimitError";
+  }
+
+  get retryAfterSeconds(): number | undefined {
+    const v = this.headers["retry-after"];
+    if (!v) return undefined;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : undefined;
+  }
+}
+
+/** Вложение для Allure `testInfo.attach(...)` */
+export function formatAllureAttachment(ctx: DebugContext): {
+  name: string;
+  body: string;
+  contentType: string;
+} {
+  return {
+    name: "mailagent-debug.json",
+    contentType: "application/json",
+    body: JSON.stringify(ctx, null, 2),
+  };
 }
 
 export class MailAgentTimeoutError extends Error {

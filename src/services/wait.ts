@@ -14,12 +14,10 @@ export async function waitForFirstMessage(
   const deadline = Date.now() + cap * 1000;
 
   while (Date.now() < deadline) {
-    const messages = await listMessages(env, inboxId);
-    const match = needle
-      ? messages.find((m) =>
-          m.subject.toLowerCase().includes(needle)
-        )
-      : messages[0];
+    const messages = await listMessages(env, inboxId, {
+      subjectContains: needle,
+    });
+    const match = messages[0];
     if (match) return match;
     await sleep(500);
   }

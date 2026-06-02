@@ -123,16 +123,16 @@ npm run publish:qa
 
 ## P2 — nice-to-have (backlog)
 
-| # | Фича | Зачем QA |
-|---|------|----------|
-| 11 | Retry wrapper `waitWithRetry(3)` | Flaky сеть / медленный staging |
-| 12 | `GET /v1/inboxes/:id/messages?subjectContains=` | Несколько писем в одном inbox |
-| 13 | Allure / ReportPortal attachment | inbox id + messages в отчёте |
-| 14 | Mailosaur / MailSlurp migration guide | Переезд с другого провайдера |
-| 15 | Rate limit headers в API | Понимать 429 в CI |
-| 16 | Slack notify on mail timeout | Nightly алерт |
-| 17 | TTL override per env (`QA_TTL_MINUTES=60`) | Длинные staging flows |
-| 18 | Visual debug: screenshot + inbox link in PR comment | GitHub Action bot |
+| # | Фича | Статус |
+|---|------|--------|
+| 11 | Retry `waitWithRetry(3)` | ✅ SDK `@mailagent/qa@0.1.5` |
+| 12 | `GET …/messages?subjectContains=` | ✅ API + SDK |
+| 13 | Allure attachment | ✅ `formatAllureAttachment`, example |
+| 14 | Mailosaur / MailSlurp guide | ✅ [QA-MIGRATION.md](./QA-MIGRATION.md) |
+| 15 | Rate limit headers | ✅ `X-RateLimit-*`, `Retry-After` |
+| 16 | Slack notify on timeout | backlog (внешний webhook) |
+| 17 | `QA_TTL_MINUTES` env | ✅ SDK |
+| 18 | PR comment + screenshot | backlog (custom Action) |
 
 ---
 
@@ -194,9 +194,10 @@ sequenceDiagram
 
 ## Следующий шаг (рекомендация)
 
-**P1 закрыт.** Дальше — P2 из таблицы ниже или:
+**P1 закрыт.** **P2 (ядро)** — retry, messages filter, rate headers, migration guide, Allure.
 
-1. `npm run deploy` + `npm run smoke:agent`
-2. `npm run publish:qa` → `@mailagent/qa@0.1.4`
-3. `npm run test:contract:qa` в CI (секрет `DATABASE_URL`)
-4. P2: retry wrapper, `messages?subjectContains=`, rate limit headers в ответах
+Дальше по желанию:
+
+1. `npm run deploy` + `npm run publish:qa` → `@mailagent/qa@0.1.5`
+2. P2 backlog: Slack alert, PR comment bot (внешние интеграции)
+3. Agent: MCP OAuth, Streamable HTTP

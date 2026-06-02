@@ -190,9 +190,11 @@ inboxRoutes.get("/:id/messages", async (c) => {
     apiKeyHint: c.get("apiKeyHint"),
   });
   if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
-  const messages = await listMessages(c.env, inbox.id);
+  const subjectContains = c.req.query("subjectContains") ?? undefined;
+  const messages = await listMessages(c.env, inbox.id, { subjectContains });
   return c.json({
     messages: messages.map(formatMessage),
+    ...(subjectContains ? { subjectContains } : {}),
   });
 });
 

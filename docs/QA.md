@@ -108,6 +108,7 @@ curl -X DELETE "$MAILAGENT_API_URL/v1/inboxes?labelPrefix=ci-$GITHUB_RUN_ID" \
 - [QA-PRESETS.md](./QA-PRESETS.md) — матрица `service` / `expectFrom`
 - [QA-CALLBACK.md](./QA-CALLBACK.md) — smee.io, webhook, `/callbacks`
 - [QA-ONBOARDING.md](./QA-ONBOARDING.md) — отдельный QA-ключ и team
+- [QA-MIGRATION.md](./QA-MIGRATION.md) — Mailosaur / MailSlurp
 - Contract test без SMTP: `npm run test:contract:qa` (нужен `DATABASE_URL`)
 - Cypress: [examples/cypress/](../examples/cypress/)
 
@@ -211,6 +212,54 @@ curl -sS "$MAILAGENT_API_URL/v1/inboxes/INBOX_ID/messages" \
 | `subjectContains` | open, wait | фильтр по теме |
 | `callbackUrl` | create, open | HTTPS webhook при письме |
 | `deleteAfter` | open | `false` — оставить для отладки |
+
+### Rate limit (429)
+
+При превышении лимита API возвращает заголовки:
+
+| Header | Значение |
+|--------|----------|
+| `X-RateLimit-Limit` | лимит в минуту на ключ |
+| `X-RateLimit-Remaining` | осталось в текущей минуте |
+| `X-RateLimit-Reset` | Unix sec, конец окна |
+| `Retry-After` | секунд до retry (только 429) |
+
+В SDK: `MailAgentRateLimitError` с `retryAfterSeconds`.
+
+### TTL в CI
+
+```bash
+export QA_TTL_MINUTES=60   # @mailagent/qa подставит в create/open, если ttlMinutes не задан
+```
+
+### Несколько писем в inbox
+
+```bash
+curl -sS "$MAILAGENT_API_URL/v1/inboxes/ID/messages?subjectContains=verify" \
+  -H "Authorization: Bearer $KEY" | jq .
+```
+
+SDK: `mail.listMessages(inboxId, { subjectContains: "verify" })`.
+
+### Retry при flaky wait
+
+```typescript
+await mail.waitWithRetry(inbox.id, { subjectContains: "verify" }, 3);
+```
+
+### Allure / отчёты
+
+```typescript
+import { formatAllureAttachment } from "@mailagent/qa";
+const ctx = await mail.getDebugContext(inbox.id);
+await testInfo.attach(...formatAllureAttachment(ctx));
+```
+
+Пример: [examples/playwright/allure-on-failure.example.ts](../examples/playwright/allure-on-failure.example.ts).
+
+### Миграция с Mailosaur / MailSlurp
+
+[QA-MIGRATION.md](./QA-MIGRATION.md)
 
 ### Лог callback (webhook не сработал?)
 
