@@ -255,6 +255,30 @@ main.landing > .cta-block {
   border-color: var(--border-strong);
 }
 
+/* Компактные кнопки в nav (не дублируют hero primary) */
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  letter-spacing: -0.01em;
+}
+
+.btn-nav-cta {
+  color: var(--text);
+  background: var(--surface);
+  border-color: var(--border-strong);
+}
+
+.btn-nav-cta:hover {
+  background: var(--surface-hover);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.nav-actions .btn-sm {
+  min-height: 32px;
+}
+
 .btn-outline:hover {
   background: var(--surface);
 }

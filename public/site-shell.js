@@ -76,8 +76,8 @@
   function renderNav() {
     const cta =
       mode === "app"
-        ? `<a class="btn btn-outline" href="/docs/">Docs</a>`
-        : `<a class="btn btn-primary" href="/docs/integrate.html">Get started</a>`;
+        ? `<a class="btn btn-sm btn-outline" href="/docs/">Docs</a>`
+        : `<a class="btn btn-sm btn-nav-cta" href="/docs/integrate.html">Get started</a>`;
 
     const links = renderNavLinks();
 
@@ -92,7 +92,7 @@
         <div class="nav-menu" id="nav-menu">
           <nav class="nav-links" aria-label="Primary">${links}</nav>
           <div class="nav-actions">
-            <a class="btn btn-ghost nav-github" href="${GITHUB}" rel="noopener noreferrer">GitHub</a>
+            <a class="btn btn-sm btn-ghost nav-github" href="${GITHUB}" rel="noopener noreferrer">GitHub</a>
             ${cta}
           </div>
         </div>
