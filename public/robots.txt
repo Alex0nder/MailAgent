@@ -1,0 +1,8 @@
+# MailAgent marketing site — https://webmailagent.com
+User-agent: *
+Allow: /
+Disallow: /dashboard.html
+Disallow: /debug.html
+Disallow: /agent-runs.html
+
+Sitemap: https://webmailagent.com/sitemap.xml

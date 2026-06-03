@@ -16,6 +16,7 @@ import { mcpHttpRoutes } from "./routes/mcp-http";
 import { oauthTokenRoutes, wellKnownRoutes } from "./routes/oauth";
 import { webhookRoutes } from "./routes/webhooks";
 import { purgeExpired } from "./services/inbox";
+import { injectSeo, resolveSeoConfig } from "./lib/seo";
 
 export { InboxWait };
 
@@ -97,7 +98,19 @@ async function handleFetch(
     return app.fetch(request, env, ctx);
   }
 
-  return env.ASSETS.fetch(request);
+  const assetResponse = await env.ASSETS.fetch(request);
+  const seo = resolveSeoConfig(path);
+  if (!seo) return assetResponse;
+
+  const contentType = assetResponse.headers.get("content-type") ?? "";
+  if (!contentType.includes("text/html")) return assetResponse;
+
+  const html = await assetResponse.text();
+  const headers = new Headers(assetResponse.headers);
+  return new Response(injectSeo(html, seo), {
+    status: assetResponse.status,
+    headers,
+  });
 }
 
 export default {

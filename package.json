@@ -16,6 +16,7 @@
     "doctor": "node scripts/doctor.mjs",
     "deploy": "wrangler deploy",
     "check": "tsc --noEmit",
+    "seo:sitemap": "npx tsx scripts/seo-sitemap.ts",
     "types": "wrangler types",
     "db:migrate": "node scripts/migrate.mjs",
     "build:mcp": "cd mcp && npm install && npm run build",
