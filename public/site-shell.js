@@ -141,7 +141,12 @@
             <li><a href="/docs/attachments.html">Attachments</a></li>
             <li><a href="/docs/custom-domain.html">Custom domain</a></li>
             <li><a href="https://api.webmailagent.com/v1/openapi.json" rel="noopener noreferrer">OpenAPI</a></li>
-            <li><a href="mailto:hello@webmailagent.com?subject=MailAgent%20hosted%20API%20key">hello@webmailagent.com</a></li>
+            <li>
+              <a
+                href="mailto:hello@webmailagent.com?subject=MailAgent%20hosted%20API%20key"
+                title="Email hello@webmailagent.com"
+              >Hosted API key</a>
+            </li>
           </ul>
         </div>
         <div class="footer-col">
