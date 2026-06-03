@@ -27,8 +27,8 @@ P0–P2 закрыты — см. [QA-ROADMAP.md](./QA-ROADMAP.md).
 | Пакет | Версия |
 |-------|--------|
 | `@mailagent/mcp` | 0.2.0 |
-| `@mailagent/qa` | 0.1.6 |
-| `@mailagent/agent` | 0.1.2 |
+| `@mailagent/qa` | 0.1.9 |
+| `@mailagent/agent` | 0.1.5 (npm may lag — `npm run publish:agent`) |
 
 ```bash
 npm install @mailagent/mcp @mailagent/qa @mailagent/agent
@@ -68,21 +68,30 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | Richer 408 + callback `verification` | ✅ |
 | `npm run doctor` | ✅ |
 
-### v0.9 ✅ (branch `qa/v0.8`, merge pending)
+### v0.9 ✅
 
 | `waitForCallback` in `@mailagent/qa` | ✅ |
 | `getVerification(inboxId, messageId?)` | ✅ |
 | Doctor Resend API ping | ✅ |
 | CI: `smoke:qa` after deploy | ✅ |
 | `GET /v1/agent` mcpTools = manifest | ✅ |
-| [QA-RELEASE.md](./QA-RELEASE.md) merge checklist | ✅ |
-| Publish `@mailagent/qa@0.1.9` | pending |
+| [QA-RELEASE.md](./QA-RELEASE.md) | ✅ |
+| Publish `@mailagent/qa@0.1.9` | ✅ |
 
 ### v0.9+ ✅
 
 | PR CI smoke on `qa/*` (`.github/workflows/qa-smoke.yml`) | ✅ |
 | Contract + `messageIndex` + callback (`test:contract:qa:callback`) | ✅ |
 | Playwright `mailagent-callback.fixture.ts` | ✅ |
+
+### v0.10 (следующий спринт)
+
+| `@mailagent/agent@0.1.5` — `messageIndex` в verify | in repo |
+| Publish `@mailagent/agent@0.1.5` | pending |
+| GitHub Secrets: `MAILAGENT_API_KEY` + `DATABASE_URL` в MailAgent repo | optional |
+| Contract в **Deploy Worker** после smoke | optional |
+| Пример attachment E2E в `examples/playwright/` | planned |
+| Удалить ветку `qa/v0.8` на GitHub | housekeeping |
 
 ### Отложено (не QA)
 

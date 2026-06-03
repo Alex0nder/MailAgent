@@ -12,7 +12,8 @@ Workflow: [`.github/workflows/deploy-worker.yml`](../.github/workflows/deploy-wo
 |--------|-------------|----------|
 | `CLOUDFLARE_API_TOKEN` | да | API token с **Workers Scripts Edit** |
 | `CLOUDFLARE_ACCOUNT_ID` | да | `42ae092824ce3429ee3f914b43603273` |
-| `MAILAGENT_API_KEY` | нет | team/legacy key для post-deploy smoke |
+| `MAILAGENT_API_KEY` | нет | team/legacy key для post-deploy smoke + PR **QA Smoke** |
+| `DATABASE_URL` | нет | prod Neon — только для `test:contract:qa` на PR (`qa-smoke.yml`) |
 
 `account_id` также прописан в `wrangler.jsonc` — локальный deploy работает после `wrangler login` без env.
 

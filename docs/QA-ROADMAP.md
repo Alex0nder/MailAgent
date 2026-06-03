@@ -193,12 +193,13 @@ sequenceDiagram
 
 ---
 
-## Следующий шаг (рекомендация)
+## Следующий шаг (v0.10)
 
-**P1 закрыт.** **P2 (ядро)** — retry, messages filter, rate headers, migration guide, Allure.
+**P0–P2 и v0.9 закрыты.** `@mailagent/qa@0.1.9` на npm.
 
-Дальше по желанию:
+1. `npm run publish:agent` → `@mailagent/agent@0.1.5` (`messageIndex` в verify)
+2. GitHub repo MailAgent: secrets `MAILAGENT_API_KEY`, `DATABASE_URL` → contract в CI на PR
+3. `npm run doctor` / `smoke:qa` / `test:contract:qa` — периодически после деплоя
+4. По желанию: attachment E2E example, Netlify redeploy для обновлённого `public/docs/qa.html`
 
-1. `npm run deploy` + `npm run publish:qa` → `@mailagent/qa@0.1.5`
-2. P2 backlog: Slack alert, PR comment bot (внешние интеграции)
-3. Agent: MCP OAuth, Streamable HTTP ✅ (Bearer + sessions; OAuth IdP backlog)
+Agent/OIDC/billing — см. [ROADMAP.md](./ROADMAP.md) «Отложено».

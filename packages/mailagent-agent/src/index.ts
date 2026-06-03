@@ -10,6 +10,8 @@ export type VerifySignupOptions = {
   runId?: string;
   label?: string;
   subjectContains?: string;
+  /** 0 = newest matching email (default), 1 = second, … */
+  messageIndex?: number;
   timeoutSeconds?: number;
   ttlMinutes?: number;
   deleteAfter?: boolean;

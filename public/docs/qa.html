@@ -70,18 +70,22 @@ curl -sS -X POST "$MAILAGENT_API_URL/v1/inboxes/open" \
         <li><code>GET /v1/inboxes/:id/wait?subjectContains=...</code> then <code>/extract</code></li>
       </ol>
 
-      <h2>Playwright</h2>
-      <p>
-        Use env <code>MAILAGENT_API_URL</code> and <code>MAILAGENT_API_KEY</code> with the REST API above,
-        or request the <code>@mailagent/qa</code> helper package during pilot onboarding.
-      </p>
-      <pre class="doc-pre"><code>const res = await fetch(`${API}/v1/inboxes`, {
-  method: "POST",
-  headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" },
-  body: JSON.stringify({ label: `pw-${workerId}`, service: "auth0" }),
+      <h2>Playwright / <code>@mailagent/qa</code></h2>
+      <pre class="doc-pre"><code>npm install @mailagent/qa@0.1.9</code></pre>
+      <pre class="doc-pre"><code>import { createMailAgentQa, MailAgentQa } from "@mailagent/qa";
+
+const mail = createMailAgentQa(); // MAILAGENT_API_URL + MAILAGENT_API_KEY
+const inbox = await mail.createInbox({
+  label: MailAgentQa.ciLabel("pw"),
+  service: "auth0",
 });
-const { id, address } = await res.json();
-// page.fill email → wait → extract</code></pre>
+// page.fill(inbox.address) → submit
+const v = await mail.waitForVerification(inbox.id, {
+  subjectContains: "verify",
+  messageIndex: 0, // 1 = second matching email
+});
+// callbackUrl flows: await mail.waitForCallback(inbox.id, { since: inbox.createdAt });</code></pre>
+      <p>Fixture with auto-delete: <a href="https://github.com/Alex0nder/MailAgent/tree/main/examples/playwright">examples/playwright/mailagent.fixture.ts</a></p>
 
       <h2>QA fields</h2>
       <table class="doc-table">
@@ -89,6 +93,7 @@ const { id, address } = await res.json();
         <tbody>
           <tr><td><code>label</code></td><td>create, open</td><td>CI run / worker id</td></tr>
           <tr><td><code>subjectContains</code></td><td>open, wait</td><td>Filter by subject</td></tr>
+          <tr><td><code>messageIndex</code></td><td>open, wait, verify</td><td>0=newest match, 1=second, …</td></tr>
           <tr><td><code>callbackUrl</code></td><td>create, open</td><td>HTTPS webhook on new mail</td></tr>
           <tr><td><code>deleteAfter</code></td><td>open</td><td><code>false</code> to keep inbox for debug</td></tr>
         </tbody>
@@ -122,6 +127,7 @@ GET /v1/inboxes/:id/callbacks</code></pre>
       <ul class="doc-list">
         <li><a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/QA-TROUBLESHOOTING.md">Troubleshooting (timeout, OTP, webhook)</a></li>
         <li><a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/QA-LOCAL-SMTP.md">Local dev with Mailpit</a></li>
+        <li><a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/QA-RELEASE.md">Release checklist (smoke, migrate, publish)</a></li>
         <li><a href="/docs/scoped-keys.html">Scoped API keys</a></li>
         <li><a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/QA-PRESETS.md">Service presets matrix</a></li>
         <li><a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/QA-CALLBACK.md">Callback cookbook</a></li>
