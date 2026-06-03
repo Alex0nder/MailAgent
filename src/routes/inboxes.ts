@@ -32,7 +32,8 @@ import {
   listAttachments,
 } from "../services/message-attachments";
 import { primaryLink } from "../services/extract";
-import { waitForFirstMessage } from "../services/wait";
+import { formatMessageVerification } from "../services/message-verify";
+import { buildWaitTimeoutDebug, waitForMessage } from "../services/wait";
 
 export const inboxRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
 
@@ -48,6 +49,7 @@ type CreateBody = {
   label?: string;
   callbackUrl?: string;
   subjectContains?: string;
+  messageIndex?: number;
   timeoutSeconds?: number;
   deleteAfter?: boolean;
 };
@@ -79,11 +81,15 @@ inboxRoutes.post("/open", async (c) => {
     apiKeyHint: c.get("apiKeyHint"),
   });
   const timeoutSec = Math.min(Number(body.timeoutSeconds ?? 90), 120);
-  const message = await waitForFirstMessage(c.env, inbox.id, timeoutSec, {
+  const messageIndex = Math.max(0, Math.floor(Number(body.messageIndex ?? 0)));
+  const waitOpts = {
     subjectContains: body.subjectContains,
-  });
+    messageIndex,
+  };
+  const message = await waitForMessage(c.env, inbox.id, timeoutSec, waitOpts);
 
   if (!message) {
+    const debug = await buildWaitTimeoutDebug(c.env, inbox.id, waitOpts);
     if (body.deleteAfter !== false) {
       await deleteInbox(c.env, inbox.id, {
         apiKeyHint: c.get("apiKeyHint"),
@@ -92,14 +98,15 @@ inboxRoutes.post("/open", async (c) => {
     return c.json(
       {
         error: "timeout",
+        inboxId: inbox.id,
         ...formatInbox(inbox),
-        hint: "No matching email. Check webhook, expectFrom, subjectContains.",
+        ...debug,
       },
       408
     );
   }
 
-  const verification = formatVerification(message);
+  const verification = formatMessageVerification(message, inbox.id);
   const deleted = body.deleteAfter !== false;
   if (deleted) {
     await deleteInbox(c.env, inbox.id, { apiKeyHint: c.get("apiKeyHint") });
@@ -316,7 +323,7 @@ inboxRoutes.get("/:id/extract", async (c) => {
   const messages = await listMessages(c.env, inbox.id);
   const latest = messages[0];
   if (!latest) return c.json({ error: "no_messages" }, 404);
-  return c.json(formatVerification(latest));
+  return c.json(formatMessageVerification(latest, inbox.id));
 });
 
 /** SSE: ждём первое письмо (надёжнее long-poll 120s на Workers) */
@@ -344,10 +351,16 @@ inboxRoutes.get("/:id/wait", async (c) => {
 
   const timeoutSec = Math.min(Number(c.req.query("timeout") ?? 60), 120);
   const subjectContains = c.req.query("subjectContains") ?? undefined;
-  const message = await waitForFirstMessage(c.env, inbox.id, timeoutSec, {
-    subjectContains,
-  });
-  if (!message) return c.json({ error: "timeout" }, 408);
+  const messageIndex = Math.max(
+    0,
+    Math.floor(Number(c.req.query("messageIndex") ?? 0))
+  );
+  const waitOpts = { subjectContains, messageIndex };
+  const message = await waitForMessage(c.env, inbox.id, timeoutSec, waitOpts);
+  if (!message) {
+    const debug = await buildWaitTimeoutDebug(c.env, inbox.id, waitOpts);
+    return c.json({ error: "timeout", inboxId: inbox.id, ...debug }, 408);
+  }
   return c.json({
     message: {
       ...formatMessage(message),
@@ -397,24 +410,6 @@ function formatMessage(m: {
     primaryLink: primaryLink(links),
     receivedAt: m.received_at,
     hasRaw: Boolean(m.raw_r2_key),
-  };
-}
-
-function formatVerification(m: {
-  id: string;
-  from_addr: string;
-  subject: string;
-  otp: string | null;
-  links_json: unknown;
-}) {
-  const links = parseLinks(m.links_json);
-  return {
-    otp: m.otp,
-    links,
-    primaryLink: primaryLink(links),
-    from: m.from_addr,
-    subject: m.subject,
-    messageId: m.id,
   };
 }
 

@@ -35,6 +35,7 @@ const openBody = {
       type: "object",
       properties: {
         subjectContains: { type: "string" },
+        messageIndex: { type: "integer", minimum: 0, default: 0 },
         timeoutSeconds: { type: "integer", maximum: 120, default: 90 },
         deleteAfter: { type: "boolean", default: true },
       },
@@ -529,6 +530,12 @@ export const openApiSpec = {
           { name: "id", in: "path", required: true, schema: { type: "string" } },
           { name: "timeout", in: "query", schema: { type: "integer", maximum: 120 } },
           { name: "subjectContains", in: "query", schema: { type: "string" } },
+          {
+            name: "messageIndex",
+            in: "query",
+            schema: { type: "integer", minimum: 0, default: 0 },
+            description: "0=newest matching message, 1=second, …",
+          },
         ],
         responses: {
           "200": {
@@ -541,7 +548,36 @@ export const openApiSpec = {
               },
             },
           },
-          "408": { description: "timeout" },
+          "408": {
+            description: "timeout with subjects list for QA debug",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    error: { type: "string" },
+                    inboxId: { type: "string" },
+                    messageCount: { type: "integer" },
+                    matchingCount: { type: "integer" },
+                    messageIndex: { type: "integer" },
+                    hint: { type: "string" },
+                    subjects: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          id: { type: "string" },
+                          subject: { type: "string" },
+                          from: { type: "string" },
+                          otp: { type: "string", nullable: true },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },

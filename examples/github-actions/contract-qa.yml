@@ -9,7 +9,9 @@ on:
     paths:
       - "src/**"
       - "scripts/contract-qa.mjs"
+      - "scripts/contract-qa-callback.mjs"
       - "scripts/simulate-inbound.mjs"
+      - "scripts/lib/**"
 
 jobs:
   contract:
@@ -29,4 +31,6 @@ jobs:
           MAILAGENT_API_URL: ${{ secrets.MAILAGENT_API_URL }}
           MAILAGENT_API_KEY: ${{ secrets.MAILAGENT_API_KEY }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: npm run test:contract:qa
+        run: |
+          npm run test:contract:qa
+          npm run test:contract:qa:callback

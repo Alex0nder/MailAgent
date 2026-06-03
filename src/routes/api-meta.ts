@@ -2,6 +2,7 @@
 
 import { Hono } from "hono";
 import { SERVICE_EXPECT_FROM } from "../lib/service-presets";
+import { MCP_TOOL_NAMES } from "../mcp/manifest";
 
 export const apiMetaRoutes = new Hono();
 
@@ -53,17 +54,7 @@ apiMetaRoutes.get("/", (c) => {
       health: { method: "GET", path: "/health" },
     },
     services: Object.keys(SERVICE_EXPECT_FROM),
-    mcpTools: [
-      "mailagent_verify_signup",
-      "mailagent_wait_and_extract",
-      "mailagent_create_inbox",
-      "mailagent_wait_for_message",
-      "mailagent_extract_verification",
-      "mailagent_delete_inbox",
-      "mailagent_list_inboxes",
-      "mailagent_list_messages",
-      "mailagent_get_raw_message",
-    ],
+    mcpTools: MCP_TOOL_NAMES,
     qa: {
       label: "CI run id on create/open",
       subjectContains: "filter wait/open by subject",

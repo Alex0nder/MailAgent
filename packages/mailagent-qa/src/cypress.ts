@@ -4,6 +4,7 @@
 import {
   createMailAgentQa,
   MailAgentQa,
+  type CallbackDelivery,
   type CreateInboxOptions,
   type MailAgentQaConfig,
   type OpenInboxOptions,
@@ -27,8 +28,15 @@ export type MailAgentCypressTasks = {
     inboxId: string;
     timeoutSeconds?: number;
     subjectContains?: string;
+    messageIndex?: number;
     retries?: number;
   }) => Promise<Verification>;
+  mailagentWaitCallback: (args: {
+    inboxId: string;
+    timeoutSeconds?: number;
+    pollIntervalMs?: number;
+    callbackIndex?: number;
+  }) => Promise<{ delivery: CallbackDelivery; verification: Verification }>;
   mailagentDeleteInbox: (inboxId: string) => Promise<null>;
   mailagentCleanupRun: (runId: string) => Promise<{ deleted: number; ids: string[] }>;
 };
@@ -65,10 +73,20 @@ export function createMailAgentCypressTasks(
       inboxId: string;
       timeoutSeconds?: number;
       subjectContains?: string;
+      messageIndex?: number;
       retries?: number;
     }) {
       const { inboxId, retries, ...opts } = args;
       return mail.waitWithRetry(inboxId, opts, retries ?? 3);
+    },
+
+    async mailagentWaitCallback(args: {
+      inboxId: string;
+      timeoutSeconds?: number;
+      pollIntervalMs?: number;
+      callbackIndex?: number;
+    }) {
+      return mail.waitForCallback(args.inboxId, args);
     },
 
     async mailagentDeleteInbox(inboxId) {

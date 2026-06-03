@@ -73,6 +73,7 @@ curl -X DELETE "$MAILAGENT_API_URL/v1/inboxes?labelPrefix=ci-$GITHUB_RUN_ID" \
 export MAILAGENT_API_URL=https://api.webmailagent.com
 export MAILAGENT_API_KEY=mak_...
 npm run smoke:prod
+npm run smoke:qa
 npm run smoke:agent
 ```
 

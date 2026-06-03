@@ -28,7 +28,7 @@ import {
   countAttachmentsForMessage,
   listAttachments,
 } from "../services/message-attachments";
-import { waitForFirstMessage, type WaitProgressEvent } from "../services/wait";
+import { buildWaitTimeoutDebug, waitForMessage, type WaitProgressEvent } from "../services/wait";
 import type { McpProgressParams, McpToolContext } from "../mcp/progress";
 
 export type McpAuth = {
@@ -104,6 +104,7 @@ export async function executeMcpTool(
         service: args.service as string | undefined,
         label: labelCheck.label ?? undefined,
         subjectContains: args.subjectContains as string | undefined,
+        messageIndex: args.messageIndex as number | undefined,
         timeoutSeconds: args.timeoutSeconds as number | undefined,
         ttlMinutes: args.ttlMinutes as number | undefined,
         deleteAfter: args.deleteAfter as boolean | undefined,
@@ -169,6 +170,7 @@ export async function executeMcpTool(
           service: args.service as string | undefined,
           label: labelCheck.label ?? undefined,
           subjectContains: args.subjectContains as string | undefined,
+          messageIndex: args.messageIndex as number | undefined,
           timeoutSeconds: args.timeoutSeconds as number | undefined,
           deleteAfter: args.deleteAfter as boolean | undefined,
           apiKeyHint: auth.apiKeyHint,
@@ -191,12 +193,17 @@ export async function executeMcpTool(
         return textResult({ error: "inbox_not_found" }, true);
       }
       const timeout = Math.min(Number(args.timeoutSeconds ?? 90), 120);
-      const message = await waitForFirstMessage(env, inboxId, timeout, {
+      const message = await waitForMessage(env, inboxId, timeout, {
         subjectContains: args.subjectContains as string | undefined,
+        messageIndex: args.messageIndex as number | undefined,
         onProgress: bindWaitProgress(ctx),
       });
       if (!message) {
-        return textResult({ error: "timeout", inboxId }, true);
+        const debug = await buildWaitTimeoutDebug(env, inboxId, {
+          subjectContains: args.subjectContains as string | undefined,
+          messageIndex: args.messageIndex as number | undefined,
+        });
+        return textResult({ error: "timeout", inboxId, ...debug }, true);
       }
       const links = parseLinks(message.links_json);
       const verification = {
@@ -249,12 +256,17 @@ export async function executeMcpTool(
         return textResult({ error: "inbox_not_found" }, true);
       }
       const timeout = Math.min(Number(args.timeoutSeconds ?? 90), 120);
-      const message = await waitForFirstMessage(env, inboxId, timeout, {
+      const message = await waitForMessage(env, inboxId, timeout, {
         subjectContains: args.subjectContains as string | undefined,
+        messageIndex: args.messageIndex as number | undefined,
         onProgress: bindWaitProgress(ctx),
       });
       if (!message) {
-        return textResult({ error: "timeout", inboxId }, true);
+        const debug = await buildWaitTimeoutDebug(env, inboxId, {
+          subjectContains: args.subjectContains as string | undefined,
+          messageIndex: args.messageIndex as number | undefined,
+        });
+        return textResult({ error: "timeout", inboxId, ...debug }, true);
       }
       const links = parseLinks(message.links_json);
       return textResult({

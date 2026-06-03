@@ -8,10 +8,12 @@
     "verify": "node scripts/verify.mjs",
     "smoke:prod": "node scripts/smoke-prod.mjs",
     "smoke:agent": "node scripts/smoke-agent.mjs",
+    "smoke:qa": "node scripts/smoke-qa.mjs",
     "issue:key": "node scripts/issue-api-key.mjs",
     "issue:key:db": "node scripts/issue-api-key.mjs --register",
     "team:plan": "node scripts/set-team-plan.mjs",
     "setup:check": "node scripts/setup-check.mjs",
+    "doctor": "node scripts/doctor.mjs",
     "deploy": "wrangler deploy",
     "check": "tsc --noEmit",
     "types": "wrangler types",
@@ -27,12 +29,14 @@
     "test:allowlist": "npx tsx scripts/test-allowlist.ts",
     "test:extract": "npx tsx scripts/test-extract.ts",
     "test:contract:qa": "node scripts/contract-qa.mjs",
+    "test:contract:qa:callback": "node scripts/contract-qa-callback.mjs",
     "ci:mailagent-alerts": "npm run build:qa && node scripts/ci-mailagent-alerts.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
     "hono": "^4.11.1",
     "nanoid": "^5.1.6",
+    "parse-otp-message": "^1.0.2",
     "resend": "^6.9.2"
   },
   "devDependencies": {

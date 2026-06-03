@@ -107,10 +107,14 @@ curl -X DELETE "$MAILAGENT_API_URL/v1/inboxes?labelPrefix=ci-$GITHUB_RUN_ID" \
 
 - [QA-PRESETS.md](./QA-PRESETS.md) — матрица `service` / `expectFrom`
 - [QA-CALLBACK.md](./QA-CALLBACK.md) — smee.io, webhook, `/callbacks`
+- [QA-TROUBLESHOOTING.md](./QA-TROUBLESHOOTING.md) — timeout / OTP / webhook
+- [QA-LOCAL-SMTP.md](./QA-LOCAL-SMTP.md) — Mailpit для локальной разработки
 - [QA-ONBOARDING.md](./QA-ONBOARDING.md) — отдельный QA-ключ и team
 - [QA-MIGRATION.md](./QA-MIGRATION.md) — Mailosaur / MailSlurp
 - [QA-CI-ALERTS.md](./QA-CI-ALERTS.md) — Slack webhook, PR comment на failure
-- Contract test без SMTP: `npm run test:contract:qa` (нужен `DATABASE_URL`)
+- Contract test без SMTP: `npm run test:contract:qa` (нужен `DATABASE_URL`; проверяет wait/extract и `messageIndex`)
+- Callback contract: `npm run test:contract:qa:callback` — simulate + `POST` на `callbackUrl` (по умолчанию `https://httpbin.org/post`), poll `GET …/callbacks`
+- Simulate с callback: `node scripts/simulate-inbound.mjs <inboxId> <otp> <from> --fire-callback`
 - Cypress: [examples/cypress/](../examples/cypress/)
 
 ### Playwright (сырой fetch, без пакета)

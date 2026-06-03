@@ -23,6 +23,11 @@ export const MCP_TOOLS = [
         runId: { type: "string", description: "Agent run id (stored as label for tracing)" },
         label: { type: "string" },
         subjectContains: { type: "string" },
+        messageIndex: {
+          type: "integer",
+          minimum: 0,
+          description: "0=newest matching email, 1=second, …",
+        },
         timeoutSeconds: { type: "integer", minimum: 5, maximum: 120 },
         ttlMinutes: { type: "integer" },
         deleteAfter: { type: "boolean" },
@@ -53,6 +58,11 @@ export const MCP_TOOLS = [
         service: { type: "string", enum: servicesEnum },
         runId: { type: "string" },
         subjectContains: { type: "string" },
+        messageIndex: {
+          type: "integer",
+          minimum: 0,
+          description: "0=newest matching email, 1=second, …",
+        },
         timeoutSeconds: { type: "integer" },
         deleteAfter: { type: "boolean" },
       },
@@ -72,7 +82,7 @@ export const MCP_TOOLS = [
   },
   {
     name: "mailagent_wait_for_message",
-    description: "Block until first email (poll on server).",
+    description: "Block until Nth email (messageIndex 0=newest, poll on server).",
     inputSchema: {
       type: "object",
       required: ["inboxId"],
@@ -80,6 +90,11 @@ export const MCP_TOOLS = [
         inboxId: { type: "string" },
         timeoutSeconds: { type: "integer" },
         subjectContains: { type: "string" },
+        messageIndex: {
+          type: "integer",
+          minimum: 0,
+          description: "0=newest matching email, 1=second, …",
+        },
       },
     },
   },
@@ -166,3 +181,6 @@ export const MCP_TOOLS = [
     },
   },
 ] as const;
+
+/** Имена tools для GET /v1/agent и GET /v1 — единый источник с MCP_TOOLS */
+export const MCP_TOOL_NAMES: string[] = MCP_TOOLS.map((t) => t.name);

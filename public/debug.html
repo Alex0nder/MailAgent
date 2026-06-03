@@ -22,6 +22,16 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/styles.css" />
+    <style>
+      .debug-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; margin: 1rem 0; }
+      .debug-table th, .debug-table td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border, #333); vertical-align: top; }
+      .debug-badge { display: inline-block; font-size: 0.7rem; padding: 0.15rem 0.45rem; border-radius: 4px; margin-right: 0.25rem; background: #222; color: #aaa; }
+      .debug-badge--ok { color: #6f6; }
+      .debug-badge--err { color: #f88; }
+      .debug-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0; }
+      .debug-actions button { font-size: 0.8rem; padding: 0.35rem 0.65rem; cursor: pointer; }
+      .debug-mono { font-family: ui-monospace, monospace; font-size: 0.8rem; word-break: break-all; }
+    </style>
   </head>
   <body class="doc-page" data-site="docs" data-doc="debug">
     <div id="site-nav"></div>
@@ -31,16 +41,17 @@
       <article class="doc-content doc-content--wide">
       <h1>Debug inboxes</h1>
       <p class="doc-lead">
-        Read-only QA view: list inboxes for your API key (optional <code>label</code> filter).
+        QA view: inboxes for your API key. Open via
+        <code>?inbox=INBOX_ID</code> from CI errors or <code>@mailagent/qa</code> debug URL.
       </p>
 
       <form class="app-form" id="form">
         <label for="base">API base URL</label>
         <input id="base" type="url" value="https://api.webmailagent.com" required />
         <label for="key">Bearer API key</label>
-        <input id="key" type="password" placeholder="ma_…" required autocomplete="off" />
-        <label for="label">Label (optional)</label>
-        <input id="label" type="text" placeholder="ci-run-42" />
+        <input id="key" type="password" placeholder="mak_…" required autocomplete="off" />
+        <label for="label">Label filter (optional)</label>
+        <input id="label" type="text" placeholder="ci-12345" />
         <button type="submit">Load inboxes</button>
       </form>
 
@@ -61,24 +72,38 @@
       const listEl = document.getElementById("list");
       const detailEl = document.getElementById("detail");
 
+      const params = new URLSearchParams(location.search);
+      const deepInbox = params.get("inbox");
+
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) keyEl.value = saved;
 
+      if (params.get("label")) labelEl.value = params.get("label");
+
       document.getElementById("form").addEventListener("submit", async (e) => {
         e.preventDefault();
-        errEl.hidden = true;
-        detailEl.hidden = true;
-        listEl.innerHTML = "";
+        await loadInboxList();
+      });
+
+      async function authFetch(path) {
         const base = baseEl.value.replace(/\/$/, "");
         const key = keyEl.value.trim();
         localStorage.setItem(STORAGE_KEY, key);
+        const res = await fetch(`${base}${path}`, {
+          headers: { Authorization: `Bearer ${key}` },
+        });
+        const data = await res.json().catch(() => ({}));
+        return { base, key, res, data };
+      }
+
+      async function loadInboxList() {
+        errEl.hidden = true;
+        detailEl.hidden = true;
+        listEl.innerHTML = "";
         const label = labelEl.value.trim();
         const q = label ? `?label=${encodeURIComponent(label)}&limit=50` : "?limit=50";
         try {
-          const res = await fetch(`${base}/v1/inboxes${q}`, {
-            headers: { Authorization: `Bearer ${key}` },
-          });
-          const data = await res.json().catch(() => ({}));
+          const { res, data } = await authFetch(`/v1/inboxes${q}`);
           if (!res.ok) {
             errEl.textContent = data.error || res.statusText;
             errEl.hidden = false;
@@ -92,35 +117,95 @@
           }
           for (const box of inboxes) {
             const li = document.createElement("li");
-            li.innerHTML = `<strong>${box.id}</strong><br /><span class="mono">${box.address}</span>${box.label ? `<br />label: ${box.label}` : ""}`;
-            li.addEventListener("click", () => loadMessages(base, key, box.id));
+            li.innerHTML = `<strong>${esc(box.id)}</strong><br /><span class="debug-mono">${esc(box.address)}</span>${box.label ? `<br />label: ${esc(box.label)}` : ""}`;
+            li.style.cursor = "pointer";
+            li.addEventListener("click", () => loadInboxDetail(box.id, box));
             listEl.appendChild(li);
           }
         } catch (err) {
           errEl.textContent = String(err);
           errEl.hidden = false;
         }
-      });
+      }
 
-      async function loadMessages(base, key, id) {
+      async function loadInboxDetail(id, boxMeta) {
         detailEl.hidden = false;
-        detailEl.innerHTML = "Loading…";
-        const res = await fetch(`${base}/v1/inboxes/${id}/messages`, {
-          headers: { Authorization: `Bearer ${key}` },
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          detailEl.innerHTML = `<p class="app-err">${data.error || res.statusText}</p>`;
+        detailEl.innerHTML = "<p>Loading…</p>";
+        const { base, res: msgRes, data: msgData } = await authFetch(`/v1/inboxes/${id}/messages`);
+        if (!msgRes.ok) {
+          detailEl.innerHTML = `<p class="app-err">${esc(msgData.error || msgRes.statusText)}</p>`;
           return;
         }
-        const cbRes = await fetch(`${base}/v1/inboxes/${id}/callbacks`, {
-          headers: { Authorization: `Bearer ${key}` },
+        const { data: cbData } = await authFetch(`/v1/inboxes/${id}/callbacks`);
+        const messages = msgData.messages || [];
+        const deliveries = cbData.deliveries || [];
+
+        let html = `<h2>Inbox ${esc(id)}</h2>`;
+        if (boxMeta?.address) html += `<p class="debug-mono">${esc(boxMeta.address)}</p>`;
+        html += `<div class="debug-actions">`;
+        html += btn("Copy wait curl", () => copyCurl(base, id, "wait"));
+        html += btn("Copy extract curl", () => copyCurl(base, id, "extract"));
+        html += btn("Refresh", () => loadInboxDetail(id, boxMeta));
+        html += `</div>`;
+
+        html += `<h3>Messages (${messages.length})</h3>`;
+        if (!messages.length) {
+          html += `<p class="doc-note">No messages — check webhook, allowlist, staging send.</p>`;
+        } else {
+          html += `<table class="debug-table"><thead><tr><th>From</th><th>Subject</th><th>OTP</th><th>Links</th><th>Meta</th></tr></thead><tbody>`;
+          for (const m of messages) {
+            const badges = [];
+            if (m.hasRaw) badges.push('<span class="debug-badge debug-badge--ok">raw</span>');
+            if (m.attachmentCount > 0) badges.push(`<span class="debug-badge">${m.attachmentCount} att</span>`);
+            const links = (m.links || []).slice(0, 2).map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener">link</a>`).join(" ");
+            html += `<tr><td class="debug-mono">${esc(m.from || "")}</td><td>${esc(m.subject || "")}</td><td><strong>${esc(m.otp || "—")}</strong></td><td>${links || "—"}</td><td>${badges.join("")}${m.rawUrl ? ` <a href="${esc(base + m.rawUrl)}" target="_blank">.eml</a>` : ""}</td></tr>`;
+          }
+          html += `</tbody></table>`;
+        }
+
+        html += `<h3>Callback log (${deliveries.length})</h3>`;
+        if (!deliveries.length) {
+          html += `<p class="doc-note">No callback deliveries (callbackUrl not set or no messages yet).</p>`;
+        } else {
+          html += `<table class="debug-table"><thead><tr><th>OK</th><th>Status</th><th>URL</th><th>Error</th><th>At</th></tr></thead><tbody>`;
+          for (const d of deliveries) {
+            const okCls = d.ok ? "debug-badge--ok" : "debug-badge--err";
+            html += `<tr><td><span class="debug-badge ${okCls}">${d.ok ? "ok" : "fail"}</span></td><td>${esc(String(d.statusCode ?? "—"))}</td><td class="debug-mono">${esc(d.callbackUrl || "")}</td><td>${esc(d.error || "—")}</td><td>${esc(d.createdAt || "")}</td></tr>`;
+          }
+          html += `</tbody></table>`;
+        }
+
+        detailEl.innerHTML = html;
+        history.replaceState(null, "", `?inbox=${encodeURIComponent(id)}`);
+      }
+
+      function btn(label, fn) {
+        const id = "b" + Math.random().toString(36).slice(2);
+        setTimeout(() => document.getElementById(id)?.addEventListener("click", fn), 0);
+        return `<button type="button" id="${id}">${label}</button>`;
+      }
+
+      function copyCurl(base, inboxId, kind) {
+        const key = keyEl.value.trim();
+        const path = kind === "wait"
+          ? `/v1/inboxes/${inboxId}/wait?timeout=120`
+          : `/v1/inboxes/${inboxId}/extract`;
+        const curl = `curl -sS "${base}${path}" -H "Authorization: Bearer ${key}"`;
+        navigator.clipboard.writeText(curl).catch(() => {});
+      }
+
+      function esc(s) {
+        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+      }
+
+      if (deepInbox && keyEl.value) {
+        loadInboxDetail(deepInbox, null);
+      } else if (deepInbox) {
+        detailEl.hidden = false;
+        detailEl.innerHTML = `<p class="doc-note">Enter API key and reload, or submit the form — inbox <code>${esc(deepInbox)}</code> will open automatically.</p>`;
+        keyEl.addEventListener("change", () => {
+          if (keyEl.value.trim()) loadInboxDetail(deepInbox, null);
         });
-        const cbData = await cbRes.json().catch(() => ({}));
-        detailEl.innerHTML =
-          `<h2>Inbox ${id}</h2>` +
-          `<h3>Messages</h3><pre>${JSON.stringify(data.messages, null, 2)}</pre>` +
-          `<h3>Callback log</h3><pre>${JSON.stringify(cbData.deliveries || cbData, null, 2)}</pre>`;
       }
     </script>
   </body>

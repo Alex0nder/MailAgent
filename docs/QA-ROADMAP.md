@@ -93,7 +93,7 @@ npm run publish:qa
 
 **Зачем:** тестировать пайплайн OTP без зависимости от Resend/staging-почты.
 
-**Сделано:** `npm run test:contract:qa`, `scripts/contract-qa.mjs`, `examples/github-actions/contract-qa.yml`.
+**Сделано:** `npm run test:contract:qa`, `test:contract:qa:callback`, `messageIndex` в contract, `simulate-inbound --fire-callback`, CI в `qa-smoke.yml`, `examples/github-actions/contract-qa.yml`.
 
 ---
 
@@ -166,6 +166,7 @@ sequenceDiagram
 - [ ] `label` уникален на job (`GITHUB_RUN_ID`, worker index)
 - [ ] `deleteAfter: false` на отладку, `true` в prod CI
 - [ ] При падении — `/debug.html` или `GET /v1/inboxes?label=`
+- [ ] `npm run smoke:qa` зелёный после деплоя
 - [ ] `npm run smoke:agent` зелёный после деплоя
 
 ---

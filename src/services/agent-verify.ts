@@ -4,14 +4,18 @@ import { parseCallbackUrl } from "../lib/callback-url";
 import { buildPrimaryAction, resolveAgentLabel } from "../lib/agent-recipes";
 import { resolveExpectFrom } from "../lib/service-presets";
 import { countAttachmentsForMessage } from "./message-attachments";
-import { primaryLink } from "../services/extract";
 import {
   createInbox,
   deleteInbox,
   getInbox,
   type InboxRow,
-} from "../services/inbox";
-import { waitForFirstMessage, type WaitProgressEvent } from "../services/wait";
+} from "./inbox";
+import { formatMessageVerification } from "./message-verify";
+import {
+  buildWaitTimeoutDebug,
+  waitForMessage,
+  type WaitProgressEvent,
+} from "./wait";
 
 export type VerifyInput = {
   inboxId?: string;
@@ -22,24 +26,13 @@ export type VerifyInput = {
   label?: string;
   callbackUrl?: string;
   subjectContains?: string;
+  messageIndex?: number;
   timeoutSeconds?: number;
   deleteAfter?: boolean;
   runId?: string;
   apiKeyHint: string;
   onProgress?: (event: WaitProgressEvent) => void;
 };
-
-function parseLinks(raw: unknown): string[] {
-  if (Array.isArray(raw)) return raw as string[];
-  if (typeof raw === "string") {
-    try {
-      return JSON.parse(raw) as string[];
-    } catch {
-      return [];
-    }
-  }
-  return [];
-}
 
 export async function runAgentVerify(env: Env, input: VerifyInput) {
   const callbackUrl = parseCallbackUrl(input.callbackUrl);
@@ -74,40 +67,32 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
   }
 
   const timeoutSec = Math.min(Number(input.timeoutSeconds ?? 90), 120);
-  const message = await waitForFirstMessage(env, inbox.id, timeoutSec, {
+  const messageIndex = Math.max(0, Math.floor(Number(input.messageIndex ?? 0)));
+  const waitOpts = {
     subjectContains: input.subjectContains,
+    messageIndex,
     onProgress: input.onProgress,
-  });
+  };
+  const message = await waitForMessage(env, inbox.id, timeoutSec, waitOpts);
 
   if (!message) {
     const deleteAfter = input.deleteAfter !== false && !input.inboxId;
     if (deleteAfter) {
       await deleteInbox(env, inbox.id, { apiKeyHint: input.apiKeyHint });
     }
+    const debug = await buildWaitTimeoutDebug(env, inbox.id, waitOpts);
     return {
       status: "timeout" as const,
       statusCode: 408 as const,
       email: formatEmail(inbox),
-      hint: "No matching email. Check webhook, expectFrom, subjectContains.",
+      ...debug,
       inboxKept: !deleteAfter,
     };
   }
 
-  const links = parseLinks(message.links_json);
   const attachmentCount = await countAttachmentsForMessage(env, message.id);
   const verification = {
-    otp: message.otp,
-    links,
-    primaryLink: primaryLink(links),
-    from: message.from_addr,
-    subject: message.subject,
-    messageId: message.id,
-    hasRaw: Boolean(message.raw_r2_key),
-    ...(message.raw_r2_key
-      ? {
-          rawUrl: `/v1/inboxes/${inbox.id}/messages/${message.id}/raw`,
-        }
-      : {}),
+    ...formatMessageVerification(message, inbox.id),
     attachmentCount,
     hasAttachments: attachmentCount > 0,
   };

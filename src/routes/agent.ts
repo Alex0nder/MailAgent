@@ -9,6 +9,7 @@ import { scopeLabelForCreate, scopeWriteDenied } from "../lib/scope-guard";
 import { SERVICE_EXPECT_FROM } from "../lib/service-presets";
 import { runAgentVerify } from "../services/agent-verify";
 import { listAgentRuns } from "../services/agent-runs";
+import { MCP_TOOL_NAMES } from "../mcp/manifest";
 import {
   countActiveInboxesForHint,
   countActiveInboxesForTeam,
@@ -28,6 +29,7 @@ type VerifyBody = {
   label?: string;
   callbackUrl?: string;
   subjectContains?: string;
+  messageIndex?: number;
   timeoutSeconds?: number;
   deleteAfter?: boolean;
   runId?: string;
@@ -45,15 +47,7 @@ agentRoutes.get("/", (c) => {
         path: "/v1/inboxes/:id/messages/:messageId/raw",
       },
     },
-    mcpTools: [
-      "mailagent_verify_signup",
-      "mailagent_wait_and_extract",
-      "mailagent_create_inbox",
-      "mailagent_wait_for_message",
-      "mailagent_extract_verification",
-      "mailagent_list_messages",
-      "mailagent_get_raw_message",
-    ],
+    mcpTools: MCP_TOOL_NAMES,
     services: Object.keys(SERVICE_EXPECT_FROM),
     recipes: "/v1/agent/recipes",
     runs: "GET /v1/agent/runs",

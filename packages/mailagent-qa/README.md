@@ -14,6 +14,8 @@ import { createMailAgentQa } from "@mailagent/qa";
 const mail = createMailAgentQa();
 const inbox = await mail.createInbox({ label: mail.runLabel("ci"), service: "auth0" });
 const { otp } = await mail.waitForVerification(inbox.id, { subjectContains: "verify" });
+// callback flow:
+// const { verification } = await mail.waitForCallback(inbox.id, { since: new Date() });
 await mail.cleanupRun(process.env.GITHUB_RUN_ID!);
 ```
 
@@ -42,5 +44,7 @@ Tasks: `mailagentRunLabel`, `mailagentCreateInbox`, `mailagentWaitVerification`,
 ## Docs
 
 - [QA guide](https://webmailagent.com/docs/qa.html)
+- [Troubleshooting](../../docs/QA-TROUBLESHOOTING.md)
+- [Local SMTP (Mailpit)](../../docs/QA-LOCAL-SMTP.md)
 - [Service presets](../../docs/QA-PRESETS.md)
 - [Callback cookbook](../../docs/QA-CALLBACK.md)

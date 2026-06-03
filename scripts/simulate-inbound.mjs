@@ -1,12 +1,27 @@
 #!/usr/bin/env node
-/** Локальный тест без Gmail: вставляет письмо в Neon (обходит allowlist ingest). Usage: node scripts/simulate-inbound.mjs <inboxId> [otp] [from] */
+/**
+ * Локальный тест без Gmail: вставляет письмо в Neon (обходит allowlist ingest).
+ * Usage: node scripts/simulate-inbound.mjs <inboxId> [otp] [from] [--fire-callback] [--subject=...]
+ */
 import "./load-env.mjs";
 import { neon } from "@neondatabase/serverless";
 import { nanoid } from "nanoid";
+import { fireSimulatedCallback } from "./lib/fire-simulated-callback.mjs";
 
-const inboxId = process.argv[2] ?? "Js0I-1J7-JGZ";
-const otp = process.argv[3] ?? "482910";
-const fromAddr = process.argv[4] ?? "test@example.com";
+const argv = process.argv.slice(2);
+let fireCallback = false;
+let subject = "MailAgent simulated OTP";
+const positional = [];
+
+for (const a of argv) {
+  if (a === "--fire-callback") fireCallback = true;
+  else if (a.startsWith("--subject=")) subject = a.slice("--subject=".length);
+  else positional.push(a);
+}
+
+const inboxId = positional[0] ?? "Js0I-1J7-JGZ";
+const otp = positional[1] ?? "482910";
+const fromAddr = positional[2] ?? "test@example.com";
 
 const sql = neon(process.env.DATABASE_URL);
 const rows = await sql`
@@ -28,7 +43,7 @@ try {
       text_preview, html_preview, otp, links_json
     ) VALUES (
       ${msgId}, ${inboxId}, ${providerId},
-      ${fromAddr}, 'MailAgent simulated OTP',
+      ${fromAddr}, ${subject},
       ${`Your code is ${otp}`}, NULL, ${otp}, ${links}::jsonb
     )
   `;
@@ -37,7 +52,18 @@ try {
   process.exit(1);
 }
 
-console.log("OK simulated message");
+console.log("OK simulated message", { messageId: msgId, subject });
+
+if (fireCallback) {
+  const result = await fireSimulatedCallback(sql, inboxId, msgId);
+  console.log("callback:", result.ok ? "ok" : "fail", result.statusCode, result.callbackUrl);
+  if (!result.ok) process.exit(1);
+}
+
 console.log("inbox:", rows[0].address);
 console.log("otp:", otp);
-console.log("check: curl -H \"Authorization: Bearer $API_KEY\" http://127.0.0.1:8787/v1/inboxes/" + inboxId + "/extract");
+console.log(
+  "check: curl -H \"Authorization: Bearer $API_KEY\"",
+  process.env.MAILAGENT_API_URL ?? "https://api.webmailagent.com",
+  "/v1/inboxes/" + inboxId + "/extract"
+);

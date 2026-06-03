@@ -85,13 +85,25 @@ curl -sS -X POST "$MAILAGENT_API_URL/v1/inboxes" \
 {
   "event": "message.received",
   "inboxId": "abc-123",
-  "messageId": "...",
+  "id": "msg-id",
   "otp": "482910",
   "primaryLink": "https://...",
   "from": "noreply@auth0.com",
-  "subject": "Verify your email"
+  "subject": "Verify your email",
+  "verification": {
+    "otp": "482910",
+    "primaryLink": "https://...",
+    "links": ["https://..."],
+    "from": "noreply@auth0.com",
+    "subject": "Verify your email",
+    "messageId": "msg-id",
+    "hasRaw": true,
+    "rawUrl": "/v1/inboxes/abc-123/messages/msg-id/raw"
+  }
 }
 ```
+
+Поле `verification` — готовый блок для assert в CI (как `GET /extract`).
 
 ## 3. Assert в тесте (poll логов API)
 
@@ -103,6 +115,35 @@ curl -sS "$MAILAGENT_API_URL/v1/inboxes/INBOX_ID/callbacks" \
 ```
 
 Поля: `deliveries[].ok`, `statusCode`, `error`, `durationMs`.
+
+### SDK: `waitForCallback` (@mailagent/qa ≥0.1.9)
+
+Когда inbox с `callbackUrl`, но тест не слушает webhook напрямую — poll лога доставки:
+
+```typescript
+import { createMailAgentQa, MailAgentQa } from "@mailagent/qa";
+
+const mail = createMailAgentQa();
+const since = new Date();
+
+const inbox = await mail.createInbox({
+  label: MailAgentQa.ciLabel(),
+  service: "auth0",
+  callbackUrl: "https://smee.io/YOUR_CHANNEL",
+});
+
+// ... signup с inbox.address ...
+
+const { verification, delivery } = await mail.waitForCallback(inbox.id, {
+  since,
+  timeoutSeconds: 120,
+});
+
+expect(verification.otp).toMatch(/^\d+$/);
+console.log("callback ok", delivery.statusCode);
+```
+
+Cypress: `cy.task("mailagentWaitCallback", { inboxId })`.
 
 ## 4. GitHub Actions
 

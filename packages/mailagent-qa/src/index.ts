@@ -18,6 +18,7 @@ export interface CreateInboxOptions {
 export interface OpenInboxOptions extends CreateInboxOptions {
   timeoutSeconds?: number;
   subjectContains?: string;
+  messageIndex?: number;
   deleteAfter?: boolean;
 }
 
@@ -51,6 +52,31 @@ export interface MessageSummary {
   subject?: string;
   receivedAt?: string;
   otp?: string | null;
+  links?: string[];
+  primaryLink?: string | null;
+  hasRaw?: boolean;
+  rawUrl?: string;
+  attachmentCount?: number;
+}
+
+export interface AttachmentSummary {
+  id: string;
+  filename: string;
+  contentType: string | null;
+  sizeBytes: number | null;
+  cached: boolean;
+  downloadUrl: string;
+}
+
+export interface CallbackDelivery {
+  id: string;
+  callbackUrl: string;
+  messageId: string | null;
+  statusCode: number | null;
+  ok: boolean;
+  error: string | null;
+  durationMs: number | null;
+  createdAt: string;
 }
 
 export interface DebugContext {
@@ -60,6 +86,8 @@ export interface DebugContext {
   apiMessagesUrl: string;
   debugUiUrl: string;
   messages: MessageSummary[];
+  callbacks: CallbackDelivery[];
+  troubleshooting: string[];
 }
 
 export class MailAgentQa {
@@ -134,23 +162,41 @@ export class MailAgentQa {
   /** Создать inbox → заполнить форму → вызвать wait */
   async waitForVerification(
     inboxId: string,
-    options?: { timeoutSeconds?: number; subjectContains?: string }
+    options?: {
+      timeoutSeconds?: number;
+      subjectContains?: string;
+      messageIndex?: number;
+    }
   ): Promise<Verification> {
     const q = new URLSearchParams();
     q.set("timeout", String(options?.timeoutSeconds ?? 120));
     if (options?.subjectContains) q.set("subjectContains", options.subjectContains);
+    if (options?.messageIndex != null && options.messageIndex > 0) {
+      q.set("messageIndex", String(options.messageIndex));
+    }
 
     const wait = await this.requestRaw(`/v1/inboxes/${inboxId}/wait?${q}`);
     if (wait.status === 408) {
-      const messages = await this.listMessages(inboxId, {
+      const body = wait.json as Record<string, unknown>;
+      const ctx = await this.getDebugContext(inboxId, {
         subjectContains: options?.subjectContains,
-      }).catch(() => []);
+      }).catch(() => null);
       throw new MailAgentTimeoutError("No email received", {
         inboxId,
         subjectContains: options?.subjectContains,
-        messages,
+        messageIndex: options?.messageIndex,
+        ...body,
+        messages: ctx?.messages ?? body.subjects ?? [],
+        callbacks: ctx?.callbacks ?? [],
+        troubleshooting:
+          ctx?.troubleshooting ??
+          timeoutTroubleshooting({
+            subjectContains: options?.subjectContains,
+            messages: (body.subjects as MessageSummary[]) ?? ctx?.messages,
+            callbacks: ctx?.callbacks,
+          }),
         debugUiUrl: this.debugUiUrl(inboxId),
-        hint: options?.subjectContains
+        hint: (body.hint as string) ?? options?.subjectContains
           ? "Try broader subjectContains or check expectFrom/service allowlist."
           : "Check staging sends mail and Resend webhook is configured.",
       });
@@ -197,14 +243,139 @@ export class MailAgentQa {
     return data.messages ?? [];
   }
 
+  async listAttachments(
+    inboxId: string,
+    messageId: string
+  ): Promise<AttachmentSummary[]> {
+    const data = await this.request<{
+      attachments: AttachmentSummary[];
+    }>(`/v1/inboxes/${inboxId}/messages/${messageId}/attachments`);
+    return data.attachments ?? [];
+  }
+
+  /** Метаданные вложения (Accept: application/json) */
+  async getAttachmentMeta(
+    inboxId: string,
+    messageId: string,
+    attachmentId: string
+  ) {
+    return this.request<{
+      id: string;
+      filename: string;
+      contentType: string;
+      sizeBytes: number | null;
+      cached: boolean;
+      downloadUrl?: string;
+      expiresAt?: string;
+    }>(
+      `/v1/inboxes/${inboxId}/messages/${messageId}/attachments/${attachmentId}`,
+      { headers: { Accept: "application/json" } }
+    );
+  }
+
+  async listCallbackDeliveries(
+    inboxId: string,
+    limit = 20
+  ): Promise<CallbackDelivery[]> {
+    const data = await this.request<{ deliveries: CallbackDelivery[] }>(
+      `/v1/inboxes/${inboxId}/callbacks?limit=${limit}`
+    );
+    return data.deliveries ?? [];
+  }
+
+  /** OTP/links из latest или конкретного messageId */
+  async getVerification(
+    inboxId: string,
+    messageId?: string
+  ): Promise<Verification> {
+    if (!messageId) {
+      return this.request<Verification>(`/v1/inboxes/${inboxId}/extract`);
+    }
+    const messages = await this.listMessages(inboxId);
+    const m = messages.find((row) => row.id === messageId);
+    if (!m) {
+      throw new Error(`MailAgent: message ${messageId} not found in inbox ${inboxId}`);
+    }
+    return {
+      otp: m.otp ?? null,
+      links: m.links ?? [],
+      primaryLink: m.primaryLink ?? null,
+      from: m.from,
+      subject: m.subject,
+      messageId: m.id,
+    };
+  }
+
+  /**
+   * Ждёт успешную доставку callbackUrl (poll GET …/callbacks).
+   * Inbox должен быть создан с callbackUrl; после письма Worker POSTит verification.
+   */
+  async waitForCallback(
+    inboxId: string,
+    options?: {
+      timeoutSeconds?: number;
+      pollIntervalMs?: number;
+      /** Игнорировать deliveries до этого момента (ISO или Date) */
+      since?: Date | string;
+      /** 0 = newest ok delivery (default) */
+      callbackIndex?: number;
+    }
+  ): Promise<{ delivery: CallbackDelivery; verification: Verification }> {
+    const timeoutMs = (options?.timeoutSeconds ?? 120) * 1000;
+    const pollMs = Math.max(500, options?.pollIntervalMs ?? 1500);
+    const sinceMs = options?.since
+      ? new Date(options.since).getTime()
+      : Date.now();
+    const index = Math.max(0, options?.callbackIndex ?? 0);
+    const deadline = Date.now() + timeoutMs;
+
+    while (Date.now() < deadline) {
+      const deliveries = await this.listCallbackDeliveries(inboxId, 50);
+      const ok = deliveries
+        .filter(
+          (d) =>
+            d.ok &&
+            d.messageId &&
+            new Date(d.createdAt).getTime() >= sinceMs - 5000
+        )
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      const hit = ok[index];
+      if (hit?.messageId) {
+        const verification = await this.getVerification(inboxId, hit.messageId);
+        return { delivery: hit, verification };
+      }
+      await sleep(pollMs);
+    }
+
+    const ctx = await this.getDebugContext(inboxId).catch(() => null);
+    throw new MailAgentTimeoutError("Callback not received (no ok delivery in log)", {
+      inboxId,
+      callbackIndex: index,
+      callbacks: ctx?.callbacks ?? [],
+      troubleshooting: [
+        "Убедитесь что inbox создан с callbackUrl (HTTPS).",
+        "Endpoint должен ответить 2xx за <10s.",
+        "См. GET …/callbacks — ok:false и statusCode.",
+        ...(ctx?.troubleshooting ?? []),
+      ],
+      debugUiUrl: this.debugUiUrl(inboxId),
+    });
+  }
+
   /** Контекст для Allure / ReportPortal / CI log */
   async getDebugContext(
     inboxId: string,
     options?: { subjectContains?: string; address?: string; label?: string | null }
   ): Promise<DebugContext> {
-    const messages = await this.listMessages(inboxId, {
-      subjectContains: options?.subjectContains,
-    }).catch(() => []);
+    const [messages, callbacks] = await Promise.all([
+      this.listMessages(inboxId, {
+        subjectContains: options?.subjectContains,
+      }).catch(() => [] as MessageSummary[]),
+      this.listCallbackDeliveries(inboxId).catch(() => [] as CallbackDelivery[]),
+    ]);
     return {
       inboxId,
       address: options?.address,
@@ -212,6 +383,12 @@ export class MailAgentQa {
       apiMessagesUrl: `${this.base}/v1/inboxes/${inboxId}/messages`,
       debugUiUrl: this.debugUiUrl(inboxId),
       messages,
+      callbacks,
+      troubleshooting: timeoutTroubleshooting({
+        subjectContains: options?.subjectContains,
+        messages,
+        callbacks,
+      }),
     };
   }
 
@@ -352,6 +529,47 @@ export class MailAgentTimeoutError extends Error {
     super(message);
     this.name = "MailAgentTimeoutError";
   }
+}
+
+/** Чеклист при timeout / падении email-шага */
+export function timeoutTroubleshooting(input: {
+  subjectContains?: string;
+  messageIndex?: number;
+  messages?: MessageSummary[];
+  callbacks?: CallbackDelivery[];
+}): string[] {
+  const steps: string[] = [];
+  const msgs = input.messages ?? [];
+  const cbs = input.callbacks ?? [];
+  const idx = input.messageIndex ?? 0;
+
+  if (!msgs.length) {
+    steps.push("0 messages: проверьте Resend webhook → POST /webhooks/resend и что staging реально шлёт письмо.");
+    steps.push("Проверьте service / expectFrom allowlist (GET /v1 для presets).");
+  } else if (input.subjectContains) {
+    steps.push(
+      `${msgs.length} message(s) в inbox, фильтр subjectContains="${input.subjectContains}", messageIndex=${idx}.`
+    );
+    if (idx > 0) {
+      steps.push("Welcome + verify flow: используйте messageIndex=1 для второго письма.");
+    }
+  } else if (idx > 0 && msgs.length <= idx) {
+    steps.push(`Нужен messageIndex=${idx}, но в списке только ${msgs.length} письмо(а).`);
+  } else {
+    steps.push(`${msgs.length} message(s) есть — проверьте subjectContains / messageIndex или extract.`);
+  }
+
+  const failedCb = cbs.filter((d) => !d.ok);
+  if (failedCb.length) {
+    steps.push(
+      `Callback failed (${failedCb.length}): status ${failedCb.map((d) => d.statusCode).join(", ")} — см. GET …/callbacks.`
+    );
+  } else if (cbs.length) {
+    steps.push(`Callbacks OK (${cbs.length} delivery log entries).`);
+  }
+
+  steps.push("Откройте debug UI из ошибки или: GET /v1/inboxes?label=…");
+  return steps;
 }
 
 /** Из env: MAILAGENT_API_URL, MAILAGENT_API_KEY */
