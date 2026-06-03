@@ -18,6 +18,8 @@ export interface Env {
   STRIPE_WEBHOOK_SECRET?: string;
   /** Price id (price_…) для Pro подписки */
   STRIPE_PRICE_PRO?: string;
+  /** TTL OAuth access token для MCP (сек, default 3600) */
+  MCP_OAUTH_TOKEN_TTL_SEC?: string;
 }
 
 export interface EmailQueueMessage {

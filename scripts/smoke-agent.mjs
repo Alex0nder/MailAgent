@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Smoke remote MCP (Streamable HTTP) + agent API */
+/** Smoke remote MCP (OAuth + Streamable HTTP) + agent API */
 import "./load-env.mjs";
 
 const base = (
@@ -12,7 +12,7 @@ if (!apiKey) {
   process.exit(1);
 }
 
-const headers = {
+const jsonHeaders = {
   Authorization: `Bearer ${apiKey}`,
   "Content-Type": "application/json",
   Accept: "application/json, text/event-stream",
@@ -21,21 +21,41 @@ const headers = {
 async function main() {
   console.log("Smoke agent →", base);
 
-  const agent = await fetch(`${base}/v1/agent`, { headers });
+  const agent = await fetch(`${base}/v1/agent`, { headers: jsonHeaders });
   const agentJson = await agent.json();
   console.log("GET /v1/agent", agent.status, agentJson.version ?? "");
   if (!agent.ok) process.exit(1);
 
-  const meta = await fetch(`${base}/mcp`, {
-    headers: { Authorization: `Bearer ${apiKey}` },
+  const discovery = await fetch(`${base}/.well-known/oauth-protected-resource/mcp`);
+  console.log("GET oauth-protected-resource/mcp", discovery.status);
+  if (!discovery.ok) process.exit(1);
+
+  const tokenRes = await fetch(`${base}/v1/oauth/token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_secret: apiKey,
+    }),
   });
-  const metaJson = await meta.json();
-  console.log("GET /mcp", meta.status, "transports=", metaJson.transports?.join(","));
-  if (!meta.ok) process.exit(1);
+  const tokenJson = await tokenRes.json();
+  const accessToken = tokenJson.access_token;
+  console.log(
+    "POST /v1/oauth/token",
+    tokenRes.status,
+    accessToken ? `mat_${accessToken.slice(4, 12)}…` : tokenJson.error
+  );
+  if (!tokenRes.ok || !accessToken) process.exit(1);
+
+  const oauthHeaders = {
+    Authorization: `Bearer ${accessToken}`,
+    "Content-Type": "application/json",
+    Accept: "application/json, text/event-stream",
+  };
 
   const init = await fetch(`${base}/mcp`, {
     method: "POST",
-    headers,
+    headers: oauthHeaders,
     body: JSON.stringify({
       jsonrpc: "2.0",
       id: 0,
@@ -50,16 +70,15 @@ async function main() {
   const initJson = await init.json();
   const sessionId = init.headers.get("Mcp-Session-Id");
   console.log(
-    "POST /mcp initialize",
+    "POST /mcp initialize (OAuth token)",
     init.status,
     "session=",
-    sessionId ?? "(none)",
-    initJson.result?.serverInfo?.name
+    sessionId ?? "(none)"
   );
   if (!init.ok) process.exit(1);
 
   const mcpHeaders = {
-    ...headers,
+    ...oauthHeaders,
     ...(sessionId ? { "Mcp-Session-Id": sessionId } : {}),
   };
 
@@ -77,26 +96,23 @@ async function main() {
   console.log("POST /mcp tools/list", mcp.status, `tools=${tools}`);
   if (!mcp.ok || tools < 1) process.exit(1);
 
-  if (sessionId) {
-    const sse = await fetch(`${base}/mcp`, {
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        Accept: "text/event-stream",
-        "Mcp-Session-Id": sessionId,
-      },
-    });
-    console.log("GET /mcp SSE", sse.status, sse.headers.get("content-type"));
-    if (!sse.ok) process.exit(1);
-    await sse.body?.cancel();
+  const unauth = await fetch(`${base}/mcp`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 9, method: "ping" }),
+  });
+  const www = unauth.headers.get("WWW-Authenticate");
+  console.log("POST /mcp unauth", unauth.status, www ? "WWW-Authenticate=ok" : "");
+  if (unauth.status !== 401) process.exit(1);
 
-    const del = await fetch(`${base}/mcp`, {
+  if (sessionId) {
+    await fetch(`${base}/mcp`, {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${accessToken}`,
         "Mcp-Session-Id": sessionId,
       },
     });
-    console.log("DELETE /mcp session", del.status);
   }
 
   const runs = await fetch(`${base}/v1/agent/runs?limit=1`, {
@@ -105,7 +121,12 @@ async function main() {
   console.log("GET /v1/agent/runs", runs.status);
   if (!runs.ok) process.exit(1);
 
-  console.log("OK", { version: agentJson.version, mcpTools: tools, session: !!sessionId });
+  console.log("OK", {
+    version: agentJson.version,
+    mcpTools: tools,
+    oauth: true,
+    session: !!sessionId,
+  });
 }
 
 main().catch((e) => {

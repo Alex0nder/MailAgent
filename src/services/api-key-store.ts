@@ -20,6 +20,13 @@ export async function resolveAuth(
 ): Promise<ResolvedAuth | null> {
   if (!token) return null;
 
+  if (token.startsWith("mat_")) {
+    const { resolveMcpAccessToken } = await import("./mcp-oauth");
+    const oauth = await resolveMcpAccessToken(env, token);
+    if (oauth) return oauth;
+    return null;
+  }
+
   const hint = await apiKeyHintFromToken(token);
   const hash = await apiKeyHashFromToken(token);
 

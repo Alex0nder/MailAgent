@@ -38,7 +38,7 @@ type VerifyBody = {
 agentRoutes.get("/", (c) => {
   return c.json({
     name: "MailAgent Agent API",
-    version: "0.4.0",
+    version: "0.5.0",
     recommended: {
       verify: { method: "POST", path: "/v1/agent/verify" },
       oneShot: { method: "POST", path: "/v1/inboxes/open" },
@@ -57,6 +57,10 @@ agentRoutes.get("/", (c) => {
       endpoint: "POST /mcp",
       streamableHttp: "Mcp-Session-Id on initialize",
       sse: "GET /mcp",
+      oauth: {
+        token: "POST /v1/oauth/token",
+        discovery: "/.well-known/oauth-protected-resource/mcp",
+      },
       auth: "GET /mcp/auth",
     },
     docs: "https://webmailagent.com/docs/agents.html",

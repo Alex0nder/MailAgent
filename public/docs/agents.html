@@ -105,8 +105,18 @@ Content-Type: application/json
 POST /mcp  Mcp-Session-Id + tools/call
 GET  /mcp  Mcp-Session-Id + Accept: text/event-stream
 DELETE /mcp  Mcp-Session-Id</code></pre>
-      <p>Auth meta: <code>GET /mcp/auth</code> (Bearer API key; OAuth roadmap).</p>
-      <p>Smoke after deploy: <code>npm run smoke:agent</code></p>
+      <p>Auth meta: <code>GET /mcp/auth</code>. Smoke: <code>npm run smoke:agent</code></p>
+
+      <h3 id="mcp-oauth">OAuth (client_credentials)</h3>
+      <p>MCP clients can discover auth via RFC 9728 and exchange API key for short-lived <code>mat_</code> token.</p>
+      <pre class="doc-pre"><code>GET /.well-known/oauth-protected-resource/mcp
+GET /.well-known/oauth-authorization-server
+
+POST /v1/oauth/token
+grant_type=client_credentials&amp;client_secret=&lt;API_KEY&gt;
+→ { "access_token": "mat_…", "expires_in": 3600 }</code></pre>
+      <p>401 on <code>/mcp</code> includes <code>WWW-Authenticate</code> with resource metadata URL.</p>
+      <p>Full guide: <a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/MCP-OAUTH.md">docs/MCP-OAUTH.md</a></p>
 
       <p>Call a tool:</p>
       <pre class="doc-pre"><code>{
@@ -125,8 +135,9 @@ DELETE /mcp  Mcp-Session-Id</code></pre>
 
 import { MailAgent } from "@mailagent/agent";
 const mail = new MailAgent({ baseUrl, apiKey });
-const { sessionId } = await mail.connectMcp();
-await mail.callMcpTool("mailagent_verify_signup", { service: "github", runId: "s1" }, sessionId);
+const { access_token } = await mail.fetchMcpAccessToken();
+const { sessionId } = await mail.connectMcp(undefined, access_token);
+await mail.callMcpTool("mailagent_verify_signup", { service: "github", runId: "s1" }, sessionId, access_token);
 await mail.verifySignup({ service: "github", runId: "session-1" });</code></pre>
 
       <h2>Security</h2>

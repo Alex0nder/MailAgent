@@ -85,12 +85,34 @@ export class MailAgent {
     return this.request<{ runs: unknown[] }>(`/v1/agent/runs?${q}`);
   }
 
+  /** OAuth client_credentials → mat_ access token */
+  async fetchMcpAccessToken(): Promise<{
+    access_token: string;
+    token_type: "Bearer";
+    expires_in: number;
+  }> {
+    const res = await fetch(`${this.base}/v1/oauth/token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "client_credentials",
+        client_secret: this.apiKey,
+      }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(JSON.stringify(json));
+    return json;
+  }
+
   /** POST /mcp — initialize + optional Streamable HTTP session */
-  async connectMcp(clientInfo?: { name?: string; version?: string }) {
+  async connectMcp(
+    clientInfo?: { name?: string; version?: string },
+    accessToken?: string
+  ) {
     const res = await fetch(`${this.base}/mcp`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${accessToken ?? this.apiKey}`,
         "Content-Type": "application/json",
         Accept: "application/json, text/event-stream",
       },
@@ -103,7 +125,7 @@ export class MailAgent {
           capabilities: {},
           clientInfo: {
             name: clientInfo?.name ?? "@mailagent/agent",
-            version: clientInfo?.version ?? "0.1.0",
+            version: clientInfo?.version ?? "0.1.1",
           },
         },
       }),
@@ -120,10 +142,11 @@ export class MailAgent {
   async callMcpTool(
     name: string,
     args: Record<string, unknown>,
-    sessionId?: string | null
+    sessionId?: string | null,
+    accessToken?: string
   ) {
     const headers: Record<string, string> = {
-      Authorization: `Bearer ${this.apiKey}`,
+      Authorization: `Bearer ${accessToken ?? this.apiKey}`,
       "Content-Type": "application/json",
     };
     if (sessionId) headers["Mcp-Session-Id"] = sessionId;
@@ -144,11 +167,11 @@ export class MailAgent {
   }
 
   /** End MCP session (Streamable HTTP) */
-  async disconnectMcp(sessionId: string): Promise<void> {
+  async disconnectMcp(sessionId: string, accessToken?: string): Promise<void> {
     const res = await fetch(`${this.base}/mcp`, {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${accessToken ?? this.apiKey}`,
         "Mcp-Session-Id": sessionId,
       },
     });

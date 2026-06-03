@@ -1,12 +1,13 @@
 # MailAgent roadmap
 
-**v0.4**
+**v0.5**
 
 ## Agent ✅
 
 | Remote MCP `/mcp` | ✅ |
 | Streamable HTTP (Mcp-Session-Id + SSE GET) | ✅ |
-| `GET /mcp/auth` (Bearer API key meta) | ✅ |
+| OAuth client_credentials (`mat_` tokens) | ✅ |
+| RFC 8414 / 9728 discovery | ✅ |
 | `runId` tracing | ✅ |
 | `GET /v1/agent/runs` + UI | ✅ |
 | `npm run smoke:agent` | ✅ |
@@ -14,19 +15,19 @@
 
 ## QA ✅
 
-P0–P2 core закрыты — см. [QA-ROADMAP.md](./QA-ROADMAP.md).
+P0–P2 закрыты — см. [QA-ROADMAP.md](./QA-ROADMAP.md).
 
 ## Publish ⏳
 
 ```bash
 npm login
 npm run publish:mcp
-npm run publish:qa    # @mailagent/qa@0.1.5
-npm run publish:agent # @mailagent/agent@0.1.1
+npm run publish:qa    # @mailagent/qa@0.1.6
+npm run publish:agent # @mailagent/agent@0.1.2
 ```
 
 ## Дальше
 
-- OAuth on remote MCP (third-party IdP; сейчас Bearer API key)
-- MCP server-initiated notifications (progress during long wait)
-- Slack / PR comment integrations (QA P2 backlog)
+- MCP progress notifications during long `wait`
+- Third-party IdP OAuth (Auth0/Google login for MCP — сейчас API key → mat_ token)
+- Dynamic Client Registration (DCR)

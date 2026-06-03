@@ -2,7 +2,7 @@
 import { Hono, type Context } from "hono";
 import type { Env } from "../env";
 import type { ApiVariables } from "../lib/api-context";
-import { requireApiKey } from "../lib/auth";
+import { requireMcpAuth } from "../lib/auth";
 import { rateLimit } from "../lib/rate-limit";
 import { executeMcpTool } from "../mcp/handlers";
 import { MCP_SERVER_INFO, MCP_TOOLS } from "../mcp/manifest";
@@ -17,20 +17,34 @@ type Ctx = Context<{ Bindings: Env; Variables: ApiVariables }>;
 
 export const mcpHttpRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
 
-mcpHttpRoutes.use("*", requireApiKey);
+mcpHttpRoutes.use("*", requireMcpAuth);
 mcpHttpRoutes.use("*", rateLimit);
 
 mcpHttpRoutes.get("/auth", (c) => {
+  const origin = new URL(c.req.url).origin;
+  const apiOrigin =
+    origin.includes("localhost") || origin.includes("workers.dev")
+      ? origin
+      : "https://api.webmailagent.com";
   return c.json({
-    type: "bearer",
-    header: "Authorization",
-    format: "Bearer <API_KEY>",
-    issue: "npm run issue:key:db or /dashboard.html",
-    docs: "https://webmailagent.com/docs/agents.html#remote-mcp",
-    oauth: {
-      supported: false,
-      note: "Use MailAgent API key as Bearer token. OAuth for third-party IdP is on the roadmap.",
+    type: "oauth2",
+    flows: {
+      clientCredentials: {
+        tokenUrl: `${apiOrigin}/v1/oauth/token`,
+        scopes: ["mcp:tools"],
+      },
     },
+    directApiKey: {
+      header: "Authorization",
+      format: "Bearer <API_KEY>",
+      note: "API key works directly without token exchange",
+    },
+    discovery: {
+      authorizationServer: `${apiOrigin}/.well-known/oauth-authorization-server`,
+      protectedResource: `${apiOrigin}/.well-known/oauth-protected-resource/mcp`,
+    },
+    issue: "npm run issue:key:db or /dashboard.html",
+    docs: "https://webmailagent.com/docs/agents.html#mcp-oauth",
   });
 });
 
