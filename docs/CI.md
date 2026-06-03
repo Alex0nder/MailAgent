@@ -35,6 +35,6 @@ MAILAGENT_API_URL=https://api.webmailagent.com npm run smoke:agent
 
 Workflow: [`.github/workflows/publish-packages.yml`](../.github/workflows/publish-packages.yml)
 
-Secret: **`NPM_TOKEN`** (Automation token с publish для `@mailagent/*`).
+Secret: **`NPM_TOKEN`** — Granular Access Token с **Bypass 2FA** и publish для `@mailagent/*` (см. [PUBLISH.md](./PUBLISH.md)).
 
 См. [PUBLISH.md](./PUBLISH.md).

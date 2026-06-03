@@ -39,7 +39,7 @@ export async function requireMcpAuth(
 ) {
   const auth = await resolveAuth(c.env, bearerToken(c.req.header("Authorization")));
   if (!auth) {
-    const origin = publicOrigin(c.req.url);
+    const origin = publicOriginFromUrl(c.req.url);
     c.header(
       "WWW-Authenticate",
       `Bearer resource_metadata="${origin}/.well-known/oauth-protected-resource/mcp"`
@@ -50,10 +50,5 @@ export async function requireMcpAuth(
   await next();
 }
 
-function publicOrigin(url: string): string {
-  const u = new URL(url);
-  if (u.hostname === "127.0.0.1" || u.hostname === "localhost" || u.hostname.includes("workers.dev")) {
-    return u.origin;
-  }
-  return "https://api.webmailagent.com";
-}
+import { publicOriginFromUrl } from "../lib/public-origin";
+import { isOidcEnabled } from "../services/oidc-oauth";

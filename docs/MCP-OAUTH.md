@@ -1,11 +1,12 @@
 # MCP OAuth (remote)
 
-MailAgent MCP поддерживает **OAuth 2.0 client_credentials** и прямой Bearer API key.
+MailAgent MCP поддерживает **OAuth 2.0 client_credentials**, **authorization_code (OIDC IdP)**, и прямой Bearer API key.
 
 MCP-клиенты (Cursor, Claude Desktop, custom agents) могут:
 
 1. **Напрямую** — `Authorization: Bearer mak_…` (API key)
 2. **Через OAuth** — обменять API key на short-lived `mat_…` access token
+3. **Через IdP login** — Auth0/Google browser login → `mat_` token ([MCP-OAUTH-IDP.md](./MCP-OAUTH-IDP.md))
 
 ## Discovery (RFC 8414 / 9728)
 

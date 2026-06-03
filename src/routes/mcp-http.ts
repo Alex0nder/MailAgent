@@ -2,6 +2,7 @@
 import { Hono, type Context } from "hono";
 import type { Env } from "../env";
 import type { ApiVariables } from "../lib/api-context";
+import { publicOriginFromUrl } from "../lib/public-origin";
 import { requireMcpAuth } from "../lib/auth";
 import { rateLimit } from "../lib/rate-limit";
 import { executeMcpTool } from "../mcp/handlers";
@@ -13,6 +14,7 @@ import {
   validateMcpSession,
 } from "../mcp/session";
 import { pushSessionProgress } from "../mcp/session-progress";
+import { isOidcEnabled } from "../services/oidc-oauth";
 import { jsonRpcAsSse, mcpSseSessionStream, sseResponse } from "../mcp/sse-response";
 
 type Ctx = Context<{ Bindings: Env; Variables: ApiVariables }>;
@@ -23,11 +25,8 @@ mcpHttpRoutes.use("*", requireMcpAuth);
 mcpHttpRoutes.use("*", rateLimit);
 
 mcpHttpRoutes.get("/auth", (c) => {
-  const origin = new URL(c.req.url).origin;
-  const apiOrigin =
-    origin.includes("localhost") || origin.includes("workers.dev")
-      ? origin
-      : "https://api.webmailagent.com";
+  const apiOrigin = publicOriginFromUrl(c.req.url);
+  const oidc = isOidcEnabled(c.env);
   return c.json({
     type: "oauth2",
     flows: {
@@ -35,6 +34,16 @@ mcpHttpRoutes.get("/auth", (c) => {
         tokenUrl: `${apiOrigin}/v1/oauth/token`,
         scopes: ["mcp:tools"],
       },
+      ...(oidc
+        ? {
+            authorizationCode: {
+              authorizeUrl: `${apiOrigin}/v1/oauth/authorize`,
+              tokenUrl: `${apiOrigin}/v1/oauth/token`,
+              scopes: ["mcp:tools", "openid", "profile", "email"],
+              pkce: true,
+            },
+          }
+        : {}),
     },
     directApiKey: {
       header: "Authorization",
@@ -46,6 +55,7 @@ mcpHttpRoutes.get("/auth", (c) => {
       protectedResource: `${apiOrigin}/.well-known/oauth-protected-resource/mcp`,
     },
     issue: "npm run issue:key:db or /dashboard.html",
+    oidc: oidc ? "enabled" : "disabled",
     docs: "https://webmailagent.com/docs/agents.html#mcp-oauth",
   });
 });

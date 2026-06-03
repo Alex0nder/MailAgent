@@ -20,6 +20,12 @@ export interface Env {
   STRIPE_PRICE_PRO?: string;
   /** TTL OAuth access token для MCP (сек, default 3600) */
   MCP_OAUTH_TOKEN_TTL_SEC?: string;
+  /** OIDC IdP (Auth0/Google): issuer URL, e.g. https://tenant.us.auth0.com */
+  OIDC_ISSUER?: string;
+  OIDC_CLIENT_ID?: string;
+  OIDC_CLIENT_SECRET?: string;
+  /** Optional API audience for Auth0 */
+  OIDC_AUDIENCE?: string;
 }
 
 export interface EmailQueueMessage {
