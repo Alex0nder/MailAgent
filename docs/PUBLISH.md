@@ -14,25 +14,77 @@
 npm run publish:check
 ```
 
-## Локально
+## Перед первым publish (обязательно)
+
+### 1. Организация `@mailagent`
+
+Scope `@mailagent` на npm **ещё не создан** (или у тебя нет прав).
+
+1. [npmjs.com/org/create](https://www.npmjs.com/org/create)
+2. Имя org: **`mailagent`** (будет `@mailagent/mcp`, …)
+3. Free plan достаточно для public packages
+
+### 2. Двухфакторная аутентификация (2FA)
+
+npm **не публикует** без 2FA. Ошибка:
+
+```
+403 … Two-factor authentication or granular access token with bypass 2fa enabled is required
+```
+
+1. [npmjs.com/settings](https://www.npmjs.com/settings) → **Two-Factor Authentication**
+2. Режим: **Authorization and publishing** (не только login)
+3. Перелогинься:
 
 ```bash
+npm logout
 npm login
+```
+
+При `npm publish` CLI попросит **OTP-код** из приложения (Google Authenticator и т.п.).
+
+### 3. Publish
+
+```bash
 npm run publish:all
 ```
 
-Нужен доступ к org **`@mailagent`** на npm.
+Или по одному:
 
-## GitHub Actions
+```bash
+npm run publish:mcp
+npm run publish:qa
+npm run publish:agent
+```
 
-Workflow: [`.github/workflows/publish-packages.yml`](../.github/workflows/publish-packages.yml)
+## GitHub Actions (без OTP каждый раз)
 
-1. [npmjs.com](https://www.npmjs.com) → Access Tokens → **Automation** (или Granular: publish для `@mailagent/*`)
-2. GitHub repo → Settings → Secrets → **`NPM_TOKEN`**
-3. Запуск:
-   - Actions → **Publish npm packages** → Run workflow
-   - или git tag: `git tag v0.5.0 && git push origin v0.5.0`
+Granular Access Token с **Bypass 2FA** (только для CI):
+
+1. [npmjs.com/settings/tokens](https://www.npmjs.com/settings) → **Generate New Token** → **Granular Access Token**
+2. Permissions: **Read and write** для packages `@mailagent/*`
+3. Organizations: `@mailagent`
+4. Включить **Bypass two-factor authentication** (если доступно)
+5. GitHub repo → Secrets → **`NPM_TOKEN`**
+6. Actions → **Publish npm packages** → Run workflow
+
+## Частые ошибки
+
+| Ошибка | Решение |
+|--------|---------|
+| `403 … Two-factor authentication` | Включить 2FA + `npm logout` / `npm login`, при publish ввести OTP |
+| `403 … you do not have access` | Создать org `@mailagent`, ты должен быть owner |
+| `402 … must pay` | Scope занят — другое имя org или связаться с владельцем scope |
+| Версия уже существует | Поднять `version` в `package.json` и повторить |
 
 ## После publish
 
-Обновите версии в README / docs, если менялись major/minor.
+Проверка:
+
+```bash
+npm view @mailagent/mcp version
+npm view @mailagent/qa version
+npm view @mailagent/agent version
+```
+
+Обновите README / docs, если менялись major/minor.

@@ -6,17 +6,29 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Alex0nder/MailAgent.git",
+    "url": "git+https://github.com/Alex0nder/MailAgent.git",
     "directory": "mcp"
   },
   "homepage": "https://webmailagent.com/docs/agents.html",
-  "keywords": ["mcp", "mailagent", "email", "verification", "agents", "cursor"],
+  "keywords": [
+    "mcp",
+    "mailagent",
+    "email",
+    "verification",
+    "agents",
+    "cursor"
+  ],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "bin": {
-    "mailagent-mcp": "./dist/index.js",
-    "mailagent": "./dist/cli.js"
+    "mailagent-mcp": "dist/index.js",
+    "mailagent": "dist/cli.js"
   },
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "npm run build",
     "dev": "tsx src/index.ts"
   },
   "dependencies": {

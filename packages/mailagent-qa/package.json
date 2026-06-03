@@ -4,7 +4,7 @@
   "description": "Playwright/Cypress helpers for MailAgent test inboxes",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Alex0nder/MailAgent.git",
+    "url": "git+https://github.com/Alex0nder/MailAgent.git",
     "directory": "packages/mailagent-qa"
   },
   "homepage": "https://webmailagent.com/docs/qa.html",

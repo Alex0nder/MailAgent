@@ -19,16 +19,19 @@
 
 P0–P2 закрыты — см. [QA-ROADMAP.md](./QA-ROADMAP.md).
 
-## Publish ⏳
+## Publish ✅
+
+| Пакет | Версия |
+|-------|--------|
+| `@mailagent/mcp` | 0.2.0 |
+| `@mailagent/qa` | 0.1.6 |
+| `@mailagent/agent` | 0.1.2 |
 
 ```bash
-npm login
-npm run publish:check
-npm run publish:all
+npm install @mailagent/mcp @mailagent/qa @mailagent/agent
 ```
 
-Или CI: secret `NPM_TOKEN` → workflow **Publish npm packages** / git tag `v*`.  
-См. [PUBLISH.md](./PUBLISH.md).
+Повторный release: [PUBLISH.md](./PUBLISH.md) · CI: workflow **Publish npm packages** + `NPM_TOKEN`.
 
 ## CI ✅
 
