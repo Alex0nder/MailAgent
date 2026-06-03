@@ -7,7 +7,7 @@ const servicesEnum = SERVICE_NAMES;
 
 export const MCP_SERVER_INFO = {
   name: "mailagent",
-  version: "0.6.0",
+  version: "0.7.0",
 };
 
 export const MCP_TOOLS = [
@@ -136,6 +136,32 @@ export const MCP_TOOLS = [
           type: "boolean",
           description: "Return bodyBase64 (truncated to agent limit)",
         },
+      },
+    },
+  },
+  {
+    name: "mailagent_list_attachments",
+    description: "List attachment metadata for a message (filename, size, downloadUrl).",
+    inputSchema: {
+      type: "object",
+      required: ["inboxId", "messageId"],
+      properties: {
+        inboxId: { type: "string" },
+        messageId: { type: "string" },
+      },
+    },
+  },
+  {
+    name: "mailagent_get_attachment",
+    description:
+      "Resend signed download URL + cache flag for one attachment (use REST download for bytes).",
+    inputSchema: {
+      type: "object",
+      required: ["inboxId", "messageId", "attachmentId"],
+      properties: {
+        inboxId: { type: "string" },
+        messageId: { type: "string" },
+        attachmentId: { type: "string" },
       },
     },
   },

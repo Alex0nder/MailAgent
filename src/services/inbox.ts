@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid";
 import { purgeRawMimeForInboxes } from "./raw-mime-r2";
+import { purgeAttachmentR2ForInboxes } from "./message-attachments";
 import type { Env } from "../env";
 import { getDb } from "../db/client";
 import { normalizeAllowedSenders } from "../lib/sender-allowlist";
@@ -220,6 +221,7 @@ export async function deleteInbox(
   const inbox = await getInbox(env, id, options);
   if (!inbox) return false;
   await purgeRawMimeForInboxes(env, [id]);
+  await purgeAttachmentR2ForInboxes(env, [id]);
   const sql = getDb(env);
   const rows = await sql`DELETE FROM inboxes WHERE id = ${id} RETURNING id`;
   return rows.length > 0;
@@ -242,7 +244,10 @@ export async function deleteInboxesByLabelPrefix(
       AND (api_key_hint IS NULL OR api_key_hint = ${apiKeyHint})
   `) as { id: string }[];
   const ids = targets.map((r) => r.id);
-  if (ids.length) await purgeRawMimeForInboxes(env, ids);
+  if (ids.length) {
+    await purgeRawMimeForInboxes(env, ids);
+    await purgeAttachmentR2ForInboxes(env, ids);
+  }
   const rows = await sql`
     DELETE FROM inboxes
     WHERE label LIKE ${pattern}
@@ -367,17 +372,18 @@ export async function countActiveInboxesForTeam(
 
 export async function purgeExpired(
   env: Env
-): Promise<{ inboxes: number; rawDeleted: number }> {
+): Promise<{ inboxes: number; rawDeleted: number; attDeleted: number }> {
   const sql = getDb(env);
   const expiring = (await sql`
     SELECT id FROM inboxes WHERE expires_at <= NOW()
   `) as { id: string }[];
   const inboxIds = expiring.map((r) => r.id);
   const rawDeleted = await purgeRawMimeForInboxes(env, inboxIds);
+  const attDeleted = await purgeAttachmentR2ForInboxes(env, inboxIds);
   const deleted = await sql`
     DELETE FROM inboxes
     WHERE expires_at <= NOW()
     RETURNING id
   `;
-  return { inboxes: deleted.length, rawDeleted };
+  return { inboxes: deleted.length, rawDeleted, attDeleted };
 }

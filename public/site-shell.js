@@ -20,6 +20,7 @@
         { id: "qa", href: "/docs/qa.html", label: "QA / Playwright" },
         { id: "scoped-keys", href: "/docs/scoped-keys.html", label: "Scoped keys" },
         { id: "raw-mime", href: "/docs/raw-mime.html", label: "Raw MIME" },
+        { id: "attachments", href: "/docs/attachments.html", label: "Attachments" },
         { id: "custom-domain", href: "/docs/custom-domain.html", label: "Custom domain" },
       ],
     },

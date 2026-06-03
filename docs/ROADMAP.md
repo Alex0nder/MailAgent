@@ -47,13 +47,20 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | Verify response `hasRaw` + `rawUrl` | ✅ |
 | `@mailagent/agent` getProfile, listMessages, getRawMessageMeta | ✅ |
 
-## Дальше (v0.6+)
+## v0.7 Attachments
+
+| REST list/download attachments | ✅ |
+| MCP `mailagent_list_attachments` / `mailagent_get_attachment` | ✅ |
+| R2 cache for small attachments (≤2MB) | ✅ |
+| Verify `hasAttachments` + `attachmentCount` | ✅ |
+
+## Дальше (v0.7+)
 
 - ~~MCP progress notifications during long `wait`~~ ✅
 - ~~Dynamic Client Registration (DCR)~~ ✅
 - ~~Third-party IdP OAuth (Auth0/Google login for MCP)~~ ✅ — [MCP-OAUTH-IDP.md](./MCP-OAUTH-IDP.md)
 - ~~Scoped API keys per tenant~~ ✅ — [SCOPED-API-KEYS.md](./SCOPED-API-KEYS.md)
 - ~~R2 для raw MIME~~ ✅ — [RAW-MIME-R2.md](./RAW-MIME-R2.md)
-- Attachments API (Resend attachment download)
+- ~~Attachments API~~ ✅ — [ATTACHMENTS.md](./ATTACHMENTS.md)
 - Agent session memory / multi-step run state
 - OIDC on prod (Auth0 secrets)

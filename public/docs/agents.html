@@ -167,12 +167,16 @@ const { sessionId } = await mail.connectMcp(undefined, access_token);
 await mail.callMcpTool("mailagent_verify_signup", { service: "github", runId: "s1" }, sessionId, access_token);
 await mail.verifySignup({ service: "github", runId: "session-1" });</code></pre>
 
-      <h2 id="raw-fallback">Raw MIME fallback</h2>
-      <p>When <code>agent.primaryAction.type</code> is <code>manual</code>, use archived <code>.eml</code> from R2:</p>
-      <pre class="doc-pre"><code>MCP: mailagent_list_messages → mailagent_get_raw_message
-REST: GET /v1/inboxes/:id/messages/:messageId/raw
+      <h2 id="raw-fallback">Raw MIME &amp; attachments</h2>
+      <p>When <code>agent.primaryAction.type</code> is <code>manual</code>, use archived <code>.eml</code> or attachments:</p>
+      <pre class="doc-pre"><code>MCP v0.7: 12 tools — list/get attachments, list/get raw
+mailagent_list_messages → mailagent_get_raw_message | mailagent_list_attachments
 
-Verify response includes hasRaw + rawUrl when R2 stored the message.</code></pre>
+REST: GET …/messages/:messageId/raw
+      GET …/messages/:messageId/attachments[/:attachmentId]
+
+Verify: hasRaw, rawUrl, hasAttachments, attachmentCount</code></pre>
+      <p><a href="/docs/attachments.html">Attachments guide →</a></p>
 
       <h2>Security</h2>
       <ul class="doc-list">

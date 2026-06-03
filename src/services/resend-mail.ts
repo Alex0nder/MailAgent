@@ -15,6 +15,7 @@ import {
   type MessageRow,
 } from "./inbox";
 import { storeRawMimeFromUrl } from "./raw-mime-r2";
+import { saveAttachmentsFromEmail } from "./message-attachments";
 import type { EmailQueueMessage, MessageNotifyPayload } from "../env";
 import { nanoid } from "nanoid";
 
@@ -81,6 +82,14 @@ export async function processInboundEmail(
   });
 
   if (!row) return;
+
+  await saveAttachmentsFromEmail(
+    env,
+    inbox.id,
+    row.id,
+    job.emailId,
+    email
+  );
 
   const payload = toNotifyPayload(row);
   await notify(inbox, payload);

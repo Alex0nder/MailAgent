@@ -75,6 +75,24 @@ const message = {
       type: "string",
       description: "Relative path to download .eml",
     },
+    attachmentCount: {
+      type: "integer",
+      description: "Number of attachments on this message",
+    },
+  },
+} as const;
+
+const attachment = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    filename: { type: "string" },
+    contentType: { type: "string", nullable: true },
+    sizeBytes: { type: "integer", nullable: true },
+    contentDisposition: { type: "string", nullable: true },
+    contentId: { type: "string", nullable: true },
+    cached: { type: "boolean" },
+    downloadUrl: { type: "string" },
   },
 } as const;
 
@@ -367,6 +385,84 @@ export const openApiSpec = {
               },
             },
           },
+        },
+      },
+    },
+    "/v1/inboxes/{id}/messages/{messageId}/attachments": {
+      get: {
+        tags: ["inboxes"],
+        summary: "List attachment metadata for a message",
+        security: bearer,
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string" } },
+          {
+            name: "messageId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          "200": {
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    messageId: { type: "string" },
+                    attachments: { type: "array", items: attachment },
+                  },
+                },
+              },
+            },
+          },
+          "404": { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
+    "/v1/inboxes/{id}/messages/{messageId}/attachments/{attachmentId}": {
+      get: {
+        tags: ["inboxes"],
+        summary: "Download attachment bytes or JSON metadata",
+        security: bearer,
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string" } },
+          {
+            name: "messageId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+          {
+            name: "attachmentId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "File stream or JSON with Resend signed downloadUrl",
+            content: {
+              "application/octet-stream": { schema: { type: "string", format: "binary" } },
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string" },
+                    filename: { type: "string" },
+                    contentType: { type: "string" },
+                    sizeBytes: { type: "integer", nullable: true },
+                    cached: { type: "boolean" },
+                    downloadUrl: { type: "string" },
+                    expiresAt: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+          "404": { $ref: "#/components/responses/NotFound" },
+          "502": { description: "Resend attachment fetch failed" },
         },
       },
     },

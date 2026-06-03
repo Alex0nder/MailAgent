@@ -19,11 +19,18 @@ import {
   deleteInbox,
   deleteInboxesByLabelPrefix,
   getInbox,
+  getMessage,
   listInboxes,
   listMessages,
   type InboxRow,
 } from "../services/inbox";
 import { rawMessageHttpResponse } from "../services/message-raw";
+import {
+  attachmentHttpResponse,
+  attachmentCountsForMessages,
+  formatAttachment,
+  listAttachments,
+} from "../services/message-attachments";
 import { primaryLink } from "../services/extract";
 import { waitForFirstMessage } from "../services/wait";
 
@@ -219,6 +226,44 @@ inboxRoutes.get("/:id/callbacks", async (c) => {
   });
 });
 
+inboxRoutes.get("/:id/messages/:messageId/attachments", async (c) => {
+  const inbox = await getInbox(c.env, c.req.param("id"), {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
+  if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const denied = scopeInboxDenied(c, inbox);
+  if (denied) return denied;
+
+  const message = await getMessage(c.env, inbox.id, c.req.param("messageId"));
+  if (!message) return c.json({ error: "message_not_found" }, 404);
+
+  const rows = await listAttachments(c.env, message.id);
+  return c.json({
+    messageId: message.id,
+    attachments: rows.map((r) =>
+      formatAttachment(r, inbox.id, message.id)
+    ),
+  });
+});
+
+inboxRoutes.get("/:id/messages/:messageId/attachments/:attachmentId", async (c) => {
+  const inbox = await getInbox(c.env, c.req.param("id"), {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
+  if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const denied = scopeInboxDenied(c, inbox);
+  if (denied) return denied;
+
+  const accept = c.req.header("Accept") ?? "";
+  return attachmentHttpResponse(
+    c.env,
+    inbox.id,
+    c.req.param("messageId"),
+    c.req.param("attachmentId"),
+    accept.includes("application/json")
+  );
+});
+
 inboxRoutes.get("/:id/messages/:messageId/raw", async (c) => {
   const inbox = await getInbox(c.env, c.req.param("id"), {
     apiKeyHint: c.get("apiKeyHint"),
@@ -245,9 +290,14 @@ inboxRoutes.get("/:id/messages", async (c) => {
   if (denied) return denied;
   const subjectContains = c.req.query("subjectContains") ?? undefined;
   const messages = await listMessages(c.env, inbox.id, { subjectContains });
+  const attCounts = await attachmentCountsForMessages(
+    c.env,
+    messages.map((m) => m.id)
+  );
   return c.json({
     messages: messages.map((m) => ({
       ...formatMessage(m),
+      attachmentCount: attCounts[m.id] ?? 0,
       ...(m.raw_r2_key
         ? { rawUrl: `/v1/inboxes/${inbox.id}/messages/${m.id}/raw` }
         : {}),

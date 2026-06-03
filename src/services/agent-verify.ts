@@ -3,6 +3,7 @@ import type { Env } from "../env";
 import { parseCallbackUrl } from "../lib/callback-url";
 import { buildPrimaryAction, resolveAgentLabel } from "../lib/agent-recipes";
 import { resolveExpectFrom } from "../lib/service-presets";
+import { countAttachmentsForMessage } from "./message-attachments";
 import { primaryLink } from "../services/extract";
 import {
   createInbox,
@@ -93,6 +94,7 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
   }
 
   const links = parseLinks(message.links_json);
+  const attachmentCount = await countAttachmentsForMessage(env, message.id);
   const verification = {
     otp: message.otp,
     links,
@@ -106,6 +108,8 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
           rawUrl: `/v1/inboxes/${inbox.id}/messages/${message.id}/raw`,
         }
       : {}),
+    attachmentCount,
+    hasAttachments: attachmentCount > 0,
   };
 
   const deleted =

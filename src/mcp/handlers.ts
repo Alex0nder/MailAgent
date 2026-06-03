@@ -16,10 +16,18 @@ import {
   createInbox,
   deleteInbox,
   getInbox,
+  getMessage,
   listInboxes,
   listMessages,
 } from "../services/inbox";
 import { loadRawMessagePayload } from "../services/message-raw";
+import {
+  formatAttachment,
+  fetchAttachmentDownloadMeta,
+  getAttachment,
+  countAttachmentsForMessage,
+  listAttachments,
+} from "../services/message-attachments";
 import { waitForFirstMessage, type WaitProgressEvent } from "../services/wait";
 import type { McpProgressParams, McpToolContext } from "../mcp/progress";
 
@@ -262,6 +270,7 @@ export async function executeMcpTool(
           ...(message.raw_r2_key
             ? { rawUrl: `/v1/inboxes/${inboxId}/messages/${message.id}/raw` }
             : {}),
+          attachmentCount: await countAttachmentsForMessage(env, message.id),
         },
       });
     }
@@ -276,22 +285,26 @@ export async function executeMcpTool(
         subjectContains: args.subjectContains as string | undefined,
       });
       return textResult({
-        messages: messages.map((m) => {
-          const links = parseLinks(m.links_json);
-          return {
-            id: m.id,
-            from: m.from_addr,
-            subject: m.subject,
-            otp: m.otp,
-            links,
-            primaryLink: primaryLink(links),
-            receivedAt: m.received_at,
-            hasRaw: Boolean(m.raw_r2_key),
-            ...(m.raw_r2_key
-              ? { rawUrl: `/v1/inboxes/${inboxId}/messages/${m.id}/raw` }
-              : {}),
-          };
-        }),
+        messages: await Promise.all(
+          messages.map(async (m) => {
+            const links = parseLinks(m.links_json);
+            const attachmentCount = await countAttachmentsForMessage(env, m.id);
+            return {
+              id: m.id,
+              from: m.from_addr,
+              subject: m.subject,
+              otp: m.otp,
+              links,
+              primaryLink: primaryLink(links),
+              receivedAt: m.received_at,
+              hasRaw: Boolean(m.raw_r2_key),
+              ...(m.raw_r2_key
+                ? { rawUrl: `/v1/inboxes/${inboxId}/messages/${m.id}/raw` }
+                : {}),
+              attachmentCount,
+            };
+          })
+        ),
       });
     }
 
@@ -312,6 +325,50 @@ export async function executeMcpTool(
         );
       }
       return textResult(payload);
+    }
+
+    case "mailagent_list_attachments": {
+      const inboxId = args.inboxId as string;
+      const messageId = args.messageId as string;
+      const inboxRow = await getInbox(env, inboxId, { apiKeyHint: auth.apiKeyHint });
+      if (!inboxRow || !assertInboxAccessible(auth.scope, inboxRow).ok) {
+        return textResult({ error: "inbox_not_found" }, true);
+      }
+      const message = await getMessage(env, inboxId, messageId);
+      if (!message) return textResult({ error: "message_not_found" }, true);
+      const rows = await listAttachments(env, message.id);
+      return textResult({
+        messageId: message.id,
+        attachments: rows.map((r) =>
+          formatAttachment(r, inboxId, message.id)
+        ),
+      });
+    }
+
+    case "mailagent_get_attachment": {
+      const inboxId = args.inboxId as string;
+      const messageId = args.messageId as string;
+      const attachmentId = args.attachmentId as string;
+      const inboxRow = await getInbox(env, inboxId, { apiKeyHint: auth.apiKeyHint });
+      if (!inboxRow || !assertInboxAccessible(auth.scope, inboxRow).ok) {
+        return textResult({ error: "inbox_not_found" }, true);
+      }
+      const message = await getMessage(env, inboxId, messageId);
+      if (!message) return textResult({ error: "message_not_found" }, true);
+      const row = await getAttachment(env, message.id, attachmentId);
+      if (!row) return textResult({ error: "attachment_not_found" }, true);
+      const meta = await fetchAttachmentDownloadMeta(
+        env,
+        message.provider_id,
+        row
+      );
+      if ("error" in meta) return textResult({ error: meta.error }, true);
+      return textResult({
+        ...meta,
+        messageId: message.id,
+        inboxId,
+        downloadPath: `/v1/inboxes/${inboxId}/messages/${messageId}/attachments/${attachmentId}`,
+      });
     }
 
     case "mailagent_extract_verification": {
@@ -337,6 +394,7 @@ export async function executeMcpTool(
         ...(latest.raw_r2_key
           ? { rawUrl: `/v1/inboxes/${inboxId}/messages/${latest.id}/raw` }
           : {}),
+        attachmentCount: await countAttachmentsForMessage(env, latest.id),
       });
     }
 

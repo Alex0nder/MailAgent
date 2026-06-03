@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Attachments — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="doc-page" data-site="docs" data-doc="attachments">
+    <div id="site-nav"></div>
+    <div class="doc-layout">
+      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
+      <article class="doc-content">
+      <h1>Attachments</h1>
+      <p class="doc-lead">
+        Incoming attachment metadata is stored at ingest from Resend. Small files
+        (default ≤2MB) are cached in the same R2 bucket as raw MIME for fast download.
+      </p>
+
+      <h2>REST</h2>
+      <pre class="doc-pre"><code>GET /v1/inboxes/:inboxId/messages/:messageId/attachments
+→ { "attachments": [{ "id", "filename", "cached", "downloadUrl" }] }
+
+GET …/attachments/:attachmentId
+→ file stream (R2 or Resend proxy)
+
+GET …/attachments/:attachmentId  Accept: application/json
+→ { "downloadUrl", "expiresAt", "cached" }</code></pre>
+
+      <h2>MCP (v0.7)</h2>
+      <pre class="doc-pre"><code>mailagent_list_attachments { inboxId, messageId }
+mailagent_get_attachment { inboxId, messageId, attachmentId }
+
+mailagent_list_messages includes attachmentCount.</code></pre>
+
+      <p>Verify response adds <code>hasAttachments</code> and <code>attachmentCount</code>.</p>
+      <p><a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/ATTACHMENTS.md">Full guide (repo) →</a></p>
+      </article>
+    </div>
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
+  </body>
+</html>

@@ -36,7 +36,7 @@ type VerifyBody = {
 agentRoutes.get("/", (c) => {
   return c.json({
     name: "MailAgent Agent API",
-    version: "0.6.0",
+    version: "0.7.0",
     recommended: {
       verify: { method: "POST", path: "/v1/agent/verify" },
       oneShot: { method: "POST", path: "/v1/inboxes/open" },

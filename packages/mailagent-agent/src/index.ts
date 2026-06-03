@@ -31,6 +31,8 @@ export type VerifySignupResult = {
     messageId?: string;
     hasRaw?: boolean;
     rawUrl?: string;
+    attachmentCount?: number;
+    hasAttachments?: boolean;
   };
   agent?: { primaryAction: PrimaryAction; service: string | null };
   error?: string;
@@ -48,6 +50,7 @@ export type MessageSummary = {
   receivedAt: string;
   hasRaw?: boolean;
   rawUrl?: string;
+  attachmentCount?: number;
 };
 
 export class MailAgent {
@@ -122,6 +125,37 @@ export class MailAgent {
     }>(`/v1/inboxes/${inboxId}/messages/${messageId}/raw`, {
       headers: { Accept: "application/json" },
     });
+  }
+
+  /** GET attachment list */
+  listAttachments(inboxId: string, messageId: string) {
+    return this.request<{
+      messageId: string;
+      attachments: Array<{
+        id: string;
+        filename: string;
+        contentType: string | null;
+        sizeBytes: number | null;
+        cached: boolean;
+        downloadUrl: string;
+      }>;
+    }>(`/v1/inboxes/${inboxId}/messages/${messageId}/attachments`);
+  }
+
+  /** GET attachment metadata (Accept: application/json) */
+  getAttachmentMeta(inboxId: string, messageId: string, attachmentId: string) {
+    return this.request<{
+      id: string;
+      filename: string;
+      contentType: string;
+      sizeBytes: number | null;
+      cached: boolean;
+      downloadUrl?: string;
+      expiresAt?: string;
+    }>(
+      `/v1/inboxes/${inboxId}/messages/${messageId}/attachments/${attachmentId}`,
+      { headers: { Accept: "application/json" } }
+    );
   }
 
   /** GET /v1/agent/runs */
