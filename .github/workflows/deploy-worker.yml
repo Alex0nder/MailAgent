@@ -37,6 +37,7 @@ jobs:
         env:
           MAILAGENT_API_URL: https://api.webmailagent.com
           MAILAGENT_API_KEY: ${{ secrets.MAILAGENT_API_KEY }}
+          SMOKE_EXPECT_ATTACHMENTS: "1"
         run: |
           if [ -z "$MAILAGENT_API_KEY" ]; then
             echo "MAILAGENT_API_KEY not set — skip smoke"

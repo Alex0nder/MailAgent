@@ -43,6 +43,39 @@ async function main() {
   console.log("GET /v1/me", me.res.status, me.json?.scope ? "scope=ok" : "");
   if (!me.res.ok) process.exit(1);
 
+  const agent = await req("GET", "/v1/agent");
+  const tools = agent.json?.mcpTools ?? [];
+  console.log("GET /v1/agent", agent.res.status, `mcpTools=${tools.length}`);
+  if (!agent.res.ok) process.exit(1);
+  for (const name of [
+    "mailagent_verify_signup",
+    "mailagent_create_inbox",
+    "mailagent_list_messages",
+  ]) {
+    if (!tools.includes(name)) {
+      console.error("missing mcpTool on API:", name);
+      process.exit(1);
+    }
+  }
+  const wantAttach = process.env.SMOKE_EXPECT_ATTACHMENTS === "1";
+  if (wantAttach) {
+    for (const name of [
+      "mailagent_list_attachments",
+      "mailagent_get_attachment",
+    ]) {
+      if (!tools.includes(name)) {
+        console.error("deploy v0.7+ required, missing:", name);
+        process.exit(1);
+      }
+    }
+  } else if (
+    !tools.includes("mailagent_list_attachments")
+  ) {
+    console.log(
+      "hint: after merge main, rerun with SMOKE_EXPECT_ATTACHMENTS=1"
+    );
+  }
+
   const created = await req("POST", "/v1/inboxes", {
     label,
     ttlMinutes: 15,

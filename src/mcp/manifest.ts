@@ -181,3 +181,6 @@ export const MCP_TOOLS = [
     },
   },
 ] as const;
+
+/** Имена tools для GET /v1/agent и GET /v1 — единый источник с MCP_TOOLS */
+export const MCP_TOOL_NAMES: string[] = MCP_TOOLS.map((t) => t.name);

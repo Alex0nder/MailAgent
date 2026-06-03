@@ -68,12 +68,14 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | Richer 408 + callback `verification` | ✅ |
 | `npm run doctor` | ✅ |
 
-### v0.9 (in progress)
+### v0.9 ✅ (branch `qa/v0.8`, merge pending)
 
 | `waitForCallback` in `@mailagent/qa` | ✅ |
 | `getVerification(inboxId, messageId?)` | ✅ |
 | Doctor Resend API ping | ✅ |
 | CI: `smoke:qa` after deploy | ✅ |
+| `GET /v1/agent` mcpTools = manifest | ✅ |
+| [QA-RELEASE.md](./QA-RELEASE.md) merge checklist | ✅ |
 | Publish `@mailagent/qa@0.1.9` | pending |
 
 ### v0.9+ ✅
