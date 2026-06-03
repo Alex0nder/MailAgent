@@ -23,9 +23,16 @@ P0–P2 закрыты — см. [QA-ROADMAP.md](./QA-ROADMAP.md).
 
 ```bash
 npm login
-npm run publish:check   # build + versions
-npm run publish:all     # mcp + qa + agent
+npm run publish:check
+npm run publish:all
 ```
+
+Или CI: secret `NPM_TOKEN` → workflow **Publish npm packages** / git tag `v*`.  
+См. [PUBLISH.md](./PUBLISH.md).
+
+## CI ✅
+
+Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, опционально `MAILAGENT_API_KEY` для smoke.
 
 ## Дальше
 

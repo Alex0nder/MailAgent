@@ -1,6 +1,7 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "mailagent",
+  "account_id": "42ae092824ce3429ee3f914b43603273",
   "main": "src/index.ts",
   "workers_dev": true,
   "compatibility_date": "2026-01-15",

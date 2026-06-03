@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "src/**"
+      - "public/**"
       - "migrations/**"
       - "wrangler.jsonc"
       - "package.json"
@@ -31,3 +32,14 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Smoke agent (optional)
+        env:
+          MAILAGENT_API_URL: https://api.webmailagent.com
+          MAILAGENT_API_KEY: ${{ secrets.MAILAGENT_API_KEY }}
+        run: |
+          if [ -z "$MAILAGENT_API_KEY" ]; then
+            echo "MAILAGENT_API_KEY not set — skip smoke"
+            exit 0
+          fi
+          npm run smoke:agent

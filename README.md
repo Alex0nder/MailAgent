@@ -123,12 +123,27 @@ curl -N "https://.../v1/inboxes/<id>/events" \
 
 Официальный протокол [Model Context Protocol](https://modelcontextprotocol.io); SDK: [`@modelcontextprotocol/sdk`](https://www.npmjs.com/package/@modelcontextprotocol/sdk) (stdio).
 
-### Сборка MCP-сервера
+### npm-пакеты
+
+После publish на npm (см. [docs/PUBLISH.md](./docs/PUBLISH.md)):
+
+```bash
+npm install @mailagent/mcp      # stdio MCP для Cursor
+npm install @mailagent/agent    # REST + remote MCP SDK
+npm install @mailagent/qa       # Playwright / Cypress QA
+```
+
+Локальная сборка из репо:
 
 ```bash
 npm run build:mcp
-npm run build:qa   # пакет @mailagent/qa для Playwright
+npm run build:qa
+npm run build:agent
 ```
+
+Remote MCP (prod): `https://api.webmailagent.com/mcp` — OAuth/DCR: [docs/MCP-OAUTH.md](./docs/MCP-OAUTH.md).
+
+### Сборка MCP-сервера (из репо)
 
 В `.env` добавьте (см. `.env.example`):
 
@@ -175,8 +190,7 @@ Skill для агента: [`.cursor/skills/mailagent-mcp/SKILL.md`](.cursor/ski
 
 ### CLI (терминал / CI)
 
-После `npm run build:mcp
-npm run build:qa   # пакет @mailagent/qa для Playwright`:
+После `npm run build:mcp`:
 
 ```bash
 # один шаг: ящик + ждать OTP (service=dribbble)
@@ -217,9 +231,12 @@ curl -s -X POST https://mailagent.<worker>/v1/inboxes/open \
 
 Пустой `allowedSenders` = принимать всех (только для dev).
 
-## CI (Worker)
+## CI
 
-GitHub Actions: `.github/workflows/deploy-worker.yml` — секреты `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
+- **Deploy:** `.github/workflows/deploy-worker.yml` — секреты `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`; опционально `MAILAGENT_API_KEY` для smoke после деплоя
+- **npm publish:** `.github/workflows/publish-packages.yml` — secret `NPM_TOKEN`
+
+Подробно: [docs/CI.md](./docs/CI.md) · [docs/PUBLISH.md](./docs/PUBLISH.md)
 
 ## Дальше
 
