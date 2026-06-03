@@ -19,6 +19,7 @@ import {
   listInboxes,
   listMessages,
 } from "../services/inbox";
+import { loadRawMessagePayload } from "../services/message-raw";
 import { waitForFirstMessage, type WaitProgressEvent } from "../services/wait";
 import type { McpProgressParams, McpToolContext } from "../mcp/progress";
 
@@ -257,8 +258,60 @@ export async function executeMcpTool(
           links,
           primaryLink: primaryLink(links),
           receivedAt: message.received_at,
+          hasRaw: Boolean(message.raw_r2_key),
+          ...(message.raw_r2_key
+            ? { rawUrl: `/v1/inboxes/${inboxId}/messages/${message.id}/raw` }
+            : {}),
         },
       });
+    }
+
+    case "mailagent_list_messages": {
+      const inboxId = args.inboxId as string;
+      const inboxRow = await getInbox(env, inboxId, { apiKeyHint: auth.apiKeyHint });
+      if (!inboxRow || !assertInboxAccessible(auth.scope, inboxRow).ok) {
+        return textResult({ error: "inbox_not_found" }, true);
+      }
+      const messages = await listMessages(env, inboxId, {
+        subjectContains: args.subjectContains as string | undefined,
+      });
+      return textResult({
+        messages: messages.map((m) => {
+          const links = parseLinks(m.links_json);
+          return {
+            id: m.id,
+            from: m.from_addr,
+            subject: m.subject,
+            otp: m.otp,
+            links,
+            primaryLink: primaryLink(links),
+            receivedAt: m.received_at,
+            hasRaw: Boolean(m.raw_r2_key),
+            ...(m.raw_r2_key
+              ? { rawUrl: `/v1/inboxes/${inboxId}/messages/${m.id}/raw` }
+              : {}),
+          };
+        }),
+      });
+    }
+
+    case "mailagent_get_raw_message": {
+      const inboxId = args.inboxId as string;
+      const messageId = args.messageId as string;
+      const inboxRow = await getInbox(env, inboxId, { apiKeyHint: auth.apiKeyHint });
+      if (!inboxRow || !assertInboxAccessible(auth.scope, inboxRow).ok) {
+        return textResult({ error: "inbox_not_found" }, true);
+      }
+      const payload = await loadRawMessagePayload(env, inboxId, messageId, {
+        includeBody: args.includeBody === true,
+      });
+      if (!payload.ok) {
+        return textResult(
+          { error: payload.error, hint: payload.hint },
+          true
+        );
+      }
+      return textResult(payload);
     }
 
     case "mailagent_extract_verification": {
@@ -280,6 +333,10 @@ export async function executeMcpTool(
         from: latest.from_addr,
         subject: latest.subject,
         messageId: latest.id,
+        hasRaw: Boolean(latest.raw_r2_key),
+        ...(latest.raw_r2_key
+          ? { rawUrl: `/v1/inboxes/${inboxId}/messages/${latest.id}/raw` }
+          : {}),
       });
     }
 

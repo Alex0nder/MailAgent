@@ -3,7 +3,6 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-41B4KG53D1"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -13,30 +12,27 @@
       gtag("js", new Date());
       gtag("config", "G-41B4KG53D1");
     </script>
-    <title>MailAgent Debug — inboxes by label</title>
+    <title>Debug inboxes — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/styles.css" />
-    <style>
-      .debug-wrap { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
-      .debug-wrap h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
-      .debug-wrap p { color: var(--muted, #666); margin-bottom: 1.5rem; }
-      .debug-form label { display: block; font-size: 0.8rem; margin-bottom: 0.25rem; }
-      .debug-form input { width: 100%; margin-bottom: 1rem; padding: 0.5rem 0.65rem; font: inherit; border: 1px solid #ddd; border-radius: 6px; }
-      .debug-form button { padding: 0.55rem 1rem; border: none; border-radius: 6px; background: #000; color: #fff; cursor: pointer; }
-      .debug-err { color: #b00020; margin-top: 1rem; }
-      .inbox-list { list-style: none; padding: 0; margin-top: 1.5rem; }
-      .inbox-list li { border: 1px solid #eee; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.5rem; cursor: pointer; }
-      .inbox-list li:hover { background: #fafafa; }
-      .inbox-list .addr { font-family: ui-monospace, monospace; font-size: 0.85rem; }
-      .msg-panel { margin-top: 1.5rem; padding: 1rem; background: #f8f8f8; border-radius: 8px; font-size: 0.9rem; }
-      .msg-panel pre { white-space: pre-wrap; word-break: break-word; }
-    </style>
   </head>
-  <body>
-    <div class="debug-wrap">
-      <p><a href="/">← MailAgent</a></p>
+  <body class="app-page" data-site="app" data-doc="debug">
+    <div id="site-nav"></div>
+
+    <main class="app-main app-main--wide">
       <h1>Debug inboxes</h1>
-      <p>Read-only QA view: list inboxes for your API key (optional <code>label</code> filter).</p>
-      <form class="debug-form" id="form">
+      <p class="app-lead">
+        Read-only QA view: list inboxes for your API key (optional <code>label</code> filter).
+      </p>
+
+      <form class="app-form" id="form">
         <label for="base">API base URL</label>
         <input id="base" type="url" value="https://api.webmailagent.com" required />
         <label for="key">Bearer API key</label>
@@ -45,10 +41,14 @@
         <input id="label" type="text" placeholder="ci-run-42" />
         <button type="submit">Load inboxes</button>
       </form>
-      <p class="debug-err" id="err" hidden></p>
-      <ul class="inbox-list" id="list"></ul>
-      <div class="msg-panel" id="detail" hidden></div>
-    </div>
+
+      <p class="app-err" id="err" hidden></p>
+      <ul class="app-list" id="list"></ul>
+      <div class="app-card" id="detail" hidden></div>
+    </main>
+
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
     <script>
       const STORAGE_KEY = "mailagent_debug_key";
       const baseEl = document.getElementById("base");
@@ -89,7 +89,7 @@
           }
           for (const box of inboxes) {
             const li = document.createElement("li");
-            li.innerHTML = `<strong>${box.id}</strong><br /><span class="addr">${box.address}</span>${box.label ? `<br />label: ${box.label}` : ""}`;
+            li.innerHTML = `<strong>${box.id}</strong><br /><span class="mono">${box.address}</span>${box.label ? `<br />label: ${box.label}` : ""}`;
             li.addEventListener("click", () => loadMessages(base, key, box.id));
             listEl.appendChild(li);
           }
@@ -107,7 +107,7 @@
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-          detailEl.innerHTML = `<p class="debug-err">${data.error || res.statusText}</p>`;
+          detailEl.innerHTML = `<p class="app-err">${data.error || res.statusText}</p>`;
           return;
         }
         const cbRes = await fetch(`${base}/v1/inboxes/${id}/callbacks`, {

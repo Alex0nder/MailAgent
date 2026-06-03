@@ -100,6 +100,12 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
     from: message.from_addr,
     subject: message.subject,
     messageId: message.id,
+    hasRaw: Boolean(message.raw_r2_key),
+    ...(message.raw_r2_key
+      ? {
+          rawUrl: `/v1/inboxes/${inbox.id}/messages/${message.id}/raw`,
+        }
+      : {}),
   };
 
   const deleted =

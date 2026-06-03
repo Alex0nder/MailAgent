@@ -28,10 +28,26 @@ export type VerifySignupResult = {
     otp: string | null;
     primaryLink: string | null;
     links: string[];
+    messageId?: string;
+    hasRaw?: boolean;
+    rawUrl?: string;
   };
   agent?: { primaryAction: PrimaryAction; service: string | null };
   error?: string;
   hint?: string;
+};
+
+export type MessageSummary = {
+  id: string;
+  from: string;
+  subject: string;
+  textPreview: string | null;
+  otp: string | null;
+  links: string[];
+  primaryLink: string | null;
+  receivedAt: string;
+  hasRaw?: boolean;
+  rawUrl?: string;
 };
 
 export class MailAgent {
@@ -70,6 +86,41 @@ export class MailAgent {
     return this.request("/v1/agent/verify", {
       method: "POST",
       body: JSON.stringify(options),
+    });
+  }
+
+  /** GET /v1/me — plan, scope, usage */
+  getProfile() {
+    return this.request<{
+      plan: string;
+      teamId: string | null;
+      scope: { labelPrefix: string | null; readOnly: boolean };
+      limits: { rateLimitPerMinute: number; maxActiveInboxes: number };
+      usage: { activeInboxes: number; inboxesRemaining: number };
+    }>("/v1/me");
+  }
+
+  /** GET /v1/inboxes/:id/messages */
+  listMessages(inboxId: string, subjectContains?: string) {
+    const q = subjectContains
+      ? `?subjectContains=${encodeURIComponent(subjectContains)}`
+      : "";
+    return this.request<{ messages: MessageSummary[] }>(
+      `/v1/inboxes/${inboxId}/messages${q}`
+    );
+  }
+
+  /** GET raw .eml metadata (Accept: application/json) */
+  getRawMessageMeta(inboxId: string, messageId: string) {
+    return this.request<{
+      messageId: string;
+      inboxId: string;
+      contentType: string;
+      sizeBytes: number;
+      filename: string;
+      rawUrl?: string;
+    }>(`/v1/inboxes/${inboxId}/messages/${messageId}/raw`, {
+      headers: { Accept: "application/json" },
     });
   }
 

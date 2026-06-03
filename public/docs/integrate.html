@@ -15,22 +15,20 @@
     </script>
     <title>Integrate in your project — MailAgent</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/styles.css" />
   </head>
-  <body class="doc-page">
-    <header class="nav">
-      <div class="nav-inner">
-        <a href="/" class="logo">MailAgent</a>
-        <nav class="nav-links">
-          <a href="/docs/">API</a>
-          <a href="/docs/integrate.html" aria-current="page">Self-host</a>
-          <a href="/docs/qa.html">QA</a>
-          <a href="https://github.com/Alex0nder/MailAgent" rel="noopener noreferrer">GitHub</a>
-        </nav>
-      </div>
-    </header>
-
-    <main class="doc-main">
+  <body class="doc-page" data-site="docs" data-doc="integrate">
+    <div id="site-nav"></div>
+    <div class="doc-layout">
+      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
+      <article class="doc-content">
       <h1>Use MailAgent in your project</h1>
       <p class="doc-lead">
         <strong>Full openness</strong> = your Cloudflare Worker, your Resend inbox domain, your
@@ -91,14 +89,9 @@ Authorization: Bearer YOUR_API_KEY</code></pre>
         >. Not required for self-host.
       </p>
 
-      <p>
-        <a href="/">← Landing</a> ·
-        <a href="https://github.com/Alex0nder/MailAgent" rel="noopener noreferrer">Source</a>
-      </p>
-    </main>
-
-    <footer class="footer">
-      <p class="footer-bottom"><a href="/">← Back to MailAgent</a></p>
-    </footer>
+      </article>
+    </div>
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
   </body>
 </html>

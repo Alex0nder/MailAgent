@@ -305,6 +305,46 @@ server.registerTool(
   }
 );
 
+server.registerTool(
+  "mailagent_get_raw_message",
+  {
+    description:
+      "Download archived .eml metadata or body (base64 via API when includeBody). Use when extract finds no OTP.",
+    inputSchema: {
+      inboxId: z.string().describe("Inbox id"),
+      messageId: z.string().describe("Message id from list_messages or verify"),
+      includeBody: z
+        .boolean()
+        .optional()
+        .describe("Fetch metadata only when false (default)"),
+    },
+  },
+  async ({ inboxId, messageId, includeBody }) => {
+    const client = new MailAgentClient();
+    try {
+      if (includeBody) {
+        const raw = await client.getRawMessage(inboxId, messageId, {
+          metadataOnly: false,
+        });
+        const body =
+          "body" in raw && typeof raw.body === "string" ? raw.body : "";
+        return toolText({
+          inboxId,
+          messageId,
+          contentType: raw.contentType,
+          bodyPreview: body.slice(0, 4000),
+          truncated: body.length > 4000,
+        });
+      }
+      return toolText(
+        await client.getRawMessage(inboxId, messageId, { metadataOnly: true })
+      );
+    } catch (e) {
+      return toolText({ error: String(e) });
+    }
+  }
+);
+
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);

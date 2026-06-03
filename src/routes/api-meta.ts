@@ -61,6 +61,8 @@ apiMetaRoutes.get("/", (c) => {
       "mailagent_extract_verification",
       "mailagent_delete_inbox",
       "mailagent_list_inboxes",
+      "mailagent_list_messages",
+      "mailagent_get_raw_message",
     ],
     qa: {
       label: "CI run id on create/open",

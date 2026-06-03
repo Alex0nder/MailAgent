@@ -29,40 +29,8 @@
     />
     <link rel="stylesheet" href="/styles.css" />
   </head>
-  <body>
-    <header class="nav">
-      <div class="nav-inner">
-        <a href="/" class="logo">
-          <span class="logo-mark" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M4 6h16v12H4z" />
-              <path d="M4 6l8 7 8-7" />
-            </svg>
-          </span>
-          MailAgent
-        </a>
-        <nav class="nav-links" aria-label="Primary">
-          <a href="#features">Features</a>
-          <a href="#qa">QA</a>
-          <a href="#mcp">MCP</a>
-          <a href="/docs/">Docs</a>
-          <a href="/docs/agents.html">Agents</a>
-          <a href="/debug.html">Debug</a>
-          <a href="/dashboard.html">Dashboard</a>
-          <a href="/agent-runs.html">Agent runs</a>
-          <a href="/docs/integrate.html">Self-host</a>
-        </nav>
-        <div class="nav-actions">
-          <a
-            class="btn btn-ghost nav-github"
-            href="https://github.com/Alex0nder/MailAgent"
-            rel="noopener noreferrer"
-            >GitHub</a
-          >
-          <a class="btn btn-primary" href="#get-started">Get started</a>
-        </div>
-      </div>
-    </header>
+  <body data-site="marketing">
+    <div id="site-nav"></div>
 
     <main>
       <div class="hero-block">
@@ -630,6 +598,14 @@
           </ul>
         </div>
         <div class="footer-col">
+          <h4>Console</h4>
+          <ul>
+            <li><a href="/dashboard.html">Dashboard</a></li>
+            <li><a href="/debug.html">Debug inboxes</a></li>
+            <li><a href="/agent-runs.html">Agent runs</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
           <h4>Stack</h4>
           <ul>
             <li>
@@ -652,6 +628,7 @@
       </p>
     </footer>
 
+    <script src="/site-shell.js" defer></script>
     <script src="/site.js" defer></script>
   </body>
 </html>

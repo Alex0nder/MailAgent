@@ -40,10 +40,20 @@ npm install @mailagent/mcp @mailagent/qa @mailagent/agent
 
 Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, опционально `MAILAGENT_API_KEY` для smoke.
 
-## Дальше
+## v0.6 Agent
+
+| MCP `mailagent_list_messages` | ✅ |
+| MCP `mailagent_get_raw_message` | ✅ |
+| Verify response `hasRaw` + `rawUrl` | ✅ |
+| `@mailagent/agent` getProfile, listMessages, getRawMessageMeta | ✅ |
+
+## Дальше (v0.6+)
 
 - ~~MCP progress notifications during long `wait`~~ ✅
 - ~~Dynamic Client Registration (DCR)~~ ✅
 - ~~Third-party IdP OAuth (Auth0/Google login for MCP)~~ ✅ — [MCP-OAUTH-IDP.md](./MCP-OAUTH-IDP.md)
 - ~~Scoped API keys per tenant~~ ✅ — [SCOPED-API-KEYS.md](./SCOPED-API-KEYS.md)
 - ~~R2 для raw MIME~~ ✅ — [RAW-MIME-R2.md](./RAW-MIME-R2.md)
+- Attachments API (Resend attachment download)
+- Agent session memory / multi-step run state
+- OIDC on prod (Auth0 secrets)

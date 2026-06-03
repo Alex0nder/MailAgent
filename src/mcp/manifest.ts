@@ -7,7 +7,7 @@ const servicesEnum = SERVICE_NAMES;
 
 export const MCP_SERVER_INFO = {
   name: "mailagent",
-  version: "0.5.0",
+  version: "0.6.0",
 };
 
 export const MCP_TOOLS = [
@@ -108,6 +108,35 @@ export const MCP_TOOLS = [
       type: "object",
       required: ["inboxId"],
       properties: { inboxId: { type: "string" } },
+    },
+  },
+  {
+    name: "mailagent_list_messages",
+    description: "List messages in inbox (id, otp, hasRaw, rawUrl).",
+    inputSchema: {
+      type: "object",
+      required: ["inboxId"],
+      properties: {
+        inboxId: { type: "string" },
+        subjectContains: { type: "string" },
+      },
+    },
+  },
+  {
+    name: "mailagent_get_raw_message",
+    description:
+      "Fetch archived .eml metadata or base64 body when extract fails (R2).",
+    inputSchema: {
+      type: "object",
+      required: ["inboxId", "messageId"],
+      properties: {
+        inboxId: { type: "string" },
+        messageId: { type: "string" },
+        includeBody: {
+          type: "boolean",
+          description: "Return bodyBase64 (truncated to agent limit)",
+        },
+      },
     },
   },
 ] as const;

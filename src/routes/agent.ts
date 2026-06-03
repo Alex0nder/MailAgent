@@ -36,10 +36,14 @@ type VerifyBody = {
 agentRoutes.get("/", (c) => {
   return c.json({
     name: "MailAgent Agent API",
-    version: "0.5.0",
+    version: "0.6.0",
     recommended: {
       verify: { method: "POST", path: "/v1/agent/verify" },
       oneShot: { method: "POST", path: "/v1/inboxes/open" },
+      rawMessage: {
+        method: "GET",
+        path: "/v1/inboxes/:id/messages/:messageId/raw",
+      },
     },
     mcpTools: [
       "mailagent_verify_signup",
@@ -47,6 +51,8 @@ agentRoutes.get("/", (c) => {
       "mailagent_create_inbox",
       "mailagent_wait_for_message",
       "mailagent_extract_verification",
+      "mailagent_list_messages",
+      "mailagent_get_raw_message",
     ],
     services: Object.keys(SERVICE_EXPECT_FROM),
     recipes: "/v1/agent/recipes",

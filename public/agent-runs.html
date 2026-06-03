@@ -4,32 +4,41 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Agent runs — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/styles.css" />
-    <style>
-      .runs { max-width: 800px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
-      .runs label { display: block; font-size: 0.8rem; margin-top: 0.75rem; }
-      .runs input { width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px; }
-      .runs button { margin-top: 1rem; padding: 0.5rem 1rem; background: #000; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
-      .run-card { border: 1px solid #eee; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
-      .run-card h3 { margin: 0 0 0.5rem; font-size: 1rem; }
-      .run-card ul { margin: 0; padding-left: 1.2rem; font-size: 0.85rem; }
-      .run-card code { font-size: 0.8rem; }
-    </style>
   </head>
-  <body>
-    <div class="runs">
-      <p><a href="/dashboard.html">← Dashboard</a> · <a href="/docs/agents.html">Agent docs</a></p>
+  <body class="app-page" data-site="app" data-doc="agent-runs">
+    <div id="site-nav"></div>
+
+    <main class="app-main app-main--wide">
       <h1>Agent runs</h1>
-      <p>Active inboxes grouped by <code>runId</code> (<code>label=agent-{runId}</code>).</p>
-      <label for="base">API base</label>
-      <input id="base" type="url" value="https://api.webmailagent.com" />
-      <label for="key">API key</label>
-      <input id="key" type="password" autocomplete="off" />
-      <label for="filter">Filter runId (optional)</label>
-      <input id="filter" type="text" placeholder="cursor-session-42" />
-      <button type="button" id="load">Load runs</button>
+      <p class="app-lead">
+        Active inboxes grouped by <code>runId</code> (<code>label=agent-{runId}</code>).
+        <a href="/docs/agents.html">Agent docs →</a>
+      </p>
+
+      <form class="app-form" id="form" onsubmit="return false">
+        <label for="base">API base</label>
+        <input id="base" type="url" value="https://api.webmailagent.com" />
+        <label for="key">API key</label>
+        <input id="key" type="password" autocomplete="off" placeholder="ma_…" />
+        <label for="filter">Filter runId (optional)</label>
+        <input id="filter" type="text" placeholder="cursor-session-42" />
+        <button type="button" id="load">Load runs</button>
+      </form>
+
       <div id="list"></div>
-    </div>
+    </main>
+
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
     <script>
       const KEY = "mailagent_dashboard_key";
       const baseEl = document.getElementById("base");
@@ -43,7 +52,7 @@
         const key = keyEl.value.trim();
         if (!key) return;
         localStorage.setItem(KEY, key);
-        listEl.textContent = "Loading…";
+        listEl.innerHTML = '<p class="app-lead" style="margin-top:24px">Loading…</p>';
         const q = new URLSearchParams();
         const runId = filterEl.value.trim();
         if (runId) q.set("runId", runId);
@@ -53,23 +62,24 @@
         });
         const data = await res.json();
         if (!res.ok) {
-          listEl.textContent = data.error || res.statusText;
+          listEl.innerHTML = `<p class="app-err">${data.error || res.statusText}</p>`;
           return;
         }
         const runs = data.runs ?? (data.runId ? [data] : []);
         if (!runs.length) {
-          listEl.innerHTML = "<p>No active agent runs. Use <code>runId</code> in MCP or POST /v1/agent/verify.</p>";
+          listEl.innerHTML =
+            '<p class="app-lead" style="margin-top:24px">No active agent runs. Use <code>runId</code> in MCP or <code>POST /v1/agent/verify</code>.</p>';
           return;
         }
         listEl.innerHTML = runs
           .map(
             (r) => `<div class="run-card">
               <h3><code>${r.runId}</code> · ${r.inboxCount} inbox(es)</h3>
-              <p style="font-size:0.8rem;color:#666">Latest: ${r.latestAt}</p>
+              <p class="meta">Latest: ${r.latestAt}</p>
               <ul>${r.inboxes
                 .map(
                   (i) =>
-                    `<li><code>${i.id}</code> ${i.address} <a href="/debug.html">debug</a></li>`
+                    `<li><code>${i.id}</code> ${i.address} — <a href="/debug.html">debug</a></li>`
                 )
                 .join("")}</ul>
             </div>`

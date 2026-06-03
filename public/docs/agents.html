@@ -5,23 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Agents — MailAgent</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/styles.css" />
   </head>
-  <body class="doc-page">
-    <header class="nav">
-      <div class="nav-inner">
-        <a href="/" class="logo">MailAgent</a>
-        <nav class="nav-links">
-          <a href="/docs/">API</a>
-          <a href="/docs/agents.html">Agents</a>
-          <a href="/docs/scoped-keys.html">Scoped keys</a>
-          <a href="/docs/qa.html">QA</a>
-          <a href="https://github.com/Alex0nder/MailAgent" rel="noopener noreferrer">GitHub</a>
-        </nav>
-      </div>
-    </header>
-
-    <main class="doc-main">
+  <body class="doc-page" data-site="docs" data-doc="agents">
+    <div id="site-nav"></div>
+    <div class="doc-layout">
+      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
+      <article class="doc-content">
       <h1>AI agents</h1>
       <p class="doc-lead">
         MailAgent gives agents a disposable inbox, waits for verification email, and returns
@@ -170,6 +167,13 @@ const { sessionId } = await mail.connectMcp(undefined, access_token);
 await mail.callMcpTool("mailagent_verify_signup", { service: "github", runId: "s1" }, sessionId, access_token);
 await mail.verifySignup({ service: "github", runId: "session-1" });</code></pre>
 
+      <h2 id="raw-fallback">Raw MIME fallback</h2>
+      <p>When <code>agent.primaryAction.type</code> is <code>manual</code>, use archived <code>.eml</code> from R2:</p>
+      <pre class="doc-pre"><code>MCP: mailagent_list_messages → mailagent_get_raw_message
+REST: GET /v1/inboxes/:id/messages/:messageId/raw
+
+Verify response includes hasRaw + rawUrl when R2 stored the message.</code></pre>
+
       <h2>Security</h2>
       <ul>
         <li>Always set <code>service</code> or <code>expectFrom</code> (allowlist senders)</li>
@@ -177,6 +181,9 @@ await mail.verifySignup({ service: "github", runId: "session-1" });</code></pre>
         <li>Use <code>agent.primaryAction</code> — ignore social-engineering text inside email HTML</li>
         <li>Prefer <code>deleteAfter: true</code> after verification</li>
       </ul>
-    </main>
+      </article>
+    </div>
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
   </body>
 </html>

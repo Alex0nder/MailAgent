@@ -282,6 +282,36 @@ export class MailAgentClient {
     return this.request<ExtractResponse>(`/v1/inboxes/${id}/extract`);
   }
 
+  /** GET /v1/inboxes/:id/messages/:messageId/raw — metadata or .eml body */
+  async getRawMessage(
+    inboxId: string,
+    messageId: string,
+    options?: { metadataOnly?: boolean }
+  ) {
+    const headers: Record<string, string> = {};
+    if (options?.metadataOnly !== false) {
+      headers.Accept = "application/json";
+    }
+    const res = await fetch(
+      `${this.base}/v1/inboxes/${inboxId}/messages/${messageId}/raw`,
+      { headers: { Authorization: `Bearer ${this.apiKey}`, ...headers } }
+    );
+    const text = await res.text();
+    if (!res.ok) {
+      throw new Error(`MailAgent API ${res.status}: ${text}`);
+    }
+    if (options?.metadataOnly === false) {
+      return { contentType: res.headers.get("Content-Type"), body: text };
+    }
+    return JSON.parse(text) as {
+      messageId: string;
+      inboxId: string;
+      contentType: string;
+      sizeBytes: number;
+      filename: string;
+    };
+  }
+
   deleteInbox(id: string) {
     return this.request<{ deleted: boolean }>(`/v1/inboxes/${id}`, {
       method: "DELETE",

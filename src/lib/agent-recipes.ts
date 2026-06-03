@@ -110,7 +110,7 @@ export function buildPrimaryAction(verification: {
   return {
     type: "manual",
     instruction:
-      "Email arrived but no OTP/link was extracted. Call GET /v1/inboxes/:id/messages and inspect textPreview.",
+      "Email arrived but no OTP/link was extracted. Use mailagent_list_messages, then mailagent_get_raw_message with includeBody if hasRaw is true.",
   };
 }
 

@@ -3,31 +3,37 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>MailAgent Dashboard</title>
+    <title>Dashboard — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/styles.css" />
-    <style>
-      .dash { max-width: 640px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
-      .dash h1 { font-size: 1.5rem; }
-      .dash label { display: block; font-size: 0.8rem; margin: 0.75rem 0 0.25rem; }
-      .dash input { width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px; }
-      .dash button { margin-top: 1rem; padding: 0.55rem 1rem; background: #000; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
-      .dash .card { margin-top: 1.5rem; padding: 1rem; border: 1px solid #eee; border-radius: 8px; }
-      .dash pre { font-size: 0.8rem; overflow: auto; }
-      .dash .pro { margin-top: 0.75rem; }
-    </style>
   </head>
-  <body>
-    <div class="dash">
-      <p><a href="/">← MailAgent</a></p>
+  <body class="app-page" data-site="app" data-doc="dashboard">
+    <div id="site-nav"></div>
+
+    <main class="app-main">
       <h1>Dashboard</h1>
-      <p>Plan, usage, and billing for your API key.</p>
-      <label for="base">API base</label>
-      <input id="base" type="url" value="https://api.webmailagent.com" />
-      <label for="key">API key</label>
-      <input id="key" type="password" autocomplete="off" />
-      <button type="button" id="load">Refresh</button>
-      <div class="card" id="out">Enter API key and refresh.</div>
-    </div>
+      <p class="app-lead">Plan, usage, and billing for your API key.</p>
+
+      <form class="app-form" id="form" onsubmit="return false">
+        <label for="base">API base</label>
+        <input id="base" type="url" value="https://api.webmailagent.com" />
+        <label for="key">API key</label>
+        <input id="key" type="password" autocomplete="off" placeholder="ma_…" />
+        <button type="button" id="load">Refresh</button>
+      </form>
+
+      <div class="app-card" id="out">Enter API key and refresh.</div>
+    </main>
+
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
     <script>
       const KEY = "mailagent_dashboard_key";
       const baseEl = document.getElementById("base");
@@ -74,14 +80,14 @@
               html += `<li><code>${k.hint}</code> ${k.label || ""}${scopeTag}${k.current ? " (you)" : ""}</li>`;
             }
             html += `</ul>`;
-            html += `<button class="pro" id="invite">Create key (invite)</button>`;
-            html += `<p style="font-size:0.85rem;margin-top:0.5rem"><a href="/docs/scoped-keys.html">Scoped keys guide</a></p>`;
+            html += `<button type="button" class="app-btn app-btn--ghost" id="invite">Create key (invite)</button>`;
+            html += `<p style="margin-top:12px;font-size:13px;color:var(--text-muted)"><a href="/docs/scoped-keys.html">Scoped keys guide</a></p>`;
           }
         }
-        html += `<p><a href="/agent-runs.html">Agent runs →</a></p>`;
+        html += `<p style="margin-top:16px"><a href="/agent-runs.html">Agent runs →</a> · <a href="/debug.html">Debug inboxes →</a></p>`;
         html += `<pre>${JSON.stringify({ me, stats }, null, 2)}</pre>`;
         if (me.plan === "free" && me.billing?.stripeEnabled) {
-          html += `<button class="pro" id="upgrade">Upgrade to Pro</button>`;
+          html += `<button type="button" class="app-btn" id="upgrade">Upgrade to Pro</button>`;
         }
         out.innerHTML = html;
         const invite = document.getElementById("invite");
