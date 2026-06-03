@@ -54,4 +54,14 @@ export interface MessageNotifyPayload {
   links: string[];
   primaryLink: string | null;
   receivedAt: string;
+  verification?: {
+    otp: string | null;
+    links: string[];
+    primaryLink: string | null;
+    from: string;
+    subject: string;
+    messageId: string;
+    hasRaw?: boolean;
+    rawUrl?: string;
+  };
 }

@@ -28,6 +28,7 @@ type VerifyBody = {
   label?: string;
   callbackUrl?: string;
   subjectContains?: string;
+  messageIndex?: number;
   timeoutSeconds?: number;
   deleteAfter?: boolean;
   runId?: string;

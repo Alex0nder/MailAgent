@@ -1,4 +1,4 @@
-/** Ожидание первого письма (poll) — для /wait, /open, MCP progress */
+/** Ожидание письма (poll) — для /wait, /open, MCP progress */
 import type { Env } from "../env";
 import { listMessages, type MessageRow } from "./inbox";
 
@@ -12,17 +12,38 @@ export type WaitProgressEvent = {
   messageCount?: number;
 };
 
-export async function waitForFirstMessage(
+export type WaitOptions = {
+  subjectContains?: string;
+  /** 0 = newest matching message (default), 1 = second, … */
+  messageIndex?: number;
+  onProgress?: (event: WaitProgressEvent) => void;
+};
+
+export type WaitTimeoutDebug = {
+  messageCount: number;
+  matchingCount: number;
+  messageIndex: number;
+  subjectContains?: string;
+  subjects: Array<{
+    id: string;
+    subject: string;
+    from: string;
+    receivedAt: string;
+    otp: string | null;
+  }>;
+  hint: string;
+};
+
+/** Ждём N-е письмо (0 = самое новое среди совпадений) */
+export async function waitForMessage(
   env: Env,
   inboxId: string,
   timeoutSec: number,
-  options?: {
-    subjectContains?: string;
-    onProgress?: (event: WaitProgressEvent) => void;
-  }
+  options?: WaitOptions
 ): Promise<MessageRow | null> {
   const cap = Math.min(Math.max(timeoutSec, 5), 120);
   const needle = options?.subjectContains?.trim().toLowerCase();
+  const index = Math.max(0, Math.floor(options?.messageIndex ?? 0));
   const deadline = Date.now() + cap * 1000;
   const started = Date.now();
   let lastEmitSec = -1;
@@ -52,7 +73,7 @@ export async function waitForFirstMessage(
     const messages = await listMessages(env, inboxId, {
       subjectContains: needle,
     });
-    const match = messages[0];
+    const match = messages[index];
     if (match) {
       emit("received", messages.length);
       return match;
@@ -61,6 +82,54 @@ export async function waitForFirstMessage(
     await sleep(500);
   }
   return null;
+}
+
+/** @deprecated alias — messageIndex 0 */
+export async function waitForFirstMessage(
+  env: Env,
+  inboxId: string,
+  timeoutSec: number,
+  options?: Omit<WaitOptions, "messageIndex">
+): Promise<MessageRow | null> {
+  return waitForMessage(env, inboxId, timeoutSec, options);
+}
+
+/** Контекст для 408 timeout — QA debug */
+export async function buildWaitTimeoutDebug(
+  env: Env,
+  inboxId: string,
+  options?: Pick<WaitOptions, "subjectContains" | "messageIndex">
+): Promise<WaitTimeoutDebug> {
+  const index = Math.max(0, Math.floor(options?.messageIndex ?? 0));
+  const needle = options?.subjectContains?.trim();
+  const all = await listMessages(env, inboxId, {});
+  const matching = needle
+    ? await listMessages(env, inboxId, { subjectContains: needle })
+    : all;
+
+  let hint = "No matching email. Check webhook, expectFrom, subjectContains.";
+  if (all.length && !matching.length && needle) {
+    hint = `Found ${all.length} message(s) but none match subjectContains="${needle}".`;
+  } else if (matching.length > 0 && matching.length <= index) {
+    hint = `Need messageIndex=${index} but only ${matching.length} matching message(s). Wait for the next email or lower messageIndex.`;
+  } else if (all.length && !needle) {
+    hint = `Found ${all.length} message(s) but wait timed out before index ${index}.`;
+  }
+
+  return {
+    messageCount: all.length,
+    matchingCount: matching.length,
+    messageIndex: index,
+    ...(needle ? { subjectContains: needle } : {}),
+    subjects: all.slice(0, 15).map((m) => ({
+      id: m.id,
+      subject: m.subject,
+      from: m.from_addr,
+      receivedAt: m.received_at,
+      otp: m.otp,
+    })),
+    hint,
+  };
 }
 
 function sleep(ms: number) {

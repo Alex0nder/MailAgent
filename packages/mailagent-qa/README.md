@@ -42,5 +42,7 @@ Tasks: `mailagentRunLabel`, `mailagentCreateInbox`, `mailagentWaitVerification`,
 ## Docs
 
 - [QA guide](https://webmailagent.com/docs/qa.html)
+- [Troubleshooting](../../docs/QA-TROUBLESHOOTING.md)
+- [Local SMTP (Mailpit)](../../docs/QA-LOCAL-SMTP.md)
 - [Service presets](../../docs/QA-PRESETS.md)
 - [Callback cookbook](../../docs/QA-CALLBACK.md)

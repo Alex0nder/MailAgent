@@ -54,13 +54,32 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | R2 cache for small attachments (≤2MB) | ✅ |
 | Verify `hasAttachments` + `attachmentCount` | ✅ |
 
-## Дальше (v0.7+)
+## Дальше (QA / Developer track)
 
-- ~~MCP progress notifications during long `wait`~~ ✅
-- ~~Dynamic Client Registration (DCR)~~ ✅
-- ~~Third-party IdP OAuth (Auth0/Google login for MCP)~~ ✅ — [MCP-OAUTH-IDP.md](./MCP-OAUTH-IDP.md)
-- ~~Scoped API keys per tenant~~ ✅ — [SCOPED-API-KEYS.md](./SCOPED-API-KEYS.md)
-- ~~R2 для raw MIME~~ ✅ — [RAW-MIME-R2.md](./RAW-MIME-R2.md)
-- ~~Attachments API~~ ✅ — [ATTACHMENTS.md](./ATTACHMENTS.md)
+### v0.8 QA relief (in progress)
+
+| `@mailagent/qa` 0.1.8 debug + attachments + messageIndex | ✅ |
+| Debug UI `?inbox=` + таблицы | ✅ |
+| `npm run smoke:qa` | ✅ |
+| [QA-TROUBLESHOOTING.md](./QA-TROUBLESHOOTING.md) | ✅ |
+| [QA-LOCAL-SMTP.md](./QA-LOCAL-SMTP.md) + Mailpit compose | ✅ |
+| `parse-otp-message` fallback in extract | ✅ |
+
+### v0.8+ backlog
+
+| Wait Nth message (`messageIndex`) | ✅ |
+| Richer 408 response (subjects list) | ✅ |
+| Callback payload `verification` JSON | ✅ |
+| `npm run doctor` (webhook + migrate check) | ✅ |
+| Publish `@mailagent/qa@0.1.8` | pending |
+
+### v0.9 ideas
+
+| Callback-first SDK helper `waitForCallback` | planned |
+| `npm run doctor` Resend API ping | planned |
+
+### Отложено (не QA)
+
 - Agent session memory / multi-step run state
 - OIDC on prod (Auth0 secrets)
+- Billing / Stripe

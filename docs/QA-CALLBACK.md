@@ -85,13 +85,25 @@ curl -sS -X POST "$MAILAGENT_API_URL/v1/inboxes" \
 {
   "event": "message.received",
   "inboxId": "abc-123",
-  "messageId": "...",
+  "id": "msg-id",
   "otp": "482910",
   "primaryLink": "https://...",
   "from": "noreply@auth0.com",
-  "subject": "Verify your email"
+  "subject": "Verify your email",
+  "verification": {
+    "otp": "482910",
+    "primaryLink": "https://...",
+    "links": ["https://..."],
+    "from": "noreply@auth0.com",
+    "subject": "Verify your email",
+    "messageId": "msg-id",
+    "hasRaw": true,
+    "rawUrl": "/v1/inboxes/abc-123/messages/msg-id/raw"
+  }
 }
 ```
+
+Поле `verification` — готовый блок для assert в CI (как `GET /extract`).
 
 ## 3. Assert в тесте (poll логов API)
 

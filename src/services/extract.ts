@@ -1,4 +1,5 @@
 /** Извлечение OTP и ссылок при ingest (не в hot path webhook) */
+import parseOtpMessage from "parse-otp-message";
 
 const OTP_PATTERNS = [
   /code[:\s]+(\d{4,8})/i,
@@ -26,6 +27,8 @@ export function extractOtp(text: string): string | null {
     if (code.length === 4 && code.startsWith("20")) continue;
     return code;
   }
+  const parsed = parseOtpMessage(text);
+  if (parsed?.code && /^\d{4,8}$/.test(parsed.code)) return parsed.code;
   return null;
 }
 

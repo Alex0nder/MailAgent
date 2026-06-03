@@ -16,6 +16,7 @@ import {
 } from "./inbox";
 import { storeRawMimeFromUrl } from "./raw-mime-r2";
 import { saveAttachmentsFromEmail } from "./message-attachments";
+import { formatMessageVerification } from "./message-verify";
 import type { EmailQueueMessage, MessageNotifyPayload } from "../env";
 import { nanoid } from "nanoid";
 
@@ -91,7 +92,7 @@ export async function processInboundEmail(
     email
   );
 
-  const payload = toNotifyPayload(row);
+  const payload = toNotifyPayload(row, inbox.id);
   await notify(inbox, payload);
 
   if (inbox.callback_url) {
@@ -108,10 +109,11 @@ export async function processInboundEmail(
   }
 }
 
-function toNotifyPayload(row: MessageRow): MessageNotifyPayload {
+function toNotifyPayload(row: MessageRow, inboxId: string): MessageNotifyPayload {
   const links = Array.isArray(row.links_json)
     ? row.links_json
     : (JSON.parse(String(row.links_json)) as string[]);
+  const verification = formatMessageVerification(row, inboxId);
   return {
     id: row.id,
     inboxId: row.inbox_id,
@@ -121,6 +123,7 @@ function toNotifyPayload(row: MessageRow): MessageNotifyPayload {
     links,
     primaryLink: primaryLink(links),
     receivedAt: row.received_at,
+    verification,
   };
 }
 
