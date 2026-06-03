@@ -76,10 +76,11 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | CI: `smoke:qa` after deploy | ✅ |
 | Publish `@mailagent/qa@0.1.9` | pending |
 
-### v0.9+ ideas
+### v0.9+ ✅
 
-| PR CI smoke on `qa/*` branches (no deploy) | planned |
-| Contract test + callback in CI | planned |
+| PR CI smoke on `qa/*` (`.github/workflows/qa-smoke.yml`) | ✅ |
+| Contract + `messageIndex` + callback (`test:contract:qa:callback`) | ✅ |
+| Playwright `mailagent-callback.fixture.ts` | ✅ |
 
 ### Отложено (не QA)
 

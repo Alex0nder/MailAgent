@@ -92,6 +92,39 @@ async function main() {
     process.exit(1);
   }
 
+  // messageIndex: второе письмо, wait должен вернуть его
+  const otp2 = "112233";
+  for (const [subj, otpVal] of [
+    ["contract-first", "000001"],
+    ["contract-second", otp2],
+  ]) {
+    const sim2 = spawnSync(
+      process.execPath,
+      [
+        simScript,
+        inboxId,
+        otpVal,
+        "noreply@auth0.com",
+        `--subject=${subj}`,
+      ],
+      { env: process.env, stdio: "inherit" }
+    );
+    if (sim2.status !== 0) process.exit(sim2.status ?? 1);
+  }
+
+  const waitIdx = await api(
+    `/v1/inboxes/${inboxId}/wait?timeout=30&messageIndex=1&subjectContains=contract-second`
+  );
+  if (!waitIdx.ok) {
+    console.error("wait messageIndex=1 failed", waitIdx.status, waitIdx.json);
+    process.exit(1);
+  }
+  if (waitIdx.json.otp !== otp2) {
+    console.error("messageIndex otp mismatch", waitIdx.json);
+    process.exit(1);
+  }
+  console.log("messageIndex OK", { subject: waitIdx.json.subject, otp: waitIdx.json.otp });
+
   const del = await api(`/v1/inboxes/${inboxId}`, { method: "DELETE" });
   if (!del.ok) {
     console.warn("delete inbox failed", del.status);
