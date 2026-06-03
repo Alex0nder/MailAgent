@@ -12,7 +12,7 @@ npm run issue:key:db -- acme-qa
 
 ## Invite (ещё один ключ)
 
-Любой ключ команды:
+Любой **admin** ключ команды (без scope или full access):
 
 ```bash
 curl -s -X POST "$MAILAGENT_API_URL/v1/team/keys" \
@@ -20,6 +20,20 @@ curl -s -X POST "$MAILAGENT_API_URL/v1/team/keys" \
   -H "Content-Type: application/json" \
   -d '{"label":"ci-bot"}' | jq .
 ```
+
+### Scoped key (CI / agent)
+
+```bash
+curl -s -X POST "$MAILAGENT_API_URL/v1/team/keys" \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "label": "ci-nightly",
+    "scope": { "labelPrefix": "ci-", "readOnly": false }
+  }' | jq .
+```
+
+Сайт: [webmailagent.com/docs/scoped-keys.html](https://webmailagent.com/docs/scoped-keys.html) · репо: [SCOPED-API-KEYS.md](./SCOPED-API-KEYS.md)
 
 Ответ содержит полный `key` **один раз** — передайте коллеге или CI secret.
 

@@ -4,10 +4,8 @@ import type { Env } from "../env";
 import type { ApiVariables } from "../lib/api-context";
 import { requireApiKey } from "../lib/auth";
 import { rateLimit } from "../lib/rate-limit";
-import {
-  getAgentRecipe,
-  listAgentRecipes,
-} from "../lib/agent-recipes";
+import { resolveAgentLabel, getAgentRecipe, listAgentRecipes } from "../lib/agent-recipes";
+import { scopeLabelForCreate, scopeWriteDenied } from "../lib/scope-guard";
 import { SERVICE_EXPECT_FROM } from "../lib/service-presets";
 import { runAgentVerify } from "../services/agent-verify";
 import { listAgentRuns } from "../services/agent-runs";
@@ -105,6 +103,18 @@ agentRoutes.post("/verify", async (c) => {
     body = await c.req.json();
   } catch {
     body = {};
+  }
+
+  if (!body.inboxId) {
+    const writeErr = scopeWriteDenied(c);
+    if (writeErr) return writeErr;
+    const agentLabel = resolveAgentLabel({
+      label: body.label,
+      runId: body.runId,
+    });
+    const labelCheck = scopeLabelForCreate(c, agentLabel);
+    if (labelCheck instanceof Response) return labelCheck;
+    body = { ...body, label: labelCheck.label ?? undefined };
   }
 
   if (!body.inboxId) {

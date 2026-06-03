@@ -25,6 +25,7 @@ meRoutes.get("/", async (c) => {
     plan,
     teamId: c.get("teamId"),
     apiKeyId: c.get("apiKeyId"),
+    scope: c.get("apiKeyScope"),
     limits: {
       rateLimitPerMinute: limits.rateLimitPerMinute,
       maxActiveInboxes: limits.maxActiveInboxes,

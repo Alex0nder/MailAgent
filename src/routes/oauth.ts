@@ -6,6 +6,8 @@ import { publicOriginFromUrl } from "../lib/public-origin";
 import { requireApiKey } from "../lib/auth";
 import { rateLimit } from "../lib/rate-limit";
 import { generateApiKeyToken } from "../lib/generate-api-key";
+import { narrowScope, parseScopeBody } from "../lib/key-scope";
+import { scopeAdminDenied } from "../lib/scope-guard";
 import { addTeamKey, listTeamKeys, resolveAuth } from "../services/api-key-store";
 import { issueMcpAccessToken } from "../services/mcp-oauth";
 import {
@@ -142,6 +144,9 @@ oauthTokenRoutes.get("/callback", async (c) => {
 
 /** RFC 7591 Dynamic Client Registration — новый MCP client key для team */
 oauthTokenRoutes.post("/register", requireApiKey, rateLimit, async (c) => {
+  const adminErr = scopeAdminDenied(c);
+  if (adminErr) return adminErr;
+
   const teamId = c.get("teamId");
   if (!teamId) {
     return c.json(
@@ -158,6 +163,9 @@ oauthTokenRoutes.post("/register", requireApiKey, rateLimit, async (c) => {
     redirect_uris?: string[];
     grant_types?: string[];
     token_endpoint_auth_method?: string;
+    scope?: { labelPrefix?: string; readOnly?: boolean };
+    labelPrefix?: string;
+    readOnly?: boolean;
   } = {};
   try {
     body = await c.req.json();
@@ -165,11 +173,18 @@ oauthTokenRoutes.post("/register", requireApiKey, rateLimit, async (c) => {
     body = {};
   }
 
+  const scopeInput = parseScopeBody(body);
+  const narrowed = narrowScope(c.get("apiKeyScope"), scopeInput);
+  if ("error" in narrowed) {
+    return c.json({ error: narrowed.error, hint: narrowed.hint }, 400);
+  }
+
   const clientName = (body.client_name ?? "mcp-client").trim().slice(0, 64) || "mcp-client";
   const token = generateApiKeyToken();
   const { apiKeyId, hint } = await addTeamKey(c.env, teamId, {
     token,
     label: `mcp:${clientName}`.slice(0, 64),
+    scope: narrowed.scope,
   });
 
   const origin = publicOrigin(c);
@@ -192,6 +207,7 @@ oauthTokenRoutes.post("/register", requireApiKey, rateLimit, async (c) => {
       registration_client_uri: `${origin}/v1/oauth/clients/${apiKeyId}`,
       key_hint: hint,
       scopes: ["mcp:tools"],
+      scope: narrowed.scope,
       warning: "Store client_secret now; it will not be shown again.",
     },
     201
@@ -215,6 +231,10 @@ oauthTokenRoutes.get("/clients/:id", requireApiKey, rateLimit, async (c) => {
     client_name: key.label?.replace(/^mcp:/, "") ?? key.label,
     key_hint: key.key_hint,
     created_at: key.created_at,
+    scope: {
+      labelPrefix: key.scope_label_prefix,
+      readOnly: key.scope_read_only,
+    },
     token_endpoint: `${origin}/v1/oauth/token`,
   });
 });

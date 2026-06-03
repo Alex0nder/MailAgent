@@ -17,6 +17,7 @@ function applyAuthContext(
   c.set("maxActiveInboxes", limits.maxActiveInboxes);
   c.set("teamId", auth.teamId);
   c.set("apiKeyId", auth.apiKeyId);
+  c.set("apiKeyScope", auth.scope);
 }
 
 /** Bearer: API key или OAuth mat_ access token */

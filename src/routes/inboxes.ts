@@ -5,6 +5,12 @@ import { requireApiKey } from "../lib/auth";
 import { rateLimit } from "../lib/rate-limit";
 import { parseCallbackUrl } from "../lib/callback-url";
 import { resolveExpectFrom } from "../lib/service-presets";
+import {
+  scopeInboxDenied,
+  scopeLabelForCreate,
+  scopeListPrefix,
+  scopeWriteDenied,
+} from "../lib/scope-guard";
 import { listCallbackDeliveries } from "../services/callback-log";
 import {
   countActiveInboxesForHint,
@@ -39,6 +45,9 @@ type CreateBody = {
 };
 
 inboxRoutes.post("/open", async (c) => {
+  const writeErr = scopeWriteDenied(c);
+  if (writeErr) return writeErr;
+
   let body: CreateBody = {};
   try {
     body = await c.req.json();
@@ -53,8 +62,12 @@ inboxRoutes.post("/open", async (c) => {
   const quotaErr = await checkInboxQuota(c);
   if (quotaErr) return quotaErr;
 
+  const labelCheck = scopeLabelForCreate(c, clean.label);
+  if (labelCheck instanceof Response) return labelCheck;
+
   const inbox = await createInbox(c.env, {
     ...clean,
+    label: labelCheck.label ?? undefined,
     apiKeyHint: c.get("apiKeyHint"),
   });
   const timeoutSec = Math.min(Number(body.timeoutSeconds ?? 90), 120);
@@ -98,7 +111,7 @@ inboxRoutes.post("/open", async (c) => {
 /** QA: список inbox по label или labelPrefix */
 inboxRoutes.get("/", async (c) => {
   const label = c.req.query("label");
-  const labelPrefix = c.req.query("labelPrefix")?.trim();
+  const labelPrefix = scopeListPrefix(c, c.req.query("labelPrefix"));
   if (labelPrefix && labelPrefix.length < 3) {
     return c.json({ error: "labelPrefix_too_short", minLength: 3 }, 400);
   }
@@ -119,6 +132,9 @@ inboxRoutes.get("/", async (c) => {
 });
 
 inboxRoutes.post("/", async (c) => {
+  const writeErr = scopeWriteDenied(c);
+  if (writeErr) return writeErr;
+
   let body: CreateBody = {};
   try {
     body = await c.req.json();
@@ -132,8 +148,12 @@ inboxRoutes.post("/", async (c) => {
   const quotaErr = await checkInboxQuota(c);
   if (quotaErr) return quotaErr;
 
+  const labelCheck = scopeLabelForCreate(c, clean.label);
+  if (labelCheck instanceof Response) return labelCheck;
+
   const inbox = await createInbox(c.env, {
     ...clean,
+    label: labelCheck.label ?? undefined,
     apiKeyHint: c.get("apiKeyHint"),
   });
   return c.json({ id: inbox.id, ...formatInbox(inbox) }, 201);
@@ -141,7 +161,10 @@ inboxRoutes.post("/", async (c) => {
 
 /** QA: bulk delete по префиксу label (после nightly / suite) */
 inboxRoutes.delete("/", async (c) => {
-  const labelPrefix = c.req.query("labelPrefix")?.trim();
+  const writeErr = scopeWriteDenied(c);
+  if (writeErr) return writeErr;
+
+  const labelPrefix = scopeListPrefix(c, c.req.query("labelPrefix"));
   if (!labelPrefix) {
     return c.json({ error: "labelPrefix_required" }, 400);
   }
@@ -162,6 +185,8 @@ inboxRoutes.get("/:id", async (c) => {
     apiKeyHint: c.get("apiKeyHint"),
   });
   if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const denied = scopeInboxDenied(c, inbox);
+  if (denied) return denied;
   const messages = await listMessages(c.env, inbox.id);
   return c.json({
     ...formatInbox(inbox),
@@ -175,6 +200,8 @@ inboxRoutes.get("/:id/callbacks", async (c) => {
     apiKeyHint: c.get("apiKeyHint"),
   });
   if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const denied = scopeInboxDenied(c, inbox);
+  if (denied) return denied;
   const limit = Number(c.req.query("limit") ?? "20");
   const rows = await listCallbackDeliveries(c.env, inbox.id, limit);
   return c.json({
@@ -196,6 +223,8 @@ inboxRoutes.get("/:id/messages", async (c) => {
     apiKeyHint: c.get("apiKeyHint"),
   });
   if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const denied = scopeInboxDenied(c, inbox);
+  if (denied) return denied;
   const subjectContains = c.req.query("subjectContains") ?? undefined;
   const messages = await listMessages(c.env, inbox.id, { subjectContains });
   return c.json({
@@ -209,6 +238,8 @@ inboxRoutes.get("/:id/extract", async (c) => {
     apiKeyHint: c.get("apiKeyHint"),
   });
   if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const denied = scopeInboxDenied(c, inbox);
+  if (denied) return denied;
   const messages = await listMessages(c.env, inbox.id);
   const latest = messages[0];
   if (!latest) return c.json({ error: "no_messages" }, 404);
@@ -221,6 +252,8 @@ inboxRoutes.get("/:id/events", async (c) => {
     apiKeyHint: c.get("apiKeyHint"),
   });
   if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const denied = scopeInboxDenied(c, inbox);
+  if (denied) return denied;
 
   const id = c.env.INBOX_WAIT.idFromName(inbox.id);
   const stub = c.env.INBOX_WAIT.get(id);
@@ -233,6 +266,8 @@ inboxRoutes.get("/:id/wait", async (c) => {
     apiKeyHint: c.get("apiKeyHint"),
   });
   if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const denied = scopeInboxDenied(c, inbox);
+  if (denied) return denied;
 
   const timeoutSec = Math.min(Number(c.req.query("timeout") ?? 60), 120);
   const subjectContains = c.req.query("subjectContains") ?? undefined;
@@ -244,6 +279,16 @@ inboxRoutes.get("/:id/wait", async (c) => {
 });
 
 inboxRoutes.delete("/:id", async (c) => {
+  const writeErr = scopeWriteDenied(c);
+  if (writeErr) return writeErr;
+
+  const inbox = await getInbox(c.env, c.req.param("id"), {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
+  if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const denied = scopeInboxDenied(c, inbox);
+  if (denied) return denied;
+
   const ok = await deleteInbox(c.env, c.req.param("id"), {
     apiKeyHint: c.get("apiKeyHint"),
   });

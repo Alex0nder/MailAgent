@@ -1,4 +1,5 @@
 import type { PlanId } from "./plans";
+import type { ApiKeyScope } from "./key-scope";
 
 /** Hono context после Bearer-auth */
 export type ApiVariables = {
@@ -8,4 +9,5 @@ export type ApiVariables = {
   maxActiveInboxes: number;
   teamId: string | null;
   apiKeyId: string | null;
+  apiKeyScope: ApiKeyScope;
 };

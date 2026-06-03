@@ -3,6 +3,8 @@ import { Hono } from "hono";
 import type { Env } from "../env";
 import type { ApiVariables } from "../lib/api-context";
 import { requireApiKey } from "../lib/auth";
+import { narrowScope, parseScopeBody } from "../lib/key-scope";
+import { scopeAdminDenied } from "../lib/scope-guard";
 import { rateLimit } from "../lib/rate-limit";
 import { generateApiKeyToken } from "../lib/generate-api-key";
 import { PLAN_LIMITS } from "../lib/plans";
@@ -65,11 +67,18 @@ teamRoutes.get("/", async (c) => {
       label: k.label,
       createdAt: k.created_at,
       current: k.id === c.get("apiKeyId"),
+      scope: {
+        labelPrefix: k.scope_label_prefix,
+        readOnly: k.scope_read_only,
+      },
     })),
   });
 });
 
 teamRoutes.post("/keys", async (c) => {
+  const adminErr = scopeAdminDenied(c);
+  if (adminErr) return adminErr;
+
   const teamId = requireTeam(c);
   if (!teamId) {
     return c.json({ error: "team_required" }, 403);
@@ -86,17 +95,29 @@ teamRoutes.post("/keys", async (c) => {
     return c.json({ error: "team_key_limit_reached", max: maxKeys }, 429);
   }
 
-  let body: { label?: string } = {};
+  let body: {
+    label?: string;
+    scope?: { labelPrefix?: string; readOnly?: boolean };
+    labelPrefix?: string;
+    readOnly?: boolean;
+  } = {};
   try {
     body = await c.req.json();
   } catch {
     body = {};
   }
 
+  const scopeInput = parseScopeBody(body);
+  const narrowed = narrowScope(c.get("apiKeyScope"), scopeInput);
+  if ("error" in narrowed) {
+    return c.json({ error: narrowed.error, hint: narrowed.hint }, 400);
+  }
+
   const token = generateApiKeyToken();
   const { apiKeyId, hint } = await addTeamKey(c.env, teamId, {
     token,
     label: body.label?.trim().slice(0, 64),
+    scope: narrowed.scope,
   });
 
   return c.json(
@@ -105,6 +126,7 @@ teamRoutes.post("/keys", async (c) => {
       key: token,
       hint,
       label: body.label ?? null,
+      scope: narrowed.scope,
       note: "Save the key now — it is shown only once.",
     },
     201
@@ -112,6 +134,9 @@ teamRoutes.post("/keys", async (c) => {
 });
 
 teamRoutes.delete("/keys/:id", async (c) => {
+  const adminErr = scopeAdminDenied(c);
+  if (adminErr) return adminErr;
+
   const teamId = requireTeam(c);
   if (!teamId) return c.json({ error: "team_required" }, 403);
 

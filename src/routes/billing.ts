@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import type { Env } from "../env";
 import type { ApiVariables } from "../lib/api-context";
 import { requireApiKey } from "../lib/auth";
+import { scopeAdminDenied } from "../lib/scope-guard";
 import { rateLimit } from "../lib/rate-limit";
 import {
   createCheckoutSession,
@@ -15,6 +16,9 @@ billingRoutes.use("*", requireApiKey);
 billingRoutes.use("*", rateLimit);
 
 billingRoutes.post("/checkout", async (c) => {
+  const adminErr = scopeAdminDenied(c);
+  if (adminErr) return adminErr;
+
   if (!stripeConfigured(c.env)) {
     return c.json({ error: "stripe_not_configured" }, 503);
   }

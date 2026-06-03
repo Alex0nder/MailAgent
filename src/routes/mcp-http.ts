@@ -3,6 +3,7 @@ import { Hono, type Context } from "hono";
 import type { Env } from "../env";
 import type { ApiVariables } from "../lib/api-context";
 import { publicOriginFromUrl } from "../lib/public-origin";
+import type { ApiKeyScope } from "../lib/key-scope";
 import { requireMcpAuth } from "../lib/auth";
 import { rateLimit } from "../lib/rate-limit";
 import { executeMcpTool } from "../mcp/handlers";
@@ -127,6 +128,7 @@ async function handleJsonRpc(c: Ctx) {
   const auth = {
     apiKeyHint: c.get("apiKeyHint"),
     teamId: c.get("teamId"),
+    scope: c.get("apiKeyScope"),
   };
 
   const sessionIn = c.req.header("Mcp-Session-Id")?.trim();
@@ -192,7 +194,7 @@ type JsonRpcResponse = {
 
 async function resolveSession(
   env: Env,
-  auth: { apiKeyHint: string; teamId: string | null },
+  auth: { apiKeyHint: string; teamId: string | null; scope: ApiKeyScope },
   req: JsonRpcRequest,
   sessionIn?: string
 ): Promise<{
@@ -219,7 +221,7 @@ async function resolveSession(
 
 function streamToolCall(
   env: Env,
-  auth: { apiKeyHint: string; teamId: string | null },
+  auth: { apiKeyHint: string; teamId: string | null; scope: ApiKeyScope },
   id: string | number | null,
   name: string,
   toolArgs: Record<string, unknown>,
@@ -264,7 +266,7 @@ function streamToolCall(
 
 async function dispatchRpcWithSession(
   env: Env,
-  auth: { apiKeyHint: string; teamId: string | null },
+  auth: { apiKeyHint: string; teamId: string | null; scope: ApiKeyScope },
   req: JsonRpcRequest,
   sessionIn?: string,
   _wantsSse = false
@@ -295,7 +297,7 @@ async function dispatchRpcWithSession(
 
 async function dispatchRpc(
   env: Env,
-  auth: { apiKeyHint: string; teamId: string | null },
+  auth: { apiKeyHint: string; teamId: string | null; scope: ApiKeyScope },
   req: JsonRpcRequest
 ): Promise<JsonRpcResponse | null> {
   const id = req.id ?? null;

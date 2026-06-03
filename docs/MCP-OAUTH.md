@@ -25,7 +25,12 @@ curl -sS -X POST https://api.webmailagent.com/v1/oauth/register \
   -H "Authorization: Bearer $MAILAGENT_TEAM_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"client_name":"cursor-mcp"}'
+
+# опционально — scoped key для CI/agent:
+# -d '{"client_name":"cursor-mcp","scope":{"labelPrefix":"agent-","readOnly":true}}'
 ```
+
+Опциональное поле `scope` — [SCOPED-API-KEYS.md](./SCOPED-API-KEYS.md) · [сайт](https://webmailagent.com/docs/scoped-keys.html).
 
 Ответ (201, `client_secret` показывается один раз):
 
@@ -136,6 +141,6 @@ Wrangler var `MCP_OAUTH_TOKEN_TTL_SEC` (default `3600`, max `86400`). Токен
 
 - `mat_` токены привязаны к team/plan того API key, которым выданы
 - Отзыв API key в dashboard → старые `mat_` истекают по TTL
-- Для CI/agents предпочитайте отдельный ключ ([QA-ONBOARDING.md](./QA-ONBOARDING.md))
+- Для CI/agents предпочитайте scoped key — [SCOPED-API-KEYS.md](./SCOPED-API-KEYS.md) · [QA-ONBOARDING.md](./QA-ONBOARDING.md)
 
 См. [agents.html](https://webmailagent.com/docs/agents.html#mcp-oauth).

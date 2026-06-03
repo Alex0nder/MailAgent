@@ -3,8 +3,12 @@ import { nanoid } from "nanoid";
 import type { Env } from "../env";
 import { getDb } from "../db/client";
 import { apiKeyHashFromToken, apiKeyHintFromToken } from "../lib/api-key-hint";
+import { scopeFromDb } from "../lib/key-scope";
 import { normalizePlan, type PlanId } from "../lib/plans";
 import { allowedApiKeys } from "../lib/api-keys";
+
+import type { ApiKeyScope } from "../lib/key-scope";
+import { FULL_ACCESS_SCOPE } from "../lib/key-scope";
 
 export interface ResolvedAuth {
   hint: string;
@@ -12,6 +16,7 @@ export interface ResolvedAuth {
   teamId: string | null;
   apiKeyId: string | null;
   label: string | null;
+  scope: ApiKeyScope;
 }
 
 export async function resolveAuth(
@@ -39,6 +44,7 @@ export async function resolveAuth(
       teamId: row.team_id,
       apiKeyId: row.id,
       label: row.label,
+      scope: scopeFromDb(row),
     };
   }
 
@@ -50,6 +56,7 @@ export async function resolveAuth(
       teamId: null,
       apiKeyId: null,
       label: null,
+      scope: FULL_ACCESS_SCOPE,
     };
   }
 
@@ -59,7 +66,7 @@ export async function resolveAuth(
 async function lookupKeyByHash(env: Env, hash: string) {
   const sql = getDb(env);
   const rows = (await sql`
-    SELECT k.id, k.team_id, k.label, t.plan AS team_plan
+    SELECT k.id, k.team_id, k.label, k.scope_label_prefix, k.scope_read_only, t.plan AS team_plan
     FROM api_keys k
     JOIN teams t ON t.id = k.team_id
     WHERE k.key_hash = ${hash}
@@ -69,6 +76,8 @@ async function lookupKeyByHash(env: Env, hash: string) {
     team_id: string;
     label: string | null;
     team_plan: string;
+    scope_label_prefix: string | null;
+    scope_read_only: boolean;
   }[];
   return rows[0] ?? null;
 }
@@ -137,6 +146,8 @@ export interface TeamKeyRow {
   key_hint: string;
   label: string | null;
   created_at: string;
+  scope_label_prefix: string | null;
+  scope_read_only: boolean;
 }
 
 export async function getTeam(
@@ -156,7 +167,7 @@ export async function listTeamKeys(
 ): Promise<TeamKeyRow[]> {
   const sql = getDb(env);
   return (await sql`
-    SELECT id, key_hint, label, created_at
+    SELECT id, key_hint, label, created_at, scope_label_prefix, scope_read_only
     FROM api_keys
     WHERE team_id = ${teamId}
     ORDER BY created_at ASC
@@ -166,15 +177,21 @@ export async function listTeamKeys(
 export async function addTeamKey(
   env: Env,
   teamId: string,
-  input: { token: string; label?: string }
+  input: {
+    token: string;
+    label?: string;
+    scope?: { labelPrefix?: string | null; readOnly?: boolean };
+  }
 ): Promise<{ apiKeyId: string; hint: string }> {
   const sql = getDb(env);
   const apiKeyId = nanoid(10);
   const hash = await apiKeyHashFromToken(input.token);
   const hint = await apiKeyHintFromToken(input.token);
+  const scopePrefix = input.scope?.labelPrefix?.trim().slice(0, 64) || null;
+  const scopeReadOnly = input.scope?.readOnly ?? false;
   await sql`
-    INSERT INTO api_keys (id, team_id, key_hash, key_hint, label)
-    VALUES (${apiKeyId}, ${teamId}, ${hash}, ${hint}, ${input.label ?? null})
+    INSERT INTO api_keys (id, team_id, key_hash, key_hint, label, scope_label_prefix, scope_read_only)
+    VALUES (${apiKeyId}, ${teamId}, ${hash}, ${hint}, ${input.label ?? null}, ${scopePrefix}, ${scopeReadOnly})
   `;
   return { apiKeyId, hint };
 }

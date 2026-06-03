@@ -2,6 +2,7 @@
 import { nanoid } from "nanoid";
 import type { Env } from "../env";
 import { getDb } from "../db/client";
+import { FULL_ACCESS_SCOPE } from "../lib/key-scope";
 import { normalizePlan, type PlanId } from "../lib/plans";
 import type { ResolvedAuth } from "./api-key-store";
 import { issueMcpAccessToken } from "./mcp-oauth";
@@ -212,6 +213,7 @@ async function resolveOidcTeam(
       teamId: row.team_id,
       apiKeyId: null,
       label: email ?? row.email,
+      scope: FULL_ACCESS_SCOPE,
     };
   }
 
@@ -231,6 +233,7 @@ async function resolveOidcTeam(
     teamId,
     apiKeyId: null,
     label: email ?? null,
+    scope: FULL_ACCESS_SCOPE,
   };
 }
 

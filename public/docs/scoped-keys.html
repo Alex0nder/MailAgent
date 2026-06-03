@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scoped API keys — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="doc-page">
+    <header class="nav">
+      <div class="nav-inner">
+        <a href="/" class="logo">MailAgent</a>
+        <nav class="nav-links">
+          <a href="/docs/">API</a>
+          <a href="/docs/agents.html">Agents</a>
+          <a href="/docs/scoped-keys.html">Scoped keys</a>
+          <a href="/docs/qa.html">QA</a>
+          <a href="https://github.com/Alex0nder/MailAgent" rel="noopener noreferrer">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="doc-main">
+      <h1>Scoped API keys</h1>
+      <p class="doc-lead">
+        Issue limited keys for CI pipelines, agent sessions, and MCP clients — without
+        full team admin access. Restrict by inbox <code>label</code> prefix and optional
+        read-only mode.
+      </p>
+
+      <h2>Scope fields</h2>
+      <table class="doc-table">
+        <thead>
+          <tr><th>Field</th><th>Effect</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>labelPrefix</code></td>
+            <td>Inbox <code>label</code> must start with this prefix (e.g. <code>ci-</code>, <code>agent-</code>)</td>
+          </tr>
+          <tr>
+            <td><code>readOnly</code></td>
+            <td>GET/list/wait/extract only — no create, delete, open, or agent verify without <code>inboxId</code></td>
+          </tr>
+        </tbody>
+      </table>
+      <p>Full admin keys: both fields empty / false (legacy and primary team keys).</p>
+
+      <h2>Create a scoped key</h2>
+      <h3>Team API (admin key required)</h3>
+      <pre class="doc-pre"><code>POST /v1/team/keys
+Authorization: Bearer &lt;ADMIN_TEAM_KEY&gt;
+Content-Type: application/json
+
+{
+  "label": "ci-bot",
+  "scope": {
+    "labelPrefix": "ci-",
+    "readOnly": false
+  }
+}</code></pre>
+      <p>Response includes the full <code>key</code> once — store it in CI secrets.</p>
+
+      <h3>MCP client registration (DCR)</h3>
+      <pre class="doc-pre"><code>POST /v1/oauth/register
+Authorization: Bearer &lt;ADMIN_TEAM_KEY&gt;
+
+{
+  "client_name": "cursor-ci",
+  "scope": {
+    "labelPrefix": "agent-",
+    "readOnly": true
+  }
+}</code></pre>
+
+      <h3>CLI (self-host / ops)</h3>
+      <pre class="doc-pre"><code>npm run issue:key:db -- ci-bot --label-prefix=ci-
+npm run issue:key:db -- ci-readonly --label-prefix=ci- --read-only</code></pre>
+
+      <h2>Rules</h2>
+      <ul class="doc-list">
+        <li>Scoped keys <strong>cannot</strong> create other keys, run DCR, billing checkout, or revoke keys</li>
+        <li>Sub-key prefix must <strong>extend</strong> the parent prefix (<code>ci-e2e-</code> under parent <code>ci-</code>)</li>
+        <li><code>GET /v1/me</code> returns your current <code>scope</code></li>
+        <li><code>mat_</code> OAuth tokens inherit the scope of the API key used at token exchange</li>
+        <li>OIDC login (Auth0/Google) → full team access</li>
+      </ul>
+
+      <h2>Error codes</h2>
+      <table class="doc-table">
+        <thead>
+          <tr><th>Code</th><th>When</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>scope_read_only</code></td><td>POST/DELETE/open on read-only key</td></tr>
+          <tr><td><code>label_required</code></td><td>Create without <code>label</code> when prefix is set</td></tr>
+          <tr><td><code>label_prefix_mismatch</code></td><td>Label does not match prefix</td></tr>
+          <tr><td><code>scope_admin_required</code></td><td>Team admin / DCR / billing with restricted key</td></tr>
+          <tr><td><code>inbox_not_found</code></td><td>Inbox outside your prefix (404)</td></tr>
+        </tbody>
+      </table>
+
+      <h2>CI example</h2>
+      <pre class="doc-pre"><code>export MAILAGENT_API_KEY=ma_ci_scoped...
+
+curl -X POST https://api.webmailagent.com/v1/inboxes \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" \
+  -d '{"label":"ci-nightly-42","service":"github"}'
+
+curl -X DELETE "https://api.webmailagent.com/v1/inboxes?labelPrefix=ci-nightly-" \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY"</code></pre>
+
+      <h2>More</h2>
+      <ul class="doc-list">
+        <li><a href="/dashboard.html">Dashboard</a> — view scope and team keys</li>
+        <li><a href="/docs/agents.html#mcp-oauth">MCP OAuth &amp; DCR</a></li>
+        <li><a href="/docs/qa.html">QA guide</a> — labels and cleanup</li>
+        <li><a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/SCOPED-API-KEYS.md">Full reference (repo)</a></li>
+      </ul>
+    </main>
+
+    <footer class="footer">
+      <p class="footer-bottom"><a href="/">← Back to MailAgent</a></p>
+    </footer>
+  </body>
+</html>

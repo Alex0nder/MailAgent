@@ -47,6 +47,15 @@
           fetch(`${base}/v1/stats`, { headers }).then((r) => r.json()),
         ]);
         let html = `<p><strong>Plan:</strong> ${me.plan ?? "?"}</p>`;
+        const scope = me.scope;
+        if (scope && (scope.labelPrefix || scope.readOnly)) {
+          html += `<p><strong>Scope:</strong> `;
+          if (scope.labelPrefix) html += `prefix <code>${scope.labelPrefix}</code> `;
+          if (scope.readOnly) html += `<em>read-only</em>`;
+          html += `</p>`;
+        } else if (scope) {
+          html += `<p><strong>Scope:</strong> full access</p>`;
+        }
         html += `<p>Active inboxes: ${me.usage?.activeInboxes ?? "?"} / ${me.limits?.maxActiveInboxes ?? "?"}</p>`;
         html += `<p>Rate limit: ${me.limits?.rateLimitPerMinute ?? "?"} req/min</p>`;
         if (me.teamId) {
@@ -55,10 +64,18 @@
           if (team.keys) {
             html += `<h3>Team keys</h3><ul>`;
             for (const k of team.keys) {
-              html += `<li><code>${k.hint}</code> ${k.label || ""}${k.current ? " (you)" : ""}</li>`;
+              let scopeTag = "";
+              const s = k.scope;
+              if (s && (s.labelPrefix || s.readOnly)) {
+                scopeTag = " — ";
+                if (s.labelPrefix) scopeTag += `prefix ${s.labelPrefix} `;
+                if (s.readOnly) scopeTag += "read-only";
+              }
+              html += `<li><code>${k.hint}</code> ${k.label || ""}${scopeTag}${k.current ? " (you)" : ""}</li>`;
             }
             html += `</ul>`;
             html += `<button class="pro" id="invite">Create key (invite)</button>`;
+            html += `<p style="font-size:0.85rem;margin-top:0.5rem"><a href="/docs/scoped-keys.html">Scoped keys guide</a></p>`;
           }
         }
         html += `<p><a href="/agent-runs.html">Agent runs →</a></p>`;
@@ -71,10 +88,18 @@
         if (invite) {
           invite.onclick = async () => {
             const label = prompt("Label for new key (optional):") || undefined;
+            const prefix = prompt("Label prefix (optional, e.g. ci-):") || undefined;
+            const readOnly = prefix
+              ? confirm("Read-only key? (OK = yes, Cancel = read/write)")
+              : false;
+            const body = { label };
+            if (prefix) {
+              body.scope = { labelPrefix: prefix, readOnly };
+            }
             const r = await fetch(`${base}/v1/team/keys`, {
               method: "POST",
               headers: { ...headers, "Content-Type": "application/json" },
-              body: JSON.stringify({ label }),
+              body: JSON.stringify(body),
             });
             const d = await r.json();
             if (d.key) {

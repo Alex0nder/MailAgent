@@ -104,8 +104,16 @@ const { id, address } = await res.json();
         <a href="https://github.com/Alex0nder/MailAgent/tree/main/examples/cypress">examples/cypress</a>
       </p>
 
+      <h2>CI secrets</h2>
+      <p>
+        Use a scoped key per pipeline — <code>labelPrefix: "ci-"</code> so a leaked
+        secret cannot touch other runs or team admin.
+        <a href="/docs/scoped-keys.html">Scoped keys guide →</a>
+      </p>
+
       <h2>More guides</h2>
       <ul>
+        <li><a href="/docs/scoped-keys.html">Scoped API keys</a></li>
         <li><a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/QA-PRESETS.md">Service presets matrix</a></li>
         <li><a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/QA-CALLBACK.md">Callback cookbook</a></li>
         <li><a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/QA-ONBOARDING.md">QA team onboarding</a></li>

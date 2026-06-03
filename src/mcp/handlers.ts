@@ -1,5 +1,12 @@
 /** Выполнение MCP tools на Worker (без HTTP loopback) */
 import type { Env } from "../env";
+import type { ApiKeyScope } from "../lib/key-scope";
+import {
+  assertInboxAccessible,
+  assertLabelForCreate,
+  assertWriteAllowed,
+  effectiveLabelPrefix,
+} from "../lib/key-scope";
 import { parseCallbackUrl } from "../lib/callback-url";
 import { resolveExpectFrom } from "../lib/service-presets";
 import { resolveAgentLabel } from "../lib/agent-recipes";
@@ -18,7 +25,13 @@ import type { McpProgressParams, McpToolContext } from "../mcp/progress";
 export type McpAuth = {
   apiKeyHint: string;
   teamId: string | null;
+  scope: ApiKeyScope;
 };
+
+function scopeWriteError(scope: ApiKeyScope) {
+  const check = assertWriteAllowed(scope);
+  return check.ok ? null : { error: check.error };
+}
 
 function textResult(data: unknown, isError = false) {
   return {
@@ -67,13 +80,20 @@ export async function executeMcpTool(
 ) {
   switch (name) {
     case "mailagent_verify_signup": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr) return textResult(writeErr, true);
+      const agentLabel = resolveAgentLabel({
+        label: args.label as string | undefined,
+        runId: args.runId as string | undefined,
+      });
+      const labelCheck = assertLabelForCreate(auth.scope, agentLabel);
+      if (!labelCheck.ok) {
+        return textResult({ error: labelCheck.error, hint: labelCheck.hint }, true);
+      }
       const result = await runAgentVerify(env, {
         inboxId: args.inboxId as string | undefined,
         service: args.service as string | undefined,
-        label: resolveAgentLabel({
-          label: args.label as string | undefined,
-          runId: args.runId as string | undefined,
-        }),
+        label: labelCheck.label ?? undefined,
         subjectContains: args.subjectContains as string | undefined,
         timeoutSeconds: args.timeoutSeconds as number | undefined,
         ttlMinutes: args.ttlMinutes as number | undefined,
@@ -91,9 +111,19 @@ export async function executeMcpTool(
     }
 
     case "mailagent_create_inbox": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr) return textResult(writeErr, true);
       const callbackUrl = parseCallbackUrl(args.callbackUrl as string | undefined);
       if (args.callbackUrl && !callbackUrl) {
         return textResult({ error: "invalid_callback_url" }, true);
+      }
+      const agentLabel = resolveAgentLabel({
+        label: args.label as string | undefined,
+        runId: args.runId as string | undefined,
+      });
+      const labelCheck = assertLabelForCreate(auth.scope, agentLabel);
+      if (!labelCheck.ok) {
+        return textResult({ error: labelCheck.error, hint: labelCheck.hint }, true);
       }
       const expectFrom = resolveExpectFrom(
         args.service as string | undefined,
@@ -102,10 +132,7 @@ export async function executeMcpTool(
       const inbox = await createInbox(env, {
         ttlMinutes: args.ttlMinutes as number | undefined,
         expectFrom,
-        label: resolveAgentLabel({
-          label: args.label as string | undefined,
-          runId: args.runId as string | undefined,
-        }),
+        label: labelCheck.label ?? undefined,
         callbackUrl,
         apiKeyHint: auth.apiKeyHint,
       });
@@ -119,12 +146,19 @@ export async function executeMcpTool(
     }
 
     case "mailagent_wait_and_extract": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr && !args.inboxId) return textResult(writeErr, true);
       if (!args.inboxId) {
+        const agentLabel = resolveAgentLabel({
+          runId: args.runId as string | undefined,
+        });
+        const labelCheck = assertLabelForCreate(auth.scope, agentLabel);
+        if (!labelCheck.ok) {
+          return textResult({ error: labelCheck.error, hint: labelCheck.hint }, true);
+        }
         const v = await runAgentVerify(env, {
           service: args.service as string | undefined,
-          label: resolveAgentLabel({
-            runId: args.runId as string | undefined,
-          }),
+          label: labelCheck.label ?? undefined,
           subjectContains: args.subjectContains as string | undefined,
           timeoutSeconds: args.timeoutSeconds as number | undefined,
           deleteAfter: args.deleteAfter as boolean | undefined,
@@ -143,6 +177,10 @@ export async function executeMcpTool(
       }
 
       const inboxId = args.inboxId as string;
+      const inboxRow = await getInbox(env, inboxId, { apiKeyHint: auth.apiKeyHint });
+      if (!inboxRow || !assertInboxAccessible(auth.scope, inboxRow).ok) {
+        return textResult({ error: "inbox_not_found" }, true);
+      }
       const timeout = Math.min(Number(args.timeoutSeconds ?? 90), 120);
       const message = await waitForFirstMessage(env, inboxId, timeout, {
         subjectContains: args.subjectContains as string | undefined,
@@ -162,6 +200,9 @@ export async function executeMcpTool(
       };
       let deleted = false;
       if (args.deleteAfter !== false) {
+        if (scopeWriteError(auth.scope)) {
+          return textResult({ error: "scope_read_only" }, true);
+        }
         deleted = await deleteInbox(env, inboxId, {
           apiKeyHint: auth.apiKeyHint,
         });
@@ -175,8 +216,10 @@ export async function executeMcpTool(
           label: args.label as string | undefined,
           runId: args.runId as string | undefined,
         }) ?? (args.label as string | undefined);
+      const prefix = effectiveLabelPrefix(auth.scope, args.labelPrefix as string | undefined);
       const rows = await listInboxes(env, {
         label,
+        labelPrefix: prefix,
         limit: Number(args.limit ?? 20),
         apiKeyHint: auth.apiKeyHint,
       });
@@ -192,6 +235,10 @@ export async function executeMcpTool(
 
     case "mailagent_wait_for_message": {
       const inboxId = args.inboxId as string;
+      const inboxRow = await getInbox(env, inboxId, { apiKeyHint: auth.apiKeyHint });
+      if (!inboxRow || !assertInboxAccessible(auth.scope, inboxRow).ok) {
+        return textResult({ error: "inbox_not_found" }, true);
+      }
       const timeout = Math.min(Number(args.timeoutSeconds ?? 90), 120);
       const message = await waitForFirstMessage(env, inboxId, timeout, {
         subjectContains: args.subjectContains as string | undefined,
@@ -219,7 +266,9 @@ export async function executeMcpTool(
       const inbox = await getInbox(env, inboxId, {
         apiKeyHint: auth.apiKeyHint,
       });
-      if (!inbox) return textResult({ error: "inbox_not_found" }, true);
+      if (!inbox || !assertInboxAccessible(auth.scope, inbox).ok) {
+        return textResult({ error: "inbox_not_found" }, true);
+      }
       const messages = await listMessages(env, inboxId);
       const latest = messages[0];
       if (!latest) return textResult({ error: "no_messages" }, true);
@@ -238,7 +287,9 @@ export async function executeMcpTool(
       const inbox = await getInbox(env, args.inboxId as string, {
         apiKeyHint: auth.apiKeyHint,
       });
-      if (!inbox) return textResult({ error: "inbox_not_found" }, true);
+      if (!inbox || !assertInboxAccessible(auth.scope, inbox).ok) {
+        return textResult({ error: "inbox_not_found" }, true);
+      }
       const messages = await listMessages(env, inbox.id);
       return textResult({
         id: inbox.id,
@@ -250,6 +301,14 @@ export async function executeMcpTool(
     }
 
     case "mailagent_delete_inbox": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr) return textResult(writeErr, true);
+      const inbox = await getInbox(env, args.inboxId as string, {
+        apiKeyHint: auth.apiKeyHint,
+      });
+      if (!inbox || !assertInboxAccessible(auth.scope, inbox).ok) {
+        return textResult({ error: "inbox_not_found" }, true);
+      }
       const ok = await deleteInbox(env, args.inboxId as string, {
         apiKeyHint: auth.apiKeyHint,
       });

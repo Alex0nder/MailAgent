@@ -306,6 +306,19 @@
                 — same flows everywhere.
               </p>
             </article>
+            <article class="feature-card">
+              <div class="feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+              </div>
+              <h3>Scoped API keys</h3>
+              <p>
+                <code>labelPrefix</code> and read-only keys for CI and agents — no
+                full team admin. <a href="/docs/scoped-keys.html">Guide →</a>
+              </p>
+            </article>
           </div>
         </div>
       </section>
@@ -336,10 +349,11 @@
               </p>
             </article>
             <article class="qa-pain-card">
-              <h3>Mailosaur bill &amp; lock-in</h3>
+              <h3>Leaked CI secrets</h3>
               <p>
-                Self-hosted domain on Resend inbound. Pay for mail volume, not
-                per-seat QA SaaS — API you own.
+                Scoped keys with <code>labelPrefix=ci-</code> and read-only mode —
+                limit blast radius if a pipeline secret escapes.
+                <a href="/docs/scoped-keys.html">Scoped keys →</a>
               </p>
             </article>
           </div>
@@ -369,6 +383,7 @@
           <p class="qa-docs-link">
             <a href="/docs/qa.html">Read the QA guide</a>
             — labels, callbacks, CI env, Playwright flow.
+            <a href="/docs/scoped-keys.html">Scoped keys for CI →</a>
           </p>
         </div>
       </section>
@@ -583,6 +598,7 @@
             </li>
             <li><a href="/docs/integrate.html">Self-host</a></li>
             <li><a href="/docs/">API docs</a></li>
+            <li><a href="/docs/scoped-keys.html">Scoped keys</a></li>
             <li><a href="/docs/qa.html">QA guide</a></li>
             <li>
               <a href="https://api.webmailagent.com/v1/openapi.json" rel="noopener noreferrer"

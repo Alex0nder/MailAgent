@@ -15,6 +15,8 @@ type StoredMcpToken = {
   teamId: string | null;
   apiKeyId: string | null;
   label: string | null;
+  scopeLabelPrefix: string | null;
+  scopeReadOnly: boolean;
 };
 
 function kv(env: Env): KVNamespace | undefined {
@@ -51,6 +53,8 @@ export async function issueMcpAccessToken(
     teamId: auth.teamId,
     apiKeyId: auth.apiKeyId,
     label: auth.label,
+    scopeLabelPrefix: auth.scope.labelPrefix,
+    scopeReadOnly: auth.scope.readOnly,
   };
   const expires_in = ttlSec(env);
   await store.put(KV_PREFIX + (await tokenDigest(access_token)), JSON.stringify(payload), {
@@ -80,6 +84,10 @@ export async function resolveMcpAccessToken(
       teamId: data.teamId,
       apiKeyId: data.apiKeyId,
       label: data.label,
+      scope: {
+        labelPrefix: data.scopeLabelPrefix ?? null,
+        readOnly: Boolean(data.scopeReadOnly),
+      },
     };
   } catch {
     return null;

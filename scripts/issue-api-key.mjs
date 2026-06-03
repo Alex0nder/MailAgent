@@ -7,8 +7,16 @@ import { nanoid } from "nanoid";
 
 const args = process.argv.slice(2);
 const register = args.includes("--register");
+const readOnly = args.includes("--read-only");
+const labelPrefixFlag = args.find((a) => a.startsWith("--label-prefix="));
+const labelPrefix = labelPrefixFlag?.slice("--label-prefix=".length);
 const label =
-  args.find((a) => a !== "--register" && !a.startsWith("--")) ?? "pilot";
+  args.find(
+    (a) =>
+      a !== "--register" &&
+      a !== "--read-only" &&
+      !a.startsWith("--")
+  ) ?? "pilot";
 const key = `ma_${randomBytes(24).toString("base64url")}`;
 
 function hint(token) {
@@ -38,11 +46,14 @@ if (register) {
     VALUES (${teamId}, ${teamName}, 'free')
   `;
   await sql`
-    INSERT INTO api_keys (id, team_id, key_hash, key_hint, label)
-    VALUES (${apiKeyId}, ${teamId}, ${hash(key)}, ${hint(key)}, ${label})
+    INSERT INTO api_keys (id, team_id, key_hash, key_hint, label, scope_label_prefix, scope_read_only)
+    VALUES (${apiKeyId}, ${teamId}, ${hash(key)}, ${hint(key)}, ${label}, ${labelPrefix?.slice(0, 64) ?? null}, ${readOnly})
   `;
 
   console.log(`\nRegistered in DB: team=${teamId} plan=free`);
+  if (labelPrefix || readOnly) {
+    console.log(`Scope: labelPrefix=${labelPrefix ?? "(none)"} readOnly=${readOnly}`);
+  }
   console.log("Use this key only (remove from API_KEYS if duplicated).\n");
 } else {
   console.log(`
