@@ -7,6 +7,7 @@
 | Remote MCP `/mcp` | ✅ |
 | Streamable HTTP (Mcp-Session-Id + SSE GET) | ✅ |
 | OAuth client_credentials (`mat_` tokens) | ✅ |
+| Progress notifications on wait | ✅ |
 | RFC 8414 / 9728 discovery | ✅ |
 | `runId` tracing | ✅ |
 | `GET /v1/agent/runs` + UI | ✅ |
@@ -28,6 +29,6 @@ npm run publish:agent # @mailagent/agent@0.1.2
 
 ## Дальше
 
-- MCP progress notifications during long `wait`
+- ~~MCP progress notifications during long `wait`~~ ✅
 - Third-party IdP OAuth (Auth0/Google login for MCP — сейчас API key → mat_ token)
 - Dynamic Client Registration (DCR)

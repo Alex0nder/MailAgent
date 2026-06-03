@@ -10,7 +10,7 @@ import {
   getInbox,
   type InboxRow,
 } from "../services/inbox";
-import { waitForFirstMessage } from "../services/wait";
+import { waitForFirstMessage, type WaitProgressEvent } from "../services/wait";
 
 export type VerifyInput = {
   inboxId?: string;
@@ -25,6 +25,7 @@ export type VerifyInput = {
   deleteAfter?: boolean;
   runId?: string;
   apiKeyHint: string;
+  onProgress?: (event: WaitProgressEvent) => void;
 };
 
 function parseLinks(raw: unknown): string[] {
@@ -74,6 +75,7 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
   const timeoutSec = Math.min(Number(input.timeoutSeconds ?? 90), 120);
   const message = await waitForFirstMessage(env, inbox.id, timeoutSec, {
     subjectContains: input.subjectContains,
+    onProgress: input.onProgress,
   });
 
   if (!message) {

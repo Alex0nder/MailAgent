@@ -12,7 +12,8 @@ import {
   listInboxes,
   listMessages,
 } from "../services/inbox";
-import { waitForFirstMessage } from "../services/wait";
+import { waitForFirstMessage, type WaitProgressEvent } from "../services/wait";
+import type { McpProgressParams, McpToolContext } from "../mcp/progress";
 
 export type McpAuth = {
   apiKeyHint: string;
@@ -38,11 +39,31 @@ function parseLinks(raw: unknown): string[] {
   return [];
 }
 
+function bindWaitProgress(ctx?: McpToolContext) {
+  if (!ctx?.onProgress) return undefined;
+  return (e: WaitProgressEvent) => {
+    const params: McpProgressParams = {
+      progressToken: e.inboxId,
+      progress: e.elapsedSec,
+      total: e.timeoutSec,
+      message: e.message,
+      status: e.status,
+      data: {
+        inboxId: e.inboxId,
+        messageCount: e.messageCount,
+        percent: e.progress,
+      },
+    };
+    ctx.onProgress!(params);
+  };
+}
+
 export async function executeMcpTool(
   env: Env,
   auth: McpAuth,
   name: string,
-  args: Record<string, unknown>
+  args: Record<string, unknown>,
+  ctx?: McpToolContext
 ) {
   switch (name) {
     case "mailagent_verify_signup": {
@@ -58,6 +79,7 @@ export async function executeMcpTool(
         ttlMinutes: args.ttlMinutes as number | undefined,
         deleteAfter: args.deleteAfter as boolean | undefined,
         apiKeyHint: auth.apiKeyHint,
+        onProgress: bindWaitProgress(ctx),
       });
       if ("error" in result) {
         return textResult(result, true);
@@ -107,6 +129,7 @@ export async function executeMcpTool(
           timeoutSeconds: args.timeoutSeconds as number | undefined,
           deleteAfter: args.deleteAfter as boolean | undefined,
           apiKeyHint: auth.apiKeyHint,
+          onProgress: bindWaitProgress(ctx),
         });
         if (v.status === "timeout" || "error" in v) {
           return textResult(v, true);
@@ -123,6 +146,7 @@ export async function executeMcpTool(
       const timeout = Math.min(Number(args.timeoutSeconds ?? 90), 120);
       const message = await waitForFirstMessage(env, inboxId, timeout, {
         subjectContains: args.subjectContains as string | undefined,
+        onProgress: bindWaitProgress(ctx),
       });
       if (!message) {
         return textResult({ error: "timeout", inboxId }, true);
@@ -171,6 +195,7 @@ export async function executeMcpTool(
       const timeout = Math.min(Number(args.timeoutSeconds ?? 90), 120);
       const message = await waitForFirstMessage(env, inboxId, timeout, {
         subjectContains: args.subjectContains as string | undefined,
+        onProgress: bindWaitProgress(ctx),
       });
       if (!message) {
         return textResult({ error: "timeout", inboxId }, true);

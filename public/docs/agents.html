@@ -118,6 +118,15 @@ grant_type=client_credentials&amp;client_secret=&lt;API_KEY&gt;
       <p>401 on <code>/mcp</code> includes <code>WWW-Authenticate</code> with resource metadata URL.</p>
       <p>Full guide: <a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/MCP-OAUTH.md">docs/MCP-OAUTH.md</a></p>
 
+      <h3 id="mcp-progress">Progress while waiting</h3>
+      <p>Wait tools stream <code>notifications/progress</code> when <code>Accept: text/event-stream</code> on <code>tools/call</code>.</p>
+      <pre class="doc-pre"><code>POST /mcp  Accept: text/event-stream
+tools/call mailagent_wait_for_message
+
+→ SSE: notifications/progress (elapsed/total)
+→ SSE: final tools/call result</code></pre>
+      <p>With <code>Mcp-Session-Id</code>, progress also relays on <code>GET /mcp</code> SSE. Guide: <a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/MCP-PROGRESS.md">docs/MCP-PROGRESS.md</a></p>
+
       <p>Call a tool:</p>
       <pre class="doc-pre"><code>{
   "jsonrpc": "2.0",

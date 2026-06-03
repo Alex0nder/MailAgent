@@ -5,13 +5,15 @@ import type { ApiVariables } from "../lib/api-context";
 import { requireMcpAuth } from "../lib/auth";
 import { rateLimit } from "../lib/rate-limit";
 import { executeMcpTool } from "../mcp/handlers";
+import { isWaitTool, progressNotification } from "../mcp/progress";
 import { MCP_SERVER_INFO, MCP_TOOLS } from "../mcp/manifest";
 import {
   createMcpSession,
   deleteMcpSession,
   validateMcpSession,
 } from "../mcp/session";
-import { jsonRpcAsSse, mcpSseKeepaliveStream, sseResponse } from "../mcp/sse-response";
+import { pushSessionProgress } from "../mcp/session-progress";
+import { jsonRpcAsSse, mcpSseSessionStream, sseResponse } from "../mcp/sse-response";
 
 type Ctx = Context<{ Bindings: Env; Variables: ApiVariables }>;
 
@@ -62,7 +64,7 @@ mcpHttpRoutes.get("/", (c) => {
     sse: "GET /mcp with Accept: text/event-stream and Mcp-Session-Id",
     session: "Mcp-Session-Id header (assigned on initialize)",
     auth: "Authorization: Bearer <API_KEY>",
-    authMeta: "GET /mcp/auth",
+    progress: "POST tools/call with Accept: text/event-stream on wait tools",
     tools: MCP_TOOLS.length,
     docs: "https://webmailagent.com/docs/agents.html#remote-mcp",
   });
@@ -93,7 +95,7 @@ async function handleMcpSseGet(c: Ctx) {
     return c.json({ error: "session_not_found" }, 404);
   }
 
-  const stream = mcpSseKeepaliveStream(c.req.raw.signal);
+  const stream = mcpSseSessionStream(c.env, sessionId, c.req.raw.signal);
   return new Response(stream, {
     headers: {
       "Content-Type": "text/event-stream",
@@ -125,18 +127,38 @@ async function handleJsonRpc(c: Ctx) {
     let sessionId = sessionIn;
     const results: JsonRpcResponse[] = [];
     for (const req of body) {
-      const out = await dispatchRpcWithSession(c.env, auth, req, sessionId);
+      const out = await dispatchRpcWithSession(c.env, auth, req, sessionId, wantsSse);
       if (out.sessionId && !sessionId) sessionId = out.sessionId;
       if (out.result) results.push(out.result);
     }
     return rpcHttpResponse(results, 200, wantsSse, sessionId);
   }
 
+  if (
+    body.method === "tools/call" &&
+    wantsSse &&
+    isWaitTool(String(body.params?.name ?? ""))
+  ) {
+    const sessionOut = await resolveSession(c.env, auth, body, sessionIn);
+    if (sessionOut.error) {
+      return rpcHttpResponse(sessionOut.error, sessionOut.status ?? 404, false, sessionIn);
+    }
+    return streamToolCall(
+      c.env,
+      auth,
+      body.id ?? null,
+      String(body.params?.name),
+      (body.params?.arguments ?? {}) as Record<string, unknown>,
+      sessionOut.sessionId
+    );
+  }
+
   const { result, sessionId, status } = await dispatchRpcWithSession(
     c.env,
     auth,
     body,
-    sessionIn
+    sessionIn,
+    wantsSse
   );
   if (result === null) {
     return new Response(null, { status: 204 });
@@ -158,11 +180,84 @@ type JsonRpcResponse = {
   error?: { code: number; message: string; data?: unknown };
 };
 
-async function dispatchRpcWithSession(
+async function resolveSession(
   env: Env,
   auth: { apiKeyHint: string; teamId: string | null },
   req: JsonRpcRequest,
   sessionIn?: string
+): Promise<{
+  sessionId?: string;
+  error?: JsonRpcResponse;
+  status?: number;
+}> {
+  if (sessionIn) {
+    const ok = await validateMcpSession(env, sessionIn, auth.apiKeyHint);
+    if (!ok) {
+      return {
+        error: rpcError(req.id ?? null, -32001, "session_not_found"),
+        status: 404,
+      };
+    }
+    return { sessionId: sessionIn };
+  }
+  if (req.method === "initialize") {
+    const created = await createMcpSession(env, auth);
+    if (created) return { sessionId: created };
+  }
+  return { sessionId: sessionIn };
+}
+
+function streamToolCall(
+  env: Env,
+  auth: { apiKeyHint: string; teamId: string | null },
+  id: string | number | null,
+  name: string,
+  toolArgs: Record<string, unknown>,
+  sessionId?: string
+): Response {
+  const headers: Record<string, string> = {};
+  if (sessionId) headers["Mcp-Session-Id"] = sessionId;
+
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const enc = new TextEncoder();
+      const write = (payload: unknown) => {
+        controller.enqueue(enc.encode(jsonRpcAsSse(payload)));
+      };
+
+      try {
+        const result = await executeMcpTool(env, auth, name, toolArgs, {
+          onProgress: async (params) => {
+            const note = progressNotification(params);
+            write(note);
+            if (sessionId) {
+              await pushSessionProgress(env, sessionId, note);
+            }
+          },
+        });
+        write({ jsonrpc: "2.0", id, result });
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        write({
+          jsonrpc: "2.0",
+          id,
+          error: { code: -32603, message },
+        });
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return sseResponse(stream, headers);
+}
+
+async function dispatchRpcWithSession(
+  env: Env,
+  auth: { apiKeyHint: string; teamId: string | null },
+  req: JsonRpcRequest,
+  sessionIn?: string,
+  _wantsSse = false
 ): Promise<{
   result: JsonRpcResponse | null;
   sessionId?: string;
@@ -209,7 +304,7 @@ async function dispatchRpc(
           id,
           result: {
             protocolVersion: "2024-11-05",
-            capabilities: { tools: {} },
+            capabilities: { tools: {}, progress: true },
             serverInfo: {
               ...MCP_SERVER_INFO,
               transport: "streamable-http",

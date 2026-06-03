@@ -105,6 +105,54 @@ async function main() {
   console.log("POST /mcp unauth", unauth.status, www ? "WWW-Authenticate=ok" : "");
   if (unauth.status !== 401) process.exit(1);
 
+  const created = await fetch(`${base}/v1/inboxes`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      label: `smoke-progress-${Date.now()}`,
+      ttlMinutes: 5,
+    }),
+  });
+  const inbox = await created.json();
+  if (!created.ok) {
+    console.error("create inbox for progress smoke failed", inbox);
+    process.exit(1);
+  }
+
+  const streamRes = await fetch(`${base}/mcp`, {
+    method: "POST",
+    headers: {
+      ...oauthHeaders,
+      ...(sessionId ? { "Mcp-Session-Id": sessionId } : {}),
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 3,
+      method: "tools/call",
+      params: {
+        name: "mailagent_wait_for_message",
+        arguments: { inboxId: inbox.id, timeoutSeconds: 4 },
+      },
+    }),
+  });
+  const streamText = await streamRes.text();
+  const progressCount = (streamText.match(/notifications\/progress/g) ?? []).length;
+  console.log(
+    "POST /mcp wait stream",
+    streamRes.status,
+    streamRes.headers.get("content-type"),
+    `progress=${progressCount}`
+  );
+  if (!streamRes.ok || progressCount < 1) process.exit(1);
+
+  await fetch(`${base}/v1/inboxes/${inbox.id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${apiKey}` },
+  });
+
   if (sessionId) {
     await fetch(`${base}/mcp`, {
       method: "DELETE",
@@ -126,6 +174,7 @@ async function main() {
     mcpTools: tools,
     oauth: true,
     session: !!sessionId,
+    progress: progressCount,
   });
 }
 
