@@ -40,52 +40,64 @@
 
   function isActive(href) {
     const h = href.replace(/\/$/, "") || "/";
-    if (h === "/docs" && (path === "/docs" || path.endsWith("/docs/index.html"))) return true;
-    return path === h || path.endsWith(h);
+    const pathNorm = path.replace(/\.html$/, "");
+    const hNorm = h.replace(/\.html$/, "");
+    if (hNorm === "/docs" && (pathNorm === "/docs" || path.endsWith("/docs/index.html"))) return true;
+    return path === h || path.endsWith(h) || pathNorm === hNorm;
+  }
+
+  function navLink(href, label) {
+    const cur = isActive(href);
+    return `<a href="${href}"${cur ? ' aria-current="page"' : ""}>${label}</a>`;
+  }
+
+  function renderNavLinks() {
+    if (mode === "marketing") {
+      return `<a href="/#features">Features</a>
+        <a href="/#qa">QA</a>
+        <a href="/#mcp">MCP</a>
+        ${navLink("/docs/", "Docs")}`;
+    }
+    if (mode === "app") {
+      return `${navLink("/docs/", "Docs")}
+        ${navLink("/docs/integrate.html", "Self-host")}
+        ${navLink("/docs/agents.html", "Agents")}
+        ${navLink("/dashboard.html", "Dashboard")}
+        ${navLink("/debug.html", "Debug")}
+        ${navLink("/agent-runs.html", "Agent runs")}`;
+    }
+    return `${navLink("/docs/", "Docs")}
+      ${navLink("/docs/integrate.html", "Self-host")}
+      ${navLink("/docs/agents.html", "Agents")}`;
   }
 
   function renderNav() {
-    const marketingLinks =
-      mode === "marketing"
-        ? `<a href="/#features">Features</a>
-           <a href="/#qa">QA</a>
-           <a href="/#mcp">MCP</a>
-           <a href="/docs/">Docs</a>`
-        : `<a href="/docs/">Docs</a>
-           <a href="/docs/integrate.html">Self-host</a>
-           <a href="/docs/agents.html">Agents</a>`;
-
-    const appExtra =
-      mode === "app"
-        ? `<a href="/dashboard.html"${isActive("/dashboard.html") ? ' aria-current="page"' : ""}>Dashboard</a>
-           <a href="/debug.html"${isActive("/debug.html") ? ' aria-current="page"' : ""}>Debug</a>
-           <a href="/agent-runs.html"${isActive("/agent-runs.html") ? ' aria-current="page"' : ""}>Agent runs</a>`
-        : "";
-
     const cta =
-      mode === "marketing"
-        ? `<a class="btn btn-primary" href="#get-started">Get started</a>`
-        : mode === "app"
-          ? `<a class="btn btn-outline" href="/docs/">Docs</a>`
-          : `<a class="btn btn-primary" href="${GITHUB}" rel="noopener noreferrer">GitHub</a>`;
+      mode === "app"
+        ? `<a class="btn btn-outline" href="/docs/">Docs</a>`
+        : `<a class="btn btn-primary" href="/docs/integrate.html">Get started</a>`;
+
+    const links = renderNavLinks();
 
     return `<header class="nav">
-      <div class="nav-inner">
-        <a href="/" class="logo">
-          <span class="logo-mark">${LOGO_SVG}</span>
-          MailAgent
-        </a>
-        <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="nav-menu" id="nav-toggle">
-          <span class="sr-only">Menu</span>
-          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-        </button>
+      <div class="nav-inner site-container">
+        <div class="nav-start">
+          <a href="/" class="logo">
+            <span class="logo-mark">${LOGO_SVG}</span>
+            MailAgent
+          </a>
+        </div>
         <div class="nav-menu" id="nav-menu">
-          <nav class="nav-links" aria-label="Primary">${marketingLinks}${appExtra}</nav>
+          <nav class="nav-links" aria-label="Primary">${links}</nav>
           <div class="nav-actions">
             <a class="btn btn-ghost nav-github" href="${GITHUB}" rel="noopener noreferrer">GitHub</a>
             ${cta}
           </div>
         </div>
+        <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="nav-menu" id="nav-toggle">
+          <span class="sr-only">Menu</span>
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
       </div>
     </header>`;
   }
@@ -105,11 +117,13 @@
   function renderFooter() {
     if (mode === "marketing") return "";
     return `<footer class="footer footer-minimal">
-      <p class="footer-bottom">
-        <a href="/">MailAgent</a>
-        · <a href="/docs/">Docs</a>
-        · <a href="${GITHUB}" rel="noopener noreferrer">GitHub</a>
-      </p>
+      <div class="site-container">
+        <p class="footer-bottom">
+          <a href="/">MailAgent</a>
+          · <a href="/docs/">Docs</a>
+          · <a href="${GITHUB}" rel="noopener noreferrer">GitHub</a>
+        </p>
+      </div>
     </footer>`;
   }
 

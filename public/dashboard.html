@@ -14,12 +14,14 @@
     />
     <link rel="stylesheet" href="/styles.css" />
   </head>
-  <body class="app-page" data-site="app" data-doc="dashboard">
+  <body class="doc-page" data-site="docs" data-doc="dashboard">
     <div id="site-nav"></div>
 
-    <main class="app-main">
+    <div class="doc-layout">
+      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
+      <article class="doc-content">
       <h1>Dashboard</h1>
-      <p class="app-lead">Plan, usage, and billing for your API key.</p>
+      <p class="doc-lead">Plan, usage, and billing for your API key.</p>
 
       <form class="app-form" id="form" onsubmit="return false">
         <label for="base">API base</label>
@@ -30,7 +32,8 @@
       </form>
 
       <div class="app-card" id="out">Enter API key and refresh.</div>
-    </main>
+      </article>
+    </div>
 
     <div id="site-footer"></div>
     <script src="/site-shell.js" defer></script>

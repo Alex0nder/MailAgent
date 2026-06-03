@@ -14,12 +14,14 @@
     />
     <link rel="stylesheet" href="/styles.css" />
   </head>
-  <body class="app-page" data-site="app" data-doc="agent-runs">
+  <body class="doc-page" data-site="docs" data-doc="agent-runs">
     <div id="site-nav"></div>
 
-    <main class="app-main app-main--wide">
+    <div class="doc-layout">
+      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
+      <article class="doc-content doc-content--wide">
       <h1>Agent runs</h1>
-      <p class="app-lead">
+      <p class="doc-lead">
         Active inboxes grouped by <code>runId</code> (<code>label=agent-{runId}</code>).
         <a href="/docs/agents.html">Agent docs →</a>
       </p>
@@ -35,7 +37,8 @@
       </form>
 
       <div id="list"></div>
-    </main>
+      </article>
+    </div>
 
     <div id="site-footer"></div>
     <script src="/site-shell.js" defer></script>

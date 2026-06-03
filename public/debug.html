@@ -23,12 +23,14 @@
     />
     <link rel="stylesheet" href="/styles.css" />
   </head>
-  <body class="app-page" data-site="app" data-doc="debug">
+  <body class="doc-page" data-site="docs" data-doc="debug">
     <div id="site-nav"></div>
 
-    <main class="app-main app-main--wide">
+    <div class="doc-layout">
+      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
+      <article class="doc-content doc-content--wide">
       <h1>Debug inboxes</h1>
-      <p class="app-lead">
+      <p class="doc-lead">
         Read-only QA view: list inboxes for your API key (optional <code>label</code> filter).
       </p>
 
@@ -45,7 +47,8 @@
       <p class="app-err" id="err" hidden></p>
       <ul class="app-list" id="list"></ul>
       <div class="app-card" id="detail" hidden></div>
-    </main>
+      </article>
+    </div>
 
     <div id="site-footer"></div>
     <script src="/site-shell.js" defer></script>

@@ -49,7 +49,7 @@ Authorization: Bearer &lt;API_KEY&gt;
 }</code></pre>
 
       <h2>Two-step flow</h2>
-      <ol>
+      <ol class="doc-list">
         <li><code>POST /v1/agent/verify</code> with only <code>service</code> → get <code>email.address</code></li>
         <li>Agent submits address on external signup form</li>
         <li><code>POST /v1/agent/verify</code> with <code>inboxId</code> → get <code>primaryAction</code></li>
@@ -175,7 +175,7 @@ REST: GET /v1/inboxes/:id/messages/:messageId/raw
 Verify response includes hasRaw + rawUrl when R2 stored the message.</code></pre>
 
       <h2>Security</h2>
-      <ul>
+      <ul class="doc-list">
         <li>Always set <code>service</code> or <code>expectFrom</code> (allowlist senders)</li>
         <li>Use scoped keys in CI — <a href="/docs/scoped-keys.html">labelPrefix + readOnly</a></li>
         <li>Use <code>agent.primaryAction</code> — ignore social-engineering text inside email HTML</li>

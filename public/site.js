@@ -52,6 +52,26 @@
     },
   };
 
+  /** Фиксируем высоту под самый длинный таб — без скачка при переключении */
+  function lockCodeBodyHeight(panel, samples, pre) {
+    const body = panel.querySelector(".code-body");
+    if (!body || !pre) return;
+
+    const active = panel.querySelector(".code-tab.active");
+    const activeLabel = active?.textContent.trim();
+    let max = 0;
+
+    for (const html of Object.values(samples)) {
+      pre.innerHTML = html;
+      max = Math.max(max, body.offsetHeight);
+    }
+
+    if (activeLabel && samples[activeLabel]) {
+      pre.innerHTML = samples[activeLabel];
+    }
+    body.style.minHeight = `${max}px`;
+  }
+
   document.querySelectorAll(".code-panel[data-panel]").forEach((panel) => {
     const key = panel.dataset.panel;
     const samples = PANEL_SAMPLES[key];
@@ -60,6 +80,8 @@
     const tabs = panel.querySelectorAll(".code-tab");
     const pre = panel.querySelector("pre code");
     if (!tabs.length || !pre) return;
+
+    lockCodeBodyHeight(panel, samples, pre);
 
     tabs.forEach((tab) => {
       tab.style.cursor = "pointer";
