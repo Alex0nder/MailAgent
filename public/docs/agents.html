@@ -115,6 +115,13 @@ GET /.well-known/oauth-authorization-server
 POST /v1/oauth/token
 grant_type=client_credentials&amp;client_secret=&lt;API_KEY&gt;
 → { "access_token": "mat_…", "expires_in": 3600 }</code></pre>
+      <p><strong>DCR (RFC 7591):</strong> register a dedicated MCP client key with team API key:</p>
+      <pre class="doc-pre"><code>POST /v1/oauth/register
+Authorization: Bearer &lt;TEAM_API_KEY&gt;
+{ "client_name": "cursor-mcp" }
+→ { "client_id": "mac_…", "client_secret": "ma_…" }
+
+GET /v1/oauth/clients/:id  (metadata, no secret)</code></pre>
       <p>401 on <code>/mcp</code> includes <code>WWW-Authenticate</code> with resource metadata URL.</p>
       <p>Full guide: <a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/MCP-OAUTH.md">docs/MCP-OAUTH.md</a></p>
 

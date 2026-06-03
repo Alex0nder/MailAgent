@@ -15,6 +15,44 @@ curl -sS https://api.webmailagent.com/.well-known/oauth-protected-resource/mcp |
 curl -sS https://api.webmailagent.com/mcp/auth | jq .
 ```
 
+## Dynamic Client Registration (RFC 7591)
+
+MCP-клиенты с поддержкой DCR могут зарегистрировать отдельный ключ под team:
+
+```bash
+curl -sS -X POST https://api.webmailagent.com/v1/oauth/register \
+  -H "Authorization: Bearer $MAILAGENT_TEAM_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"client_name":"cursor-mcp"}'
+```
+
+Ответ (201, `client_secret` показывается один раз):
+
+```json
+{
+  "client_id": "mac_abc123",
+  "client_secret": "ma_…",
+  "client_name": "cursor-mcp",
+  "grant_types": ["client_credentials"],
+  "token_endpoint": "https://api.webmailagent.com/v1/oauth/token",
+  "registration_client_uri": "https://api.webmailagent.com/v1/oauth/clients/abc123"
+}
+```
+
+Metadata без secret:
+
+```bash
+curl -sS https://api.webmailagent.com/v1/oauth/clients/abc123 \
+  -H "Authorization: Bearer $MAILAGENT_TEAM_API_KEY"
+```
+
+Требования:
+
+- Bearer — **team API key** из dashboard / `npm run issue:key:db`
+- Legacy keys (`API_KEY` env) → `403 team_required`
+
+Discovery включает `registration_endpoint` в `/.well-known/oauth-authorization-server`.
+
 ## Token exchange
 
 ```bash

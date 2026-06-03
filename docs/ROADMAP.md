@@ -7,6 +7,7 @@
 | Remote MCP `/mcp` | ✅ |
 | Streamable HTTP (Mcp-Session-Id + SSE GET) | ✅ |
 | OAuth client_credentials (`mat_` tokens) | ✅ |
+| Dynamic Client Registration (RFC 7591) | ✅ |
 | Progress notifications on wait | ✅ |
 | RFC 8414 / 9728 discovery | ✅ |
 | `runId` tracing | ✅ |
@@ -22,13 +23,12 @@ P0–P2 закрыты — см. [QA-ROADMAP.md](./QA-ROADMAP.md).
 
 ```bash
 npm login
-npm run publish:mcp
-npm run publish:qa    # @mailagent/qa@0.1.6
-npm run publish:agent # @mailagent/agent@0.1.2
+npm run publish:check   # build + versions
+npm run publish:all     # mcp + qa + agent
 ```
 
 ## Дальше
 
 - ~~MCP progress notifications during long `wait`~~ ✅
+- ~~Dynamic Client Registration (DCR)~~ ✅
 - Third-party IdP OAuth (Auth0/Google login for MCP — сейчас API key → mat_ token)
-- Dynamic Client Registration (DCR)

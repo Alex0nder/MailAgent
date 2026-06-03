@@ -30,6 +30,44 @@ async function main() {
   console.log("GET oauth-protected-resource/mcp", discovery.status);
   if (!discovery.ok) process.exit(1);
 
+  const authServer = await fetch(`${base}/.well-known/oauth-authorization-server`);
+  const authMeta = await authServer.json();
+  console.log(
+    "GET oauth-authorization-server",
+    authServer.status,
+    authMeta.registration_endpoint ? "DCR=ok" : "DCR=missing"
+  );
+  if (!authServer.ok || !authMeta.registration_endpoint) process.exit(1);
+
+  let dcrSecret = null;
+  const regRes = await fetch(`${base}/v1/oauth/register`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ client_name: "smoke-dcr" }),
+  });
+  if (regRes.status === 403) {
+    console.log("POST /v1/oauth/register skipped (legacy key, no team)");
+  } else {
+    const regJson = await regRes.json();
+    console.log(
+      "POST /v1/oauth/register",
+      regRes.status,
+      regJson.client_id ?? regJson.error
+    );
+    if (!regRes.ok || !regJson.client_secret) process.exit(1);
+    dcrSecret = regJson.client_secret;
+
+    const clientMeta = await fetch(
+      `${base}/v1/oauth/clients/${regJson.client_id.replace(/^mac_/, "")}`,
+      { headers: { Authorization: `Bearer ${apiKey}` } }
+    );
+    console.log("GET /v1/oauth/clients/:id", clientMeta.status);
+    if (!clientMeta.ok) process.exit(1);
+  }
+
   const tokenRes = await fetch(`${base}/v1/oauth/token`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -50,7 +88,7 @@ async function main() {
   const oauthHeaders = {
     Authorization: `Bearer ${accessToken}`,
     "Content-Type": "application/json",
-    Accept: "application/json, text/event-stream",
+    Accept: "application/json",
   };
 
   const init = await fetch(`${base}/mcp`, {
@@ -125,7 +163,9 @@ async function main() {
   const streamRes = await fetch(`${base}/mcp`, {
     method: "POST",
     headers: {
-      ...oauthHeaders,
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      Accept: "text/event-stream",
       ...(sessionId ? { "Mcp-Session-Id": sessionId } : {}),
     },
     body: JSON.stringify({
@@ -173,6 +213,7 @@ async function main() {
     version: agentJson.version,
     mcpTools: tools,
     oauth: true,
+    dcr: dcrSecret ? "registered" : "skipped",
     session: !!sessionId,
     progress: progressCount,
   });
