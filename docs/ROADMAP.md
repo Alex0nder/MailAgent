@@ -88,9 +88,10 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 
 | `@mailagent/agent@0.1.5` — `messageIndex` в verify | in repo |
 | Publish `@mailagent/agent@0.1.5` | pending |
-| GitHub Secrets: `MAILAGENT_API_KEY` + `DATABASE_URL` в MailAgent repo | optional |
-| Contract в **Deploy Worker** после smoke | optional |
-| Пример attachment E2E в `examples/playwright/` | planned |
+| Simulate `--with-attachment`, contract attachments | ✅ |
+| Playwright `attachment.spec.example.ts` | ✅ |
+| Contract on deploy (optional secrets) | ✅ |
+| GitHub Secrets: `MAILAGENT_API_KEY` + `DATABASE_URL` | optional |
 | Удалить ветку `qa/v0.8` на GitHub | housekeeping |
 
 ### Отложено (не QA)

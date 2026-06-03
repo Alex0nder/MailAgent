@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Локальный тест без Gmail: вставляет письмо в Neon (обходит allowlist ingest).
- * Usage: node scripts/simulate-inbound.mjs <inboxId> [otp] [from] [--fire-callback] [--subject=...]
+ * Usage: node scripts/simulate-inbound.mjs <inboxId> [otp] [from] [--fire-callback] [--subject=...] [--with-attachment=filename.pdf]
  */
 import "./load-env.mjs";
 import { neon } from "@neondatabase/serverless";
@@ -11,11 +11,14 @@ import { fireSimulatedCallback } from "./lib/fire-simulated-callback.mjs";
 const argv = process.argv.slice(2);
 let fireCallback = false;
 let subject = "MailAgent simulated OTP";
+let attachmentFilename = null;
 const positional = [];
 
 for (const a of argv) {
   if (a === "--fire-callback") fireCallback = true;
   else if (a.startsWith("--subject=")) subject = a.slice("--subject=".length);
+  else if (a.startsWith("--with-attachment="))
+    attachmentFilename = a.slice("--with-attachment=".length);
   else positional.push(a);
 }
 
@@ -53,6 +56,25 @@ try {
 }
 
 console.log("OK simulated message", { messageId: msgId, subject });
+
+if (attachmentFilename) {
+  const attId = nanoid(12);
+  const attProviderId = `sim_att_${nanoid(8)}`;
+  try {
+    await sql`
+      INSERT INTO message_attachments (
+        id, message_id, provider_id, filename, content_type, size_bytes
+      ) VALUES (
+        ${attId}, ${msgId}, ${attProviderId}, ${attachmentFilename},
+        ${"application/pdf"}, ${1024}
+      )
+    `;
+    console.log("OK simulated attachment", { attachmentId: attId, filename: attachmentFilename });
+  } catch (e) {
+    console.error("attachment insert failed", e.message);
+    process.exit(1);
+  }
+}
 
 if (fireCallback) {
   const result = await fireSimulatedCallback(sql, inboxId, msgId);

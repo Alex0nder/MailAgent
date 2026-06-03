@@ -227,6 +227,32 @@ export async function attachmentHttpResponse(
     return Response.json({ error: "attachment_not_found" }, { status: 404 });
   }
 
+  const cached = await attachmentFromR2(
+    env,
+    row,
+    acceptJson,
+    inboxId,
+    messageId,
+    attachmentId
+  );
+  if (cached) return cached;
+
+  if (
+    isSimulatedProviderId(message.provider_id) ||
+    isSimulatedProviderId(row.provider_id)
+  ) {
+    const meta = metaFromRow(row);
+    if (acceptJson) {
+      return Response.json({
+        ...meta,
+        messageId,
+        inboxId,
+        downloadPath: `/v1/inboxes/${inboxId}/messages/${messageId}/attachments/${attachmentId}`,
+      });
+    }
+    return Response.json({ error: "download_unavailable" }, { status: 404 });
+  }
+
   const meta = await fetchAttachmentDownloadMeta(
     env,
     message.provider_id,
@@ -246,20 +272,15 @@ export async function attachmentHttpResponse(
   }
 
   if (row.r2_key && rawMimeEnabled(env)) {
-    const bucket = env.RAW_MIME!;
-    const obj = await bucket.get(row.r2_key);
-    if (obj) {
-      const headers = new Headers();
-      headers.set(
-        "Content-Type",
-        meta.contentType
-      );
-      headers.set(
-        "Content-Disposition",
-        `inline; filename="${sanitizeFilename(meta.filename)}"`
-      );
-      return new Response(obj.body, { headers });
-    }
+    const fromR2 = await attachmentFromR2(
+      env,
+      row,
+      false,
+      inboxId,
+      messageId,
+      attachmentId
+    );
+    if (fromR2) return fromR2;
   }
 
   if (!meta.downloadUrl) {
@@ -345,6 +366,51 @@ async function cacheAttachmentFromResend(
 
 function sanitizeFilename(name: string): string {
   return name.replace(/[^\w.\-]+/g, "_").slice(0, 120) || "attachment";
+}
+
+function isSimulatedProviderId(id: string): boolean {
+  return id.startsWith("sim_");
+}
+
+function metaFromRow(row: AttachmentRow): AttachmentDownloadMeta {
+  return {
+    id: row.id,
+    filename: row.filename,
+    contentType: row.content_type ?? "application/octet-stream",
+    sizeBytes: row.size_bytes,
+    cached: Boolean(row.r2_key),
+  };
+}
+
+async function attachmentFromR2(
+  env: Env,
+  row: AttachmentRow,
+  acceptJson: boolean,
+  inboxId: string,
+  messageId: string,
+  attachmentId: string
+): Promise<Response | null> {
+  if (!row.r2_key || !rawMimeEnabled(env)) return null;
+  const obj = await env.RAW_MIME!.get(row.r2_key);
+  if (!obj) return null;
+
+  const meta = metaFromRow(row);
+  if (acceptJson) {
+    return Response.json({
+      ...meta,
+      messageId,
+      inboxId,
+      downloadPath: `/v1/inboxes/${inboxId}/messages/${messageId}/attachments/${attachmentId}`,
+    });
+  }
+
+  const headers = new Headers();
+  headers.set("Content-Type", meta.contentType);
+  headers.set(
+    "Content-Disposition",
+    `inline; filename="${sanitizeFilename(meta.filename)}"`
+  );
+  return new Response(obj.body, { headers });
 }
 
 export function formatAttachment(row: AttachmentRow, inboxId: string, messageId: string) {

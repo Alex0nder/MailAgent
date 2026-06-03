@@ -30,6 +30,7 @@
     "test:extract": "npx tsx scripts/test-extract.ts",
     "test:contract:qa": "node scripts/contract-qa.mjs",
     "test:contract:qa:callback": "node scripts/contract-qa-callback.mjs",
+    "test:contract:qa:attachments": "node scripts/contract-qa-attachments.mjs",
     "ci:mailagent-alerts": "npm run build:qa && node scripts/ci-mailagent-alerts.mjs"
   },
   "dependencies": {

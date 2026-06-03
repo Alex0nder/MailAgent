@@ -46,3 +46,4 @@ jobs:
           fi
           npm run test:contract:qa
           npm run test:contract:qa:callback
+          npm run test:contract:qa:attachments
