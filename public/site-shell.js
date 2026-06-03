@@ -3,6 +3,7 @@
  */
 (function () {
   const GITHUB = "https://github.com/Alex0nder/MailAgent";
+  const PORTFOLIO = "https://alexyoung33rd.com/";
   const LOGO_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="M4 6l8 7 8-7"/></svg>`;
 
   const DOC_SECTIONS = [
@@ -115,17 +116,170 @@
     }).join("");
   }
 
-  function renderFooter() {
-    if (mode === "marketing") return "";
-    return `<footer class="footer footer-minimal">
-      <div class="site-container">
-        <p class="footer-bottom">
-          <a href="/">MailAgent</a>
-          · <a href="/docs/">Docs</a>
-          · <a href="${GITHUB}" rel="noopener noreferrer">GitHub</a>
+  /** Полный футер лендинга — один источник для всех страниц. */
+  function renderFooterInner() {
+    return `<div class="footer-inner">
+        <div class="footer-col">
+          <h4>Product</h4>
+          <ul>
+            <li><a href="/#features">Features</a></li>
+            <li><a href="/#qa">For QA</a></li>
+            <li><a href="/#mcp">MCP tools</a></li>
+            <li><a href="/#how">How it works</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Developers</h4>
+          <ul>
+            <li><a href="${GITHUB}" rel="noopener noreferrer">GitHub</a></li>
+            <li><a href="/docs/integrate.html">Self-host</a></li>
+            <li><a href="/docs/">API reference</a></li>
+            <li><a href="/docs/agents.html">AI agents &amp; MCP</a></li>
+            <li><a href="/docs/qa.html">QA / Playwright</a></li>
+            <li><a href="/docs/scoped-keys.html">Scoped keys</a></li>
+            <li><a href="/docs/raw-mime.html">Raw MIME</a></li>
+            <li><a href="/docs/attachments.html">Attachments</a></li>
+            <li><a href="/docs/custom-domain.html">Custom domain</a></li>
+            <li><a href="https://api.webmailagent.com/v1/openapi.json" rel="noopener noreferrer">OpenAPI</a></li>
+            <li><a href="mailto:hello@webmailagent.com?subject=MailAgent%20hosted%20API%20key">hello@webmailagent.com</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Console</h4>
+          <ul>
+            <li><a href="/dashboard.html">Dashboard</a></li>
+            <li><a href="/debug.html">Debug inboxes</a></li>
+            <li><a href="/agent-runs.html">Agent runs</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Stack</h4>
+          <ul>
+            <li><a href="https://resend.com" rel="noopener noreferrer">Resend</a></li>
+            <li><a href="https://developers.cloudflare.com/workers/" rel="noopener noreferrer">Cloudflare Workers</a></li>
+            <li><a href="/docs/agents.html#remote-mcp">MCP (setup)</a></li>
+          </ul>
+        </div>
+      </div>`;
+  }
+
+  function renderFooterLegal() {
+    return `<div class="footer-legal">
+        <p class="footer-legal-copy">
+          © MailAgent. Open-source email verification for agents and QA.
+          <a href="${GITHUB}" rel="noopener noreferrer">Source</a>
         </p>
+        <p class="footer-legal-copy">
+          Made with love for agents &amp; QA —
+          <a href="${PORTFOLIO}" target="_blank" rel="noopener noreferrer">Alexander Young <span class="footer-heart" aria-hidden="true">♥</span></a>
+        </p>
+      </div>`;
+  }
+
+  function renderFooterWordmark() {
+    return `<a href="/" class="footer-wordmark-link" aria-label="MailAgent — home">
+        <span class="footer-wordmark" id="footerWordmark">MAILAGENT</span>
+      </a>`;
+  }
+
+  function renderFooter() {
+    return `<footer class="footer">
+      <div class="site-container">
+        ${renderFooterInner()}
+        ${renderFooterLegal()}
+        ${renderFooterWordmark()}
       </div>
     </footer>`;
+  }
+
+  /** Wordmark: split letters + fit width (from Navorina footer pattern). */
+  function initFooterWordmark() {
+    const footer = document.querySelector(".footer");
+    const logo = footer?.querySelector("#footerWordmark");
+    const box = footer?.querySelector(".site-container");
+    if (!logo || !box || logo.dataset.split === "1") return;
+
+    const text = (logo.textContent || "").trim();
+    if (!text) return;
+    logo.dataset.split = "1";
+    logo.textContent = "";
+    logo.setAttribute("aria-hidden", "true");
+    logo.style.setProperty("--char-count", String(text.length));
+    for (let i = 0; i < text.length; i++) {
+      const ch = document.createElement("span");
+      ch.className = "footer-wordmark-char";
+      ch.textContent = text.charAt(i);
+      ch.style.setProperty("--char-i", String(i));
+      logo.appendChild(ch);
+    }
+
+    const link = footer.querySelector(".footer-wordmark-link");
+
+    function fit() {
+      logo.style.fontSize = "";
+      logo.style.letterSpacing = "";
+      const boxWidth = box.clientWidth;
+      if (boxWidth < 1) return;
+      let size = parseFloat(getComputedStyle(logo).fontSize) || 48;
+      const pad =
+        parseFloat(getComputedStyle(logo).paddingLeft) +
+        parseFloat(getComputedStyle(logo).paddingRight);
+      const target = Math.min(Math.max(boxWidth - pad, 200), 520);
+      let guard = 0;
+      while (logo.scrollWidth <= target * 0.97 && size < 104 && guard++ < 64) {
+        size *= 1.04;
+        logo.style.fontSize = `${size}px`;
+      }
+      guard = 0;
+      while (logo.scrollWidth > target && size > 18 && guard++ < 80) {
+        size *= 0.96;
+        logo.style.fontSize = `${size}px`;
+      }
+      const chars = logo.querySelectorAll(".footer-wordmark-char");
+      const gap = target - logo.scrollWidth;
+      if (gap > 0.5 && chars.length > 1) {
+        logo.style.letterSpacing = `${gap / (chars.length - 1) / size}em`;
+      }
+      logo.classList.add("is-fitted");
+    }
+
+    function bindInview() {
+      if (logo.classList.contains("is-inview")) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        logo.classList.add("is-inview");
+        return;
+      }
+      const target = link || logo;
+      if (typeof IntersectionObserver === "undefined") {
+        logo.classList.add("is-inview");
+        return;
+      }
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              logo.classList.add("is-inview");
+              observer.disconnect();
+            }
+          });
+        },
+        { threshold: 0.08, rootMargin: "0px" }
+      );
+      observer.observe(target);
+    }
+
+    fit();
+    bindInview();
+    if (document.fonts?.ready) document.fonts.ready.then(fit);
+    let resizeTimer;
+    window.addEventListener(
+      "resize",
+      () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(fit, 120);
+      },
+      { passive: true }
+    );
   }
 
   const navMount = document.getElementById("site-nav");
@@ -148,4 +302,6 @@
 
   const footMount = document.getElementById("site-footer");
   if (footMount) footMount.outerHTML = renderFooter();
+
+  initFooterWordmark();
 })();

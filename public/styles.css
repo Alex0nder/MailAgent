@@ -862,10 +862,66 @@ h1 {
   justify-content: center;
 }
 
-/* —— Footer —— */
+/* —— Footer (Navorina-inspired legal bar + wordmark) —— */
 .footer {
-  padding-block: 64px 48px;
-  border-top: 1px solid var(--border);
+  --footer-link: color-mix(in srgb, var(--text) 52%, transparent);
+  --footer-link-hover: var(--text);
+  --footer-meta: color-mix(in srgb, var(--text) 36%, transparent);
+  --footer-wordmark-gradient: linear-gradient(
+    90deg,
+    rgba(237, 237, 237, 0.03) 0%,
+    rgba(237, 237, 237, 0.06) 22%,
+    rgba(237, 237, 237, 0.08) 50%,
+    rgba(237, 237, 237, 0.06) 78%,
+    rgba(237, 237, 237, 0.03) 100%
+  );
+  --footer-wordmark-gradient-inview: linear-gradient(
+    90deg,
+    rgba(237, 237, 237, 0.05) 0%,
+    rgba(237, 237, 237, 0.09) 22%,
+    rgba(237, 237, 237, 0.12) 50%,
+    rgba(237, 237, 237, 0.09) 78%,
+    rgba(237, 237, 237, 0.05) 100%
+  );
+  --footer-wordmark-gradient-hover: linear-gradient(
+    90deg,
+    rgba(237, 237, 237, 0.08) 0%,
+    rgba(237, 237, 237, 0.12) 22%,
+    rgba(237, 237, 237, 0.16) 50%,
+    rgba(237, 237, 237, 0.12) 78%,
+    rgba(237, 237, 237, 0.08) 100%
+  );
+
+  position: relative;
+  padding-block: clamp(3.5rem, 7vw, 5.5rem) clamp(2rem, 4vw, 3rem);
+  border-top: none;
+  overflow-x: clip;
+}
+
+.footer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: min(var(--max), calc(100% - 2 * var(--px)));
+  height: 1px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--text) 6%, transparent) 12%,
+    color-mix(in srgb, var(--text) 14%, transparent) 30%,
+    color-mix(in srgb, var(--text) 14%, transparent) 70%,
+    color-mix(in srgb, var(--text) 6%, transparent) 88%,
+    transparent 100%
+  );
+}
+
+.footer > .site-container {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2rem, 4vw, 3rem);
 }
 
 .footer-inner {
@@ -913,12 +969,158 @@ h1 {
   color: var(--text);
 }
 
-.footer-bottom {
-  margin: 32px 0 0;
-  padding-top: 24px;
-  border-top: 1px solid var(--border);
-  font-size: 13px;
-  color: var(--text-dim);
+.footer-legal {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding-block-start: clamp(1.75rem, 3.5vw, 2.5rem);
+  position: relative;
+}
+
+.footer-legal::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 100%;
+  height: 1px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--text) 6%, transparent) 12%,
+    color-mix(in srgb, var(--text) 14%, transparent) 30%,
+    color-mix(in srgb, var(--text) 14%, transparent) 70%,
+    color-mix(in srgb, var(--text) 6%, transparent) 88%,
+    transparent 100%
+  );
+}
+
+@media (min-width: 768px) {
+  .footer-legal {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+  }
+}
+
+.footer-legal-copy {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--footer-meta);
+}
+
+.footer-legal-copy a {
+  color: var(--footer-link);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.footer-legal-copy a:hover,
+.footer-legal-copy a:focus-visible {
+  color: var(--footer-link-hover);
+}
+
+.footer-heart {
+  color: color-mix(in srgb, var(--text) 45%, transparent);
+  font-size: 0.92em;
+}
+
+.footer-wordmark-link {
+  display: block;
+  width: 100%;
+  max-width: 36rem;
+  margin: clamp(8px, 1.5vw, 14px) auto 0;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 8px;
+  outline-offset: 4px;
+  opacity: 0.55;
+  transition: opacity 0.35s ease;
+}
+
+.footer-wordmark-link:hover,
+.footer-wordmark-link:focus-visible {
+  opacity: 0.78;
+}
+
+.footer-wordmark {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding-inline: clamp(0.35rem, 1.2vw, 0.85rem);
+  box-sizing: border-box;
+  line-height: 0.88;
+  font-family: var(--font);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: clamp(1.35rem, 4vw, 3.25rem);
+  user-select: none;
+  transform: translate3d(0, 0, 0);
+  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.footer-wordmark-char {
+  --char-i: 0;
+  --char-count: 9;
+  --footer-wordmark-lift: 0.02em;
+  flex: 0 0 auto;
+  text-align: center;
+  display: block;
+  background-image: var(--footer-wordmark-gradient);
+  background-size: calc(var(--char-count) * 100%) 100%;
+  background-position: calc(var(--char-i) * 100% / max(var(--char-count) - 1, 1)) 50%;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  transform: translate3d(0, var(--footer-wordmark-lift), 0);
+  transition:
+    background-image 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--char-i) * 0.032s);
+}
+
+.footer-wordmark.is-inview .footer-wordmark-char {
+  background-image: var(--footer-wordmark-gradient-inview);
+  transform: translate3d(0, 0, 0);
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .footer-wordmark-link:hover .footer-wordmark,
+  .footer-wordmark-link:focus-visible .footer-wordmark {
+    transform: translate3d(0, -0.01em, 0) scale(1.004);
+  }
+
+  .footer-wordmark-link:hover .footer-wordmark-char,
+  .footer-wordmark-link:focus-visible .footer-wordmark-char {
+    background-image: var(--footer-wordmark-gradient-hover);
+    transform: translate3d(0, -0.03em, 0);
+    transition-delay: calc(var(--char-i) * 0.04s);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer-wordmark,
+  .footer-wordmark-char {
+    transition: none !important;
+  }
+
+  .footer-wordmark-char {
+    background-image: var(--footer-wordmark-gradient-inview);
+    transform: none !important;
+  }
 }
 
 /* —— QA section —— */
@@ -1533,22 +1735,6 @@ h1 {
   color: var(--text-muted);
 }
 
-.footer-minimal {
-  padding-block: 32px 40px;
-}
-
-.footer-minimal .site-container,
-.footer-minimal.site-container {
-  padding-inline: var(--px);
-}
-
-.footer-minimal .footer-bottom {
-  margin: 0 auto;
-  text-align: center;
-  border-top: none;
-  padding-top: 0;
-}
-
-.footer-minimal a:hover {
-  color: var(--text);
+.doc-page .footer {
+  margin-top: 0;
 }
