@@ -1,0 +1,35 @@
+# Smoke QA на feature-ветках (без deploy Worker)
+name: QA Smoke
+
+on:
+  push:
+    branches:
+      - "qa/**"
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-and-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build:qa
+
+      - name: Smoke QA API (optional)
+        env:
+          MAILAGENT_API_URL: https://api.webmailagent.com
+          MAILAGENT_API_KEY: ${{ secrets.MAILAGENT_API_KEY }}
+        run: |
+          if [ -z "$MAILAGENT_API_KEY" ]; then
+            echo "MAILAGENT_API_KEY not set — skip smoke:qa"
+            exit 0
+          fi
+          npm run smoke:qa

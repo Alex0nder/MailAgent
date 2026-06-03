@@ -101,6 +101,26 @@ const apiUrl = (merged.MAILAGENT_API_URL ?? "https://api.webmailagent.com").repl
 );
 const apiKey = merged.MAILAGENT_API_KEY ?? merged.API_KEY;
 
+if (merged.RESEND_API_KEY && !merged.RESEND_API_KEY.includes("xxx")) {
+  try {
+    const res = await fetch("https://api.resend.com/domains", {
+      headers: { Authorization: `Bearer ${merged.RESEND_API_KEY}` },
+    });
+    console.log(
+      res.ok ? "✓" : "✗",
+      "Resend API (GET /domains)",
+      res.status,
+      res.ok ? "key valid" : await res.text().then((t) => t.slice(0, 80))
+    );
+    if (!res.ok) ok = false;
+  } catch (e) {
+    console.log("✗ Resend API:", e instanceof Error ? e.message : e);
+    ok = false;
+  }
+} else {
+  notes.push("Skip Resend ping (no RESEND_API_KEY)");
+}
+
 if (apiKey) {
   try {
     const health = await fetch(`${apiUrl}/health`);

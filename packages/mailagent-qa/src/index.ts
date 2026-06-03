@@ -283,6 +283,88 @@ export class MailAgentQa {
     return data.deliveries ?? [];
   }
 
+  /** OTP/links из latest или конкретного messageId */
+  async getVerification(
+    inboxId: string,
+    messageId?: string
+  ): Promise<Verification> {
+    if (!messageId) {
+      return this.request<Verification>(`/v1/inboxes/${inboxId}/extract`);
+    }
+    const messages = await this.listMessages(inboxId);
+    const m = messages.find((row) => row.id === messageId);
+    if (!m) {
+      throw new Error(`MailAgent: message ${messageId} not found in inbox ${inboxId}`);
+    }
+    return {
+      otp: m.otp ?? null,
+      links: m.links ?? [],
+      primaryLink: m.primaryLink ?? null,
+      from: m.from,
+      subject: m.subject,
+      messageId: m.id,
+    };
+  }
+
+  /**
+   * Ждёт успешную доставку callbackUrl (poll GET …/callbacks).
+   * Inbox должен быть создан с callbackUrl; после письма Worker POSTит verification.
+   */
+  async waitForCallback(
+    inboxId: string,
+    options?: {
+      timeoutSeconds?: number;
+      pollIntervalMs?: number;
+      /** Игнорировать deliveries до этого момента (ISO или Date) */
+      since?: Date | string;
+      /** 0 = newest ok delivery (default) */
+      callbackIndex?: number;
+    }
+  ): Promise<{ delivery: CallbackDelivery; verification: Verification }> {
+    const timeoutMs = (options?.timeoutSeconds ?? 120) * 1000;
+    const pollMs = Math.max(500, options?.pollIntervalMs ?? 1500);
+    const sinceMs = options?.since
+      ? new Date(options.since).getTime()
+      : Date.now();
+    const index = Math.max(0, options?.callbackIndex ?? 0);
+    const deadline = Date.now() + timeoutMs;
+
+    while (Date.now() < deadline) {
+      const deliveries = await this.listCallbackDeliveries(inboxId, 50);
+      const ok = deliveries
+        .filter(
+          (d) =>
+            d.ok &&
+            d.messageId &&
+            new Date(d.createdAt).getTime() >= sinceMs - 5000
+        )
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      const hit = ok[index];
+      if (hit?.messageId) {
+        const verification = await this.getVerification(inboxId, hit.messageId);
+        return { delivery: hit, verification };
+      }
+      await sleep(pollMs);
+    }
+
+    const ctx = await this.getDebugContext(inboxId).catch(() => null);
+    throw new MailAgentTimeoutError("Callback not received (no ok delivery in log)", {
+      inboxId,
+      callbackIndex: index,
+      callbacks: ctx?.callbacks ?? [],
+      troubleshooting: [
+        "Убедитесь что inbox создан с callbackUrl (HTTPS).",
+        "Endpoint должен ответить 2xx за <10s.",
+        "См. GET …/callbacks — ok:false и statusCode.",
+        ...(ctx?.troubleshooting ?? []),
+      ],
+      debugUiUrl: this.debugUiUrl(inboxId),
+    });
+  }
+
   /** Контекст для Allure / ReportPortal / CI log */
   async getDebugContext(
     inboxId: string,

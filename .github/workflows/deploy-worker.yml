@@ -43,3 +43,4 @@ jobs:
             exit 0
           fi
           npm run smoke:agent
+          npm run smoke:qa

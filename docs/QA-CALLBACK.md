@@ -116,6 +116,35 @@ curl -sS "$MAILAGENT_API_URL/v1/inboxes/INBOX_ID/callbacks" \
 
 Поля: `deliveries[].ok`, `statusCode`, `error`, `durationMs`.
 
+### SDK: `waitForCallback` (@mailagent/qa ≥0.1.9)
+
+Когда inbox с `callbackUrl`, но тест не слушает webhook напрямую — poll лога доставки:
+
+```typescript
+import { createMailAgentQa, MailAgentQa } from "@mailagent/qa";
+
+const mail = createMailAgentQa();
+const since = new Date();
+
+const inbox = await mail.createInbox({
+  label: MailAgentQa.ciLabel(),
+  service: "auth0",
+  callbackUrl: "https://smee.io/YOUR_CHANNEL",
+});
+
+// ... signup с inbox.address ...
+
+const { verification, delivery } = await mail.waitForCallback(inbox.id, {
+  since,
+  timeoutSeconds: 120,
+});
+
+expect(verification.otp).toMatch(/^\d+$/);
+console.log("callback ok", delivery.statusCode);
+```
+
+Cypress: `cy.task("mailagentWaitCallback", { inboxId })`.
+
 ## 4. GitHub Actions
 
 Публичный URL в GHA без smee сложнее. Варианты:

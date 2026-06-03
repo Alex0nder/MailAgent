@@ -14,6 +14,8 @@ import { createMailAgentQa } from "@mailagent/qa";
 const mail = createMailAgentQa();
 const inbox = await mail.createInbox({ label: mail.runLabel("ci"), service: "auth0" });
 const { otp } = await mail.waitForVerification(inbox.id, { subjectContains: "verify" });
+// callback flow:
+// const { verification } = await mail.waitForCallback(inbox.id, { since: new Date() });
 await mail.cleanupRun(process.env.GITHUB_RUN_ID!);
 ```
 

@@ -56,27 +56,30 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 
 ## Дальше (QA / Developer track)
 
-### v0.8 QA relief (in progress)
+### v0.8 QA relief ✅
 
-| `@mailagent/qa` 0.1.8 debug + attachments + messageIndex | ✅ |
+| `@mailagent/qa` 0.1.8+ debug + attachments + messageIndex | ✅ |
 | Debug UI `?inbox=` + таблицы | ✅ |
 | `npm run smoke:qa` | ✅ |
 | [QA-TROUBLESHOOTING.md](./QA-TROUBLESHOOTING.md) | ✅ |
 | [QA-LOCAL-SMTP.md](./QA-LOCAL-SMTP.md) + Mailpit compose | ✅ |
 | `parse-otp-message` fallback in extract | ✅ |
-
-### v0.8+ backlog
-
 | Wait Nth message (`messageIndex`) | ✅ |
-| Richer 408 response (subjects list) | ✅ |
-| Callback payload `verification` JSON | ✅ |
-| `npm run doctor` (webhook + migrate check) | ✅ |
-| Publish `@mailagent/qa@0.1.8` | pending |
+| Richer 408 + callback `verification` | ✅ |
+| `npm run doctor` | ✅ |
 
-### v0.9 ideas
+### v0.9 (in progress)
 
-| Callback-first SDK helper `waitForCallback` | planned |
-| `npm run doctor` Resend API ping | planned |
+| `waitForCallback` in `@mailagent/qa` | ✅ |
+| `getVerification(inboxId, messageId?)` | ✅ |
+| Doctor Resend API ping | ✅ |
+| CI: `smoke:qa` after deploy | ✅ |
+| Publish `@mailagent/qa@0.1.9` | pending |
+
+### v0.9+ ideas
+
+| PR CI smoke on `qa/*` branches (no deploy) | planned |
+| Contract test + callback in CI | planned |
 
 ### Отложено (не QA)
 
