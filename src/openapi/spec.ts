@@ -67,6 +67,14 @@ const message = {
     links: { type: "array", items: { type: "string" } },
     primaryLink: { type: "string", nullable: true },
     receivedAt: { type: "string", format: "date-time" },
+    hasRaw: {
+      type: "boolean",
+      description: "Raw MIME stored in R2",
+    },
+    rawUrl: {
+      type: "string",
+      description: "Relative path to download .eml",
+    },
   },
 } as const;
 
@@ -359,6 +367,44 @@ export const openApiSpec = {
               },
             },
           },
+        },
+      },
+    },
+    "/v1/inboxes/{id}/messages/{messageId}/raw": {
+      get: {
+        tags: ["inboxes"],
+        summary: "Download raw MIME (.eml) from R2",
+        security: bearer,
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string" } },
+          {
+            name: "messageId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Raw email (message/rfc822) or JSON metadata with Accept: application/json",
+            content: {
+              "message/rfc822": { schema: { type: "string", format: "binary" } },
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    messageId: { type: "string" },
+                    inboxId: { type: "string" },
+                    contentType: { type: "string" },
+                    sizeBytes: { type: "integer" },
+                    filename: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+          "404": { $ref: "#/components/responses/NotFound" },
+          "503": { description: "R2 binding not configured" },
         },
       },
     },

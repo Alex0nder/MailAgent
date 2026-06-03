@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Raw MIME — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="doc-page">
+    <header class="nav">
+      <div class="nav-inner">
+        <a href="/" class="logo">MailAgent</a>
+        <nav class="nav-links">
+          <a href="/docs/">API</a>
+          <a href="/docs/qa.html">QA</a>
+          <a href="/docs/raw-mime.html">Raw MIME</a>
+          <a href="https://github.com/Alex0nder/MailAgent" rel="noopener noreferrer">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="doc-main">
+      <h1>Raw MIME storage</h1>
+      <p class="doc-lead">
+        Resend’s signed <code>raw.download_url</code> expires in about an hour.
+        MailAgent downloads the full <code>.eml</code> at ingest and stores it in
+        <strong>Cloudflare R2</strong> until the inbox is deleted or TTL expires.
+      </p>
+
+      <h2>Why</h2>
+      <ul class="doc-list">
+        <li>Debug HTML/layout issues beyond <code>textPreview</code></li>
+        <li>Inspect headers and attachments offline</li>
+        <li>QA forensics after a failed extract</li>
+      </ul>
+
+      <h2>API</h2>
+      <pre class="doc-pre"><code>GET /v1/inboxes/:inboxId/messages
+→ { "messages": [{ "id": "…", "hasRaw": true, "rawUrl": "/v1/inboxes/…/messages/…/raw" }] }
+
+GET /v1/inboxes/:inboxId/messages/:messageId/raw
+→ Content-Type: message/rfc822
+
+GET …/raw  Accept: application/json
+→ { "sizeBytes": 1234, "filename": "message-….eml" }</code></pre>
+
+      <h2>Self-host setup</h2>
+      <p>Enable R2 in the Cloudflare Dashboard first, then:</p>
+      <pre class="doc-pre"><code>npx wrangler r2 bucket create mailagent-raw-mime
+npm run deploy</code></pre>
+      <p>
+        Binding <code>RAW_MIME</code> is defined in
+        <code>wrangler.jsonc</code>. Optional env
+        <code>RAW_MIME_MAX_BYTES</code> (default 15MB).
+      </p>
+
+      <h2>Lifecycle</h2>
+      <p>
+        Raw files are removed when you delete an inbox, bulk-delete by
+        <code>labelPrefix</code>, or when the hourly TTL cron purges expired inboxes.
+      </p>
+
+      <p>
+        <a href="/docs/">← API docs</a> ·
+        <a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/RAW-MIME-R2.md">Full reference</a>
+      </p>
+    </main>
+
+    <footer class="footer">
+      <p class="footer-bottom"><a href="/">← Back to MailAgent</a></p>
+    </footer>
+  </body>
+</html>

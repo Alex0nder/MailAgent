@@ -57,8 +57,13 @@ npx wrangler secret put RESEND_API_KEY
 npx wrangler secret put RESEND_WEBHOOK_SECRET
 npx wrangler secret put API_KEY
 npx wrangler secret put INBOX_DOMAIN
+# Dashboard → R2 → enable, then:
+npx wrangler r2 bucket create mailagent-raw-mime
 npm run deploy
+npm run db:migrate
 ```
+
+R2 хранит raw `.eml` (см. [docs/RAW-MIME-R2.md](./docs/RAW-MIME-R2.md)). Binding `RAW_MIME` уже в `wrangler.jsonc`.
 
 Обновите Resend webhook URL на прод Worker.  
 `MAILAGENT_API_URL` в `.env` → URL после deploy.

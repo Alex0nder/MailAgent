@@ -51,6 +51,12 @@
   "triggers": {
     "crons": ["0 * * * *"]
   },
+  "r2_buckets": [
+    {
+      "binding": "RAW_MIME",
+      "bucket_name": "mailagent-raw-mime"
+    }
+  ],
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",

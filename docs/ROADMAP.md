@@ -10,6 +10,7 @@
 | Dynamic Client Registration (RFC 7591) | ✅ |
 | OIDC IdP (Auth0/Google authorization_code) | ✅ |
 | Scoped API keys (labelPrefix, readOnly) | ✅ |
+| Raw MIME in R2 (.eml archive) | ✅ |
 | Progress notifications on wait | ✅ |
 | RFC 8414 / 9728 discovery | ✅ |
 | `runId` tracing | ✅ |
@@ -45,4 +46,4 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 - ~~Dynamic Client Registration (DCR)~~ ✅
 - ~~Third-party IdP OAuth (Auth0/Google login for MCP)~~ ✅ — [MCP-OAUTH-IDP.md](./MCP-OAUTH-IDP.md)
 - ~~Scoped API keys per tenant~~ ✅ — [SCOPED-API-KEYS.md](./SCOPED-API-KEYS.md)
-- R2 для raw MIME
+- ~~R2 для raw MIME~~ ✅ — [RAW-MIME-R2.md](./RAW-MIME-R2.md)

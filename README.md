@@ -240,6 +240,6 @@ curl -s -X POST https://mailagent.<worker>/v1/inboxes/open \
 
 ## Дальше
 
-- R2 для сырых MIME
-- ~~Scoped API keys per tenant~~ ✅ — [SCOPED-API-KEYS.md](./docs/SCOPED-API-KEYS.md) · [сайт](https://webmailagent.com/docs/scoped-keys.html)
+- ~~R2 для сырых MIME~~ ✅ — [docs/RAW-MIME-R2.md](./docs/RAW-MIME-R2.md) · [сайт](https://webmailagent.com/docs/raw-mime.html)
+- ~~Scoped API keys per tenant~~ ✅ — [docs/SCOPED-API-KEYS.md](./docs/SCOPED-API-KEYS.md) · [сайт](https://webmailagent.com/docs/scoped-keys.html)
 - `api.webmailagent.com` → Worker — см. [SETUP.md](./SETUP.md) §6

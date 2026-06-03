@@ -26,6 +26,11 @@ apiMetaRoutes.get("/", (c) => {
       createInbox: { method: "POST", path: "/v1/inboxes" },
       getInbox: { method: "GET", path: "/v1/inboxes/:id" },
       messages: { method: "GET", path: "/v1/inboxes/:id/messages" },
+      messageRaw: {
+        method: "GET",
+        path: "/v1/inboxes/:id/messages/:messageId/raw",
+        note: "Full .eml from R2 (Accept: application/json for metadata)",
+      },
       extract: { method: "GET", path: "/v1/inboxes/:id/extract" },
       events: { method: "GET", path: "/v1/inboxes/:id/events", note: "SSE" },
       wait: { method: "GET", path: "/v1/inboxes/:id/wait" },

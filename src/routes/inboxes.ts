@@ -19,10 +19,12 @@ import {
   deleteInbox,
   deleteInboxesByLabelPrefix,
   getInbox,
+  getMessage,
   listInboxes,
   listMessages,
   type InboxRow,
 } from "../services/inbox";
+import { getRawMimeObject, rawMimeEnabled } from "../services/raw-mime-r2";
 import { primaryLink } from "../services/extract";
 import { waitForFirstMessage } from "../services/wait";
 
@@ -218,6 +220,59 @@ inboxRoutes.get("/:id/callbacks", async (c) => {
   });
 });
 
+inboxRoutes.get("/:id/messages/:messageId/raw", async (c) => {
+  const inbox = await getInbox(c.env, c.req.param("id"), {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
+  if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const denied = scopeInboxDenied(c, inbox);
+  if (denied) return denied;
+
+  const message = await getMessage(
+    c.env,
+    inbox.id,
+    c.req.param("messageId")
+  );
+  if (!message) return c.json({ error: "message_not_found" }, 404);
+
+  if (!message.raw_r2_key) {
+    return c.json(
+      {
+        error: rawMimeEnabled(c.env) ? "raw_not_stored" : "raw_mime_disabled",
+        hint: rawMimeEnabled(c.env)
+          ? "Message ingested before raw storage or download failed."
+          : "Configure RAW_MIME R2 binding on the Worker.",
+      },
+      rawMimeEnabled(c.env) ? 404 : 503
+    );
+  }
+
+  const obj = await getRawMimeObject(c.env, message.raw_r2_key);
+  if (!obj) {
+    return c.json({ error: "raw_not_found" }, 404);
+  }
+
+  const accept = c.req.header("Accept") ?? "";
+  if (accept.includes("application/json")) {
+    return c.json({
+      messageId: message.id,
+      inboxId: inbox.id,
+      contentType: "message/rfc822",
+      sizeBytes: obj.size,
+      filename: `message-${message.id}.eml`,
+    });
+  }
+
+  const headers = new Headers();
+  headers.set("Content-Type", "message/rfc822");
+  headers.set(
+    "Content-Disposition",
+    `inline; filename="message-${message.id}.eml"`
+  );
+  if (obj.etag) headers.set("ETag", obj.etag);
+  return new Response(obj.body, { headers });
+});
+
 inboxRoutes.get("/:id/messages", async (c) => {
   const inbox = await getInbox(c.env, c.req.param("id"), {
     apiKeyHint: c.get("apiKeyHint"),
@@ -228,7 +283,12 @@ inboxRoutes.get("/:id/messages", async (c) => {
   const subjectContains = c.req.query("subjectContains") ?? undefined;
   const messages = await listMessages(c.env, inbox.id, { subjectContains });
   return c.json({
-    messages: messages.map(formatMessage),
+    messages: messages.map((m) => ({
+      ...formatMessage(m),
+      ...(m.raw_r2_key
+        ? { rawUrl: `/v1/inboxes/${inbox.id}/messages/${m.id}/raw` }
+        : {}),
+    })),
     ...(subjectContains ? { subjectContains } : {}),
   });
 });
@@ -275,7 +335,14 @@ inboxRoutes.get("/:id/wait", async (c) => {
     subjectContains,
   });
   if (!message) return c.json({ error: "timeout" }, 408);
-  return c.json({ message: formatMessage(message) });
+  return c.json({
+    message: {
+      ...formatMessage(message),
+      ...(message.raw_r2_key
+        ? { rawUrl: `/v1/inboxes/${inbox.id}/messages/${message.id}/raw` }
+        : {}),
+    },
+  });
 });
 
 inboxRoutes.delete("/:id", async (c) => {
@@ -304,6 +371,7 @@ function formatMessage(m: {
   otp: string | null;
   links_json: unknown;
   received_at: string;
+  raw_r2_key?: string | null;
 }) {
   const links = parseLinks(m.links_json);
   return {
@@ -315,6 +383,7 @@ function formatMessage(m: {
     links,
     primaryLink: primaryLink(links),
     receivedAt: m.received_at,
+    hasRaw: Boolean(m.raw_r2_key),
   };
 }
 

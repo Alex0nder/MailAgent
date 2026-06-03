@@ -26,6 +26,10 @@ export interface Env {
   OIDC_CLIENT_SECRET?: string;
   /** Optional API audience for Auth0 */
   OIDC_AUDIENCE?: string;
+  /** R2: raw MIME (.eml) после ingest из Resend */
+  RAW_MIME?: R2Bucket;
+  /** Max raw MIME size in bytes (default 15MB) */
+  RAW_MIME_MAX_BYTES?: string;
 }
 
 export interface EmailQueueMessage {

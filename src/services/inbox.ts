@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import { purgeRawMimeForInboxes } from "./raw-mime-r2";
 import type { Env } from "../env";
 import { getDb } from "../db/client";
 import { normalizeAllowedSenders } from "../lib/sender-allowlist";
@@ -25,6 +26,7 @@ export interface MessageRow {
   otp: string | null;
   links_json: string[];
   received_at: string;
+  raw_r2_key: string | null;
 }
 
 export async function createInbox(
@@ -217,6 +219,7 @@ export async function deleteInbox(
 ): Promise<boolean> {
   const inbox = await getInbox(env, id, options);
   if (!inbox) return false;
+  await purgeRawMimeForInboxes(env, [id]);
   const sql = getDb(env);
   const rows = await sql`DELETE FROM inboxes WHERE id = ${id} RETURNING id`;
   return rows.length > 0;
@@ -233,6 +236,13 @@ export async function deleteInboxesByLabelPrefix(
 
   const sql = getDb(env);
   const pattern = `${prefix}%`;
+  const targets = (await sql`
+    SELECT id FROM inboxes
+    WHERE label LIKE ${pattern}
+      AND (api_key_hint IS NULL OR api_key_hint = ${apiKeyHint})
+  `) as { id: string }[];
+  const ids = targets.map((r) => r.id);
+  if (ids.length) await purgeRawMimeForInboxes(env, ids);
   const rows = await sql`
     DELETE FROM inboxes
     WHERE label LIKE ${pattern}
@@ -251,7 +261,8 @@ export async function listMessages(
   const needle = options?.subjectContains?.trim().toLowerCase();
   const rows = (await sql`
     SELECT id, inbox_id, provider_id, from_addr, subject,
-           text_preview, html_preview, otp, links_json, received_at
+           text_preview, html_preview, otp, links_json, received_at,
+           raw_r2_key
     FROM messages
     WHERE inbox_id = ${inboxId}
     ORDER BY received_at DESC
@@ -261,9 +272,27 @@ export async function listMessages(
   return rows.filter((m) => m.subject.toLowerCase().includes(needle));
 }
 
+export async function getMessage(
+  env: Env,
+  inboxId: string,
+  messageId: string
+): Promise<MessageRow | null> {
+  const sql = getDb(env);
+  const rows = (await sql`
+    SELECT id, inbox_id, provider_id, from_addr, subject,
+           text_preview, html_preview, otp, links_json, received_at,
+           raw_r2_key
+    FROM messages
+    WHERE inbox_id = ${inboxId} AND id = ${messageId}
+    LIMIT 1
+  `) as MessageRow[];
+  return rows[0] ?? null;
+}
+
 export async function insertMessage(
   env: Env,
   input: {
+    id?: string;
     inboxId: string;
     providerId: string;
     from: string;
@@ -272,21 +301,22 @@ export async function insertMessage(
     htmlPreview: string | null;
     otp: string | null;
     links: string[];
+    rawR2Key?: string | null;
   }
 ): Promise<MessageRow | null> {
   const sql = getDb(env);
-  const id = nanoid(16);
+  const id = input.id ?? nanoid(16);
 
   try {
     await sql`
       INSERT INTO messages (
         id, inbox_id, provider_id, from_addr, subject,
-        text_preview, html_preview, otp, links_json
+        text_preview, html_preview, otp, links_json, raw_r2_key
       )
       VALUES (
         ${id}, ${input.inboxId}, ${input.providerId}, ${input.from},
         ${input.subject}, ${input.textPreview}, ${input.htmlPreview},
-        ${input.otp}, ${JSON.stringify(input.links)}
+        ${input.otp}, ${JSON.stringify(input.links)}, ${input.rawR2Key ?? null}
       )
     `;
   } catch {
@@ -295,7 +325,8 @@ export async function insertMessage(
 
   const rows = (await sql`
     SELECT id, inbox_id, provider_id, from_addr, subject,
-           text_preview, html_preview, otp, links_json, received_at
+           text_preview, html_preview, otp, links_json, received_at,
+           raw_r2_key
     FROM messages
     WHERE id = ${id}
     LIMIT 1
@@ -334,12 +365,19 @@ export async function countActiveInboxesForTeam(
   return rows[0]?.n ?? 0;
 }
 
-export async function purgeExpired(env: Env): Promise<{ inboxes: number }> {
+export async function purgeExpired(
+  env: Env
+): Promise<{ inboxes: number; rawDeleted: number }> {
   const sql = getDb(env);
+  const expiring = (await sql`
+    SELECT id FROM inboxes WHERE expires_at <= NOW()
+  `) as { id: string }[];
+  const inboxIds = expiring.map((r) => r.id);
+  const rawDeleted = await purgeRawMimeForInboxes(env, inboxIds);
   const deleted = await sql`
     DELETE FROM inboxes
     WHERE expires_at <= NOW()
     RETURNING id
   `;
-  return { inboxes: deleted.length };
+  return { inboxes: deleted.length, rawDeleted };
 }

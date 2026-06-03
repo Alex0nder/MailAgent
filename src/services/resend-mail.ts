@@ -14,7 +14,9 @@ import {
   type InboxRow,
   type MessageRow,
 } from "./inbox";
+import { storeRawMimeFromUrl } from "./raw-mime-r2";
 import type { EmailQueueMessage, MessageNotifyPayload } from "../env";
+import { nanoid } from "nanoid";
 
 export function createResendClient(env: Env) {
   return new Resend(env.RESEND_API_KEY);
@@ -53,7 +55,20 @@ export async function processInboundEmail(
   const otp = extractOtp(combined);
   const links = extractLinks(combined);
 
+  const messageId = nanoid(16);
+  let rawR2Key: string | null = null;
+  const rawDownload = readRawDownloadUrl(email);
+  if (rawDownload) {
+    rawR2Key = await storeRawMimeFromUrl(
+      env,
+      inbox.id,
+      messageId,
+      rawDownload
+    );
+  }
+
   const row = await insertMessage(env, {
+    id: messageId,
     inboxId: inbox.id,
     providerId: job.emailId,
     from: job.from,
@@ -62,6 +77,7 @@ export async function processInboundEmail(
     htmlPreview: buildPreviewText(html, 4000),
     otp,
     links,
+    rawR2Key,
   });
 
   if (!row) return;
@@ -97,4 +113,11 @@ function toNotifyPayload(row: MessageRow): MessageNotifyPayload {
     primaryLink: primaryLink(links),
     receivedAt: row.received_at,
   };
+}
+
+function readRawDownloadUrl(email: unknown): string | null {
+  if (!email || typeof email !== "object") return null;
+  const raw = (email as { raw?: { download_url?: string } }).raw;
+  const url = raw?.download_url;
+  return typeof url === "string" && url.startsWith("http") ? url : null;
 }
