@@ -112,18 +112,21 @@ async function main() {
     if (sim2.status !== 0) process.exit(sim2.status ?? 1);
   }
 
+  // messageIndex среди отфильтрованных: 0=contract-second (новее), 1=contract-first
   const waitIdx = await api(
-    `/v1/inboxes/${inboxId}/wait?timeout=30&messageIndex=1&subjectContains=contract-second`
+    `/v1/inboxes/${inboxId}/wait?timeout=30&messageIndex=1&subjectContains=contract`
   );
   if (!waitIdx.ok) {
     console.error("wait messageIndex=1 failed", waitIdx.status, waitIdx.json);
     process.exit(1);
   }
-  if (waitIdx.json.otp !== otp2) {
-    console.error("messageIndex otp mismatch", waitIdx.json);
+  const waitOtp = waitIdx.json.message?.otp ?? waitIdx.json.otp;
+  const waitSubject = waitIdx.json.message?.subject ?? waitIdx.json.subject;
+  if (waitOtp !== "000001") {
+    console.error("messageIndex otp mismatch", { expected: "000001", got: waitOtp, waitIdx: waitIdx.json });
     process.exit(1);
   }
-  console.log("messageIndex OK", { subject: waitIdx.json.subject, otp: waitIdx.json.otp });
+  console.log("messageIndex OK", { subject: waitSubject, otp: waitOtp });
 
   const del = await api(`/v1/inboxes/${inboxId}`, { method: "DELETE" });
   if (!del.ok) {
