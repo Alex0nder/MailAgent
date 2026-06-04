@@ -63,10 +63,14 @@ OAuth (team keys): `POST /v1/oauth/token` → `mat_…` вместо legacy key.
 | 1 | `config.toml.example` + docs | ✅ |
 | 2 | Plugin scaffold (local test) | ✅ |
 | 3 | Skill для Codex (signup / OTP flow) | ✅ scaffold |
-| 4 | `npm run smoke:codex` — проверка что `@mailagent/mcp` стартует | planned |
-| 5 | Публикация plugin (OpenAI marketplace / git install) | planned |
-| 6 | Remote MCP preset в plugin (prod URL + OAuth doc) | planned |
-| 7 | `AGENTS.md` / `codex mcp add` one-liner в README | planned |
+| 4 | `npm run smoke:codex` — проверка что `@mailagent/mcp` стартует | ✅ |
+| 5 | `npm run verify:codex` в CI | ✅ |
+| 6 | Remote MCP + OAuth preset (`config.remote-oauth.toml.example`) | ✅ |
+| 7 | `AGENTS.md` one-pager | ✅ |
+| 8 | Playwright `global-setup` + attachment spec | ✅ |
+| 9 | Локальный тест plugin в Codex CLI | manual (Codex not in CI) |
+| 10 | Publish `@mailagent/agent@0.1.5` | manual (`npm run publish:agent`) |
+| 11 | Marketplace / `codex plugin install` publish | planned |
 
 ### Локальный тест plugin
 
@@ -81,6 +85,27 @@ export MAILAGENT_API_URL=https://api.webmailagent.com
 # Или только MCP без plugin:
 codex mcp add mailagent -- npx -y @mailagent/mcp@0.2.0
 ```
+
+### Remote MCP + OAuth
+
+Team keys: получи `mat_` token и подставь в remote config.
+
+```bash
+curl -sS -X POST https://api.webmailagent.com/v1/oauth/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials&client_secret=YOUR_TEAM_KEY"
+```
+
+Пример: [examples/codex/config.remote-oauth.toml.example](../examples/codex/config.remote-oauth.toml.example) · [MCP-OAUTH.md](./MCP-OAUTH.md).
+
+### Troubleshooting
+
+| Симптом | Решение |
+|---------|---------|
+| Tools не видны | `codex mcp list`; проверь `MAILAGENT_API_KEY` |
+| 401 remote | Bearer `mat_…` или legacy key |
+| Plugin не грузится | trusted project + `examples/codex/plugin` |
+| Без Codex CLI | `npm run verify:codex` в CI |
 
 ### Ограничения Codex (на момент плана)
 

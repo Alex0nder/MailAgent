@@ -26,6 +26,7 @@ jobs:
 
       - run: npm ci
       - run: npm run check
+      - run: npm run verify:codex
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3

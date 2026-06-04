@@ -38,6 +38,8 @@
     "test:contract:qa:callback": "node scripts/contract-qa-callback.mjs",
     "test:contract:qa:attachments": "node scripts/contract-qa-attachments.mjs",
     "smoke:codex": "node scripts/smoke-codex.mjs",
+    "verify:codex": "node scripts/verify-codex-plugin.mjs",
+    "test:pw:setup": "node scripts/playwright-global-setup.mjs",
     "ci:mailagent-alerts": "npm run build:qa && node scripts/ci-mailagent-alerts.mjs",
     "repo:github-about": "gh repo edit Alex0nder/MailAgent --description \"Temporary email inboxes for AI agents & QA/E2E — MCP, REST, OTP/magic links. Cloudflare Workers, Neon, Resend. MIT.\" --homepage https://webmailagent.com"
   },

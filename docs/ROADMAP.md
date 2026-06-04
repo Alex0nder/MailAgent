@@ -90,19 +90,20 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | Simulate `--with-attachment`, contract attachments | ✅ |
 | Playwright `attachment.spec.example.ts` | ✅ |
 | Contract on deploy (optional secrets) | ✅ |
-| Publish `@mailagent/agent@0.1.5` | pending |
+| Publish `@mailagent/agent@0.1.5` | manual (`npm run publish:agent`, org login) |
 
 ### v0.11 Codex (plugin + MCP)
 
 | [CODEX.md](./CODEX.md) — план и setup | ✅ |
 | `examples/codex/config.toml.example` (stdio + remote) | ✅ |
 | Codex plugin scaffold (`examples/codex/plugin/`) | ✅ |
-| Skill `mailagent` для Codex | ✅ scaffold |
-| `npm run smoke:codex` | ✅ |
-| Локальный тест plugin в Codex CLI | planned |
-| Marketplace / `codex plugin install` publish | planned |
-| Remote MCP preset + OAuth doc в plugin | planned |
-| Playwright globalSetup (inbox + simulate) | planned |
+| Skill `mailagent` для Codex | ✅ |
+| `npm run smoke:codex` + `verify:codex` в CI | ✅ |
+| Remote OAuth preset | ✅ |
+| `AGENTS.md` | ✅ |
+| Playwright globalSetup | ✅ |
+| Codex CLI manual test | manual |
+| Marketplace publish | planned |
 
 ### Отложено (не QA)
 
