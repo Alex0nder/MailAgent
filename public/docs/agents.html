@@ -69,6 +69,25 @@ Authorization: Bearer &lt;API_KEY&gt;
 }</code></pre>
       <p>Build: <code>npm run build:mcp</code>. Skill: <code>.cursor/skills/mailagent-mcp/SKILL.md</code></p>
 
+      <h2>OpenAI Codex</h2>
+      <p>
+        Same MCP tools via <code>~/.codex/config.toml</code> or a
+        <a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/CODEX.md">Codex plugin</a>.
+      </p>
+      <pre class="doc-pre"><code># ~/.codex/config.toml
+[mcp_servers.mailagent]
+command = "npx"
+args = ["-y", "@mailagent/mcp@0.2.0"]
+
+[mcp_servers.mailagent.env]
+MAILAGENT_API_URL = "https://api.webmailagent.com"
+MAILAGENT_API_KEY = "your_key"</code></pre>
+      <p>
+        Plugin scaffold:
+        <a href="https://github.com/Alex0nder/MailAgent/tree/main/examples/codex/plugin">examples/codex/plugin</a>
+        · Remote MCP: use <code>POST https://api.webmailagent.com/mcp</code> (see below).
+      </p>
+
       <h2>CLI</h2>
       <pre class="doc-pre"><code>npm run build:mcp
 MAILAGENT_API_URL=https://api.webmailagent.com \

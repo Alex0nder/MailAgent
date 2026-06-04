@@ -1,6 +1,12 @@
 {
   "name": "mailagent",
   "version": "0.1.0",
+  "description": "Temporary email inboxes for AI agents & QA/E2E — MCP, REST, OTP/magic links. Cloudflare Workers, Neon, Resend. MIT.",
+  "homepage": "https://webmailagent.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alex0nder/MailAgent.git"
+  },
   "private": true,
   "type": "module",
   "scripts": {
@@ -31,7 +37,9 @@
     "test:contract:qa": "node scripts/contract-qa.mjs",
     "test:contract:qa:callback": "node scripts/contract-qa-callback.mjs",
     "test:contract:qa:attachments": "node scripts/contract-qa-attachments.mjs",
-    "ci:mailagent-alerts": "npm run build:qa && node scripts/ci-mailagent-alerts.mjs"
+    "smoke:codex": "node scripts/smoke-codex.mjs",
+    "ci:mailagent-alerts": "npm run build:qa && node scripts/ci-mailagent-alerts.mjs",
+    "repo:github-about": "gh repo edit Alex0nder/MailAgent --description \"Temporary email inboxes for AI agents & QA/E2E — MCP, REST, OTP/magic links. Cloudflare Workers, Neon, Resend. MIT.\" --homepage https://webmailagent.com"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",

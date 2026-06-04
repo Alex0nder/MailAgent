@@ -1,0 +1,9 @@
+{
+  "name": "mailagent",
+  "version": "0.1.0",
+  "description": "Temporary inboxes for Codex — OTP, magic links, email verification during signup flows",
+  "author": "MailAgent",
+  "homepage": "https://webmailagent.com/docs/agents.html",
+  "repository": "https://github.com/Alex0nder/MailAgent",
+  "keywords": ["email", "verification", "otp", "mcp", "testing", "agents"]
+}

@@ -36,3 +36,21 @@ MAILAGENT_API_URL=http://127.0.0.1:8787 MAILAGENT_API_KEY=xxx node dist/index.js
 ```
 
 Процесс ждёт JSON-RPC на stdin; для теста используйте Cursor MCP logs.
+
+## OpenAI Codex
+
+Codex читает MCP из `~/.codex/config.toml` или **plugin** (bundled `.mcp.json`).
+
+| Способ | Файл |
+|--------|------|
+| config.toml (stdio / remote HTTP) | [examples/codex/config.toml.example](../examples/codex/config.toml.example) |
+| Local plugin | [examples/codex/plugin/](../examples/codex/plugin/) |
+| Полный план | [docs/CODEX.md](../docs/CODEX.md) |
+
+```bash
+codex mcp add mailagent -- npx -y @mailagent/mcp@0.2.0
+export MAILAGENT_API_KEY=...
+export MAILAGENT_API_URL=https://api.webmailagent.com
+```
+
+Remote (без subprocess): `url = "https://api.webmailagent.com/mcp"` + `Authorization: Bearer …`.

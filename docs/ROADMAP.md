@@ -84,15 +84,25 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | Contract + `messageIndex` + callback (`test:contract:qa:callback`) | ✅ |
 | Playwright `mailagent-callback.fixture.ts` | ✅ |
 
-### v0.10 (следующий спринт)
+### v0.10 ✅
 
-| `@mailagent/agent@0.1.5` — `messageIndex` в verify | in repo |
-| Publish `@mailagent/agent@0.1.5` | pending |
+| `@mailagent/agent@0.1.5` — `messageIndex` в verify | ✅ |
 | Simulate `--with-attachment`, contract attachments | ✅ |
 | Playwright `attachment.spec.example.ts` | ✅ |
 | Contract on deploy (optional secrets) | ✅ |
-| GitHub Secrets: `MAILAGENT_API_KEY` + `DATABASE_URL` | optional |
-| Удалить ветку `qa/v0.8` на GitHub | housekeeping |
+| Publish `@mailagent/agent@0.1.5` | pending |
+
+### v0.11 Codex (plugin + MCP)
+
+| [CODEX.md](./CODEX.md) — план и setup | ✅ |
+| `examples/codex/config.toml.example` (stdio + remote) | ✅ |
+| Codex plugin scaffold (`examples/codex/plugin/`) | ✅ |
+| Skill `mailagent` для Codex | ✅ scaffold |
+| `npm run smoke:codex` | ✅ |
+| Локальный тест plugin в Codex CLI | planned |
+| Marketplace / `codex plugin install` publish | planned |
+| Remote MCP preset + OAuth doc в plugin | planned |
+| Playwright globalSetup (inbox + simulate) | planned |
 
 ### Отложено (не QA)
 
