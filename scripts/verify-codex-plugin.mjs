@@ -11,6 +11,7 @@ const pluginRoot = path.join(root, "examples/codex/plugin");
 const required = [
   ".codex-plugin/plugin.json",
   ".mcp.json",
+  "README.md",
   "scripts/run-mailagent-mcp.sh",
   "skills/mailagent/SKILL.md",
   ".env.example",

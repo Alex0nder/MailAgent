@@ -16,7 +16,7 @@ Accept = "application/json, text/event-stream"
 # Optional: stdio fallback when remote unavailable
 # [mcp_servers.mailagent]
 # command = "npx"
-# args = ["-y", "@mailagent/mcp@0.2.0"]
+# args = ["-y", "-p", "@mailagent/mcp@0.2.0", "mailagent-mcp"]
 # [mcp_servers.mailagent.env]
 # MAILAGENT_API_URL = "https://api.webmailagent.com"
 # MAILAGENT_API_KEY = "YOUR_KEY"

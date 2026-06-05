@@ -48,7 +48,7 @@ Codex читает MCP из `~/.codex/config.toml` или **plugin** (bundled `.
 | Полный план | [docs/CODEX.md](../docs/CODEX.md) |
 
 ```bash
-codex mcp add mailagent -- npx -y @mailagent/mcp@0.2.0
+codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.0 mailagent-mcp
 export MAILAGENT_API_KEY=...
 export MAILAGENT_API_URL=https://api.webmailagent.com
 ```

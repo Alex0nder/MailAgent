@@ -25,4 +25,50 @@ if (bash.status !== 0) {
   process.exit(1);
 }
 
-console.log("OK — Codex launcher syntax valid (set MAILAGENT_API_KEY to run MCP)");
+const rpcInput = [
+  {
+    jsonrpc: "2.0",
+    id: 1,
+    method: "initialize",
+    params: {
+      protocolVersion: "2024-11-05",
+      capabilities: {},
+      clientInfo: { name: "mailagent-codex-smoke", version: "0.0.0" },
+    },
+  },
+  { jsonrpc: "2.0", method: "notifications/initialized", params: {} },
+  { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} },
+]
+  .map((line) => JSON.stringify(line))
+  .join("\n");
+
+const tools = spawnSync("bash", [script], {
+  encoding: "utf8",
+  input: `${rpcInput}\n`,
+  env: {
+    ...process.env,
+    MAILAGENT_API_URL: process.env.MAILAGENT_API_URL ?? "https://api.webmailagent.com",
+    MAILAGENT_API_KEY: process.env.MAILAGENT_API_KEY ?? "mailagent_codex_smoke_redacted",
+  },
+  timeout: 30000,
+});
+if (tools.status !== 0) {
+  console.error("MCP tools/list failed", tools.stderr || tools.stdout);
+  process.exit(1);
+}
+
+const toolLines = tools.stdout
+  .split(/\r?\n/)
+  .filter((line) => line.trim().startsWith("{"));
+const listResponse = toolLines
+  .map((line) => JSON.parse(line))
+  .find((msg) => msg.id === 2);
+const names = new Set(listResponse?.result?.tools?.map((tool) => tool.name));
+for (const requiredTool of ["mailagent_verify_signup", "mailagent_create_inbox"]) {
+  if (!names.has(requiredTool)) {
+    console.error(`missing MCP tool: ${requiredTool}`);
+    process.exit(1);
+  }
+}
+
+console.log("OK — Codex launcher resolves MCP tools:", Array.from(names).join(", "));

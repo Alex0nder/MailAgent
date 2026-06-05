@@ -4,7 +4,8 @@
 
 Workflow: [`.github/workflows/deploy-worker.yml`](../.github/workflows/deploy-worker.yml)
 
-Триггер: push в `main` (изменения `src/`, `public/`, `wrangler.jsonc`, …) или **Run workflow**.
+Триггер: push в `main` (`src/`, `public/`, `wrangler.jsonc`, `package-lock.json`) или **Run workflow**.  
+Изменения только `package.json` / `scripts/` / `docs/` **не** деплоят Worker.
 
 ### Secrets (Settings → Secrets and variables → Actions)
 
@@ -31,6 +32,23 @@ npm run deploy
 ```bash
 MAILAGENT_API_URL=https://api.webmailagent.com npm run smoke:agent
 ```
+
+### Deploy failed: `CLOUDFLARE_API_TOKEN` / npx exit 1
+
+Типичная причина ([пример run](https://github.com/Alex0nder/MailAgent/actions/runs/27020682647)):
+
+```
+In a non-interactive environment, it's necessary to set a CLOUDFLARE_API_TOKEN
+```
+
+**Не связано с codex:install** — `verify:codex` проходит; падает `wrangler deploy`.
+
+1. GitHub → **Settings → Secrets and variables → Actions**
+2. Добавь `CLOUDFLARE_API_TOKEN` (Workers Scripts **Edit**)
+3. Добавь `CLOUDFLARE_ACCOUNT_ID` = `42ae092824ce3429ee3f914b43603273`
+4. **Actions → Deploy Worker → Re-run all jobs**
+
+Локальный deploy без CI: `npm run deploy` (после `wrangler login`).
 
 ## Publish npm packages
 
