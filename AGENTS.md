@@ -6,6 +6,7 @@ Temporary inboxes for signup verification (OTP, magic links). Works in **Cursor*
 
 ```bash
 npm run doctor              # local env check
+npm run codex:install       # Codex MCP из .dev.vars
 npm run smoke:qa            # prod API lifecycle
 npm run smoke:agent         # MCP + OAuth smoke
 npm run test:contract:qa    # API + DB simulate (needs DATABASE_URL)
@@ -27,7 +28,7 @@ Source of truth: `src/mcp/manifest.ts` → `GET /v1/agent`.
 | Remote | `POST https://api.webmailagent.com/mcp` + Bearer |
 
 ```bash
-codex mcp add mailagent -- npx -y @mailagent/mcp@0.2.0
+codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.0 mailagent-mcp
 ```
 
 ## npm packages

@@ -83,7 +83,8 @@ export MAILAGENT_API_URL=https://api.webmailagent.com
 # Settings → MCP → должен появиться mailagent из plugin manifest
 
 # Или только MCP без plugin:
-codex mcp add mailagent -- npx -y @mailagent/mcp@0.2.0
+npm run codex:install   # ключ и URL из .dev.vars / .env
+# codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.0 mailagent-mcp
 ```
 
 ### Remote MCP + OAuth
