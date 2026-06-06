@@ -14,7 +14,7 @@ MAILAGENT_API_KEY=ma_… \
   npm run test:prod
 ```
 
-Same as CI post-deploy gate. Step-by-step: `smoke:agent` → `smoke:qa` → `test:contract:all`.
+CI post-deploy: `test:prod:gate` (smoke only). Before merge: `test:prod` (full contracts + Playwright).
 
 | After changing… | Run |
 |-----------------|-----|
@@ -22,7 +22,7 @@ Same as CI post-deploy gate. Step-by-step: `smoke:agent` → `smoke:qa` → `tes
 | inbox / simulate / extract | `npm run test:contract:qa` |
 | attachments / raw MIME | `npm run test:contract:qa:attachments` |
 | team keys / dashboard | `npm run test:contract:qa:team-keys` |
-| anything before merge | `npm run test:prod` |
+| anything before merge | `npm run test:prod` (full; CI uses `test:prod:gate`) |
 
 Contract tests use `POST …/simulate` — no real SMTP, no `DATABASE_URL`. On failure: `npm run doctor:qa`.
 

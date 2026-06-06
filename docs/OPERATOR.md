@@ -34,7 +34,7 @@ Optional (when needed):
 | Secret | When |
 |--------|------|
 | `OUTBOUND_FROM` | send/reply from console |
-| `OIDC_*` | browser login for MCP |
+| `OIDC_*` | browser login for MCP ✅ prod |
 
 **Stripe (`STRIPE_*`) — on hold**, see [YOUR-TURN.md](./YOUR-TURN.md).
 
@@ -46,7 +46,7 @@ Already configured for `@mailagent/*`. Release: `git tag v0.x.0 && git push orig
 
 | Event | Automation |
 |-------|------------|
-| Push `main` | deploy → `smoke:agent` + `smoke:qa` + **all** `test:contract:qa:*` |
+| Push `main` | deploy → `test:prod:gate` (`smoke:agent` + `smoke:qa` only) |
 | PR / `qa/*` | `check` + `verify:codex` + smoke + contract |
 | Tag `v*` | npm publish (OIDC) |
 

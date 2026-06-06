@@ -338,6 +338,11 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | Stateless OIDC flow JWT (authorize state + auth code, no KV puts) | ✅ |
 | `npm run wizard:auth0` interactive setup | ✅ |
 
+### v0.40.1 CI KV relief
+
+| `test:prod:gate` — smoke only on deploy/PR (not full contract suite) | ✅ |
+| OIDC flow JWT (no KV on browser login) | ✅ |
+
 ### Deferred (not QA)
 
 - ~~Agent session memory / multi-step run state~~ ✅ v0.35

@@ -11,6 +11,8 @@ MailAgent can accept **login via external IdP** for remote MCP (Cursor, Claude D
 
 Both can work simultaneously.
 
+**KV quota:** authorize state and auth codes are **stateless JWT** (same `MCP_OAUTH_JWT_SECRET` as `mat_` tokens) — browser login does not consume Cloudflare KV puts.
+
 ## Auth0 setup (example)
 
 1. [Auth0 Dashboard](https://manage.auth0.com) → Applications → Create → **Regular Web Application**

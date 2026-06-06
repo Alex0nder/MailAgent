@@ -27,12 +27,15 @@ npm run deploy
 # CI — push to main only (with secrets)
 ```
 
-After deploy, CI runs `npm run test:prod` automatically. Locally:
+After deploy, CI runs **`npm run test:prod:gate`** (smoke only — ~15 API calls, minimal KV).
+
+Full suite before merge or release:
 
 ```bash
 MAILAGENT_API_URL=https://api.webmailagent.com \
 MAILAGENT_API_KEY=ma_… \
-  npm run test:prod
+  npm run test:prod          # smoke + all contracts + Playwright
+  npm run test:prod:gate     # smoke only (same as CI)
 ```
 
 Operator checklist: [OPERATOR.md](./OPERATOR.md).

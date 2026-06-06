@@ -62,15 +62,13 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Smoke + contract + Playwright (prod gate)
+      - name: Smoke prod gate (light — saves KV quota)
         env:
           MAILAGENT_API_URL: https://api.webmailagent.com
           MAILAGENT_API_KEY: ${{ secrets.MAILAGENT_API_KEY }}
-          SMOKE_EXPECT_ATTACHMENTS: "1"
         run: |
           if [ -z "$MAILAGENT_API_KEY" ]; then
             echo "::error::Set MAILAGENT_API_KEY in GitHub Actions secrets — see docs/OPERATOR.md"
             exit 1
           fi
-          npx playwright install chromium --with-deps
-          npm run test:prod
+          npm run test:prod:gate

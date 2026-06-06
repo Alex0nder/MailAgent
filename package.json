@@ -56,6 +56,7 @@
     "test:contract:qa:outbound": "MAILAGENT_API_URL=https://api.webmailagent.com node scripts/contract-qa-outbound.mjs",
     "test:contract:all": "node scripts/test-contract-all.mjs",
     "test:prod": "node scripts/test-prod.mjs",
+    "test:prod:gate": "node scripts/test-prod-gate.mjs",
     "test:pw:simulate": "playwright test -c examples/playwright/playwright.simulate.config.ts",
     "test:structured-extract": "npx tsx scripts/test-structured-extract.ts",
     "test:message-search": "npx tsx scripts/test-message-search.ts",
