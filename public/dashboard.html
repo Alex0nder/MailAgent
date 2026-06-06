@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Dashboard — MailAgent</title>
+    <title>Console — MailAgent</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta name="theme-color" content="#000000" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -20,18 +20,18 @@
     <div class="doc-layout">
       <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
       <article class="doc-content">
-      <h1>Dashboard</h1>
-      <p class="doc-lead">Plan, usage, and billing for your API key.</p>
+        <h1>Console</h1>
+        <p class="doc-lead">Plan, usage, inboxes, domains, team keys, and billing.</p>
 
-      <form class="app-form" id="form" onsubmit="return false">
-        <label for="base">API base</label>
-        <input id="base" type="url" value="https://api.webmailagent.com" />
-        <label for="key">API key</label>
-        <input id="key" type="password" autocomplete="off" placeholder="ma_…" />
-        <button type="button" id="load">Refresh</button>
-      </form>
+        <form class="app-form" id="form" onsubmit="return false">
+          <label for="base">API base</label>
+          <input id="base" type="url" value="https://api.webmailagent.com" />
+          <label for="key">API key</label>
+          <input id="key" type="password" autocomplete="off" placeholder="ma_…" />
+          <button type="button" id="load">Refresh</button>
+        </form>
 
-      <div class="app-card" id="out">Enter API key and refresh.</div>
+        <div class="app-card" id="out">Enter API key and refresh.</div>
       </article>
     </div>
 
@@ -44,95 +44,182 @@
       const out = document.getElementById("out");
       if (localStorage.getItem(KEY)) keyEl.value = localStorage.getItem(KEY);
 
-      async function load() {
+      function stat(label, value, suffix) {
+        return `<div class="console-metric">
+          <div class="console-metric__label">${label}</div>
+          <div class="console-metric__value">${value}${suffix ?? ""}</div>
+        </div>`;
+      }
+
+      function meter(label, used, max, suffix) {
+        const pct = max > 0 ? Math.min(100, Math.round((used / max) * 100)) : 0;
+        return `<div class="console-metric">
+          <div class="console-metric__label">${label}</div>
+          <div class="console-metric__value">${used}${suffix ?? ""} <span>/ ${max}${suffix ?? ""}</span></div>
+          <div class="console-meter" aria-hidden="true"><div class="console-meter__fill" style="width:${pct}%"></div></div>
+        </div>`;
+      }
+
+      function esc(s) {
+        return String(s ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      async function api(path, opts) {
         const base = baseEl.value.replace(/\/$/, "");
+        const key = keyEl.value.trim();
+        const r = await fetch(`${base}${path}`, {
+          ...opts,
+          headers: {
+            Authorization: `Bearer ${key}`,
+            ...(opts?.headers || {}),
+          },
+        });
+        const json = await r.json().catch(() => ({}));
+        return { ok: r.ok, status: r.status, json };
+      }
+
+      async function load() {
         const key = keyEl.value.trim();
         if (!key) return;
         localStorage.setItem(KEY, key);
         out.textContent = "Loading…";
-        const headers = { Authorization: `Bearer ${key}` };
-        const [me, stats] = await Promise.all([
-          fetch(`${base}/v1/me`, { headers }).then((r) => r.json()),
-          fetch(`${base}/v1/stats`, { headers }).then((r) => r.json()),
-        ]);
-        let html = `<p><strong>Plan:</strong> ${me.plan ?? "?"}</p>`;
-        const scope = me.scope;
-        if (scope && (scope.labelPrefix || scope.readOnly)) {
-          html += `<p><strong>Scope:</strong> `;
-          if (scope.labelPrefix) html += `prefix <code>${scope.labelPrefix}</code> `;
-          if (scope.readOnly) html += `<em>read-only</em>`;
-          html += `</p>`;
-        } else if (scope) {
-          html += `<p><strong>Scope:</strong> full access</p>`;
+
+        const res = await api("/v1/console/summary");
+        if (!res.ok) {
+          out.innerHTML = `<p class="app-err">${esc(res.json.error || res.status)}</p>`;
+          return;
         }
-        html += `<p>Active inboxes: ${me.usage?.activeInboxes ?? "?"} / ${me.limits?.maxActiveInboxes ?? "?"}</p>`;
-        html += `<p>Rate limit: ${me.limits?.rateLimitPerMinute ?? "?"} req/min</p>`;
-        if (me.teamId) {
-          html += `<p>Team: <code>${me.teamId}</code></p>`;
-          const team = await fetch(`${base}/v1/team`, { headers }).then((r) => r.json());
-          if (team.keys) {
-            html += `<h3>Team keys</h3><ul>`;
-            for (const k of team.keys) {
-              let scopeTag = "";
-              const s = k.scope;
-              if (s && (s.labelPrefix || s.readOnly)) {
-                scopeTag = " — ";
-                if (s.labelPrefix) scopeTag += `prefix ${s.labelPrefix} `;
-                if (s.readOnly) scopeTag += "read-only";
-              }
-              html += `<li><code>${k.hint}</code> ${k.label || ""}${scopeTag}${k.current ? " (you)" : ""}</li>`;
-            }
-            html += `</ul>`;
-            html += `<button type="button" class="app-btn app-btn--ghost" id="invite">Create key (invite)</button>`;
-            html += `<p style="margin-top:12px;font-size:13px;color:var(--text-muted)"><a href="/docs/scoped-keys.html">Scoped keys guide</a></p>`;
-          }
-        }
-        html += `<p style="margin-top:16px"><a href="/agent-runs.html">Agent runs →</a> · <a href="/debug.html">Debug inboxes →</a></p>`;
-        html += `<pre>${JSON.stringify({ me, stats }, null, 2)}</pre>`;
-        if (me.plan === "free" && me.billing?.stripeEnabled) {
+        const d = res.json;
+        const u = d.usage;
+        const l = d.limits;
+
+        let html = `<div class="console-head">
+          <div>
+            <span class="console-plan">${esc(d.plan)}</span>
+            ${d.team?.name ? `<span class="console-team">${esc(d.team.name)}</span>` : ""}
+          </div>
+          <div class="console-actions">`;
+
+        if (d.billing?.canUpgrade) {
           html += `<button type="button" class="app-btn" id="upgrade">Upgrade to Pro</button>`;
         }
-        out.innerHTML = html;
-        const invite = document.getElementById("invite");
-        if (invite) {
-          invite.onclick = async () => {
-            const label = prompt("Label for new key (optional):") || undefined;
-            const prefix = prompt("Label prefix (optional, e.g. ci-):") || undefined;
-            const readOnly = prefix
-              ? confirm("Read-only key? (OK = yes, Cancel = read/write)")
-              : false;
-            const body = { label };
-            if (prefix) {
-              body.scope = { labelPrefix: prefix, readOnly };
+        if (d.billing?.canManagePortal) {
+          html += `<button type="button" class="app-btn app-btn--ghost" id="portal">Manage billing</button>`;
+        }
+        html += `</div></div>`;
+
+        const scope = d.scope;
+        if (scope && (scope.labelPrefix || scope.readOnly)) {
+          html += `<p class="console-scope">Scope: `;
+          if (scope.labelPrefix) html += `prefix <code>${esc(scope.labelPrefix)}</code> `;
+          if (scope.readOnly) html += `<em>read-only</em>`;
+          html += `</p>`;
+        }
+
+        html += `<div class="console-grid">
+          ${meter("Active inboxes", u.activeInboxes, l.maxActiveInboxes)}
+          ${stat("Messages (24h)", u.messagesLast24h)}
+          ${meter("Custom domains", u.customDomains, l.maxCustomDomains)}
+          ${d.teamId && u.teamKeysRemaining != null ? meter("Team keys", u.teamKeys, l.maxTeamKeys) : ""}
+        </div>`;
+
+        html += `<p class="console-meta">Rate limit: ${l.rateLimitPerMinute} req/min`;
+        if (d.teamId) html += ` · Team <code>${esc(d.teamId)}</code>`;
+        html += `</p>`;
+
+        html += `<h2>Recent inboxes</h2>`;
+        if (!d.recentInboxes?.length) {
+          html += `<p class="console-empty">No active inboxes. Create one via API or MCP.</p>`;
+        } else {
+          html += `<table class="console-table"><thead><tr><th>Address</th><th>Label</th><th>Expires</th><th></th></tr></thead><tbody>`;
+          for (const i of d.recentInboxes) {
+            html += `<tr>
+              <td><code>${esc(i.address)}</code></td>
+              <td>${esc(i.label || "—")}</td>
+              <td>${esc(new Date(i.expiresAt).toLocaleString())}</td>
+              <td><a href="${esc(i.debugUrl)}">Debug</a></td>
+            </tr>`;
+          }
+          html += `</tbody></table>`;
+        }
+
+        html += `<h2>Custom domains</h2>`;
+        if (!d.domains?.length) {
+          html += `<p class="console-empty">No domains. <code>POST /v1/domains</code> to add one.</p>`;
+        } else {
+          html += `<table class="console-table"><thead><tr><th>Domain</th><th>Status</th></tr></thead><tbody>`;
+          for (const dom of d.domains) {
+            html += `<tr><td>${esc(dom.name)}</td><td>${esc(dom.status)}</td></tr>`;
+          }
+          html += `</tbody></table>`;
+        }
+
+        if (d.team?.keys?.length) {
+          html += `<h2>Team keys</h2><ul class="console-keys">`;
+          for (const k of d.team.keys) {
+            let tag = "";
+            if (k.scope?.labelPrefix || k.scope?.readOnly) {
+              tag = " — ";
+              if (k.scope.labelPrefix) tag += `prefix ${esc(k.scope.labelPrefix)} `;
+              if (k.scope.readOnly) tag += "read-only";
             }
-            const r = await fetch(`${base}/v1/team/keys`, {
-              method: "POST",
-              headers: { ...headers, "Content-Type": "application/json" },
-              body: JSON.stringify(body),
-            });
-            const d = await r.json();
-            if (d.key) {
-              prompt("Copy this key (shown once):", d.key);
-              load();
-            } else alert(d.error || "Failed");
-          };
+            html += `<li><code>${esc(k.hint)}</code> ${esc(k.label || "")}${tag}${k.current ? " <strong>(you)</strong>" : ""}</li>`;
+          }
+          html += `</ul>`;
+          html += `<button type="button" class="app-btn app-btn--ghost" id="invite">Create key</button>`;
         }
-        const up = document.getElementById("upgrade");
-        if (up) {
-          up.onclick = async () => {
-            const r = await fetch(`${base}/v1/billing/checkout`, {
-              method: "POST",
-              headers: { ...headers, "Content-Type": "application/json" },
-              body: "{}",
-            });
-            const d = await r.json();
-            if (d.url) location.href = d.url;
-            else alert(d.error || "Checkout failed");
-          };
-        }
+
+        html += `<p class="console-links"><a href="/debug.html">Debug inboxes</a> · <a href="/agent-runs.html">Agent runs</a> · <a href="/docs/BILLING.html">Billing docs</a></p>`;
+
+        out.innerHTML = html;
+
+        document.getElementById("upgrade")?.addEventListener("click", async () => {
+          const r = await api("/v1/billing/checkout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: "{}",
+          });
+          if (r.json.url) location.href = r.json.url;
+          else alert(r.json.error || "Checkout failed");
+        });
+
+        document.getElementById("portal")?.addEventListener("click", async () => {
+          const r = await api("/v1/billing/portal", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: "{}",
+          });
+          if (r.json.url) location.href = r.json.url;
+          else alert(r.json.error || "Portal failed");
+        });
+
+        document.getElementById("invite")?.addEventListener("click", async () => {
+          const label = prompt("Label for new key (optional):") || undefined;
+          const prefix = prompt("Label prefix (optional, e.g. ci-):") || undefined;
+          const readOnly = prefix
+            ? confirm("Read-only key? (OK = yes, Cancel = read/write)")
+            : false;
+          const body = { label };
+          if (prefix) body.scope = { labelPrefix: prefix, readOnly };
+          const r = await api("/v1/team/keys", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+          if (r.json.key) {
+            prompt("Copy this key (shown once):", r.json.key);
+            load();
+          } else alert(r.json.error || "Failed");
+        });
       }
+
       document.getElementById("load").onclick = load;
-      if (new URLSearchParams(location.search).get("billing") === "success") {
+      const billing = new URLSearchParams(location.search).get("billing");
+      if (billing === "success" || billing === "portal") {
         setTimeout(load, 500);
       }
     </script>

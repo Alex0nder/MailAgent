@@ -43,6 +43,35 @@ export async function createCheckoutSession(
   return { url: data.url, sessionId: data.id! };
 }
 
+export async function createBillingPortalSession(
+  env: Env,
+  input: { customerId: string; returnUrl: string }
+): Promise<{ url: string }> {
+  const secret = env.STRIPE_SECRET_KEY!.trim();
+  const body = new URLSearchParams({
+    customer: input.customerId,
+    return_url: input.returnUrl,
+  });
+
+  const res = await fetch("https://api.stripe.com/v1/billing_portal/sessions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${secret}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body,
+  });
+
+  const data = (await res.json()) as {
+    url?: string;
+    error?: { message?: string };
+  };
+  if (!res.ok || !data.url) {
+    throw new Error(data.error?.message ?? `Stripe ${res.status}`);
+  }
+  return { url: data.url };
+}
+
 export async function handleStripeWebhook(
   env: Env,
   payload: string,

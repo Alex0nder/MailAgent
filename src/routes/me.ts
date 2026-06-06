@@ -5,7 +5,9 @@ import type { ApiVariables } from "../lib/api-context";
 import { requireApiKey } from "../lib/auth";
 import { rateLimit } from "../lib/rate-limit";
 import { PLAN_LIMITS } from "../lib/plans";
-import { countActiveInboxesForHint, countActiveInboxesForTeam } from "../services/inbox";
+import { stripeConfigured } from "../services/billing";
+import { getTeamBilling } from "../services/api-key-store";
+import { getScopedUsage } from "../services/console-stats";
 
 export const meRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
 
@@ -17,9 +19,17 @@ meRoutes.get("/", async (c) => {
   const plan = c.get("apiPlan");
   const teamId = c.get("teamId");
   const limits = PLAN_LIMITS[plan];
-  const activeInboxes = teamId
-    ? await countActiveInboxesForTeam(c.env, teamId)
-    : await countActiveInboxesForHint(c.env, hint);
+  const usageRaw = await getScopedUsage(c.env, {
+    teamId,
+    apiKeyHint: hint,
+    plan,
+  });
+
+  let canManagePortal = false;
+  if (teamId && stripeConfigured(c.env)) {
+    const bill = await getTeamBilling(c.env, teamId);
+    canManagePortal = Boolean(bill?.stripe_customer_id);
+  }
 
   return c.json({
     plan,
@@ -29,16 +39,30 @@ meRoutes.get("/", async (c) => {
     limits: {
       rateLimitPerMinute: limits.rateLimitPerMinute,
       maxActiveInboxes: limits.maxActiveInboxes,
+      maxTeamKeys: limits.maxTeamKeys,
+      maxCustomDomains: limits.maxCustomDomains,
     },
     usage: {
-      activeInboxes,
-      inboxesRemaining: Math.max(0, limits.maxActiveInboxes - activeInboxes),
+      activeInboxes: usageRaw.activeInboxes,
+      inboxesRemaining: Math.max(
+        0,
+        limits.maxActiveInboxes - usageRaw.activeInboxes
+      ),
+      customDomains: usageRaw.customDomains,
+      domainsRemaining: Math.max(
+        0,
+        limits.maxCustomDomains - usageRaw.customDomains
+      ),
+      teamKeys: usageRaw.teamKeys,
+      messagesLast24h: usageRaw.messagesLast24h,
     },
     billing: {
-      stripeEnabled: Boolean(
-        c.env.STRIPE_SECRET_KEY && c.env.STRIPE_PRICE_PRO && c.get("teamId")
-      ),
+      stripeEnabled: stripeConfigured(c.env) && Boolean(teamId),
+      canUpgrade: stripeConfigured(c.env) && Boolean(teamId) && plan !== "pro",
+      canManagePortal,
       checkoutPath: "/v1/billing/checkout",
+      portalPath: "/v1/billing/portal",
+      consolePath: "/v1/console/summary",
     },
   });
 });

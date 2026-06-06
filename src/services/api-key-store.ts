@@ -161,6 +161,28 @@ export async function getTeam(
   return rows[0] ?? null;
 }
 
+export async function getTeamBilling(
+  env: Env,
+  teamId: string
+): Promise<{
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  plan: string;
+} | null> {
+  const sql = getDb(env);
+  const rows = (await sql`
+    SELECT plan, stripe_customer_id, stripe_subscription_id
+    FROM teams
+    WHERE id = ${teamId}
+    LIMIT 1
+  `) as {
+    plan: string;
+    stripe_customer_id: string | null;
+    stripe_subscription_id: string | null;
+  }[];
+  return rows[0] ?? null;
+}
+
 export async function listTeamKeys(
   env: Env,
   teamId: string

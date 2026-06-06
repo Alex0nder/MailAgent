@@ -184,8 +184,17 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | MCP `mailagent_extract_structured` | ✅ |
 | `contract-qa-extract` | ✅ |
 
+### v0.23 Hosted console + billing portal
+
+| `GET /v1/console/summary` (plan, usage, inboxes, domains, team) | ✅ |
+| Scoped usage meters (`messagesLast24h`, domains, team keys) | ✅ |
+| Extended `GET /v1/me` limits + usage | ✅ |
+| `POST /v1/billing/portal` (Stripe Customer Portal) | ✅ |
+| Console UI `dashboard.html` | ✅ |
+| `contract-qa-console` | ✅ |
+
 ### Отложено (не QA)
 
 - Agent session memory / multi-step run state
 - OIDC on prod (Auth0 secrets)
-- Billing / Stripe
+- Stripe secrets on prod (manual `wrangler secret put`)
