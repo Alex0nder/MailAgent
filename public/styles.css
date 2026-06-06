@@ -172,7 +172,7 @@ main.landing > .cta-block {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #fff 0%, #888 100%);
+  background: linear-gradient(180deg, #6b6b6b 0%, #141414 100%);
   display: grid;
   place-items: center;
 }
@@ -180,7 +180,7 @@ main.landing > .cta-block {
 .logo-mark svg {
   width: 16px;
   height: 16px;
-  color: #000;
+  color: #fff;
 }
 
 .nav-links {
