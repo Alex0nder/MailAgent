@@ -6,6 +6,12 @@ import path from "node:path";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 
+/** Always prod (ignore .env workers.dev for local dev). */
+const prodEnv = {
+  ...process.env,
+  MAILAGENT_API_URL: "https://api.webmailagent.com",
+};
+
 const scripts = [
   "contract-qa.mjs",
   "contract-qa-agent.mjs",
@@ -13,6 +19,7 @@ const scripts = [
   "contract-qa-callback.mjs",
   "contract-qa-attachments.mjs",
   "contract-qa-threads.mjs",
+  "contract-qa-outbound.mjs",
   "contract-qa-domains.mjs",
   "contract-qa-search.mjs",
   "contract-qa-extract.mjs",
@@ -26,7 +33,7 @@ for (const name of scripts) {
   console.log("\n---", name, "---");
   const r = spawnSync("node", [path.join(root, "scripts", name)], {
     stdio: "inherit",
-    env: process.env,
+    env: prodEnv,
   });
   if (r.status !== 0) process.exit(r.status ?? 1);
 }

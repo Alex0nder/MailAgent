@@ -40,25 +40,19 @@ Verify: last [Deploy Worker](https://github.com/Alex0nder/MailAgent/actions/work
 
 ---
 
-## 2. Outbound (send / reply)
+## 2. Outbound (send / reply) ✅ prod
 
-**When:** console send/reply, `mailagent_send_message`, threads with outbound.
+`OUTBOUND_FROM=MailAgent <noreply@webmailagent.com>` on Worker.
 
-1. [Resend Domains](https://resend.com/domains) → add domain → verify DNS
-2. Prod secret:
-
-```bash
-npx wrangler secret put OUTBOUND_FROM
-# noreply@yourdomain.com
-```
-
-3. Check:
+Check:
 
 ```bash
 curl -sS https://api.webmailagent.com/v1/me \
   -H "Authorization: Bearer $MAILAGENT_API_KEY" | jq .capabilities.outbound
 # verifiedFrom: true
 ```
+
+Contract: `npm run test:contract:qa:outbound` (uses prod API)
 
 Details: [outbound.html](https://webmailagent.com/docs/outbound.html)
 
@@ -69,7 +63,13 @@ Details: [outbound.html](https://webmailagent.com/docs/outbound.html)
 **When:** MCP clients without pasting API key (Auth0 / Google).
 
 1. Auth0 app → callback `https://api.webmailagent.com/v1/oauth/callback`
-2. Secrets:
+2. Secrets (from `.dev.vars`):
+
+```bash
+npm run setup:oidc-prod
+```
+
+Or manually:
 
 ```bash
 npx wrangler secret put OIDC_ISSUER      # https://tenant.us.auth0.com
