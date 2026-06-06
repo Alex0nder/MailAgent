@@ -14,7 +14,6 @@ import {
   deleteMcpSession,
   validateMcpSession,
 } from "../mcp/session";
-import { pushSessionProgress } from "../mcp/session-progress";
 import { isOidcEnabled } from "../services/oidc-oauth";
 import { jsonRpcAsSse, mcpSseSessionStream, sseResponse } from "../mcp/sse-response";
 
@@ -243,9 +242,7 @@ function streamToolCall(
           onProgress: async (params) => {
             const note = progressNotification(params);
             write(note);
-            if (sessionId) {
-              await pushSessionProgress(env, sessionId, note);
-            }
+            // Progress is already on this SSE stream; skip KV relay (saves KV puts).
           },
         });
         write({ jsonrpc: "2.0", id, result });

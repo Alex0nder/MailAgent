@@ -12,6 +12,8 @@ export interface Env {
   MAIL_QUEUE: Queue<EmailQueueMessage>;
   INBOX_WAIT: DurableObjectNamespace;
   /** Optional: rate limit per API key (hosted) */
+  /** Sampled KV writes for rate limit (default: every 10th request) */
+  RATE_LIMIT_KV_WRITE_EVERY?: string;
   RATE_LIMIT?: KVNamespace;
   RATE_LIMIT_PER_MINUTE?: string;
   STRIPE_SECRET_KEY?: string;

@@ -40,6 +40,8 @@ Re-release: [PUBLISH.md](./PUBLISH.md) · CI: workflow **Publish npm packages** 
 
 Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, **`MAILAGENT_API_KEY`** (prod gate).
 
+**KV free tier:** rate limit uses sampled writes (`RATE_LIMIT_KV_WRITE_EVERY=10`). CI `test:prod` can consume hundreds of API calls/day; if you hit 1000 KV puts/day, deploy the latest Worker or upgrade Cloudflare to Paid ($5/mo).
+
 ## v0.6 Agent
 
 | MCP `mailagent_list_messages` | ✅ |
@@ -286,6 +288,11 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | `contract-qa-session` + Playwright `simulate-gate.spec.ts` in `test:prod` | ✅ |
 | `V1-PLATFORM.md` status sync | ✅ |
 | Optional CI `DATABASE_URL` → `db:migrate` on deploy | ✅ |
+
+### v0.35.1 KV put quota (free tier)
+
+| Rate limit: sample KV writes (`RATE_LIMIT_KV_WRITE_EVERY=10`) | ✅ |
+| MCP stream progress: no redundant KV relay on `tools/call` SSE | ✅ |
 
 ### Deferred (not QA)
 

@@ -1,4 +1,4 @@
-/** Progress event queue for GET SSE session channel */
+/** Progress event queue for GET /mcp SSE session channel (sampled KV writes) */
 import type { Env } from "../env";
 
 const PREFIX = "mcp:prog:";
@@ -17,9 +17,11 @@ export async function pushSessionProgress(
 
   const key = PREFIX + sessionId;
   const raw = await store.get(key);
-  const arr: unknown[] = raw ? (JSON.parse(raw) as unknown[]) : [];
+  let arr: unknown[] = raw ? (JSON.parse(raw) as unknown[]) : [];
   arr.push(item);
   while (arr.length > 30) arr.shift();
+
+  // Coalesce: one KV key holds the queue; callers should batch when possible.
   await store.put(key, JSON.stringify(arr), { expirationTtl: 300 });
 }
 

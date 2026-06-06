@@ -1,4 +1,4 @@
-/** KV: requests per minute limit per api_key_hint (hosted) */
+/** KV rate limit — sampled writes to stay within free-tier KV put quota */
 import type { Context, Next } from "hono";
 import type { Env } from "../env";
 import type { ApiVariables } from "./api-context";
@@ -10,6 +10,18 @@ function rateLimitHeaders(limit: number, used: number, bucket: number) {
     "X-RateLimit-Remaining": String(Math.max(0, limit - used)),
     "X-RateLimit-Reset": String(resetSec),
   };
+}
+
+function kvWriteEvery(env: Env): number {
+  const n = Number(env.RATE_LIMIT_KV_WRITE_EVERY);
+  return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 10;
+}
+
+function shouldPersistCount(used: number, limit: number, writeEvery: number): boolean {
+  if (used >= limit) return true;
+  if (used === 1) return true;
+  if (used >= limit - 5) return true;
+  return used % writeEvery === 0;
 }
 
 export async function rateLimit(
@@ -51,6 +63,11 @@ export async function rateLimit(
     c.header(k, v);
   }
 
-  await kv.put(key, String(used), { expirationTtl: 120 });
+  const writeEvery = kvWriteEvery(c.env);
+  if (shouldPersistCount(used, limit, writeEvery)) {
+    const put = kv.put(key, String(used), { expirationTtl: 120 });
+    c.executionCtx.waitUntil(put);
+  }
+
   await next();
 }
