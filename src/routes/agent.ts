@@ -46,7 +46,7 @@ agentRoutes.get("/", (c) => {
   const oidc = isOidcEnabled(c.env);
   return c.json({
     name: "MailAgent Agent API",
-    version: "0.7.0",
+    version: "0.8.0",
     auth: {
       oidc: oidc ? "enabled" : "disabled",
       me: "GET /v1/me",
@@ -217,28 +217,6 @@ agentRoutes.post("/verify", async (c) => {
     teamId: c.get("teamId"),
   });
 
-  if (body.runId && validateRunId(body.runId)) {
-    const owner = sessionOwnerKey(c.get("teamId"), c.get("apiKeyHint"));
-    if ("status" in result && (result.status === "verified" || result.status === "timeout")) {
-      const lastVerify: Record<string, unknown> = {
-        status: result.status,
-        at: new Date().toISOString(),
-        service: body.service ?? null,
-      };
-      if (result.status === "verified" && "verification" in result) {
-        lastVerify.inboxId = result.email.inboxId;
-        lastVerify.otp = result.verification.otp ?? null;
-        lastVerify.primaryLink = result.verification.primaryLink ?? null;
-      }
-      await patchAgentRunSession(c.env, body.runId, owner, {
-        step: {
-          name: result.status === "verified" ? "verify.success" : "verify.timeout",
-        },
-        merge: { lastVerify },
-      }).catch(() => undefined);
-    }
-  }
-
   if ("error" in result && result.error === "invalid_callback_url") {
     return c.json(result, 400);
   }
@@ -256,9 +234,9 @@ agentRoutes.post("/verify", async (c) => {
   ) {
     return c.json(result, 400);
   }
-  if (result.status === "timeout") {
+  if ("status" in result && result.status === "timeout") {
     return c.json(result, 408);
   }
 
-  return c.json(result, result.statusCode);
+  return c.json(result, "statusCode" in result ? result.statusCode : 200);
 });

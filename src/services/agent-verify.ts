@@ -16,6 +16,10 @@ import {
   waitForMessage,
   type WaitProgressEvent,
 } from "./wait";
+import {
+  recordVerifyRunSession,
+  sessionOwnerKey,
+} from "./agent-run-session";
 
 export type VerifyInput = {
   inboxId?: string;
@@ -91,13 +95,21 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
       await deleteInbox(env, inbox.id, { apiKeyHint: input.apiKeyHint });
     }
     const debug = await buildWaitTimeoutDebug(env, inbox.id, waitOpts);
-    return {
+    const timeoutResult = {
       status: "timeout" as const,
       statusCode: 408 as const,
       email: formatEmail(inbox),
       ...debug,
       inboxKept: !deleteAfter,
     };
+    await recordVerifyRunSession(
+      env,
+      input.runId,
+      sessionOwnerKey(input.teamId, input.apiKeyHint),
+      input.service,
+      { status: "timeout", email: { inboxId: inbox.id } }
+    );
+    return timeoutResult;
   }
 
   const attachmentCount = await countAttachmentsForMessage(env, message.id);
@@ -114,7 +126,7 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
     await deleteInbox(env, inbox.id, { apiKeyHint: input.apiKeyHint });
   }
 
-  return {
+  const verifiedResult = {
     status: "verified" as const,
     statusCode: 200 as const,
     email: formatEmail(inbox),
@@ -125,6 +137,21 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
     },
     deleted,
   };
+  await recordVerifyRunSession(
+    env,
+    input.runId,
+    sessionOwnerKey(input.teamId, input.apiKeyHint),
+    input.service,
+    {
+      status: "verified",
+      email: { inboxId: inbox.id },
+      verification: {
+        otp: verification.otp ?? null,
+        primaryLink: verification.primaryLink ?? null,
+      },
+    }
+  );
+  return verifiedResult;
 }
 
 function formatEmail(inbox: InboxRow) {

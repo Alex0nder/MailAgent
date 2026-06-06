@@ -12,6 +12,12 @@ import { parseCallbackUrl } from "../lib/callback-url";
 import { resolveExpectFrom } from "../lib/service-presets";
 import { resolveAgentLabel } from "../lib/agent-recipes";
 import { runAgentVerify } from "../services/agent-verify";
+import {
+  getAgentRunSession,
+  patchAgentRunSession,
+  recordInboxRunSession,
+  sessionOwnerKey,
+} from "../services/agent-run-session";
 import { primaryLink } from "../services/extract";
 import {
   createInbox,
@@ -37,11 +43,6 @@ import {
 } from "../services/message-attachments";
 import { buildInboxDiagnose } from "../services/inbox-diagnose";
 import { simulateInboundMessage } from "../services/simulate-inbound";
-import {
-  getAgentRunSession,
-  patchAgentRunSession,
-  sessionOwnerKey,
-} from "../services/agent-run-session";
 import { validateRunId } from "../lib/validate-run-id";
 import { listThreadMessages, listThreads, sendFromInbox } from "../services/outbound-mail";
 import { searchInboxMessages, type SearchMode } from "../services/message-search";
@@ -130,6 +131,7 @@ export async function executeMcpTool(
         timeoutSeconds: args.timeoutSeconds as number | undefined,
         ttlMinutes: args.ttlMinutes as number | undefined,
         deleteAfter: args.deleteAfter as boolean | undefined,
+        runId: args.runId as string | undefined,
         apiKeyHint: auth.apiKeyHint,
         teamId: auth.teamId,
         onProgress: bindWaitProgress(ctx),
@@ -175,6 +177,12 @@ export async function executeMcpTool(
       if (isCreateInboxError(inbox)) {
         return textResult({ error: inbox.error }, true);
       }
+      await recordInboxRunSession(
+        env,
+        args.runId as string | undefined,
+        sessionOwnerKey(auth.teamId, auth.apiKeyHint),
+        { id: inbox.id, address: inbox.address }
+      );
       return textResult({
         id: inbox.id,
         address: inbox.address,
@@ -202,6 +210,7 @@ export async function executeMcpTool(
           messageIndex: args.messageIndex as number | undefined,
           timeoutSeconds: args.timeoutSeconds as number | undefined,
           deleteAfter: args.deleteAfter as boolean | undefined,
+          runId: args.runId as string | undefined,
           apiKeyHint: auth.apiKeyHint,
           teamId: auth.teamId,
           onProgress: bindWaitProgress(ctx),

@@ -1,7 +1,7 @@
 /** Multi-step agent run state (scoped by team or api key hint) */
 import type { Env } from "../env";
 import { getDb } from "../db/client";
-import { normalizeRunId } from "../lib/validate-run-id";
+import { normalizeRunId, validateRunId } from "../lib/validate-run-id";
 
 export interface AgentRunStep {
   name: string;
@@ -123,4 +123,64 @@ export async function patchAgentRunSession(
   `) as SessionRow[];
 
   return { ok: true, session: rowToSession(rows[0]!) };
+}
+
+type VerifySessionResult =
+  | {
+      status: "verified";
+      email: { inboxId: string };
+      verification: { otp: string | null; primaryLink: string | null };
+    }
+  | { status: "timeout"; email: { inboxId: string } };
+
+/** Best-effort session update after verify (REST + MCP). */
+export async function recordVerifyRunSession(
+  env: Env,
+  runId: string | undefined,
+  ownerKey: string,
+  service: string | undefined,
+  result: VerifySessionResult
+): Promise<void> {
+  if (!runId?.trim() || !validateRunId(runId)) return;
+
+  const lastVerify: Record<string, unknown> = {
+    status: result.status,
+    at: new Date().toISOString(),
+    service: service ?? null,
+    inboxId: result.email.inboxId,
+  };
+  if (result.status === "verified") {
+    lastVerify.otp = result.verification.otp ?? null;
+    lastVerify.primaryLink = result.verification.primaryLink ?? null;
+  }
+
+  try {
+    await patchAgentRunSession(env, runId, ownerKey, {
+      step: {
+        name: result.status === "verified" ? "verify.success" : "verify.timeout",
+      },
+      merge: { lastVerify },
+    });
+  } catch {
+    /* session is best-effort */
+  }
+}
+
+/** Record inbox creation in run session (MCP create_inbox + agents). */
+export async function recordInboxRunSession(
+  env: Env,
+  runId: string | undefined,
+  ownerKey: string,
+  inbox: { id: string; address: string }
+): Promise<void> {
+  if (!runId?.trim() || !validateRunId(runId)) return;
+
+  try {
+    await patchAgentRunSession(env, runId, ownerKey, {
+      step: { name: "inbox.created", data: { address: inbox.address } },
+      merge: { inboxId: inbox.id, address: inbox.address },
+    });
+  } catch {
+    /* best-effort */
+  }
 }

@@ -26,9 +26,9 @@ P0–P2 done — see [QA-ROADMAP.md](./QA-ROADMAP.md).
 
 | Package | Version (npm) |
 |-------|----------------|
-| `@mailagent/mcp` | 0.2.4 |
+| `@mailagent/mcp` | 0.2.5 |
 | `@mailagent/qa` | 0.1.13 |
-| `@mailagent/agent` | 0.1.9 |
+| `@mailagent/agent` | 0.1.10 |
 
 ```bash
 npm install @mailagent/mcp @mailagent/qa @mailagent/agent
@@ -301,6 +301,13 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | Legacy KV-backed `mat_` still validated | ✅ |
 | `POST /v1/agent/verify` auto-patches run session when `runId` set | ✅ |
 | Optional `MCP_OAUTH_JWT_SECRET` (default `API_KEY`) | ✅ |
+
+### v0.37 Verify session everywhere
+
+| Session patch inside `runAgentVerify` (REST + MCP) | ✅ |
+| MCP `runId` on verify / wait_and_extract | ✅ |
+| MCP `create_inbox` → `inbox.created` session step | ✅ |
+| API hub `0.8.0` · npm `@mailagent/agent@0.1.10` `@mailagent/mcp@0.2.5` | ✅ |
 
 ### Deferred (not QA)
 

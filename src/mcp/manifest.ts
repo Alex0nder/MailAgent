@@ -7,7 +7,7 @@ const servicesEnum = SERVICE_NAMES;
 
 export const MCP_SERVER_INFO = {
   name: "mailagent",
-  version: "0.7.0",
+  version: "0.8.0",
 };
 
 export const MCP_TOOLS = [
