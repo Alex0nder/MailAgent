@@ -11,6 +11,7 @@ import {
 import { listDomains } from "./domains";
 import { listInboxes } from "./inbox";
 import { getScopedUsage } from "./console-stats";
+import { listAuditEvents } from "./audit-log";
 import { stripeConfigured } from "./billing";
 
 export async function buildConsoleSummary(
@@ -52,6 +53,12 @@ export async function buildConsoleSummary(
     apiKeyHint: input.apiKeyHint,
     plan: input.plan,
   });
+
+  const recentAudit = await listAuditEvents(
+    env,
+    { teamId: input.teamId, apiKeyHint: input.apiKeyHint },
+    { limit: 10 }
+  );
 
   let team: {
     id: string;
@@ -136,6 +143,7 @@ export async function buildConsoleSummary(
       status: d.status,
       verifiedAt: d.verifiedAt,
     })),
+    recentAudit,
     team,
     links: {
       debug: "/debug.html",

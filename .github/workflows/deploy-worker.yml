@@ -77,3 +77,4 @@ jobs:
           npm run test:contract:qa:search
           npm run test:contract:qa:extract
           npm run test:contract:qa:console
+          npm run test:contract:qa:audit

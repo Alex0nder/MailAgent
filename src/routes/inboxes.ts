@@ -12,6 +12,7 @@ import {
   scopeWriteDenied,
 } from "../lib/scope-guard";
 import { listCallbackDeliveries } from "../services/callback-log";
+import { auditFire } from "../services/audit-log";
 import {
   countActiveInboxesForHint,
   countActiveInboxesForTeam,
@@ -200,6 +201,20 @@ inboxRoutes.post("/", async (c) => {
   if (isCreateInboxError(inbox)) {
     return createInboxErrorResponse(c, inbox.error);
   }
+  auditFire(
+    c.env,
+    {
+      teamId: c.get("teamId"),
+      apiKeyHint: c.get("apiKeyHint"),
+      apiKeyId: c.get("apiKeyId"),
+    },
+    {
+      action: "inbox.created",
+      resourceType: "inbox",
+      resourceId: inbox.id,
+      meta: { address: inbox.address, label: inbox.label ?? null },
+    }
+  );
   return c.json({ id: inbox.id, ...formatInbox(inbox) }, 201);
 });
 
@@ -220,6 +235,19 @@ inboxRoutes.delete("/", async (c) => {
     c.env,
     labelPrefix,
     c.get("apiKeyHint")
+  );
+  auditFire(
+    c.env,
+    {
+      teamId: c.get("teamId"),
+      apiKeyHint: c.get("apiKeyHint"),
+      apiKeyId: c.get("apiKeyId"),
+    },
+    {
+      action: "inbox.bulk_deleted",
+      resourceType: "inbox",
+      meta: { labelPrefix, count: ids.length },
+    }
   );
   return c.json({ deleted: ids.length, ids });
 });

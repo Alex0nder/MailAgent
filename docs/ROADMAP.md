@@ -193,6 +193,14 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | Console UI `dashboard.html` | ✅ |
 | `contract-qa-console` | ✅ |
 
+### v0.24 Audit log (enterprise prep)
+
+| Migration `014_audit_log` | ✅ |
+| `GET /v1/audit` team / key scoped | ✅ |
+| Events: inbox, team keys, domains, billing checkout | ✅ |
+| Console `recentAudit` in summary + dashboard | ✅ |
+| `contract-qa-audit` | ✅ |
+
 ### Отложено (не QA)
 
 - Agent session memory / multi-step run state

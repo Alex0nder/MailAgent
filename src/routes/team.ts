@@ -16,6 +16,7 @@ import {
   revokeTeamKey,
 } from "../services/api-key-store";
 import { countActiveInboxesForTeam } from "../services/inbox";
+import { auditFire } from "../services/audit-log";
 
 export const teamRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
 
@@ -121,6 +122,21 @@ teamRoutes.post("/keys", async (c) => {
     scope: narrowed.scope,
   });
 
+  auditFire(
+    c.env,
+    {
+      teamId,
+      apiKeyHint: c.get("apiKeyHint"),
+      apiKeyId: c.get("apiKeyId"),
+    },
+    {
+      action: "team.key.created",
+      resourceType: "api_key",
+      resourceId: apiKeyId,
+      meta: { hint, label: body.label ?? null },
+    }
+  );
+
   return c.json(
     {
       id: apiKeyId,
@@ -149,5 +165,18 @@ teamRoutes.delete("/keys/:id", async (c) => {
       400
     );
   }
+  auditFire(
+    c.env,
+    {
+      teamId,
+      apiKeyHint: c.get("apiKeyHint"),
+      apiKeyId: c.get("apiKeyId"),
+    },
+    {
+      action: "team.key.revoked",
+      resourceType: "api_key",
+      resourceId: keyId,
+    }
+  );
   return c.json({ revoked: true, id: keyId });
 });

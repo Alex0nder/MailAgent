@@ -173,6 +173,24 @@
           html += `<button type="button" class="app-btn app-btn--ghost" id="invite">Create key</button>`;
         }
 
+        html += `<h2>Audit log</h2>`;
+        if (!d.recentAudit?.length) {
+          html += `<p class="console-empty">No events yet.</p>`;
+        } else {
+          html += `<table class="console-table"><thead><tr><th>Time</th><th>Action</th><th>Resource</th></tr></thead><tbody>`;
+          for (const ev of d.recentAudit) {
+            const res = ev.resourceId
+              ? `${esc(ev.resourceType || "")} ${esc(ev.resourceId)}`
+              : "—";
+            html += `<tr>
+              <td>${esc(new Date(ev.createdAt).toLocaleString())}</td>
+              <td><code>${esc(ev.action)}</code></td>
+              <td>${res}</td>
+            </tr>`;
+          }
+          html += `</tbody></table>`;
+        }
+
         html += `<p class="console-links"><a href="/debug.html">Debug inboxes</a> · <a href="/agent-runs.html">Agent runs</a> · <a href="/docs/BILLING.html">Billing docs</a></p>`;
 
         out.innerHTML = html;

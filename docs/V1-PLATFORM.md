@@ -16,7 +16,7 @@
 | Document extraction | ✅ | ✅ v0.22 |
 | MCP | ✅ | ✅ OAuth + 15+ tools |
 | SDK (TS/Python) | ✅ | ✅ TS + MCP |
-| Enterprise / SOC 2 | ✅ | 🚧 v0.23+ |
+| Enterprise / SOC 2 | ✅ | 🚧 v0.24 audit log |
 | **Open source** | ❌ | ✅ MIT |
 | **Self-host (Cloudflare)** | ❌ | ✅ |
 | **QA / E2E (`@mailagent/qa`)** | ❌ | ✅ |
@@ -104,4 +104,4 @@
 
 ## Следующий коммит
 
-v0.23: hosted SaaS console + Stripe live billing.
+v0.24: team audit log + retention policies (enterprise prep).

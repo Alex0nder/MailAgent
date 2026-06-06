@@ -1,0 +1,115 @@
+/** Team / key-scoped audit log (enterprise prep) */
+import { nanoid } from "nanoid";
+import type { Env } from "../env";
+import { getDb } from "../db/client";
+
+export type AuditAction =
+  | "inbox.created"
+  | "inbox.bulk_deleted"
+  | "team.key.created"
+  | "team.key.revoked"
+  | "domain.created"
+  | "domain.deleted"
+  | "billing.checkout";
+
+export type AuditContext = {
+  teamId: string | null;
+  apiKeyHint: string;
+  apiKeyId: string | null;
+};
+
+export type AuditEventInput = {
+  action: AuditAction;
+  resourceType?: string;
+  resourceId?: string;
+  meta?: Record<string, unknown>;
+};
+
+export async function recordAuditEvent(
+  env: Env,
+  ctx: AuditContext,
+  event: AuditEventInput
+): Promise<void> {
+  const sql = getDb(env);
+  const metaJson = event.meta ? JSON.stringify(event.meta) : null;
+  await sql`
+    INSERT INTO audit_events (
+      id, team_id, api_key_hint, api_key_id,
+      action, resource_type, resource_id, meta
+    )
+    VALUES (
+      ${nanoid()},
+      ${ctx.teamId},
+      ${ctx.apiKeyHint},
+      ${ctx.apiKeyId},
+      ${event.action},
+      ${event.resourceType ?? null},
+      ${event.resourceId ?? null},
+      ${metaJson}::jsonb
+    )
+  `;
+}
+
+/** Fire-and-forget — не блокирует основной запрос */
+export function auditFire(
+  env: Env,
+  ctx: AuditContext,
+  event: AuditEventInput
+): void {
+  void recordAuditEvent(env, ctx, event).catch((err) => {
+    console.error("audit_log_failed", event.action, err);
+  });
+}
+
+export type AuditEventRow = {
+  id: string;
+  team_id: string | null;
+  api_key_hint: string;
+  api_key_id: string | null;
+  action: string;
+  resource_type: string | null;
+  resource_id: string | null;
+  meta: unknown;
+  created_at: string;
+};
+
+export async function listAuditEvents(
+  env: Env,
+  scope: { teamId: string | null; apiKeyHint: string },
+  options?: { limit?: number }
+): Promise<ReturnType<typeof formatAuditEvent>[]> {
+  const sql = getDb(env);
+  const limit = Math.min(options?.limit ?? 50, 100);
+
+  const rows = scope.teamId
+    ? ((await sql`
+        SELECT id, team_id, api_key_hint, api_key_id, action,
+               resource_type, resource_id, meta, created_at
+        FROM audit_events
+        WHERE team_id = ${scope.teamId}
+        ORDER BY created_at DESC
+        LIMIT ${limit}
+      `) as AuditEventRow[])
+    : ((await sql`
+        SELECT id, team_id, api_key_hint, api_key_id, action,
+               resource_type, resource_id, meta, created_at
+        FROM audit_events
+        WHERE team_id IS NULL AND api_key_hint = ${scope.apiKeyHint}
+        ORDER BY created_at DESC
+        LIMIT ${limit}
+      `) as AuditEventRow[]);
+
+  return rows.map(formatAuditEvent);
+}
+
+function formatAuditEvent(row: AuditEventRow) {
+  return {
+    id: row.id,
+    action: row.action,
+    resourceType: row.resource_type,
+    resourceId: row.resource_id,
+    apiKeyHint: row.api_key_hint,
+    meta: row.meta,
+    createdAt: row.created_at,
+  };
+}

@@ -43,6 +43,7 @@
     "test:contract:qa:search": "node scripts/contract-qa-search.mjs",
     "test:contract:qa:extract": "node scripts/contract-qa-extract.mjs",
     "test:contract:qa:console": "node scripts/contract-qa-console.mjs",
+    "test:contract:qa:audit": "node scripts/contract-qa-audit.mjs",
     "test:structured-extract": "npx tsx scripts/test-structured-extract.ts",
     "test:message-search": "npx tsx scripts/test-message-search.ts",
     "test:thread-resolve": "npx tsx scripts/test-thread-resolve.ts",

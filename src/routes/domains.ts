@@ -13,6 +13,7 @@ import {
   normalizeDomainName,
   verifyDomain,
 } from "../services/domains";
+import { auditFire } from "../services/audit-log";
 
 export const domainRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
 
@@ -65,6 +66,21 @@ domainRoutes.post("/", async (c) => {
     );
   }
 
+  auditFire(
+    c.env,
+    {
+      teamId: c.get("teamId"),
+      apiKeyHint: c.get("apiKeyHint"),
+      apiKeyId: c.get("apiKeyId"),
+    },
+    {
+      action: "domain.created",
+      resourceType: "domain",
+      resourceId: result.domain.id,
+      meta: { name: result.domain.name },
+    }
+  );
+
   return c.json(result.domain, 201);
 });
 
@@ -107,7 +123,21 @@ domainRoutes.delete("/:id", async (c) => {
   const writeErr = scopeWriteDenied(c);
   if (writeErr) return writeErr;
 
-  const ok = await deleteDomain(c.env, c.req.param("id"), domainScope(c));
+  const domainId = c.req.param("id");
+  const ok = await deleteDomain(c.env, domainId, domainScope(c));
   if (!ok) return c.json({ error: "domain_not_found" }, 404);
-  return c.json({ deleted: true, id: c.req.param("id") });
+  auditFire(
+    c.env,
+    {
+      teamId: c.get("teamId"),
+      apiKeyHint: c.get("apiKeyHint"),
+      apiKeyId: c.get("apiKeyId"),
+    },
+    {
+      action: "domain.deleted",
+      resourceType: "domain",
+      resourceId: domainId,
+    }
+  );
+  return c.json({ deleted: true, id: domainId });
 });

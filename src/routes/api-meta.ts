@@ -48,6 +48,17 @@ apiMetaRoutes.get("/", (c) => {
         path: "/v1/billing/checkout",
         note: "Stripe Pro (registered keys)",
       },
+      billingPortal: {
+        method: "POST",
+        path: "/v1/billing/portal",
+        note: "Stripe Customer Portal",
+      },
+      consoleSummary: {
+        method: "GET",
+        path: "/v1/console/summary",
+        note: "Hosted dashboard aggregate",
+      },
+      auditLog: { method: "GET", path: "/v1/audit", note: "Team/key audit events" },
       team: { method: "GET", path: "/v1/team", note: "team + API keys" },
       teamCreateKey: { method: "POST", path: "/v1/team/keys", note: "invite" },
       teamRevokeKey: { method: "DELETE", path: "/v1/team/keys/:id" },

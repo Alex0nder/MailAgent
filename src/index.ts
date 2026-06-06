@@ -18,6 +18,7 @@ import { mcpHttpRoutes } from "./routes/mcp-http";
 import { oauthTokenRoutes, wellKnownRoutes } from "./routes/oauth";
 import { webhookRoutes } from "./routes/webhooks";
 import { purgeExpired } from "./services/inbox";
+import { auditRoutes } from "./routes/audit";
 
 export { InboxWait };
 
@@ -34,6 +35,7 @@ app.route("/v1/stats", statsRoutes);
 app.route("/v1/me", meRoutes);
 app.route("/v1/billing", billingRoutes);
 app.route("/v1/console", consoleRoutes);
+app.route("/v1/audit", auditRoutes);
 app.route("/v1/team", teamRoutes);
 app.route("/v1/domains", domainRoutes);
 app.route("/v1/agent", agentRoutes);
