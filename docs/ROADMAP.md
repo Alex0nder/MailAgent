@@ -161,6 +161,14 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | `contract-qa-threads` + smoke thread grouping | ✅ |
 | `npm run test:thread-resolve` | ✅ |
 
+### v0.19 Custom domains (AgentMail parity)
+
+| `POST /v1/domains`, `GET`, `POST …/verify`, `DELETE` | ✅ |
+| `POST /v1/inboxes` `{ username, domainId }` | ✅ |
+| MCP `mailagent_add_domain`, `mailagent_list_domains`, `mailagent_verify_domain` | ✅ |
+| Migration `012_custom_domains.sql` | ✅ |
+| `contract-qa-domains` | ✅ |
+
 ### Отложено (не QA)
 
 - Agent session memory / multi-step run state

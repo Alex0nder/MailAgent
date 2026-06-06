@@ -4,6 +4,10 @@ import { purgeAttachmentR2ForInboxes } from "./message-attachments";
 import type { Env } from "../env";
 import { getDb } from "../db/client";
 import { normalizeAllowedSenders } from "../lib/sender-allowlist";
+import {
+  getDomainForInbox,
+  sanitizeInboxLocalPart,
+} from "./domains";
 
 export interface InboxRow {
   id: string;
@@ -14,6 +18,7 @@ export interface InboxRow {
   label: string | null;
   callback_url: string | null;
   api_key_hint: string | null;
+  domain_id?: string | null;
 }
 
 export interface MessageRow {
@@ -44,8 +49,14 @@ export async function createInbox(
     label?: string;
     callbackUrl?: string | null;
     apiKeyHint?: string;
+    teamId?: string | null;
+    username?: string;
+    domainId?: string;
   }
-): Promise<InboxRow> {
+): Promise<
+  | InboxRow
+  | { error: "domain_not_found" | "domain_not_verified" | "username_requires_domain" }
+> {
   const sql = getDb(env);
   const ttl = options?.ttlMinutes ?? (Number(env.DEFAULT_TTL_MINUTES) || 30);
   const allowed = normalizeAllowedSenders(
@@ -55,13 +66,38 @@ export async function createInbox(
   const callbackUrl = options?.callbackUrl ?? null;
   const apiKeyHint = options?.apiKeyHint?.slice(0, 16) ?? null;
   const id = nanoid(12);
-  const local = `inbox-${id}`;
-  const address = `${local}@${env.INBOX_DOMAIN}`;
+
+  let address: string;
+  let domainId: string | null = null;
+
+  if (options?.domainId) {
+    const domain = await getDomainForInbox(env, options.domainId, {
+      teamId: options.teamId ?? null,
+      apiKeyHint: apiKeyHint ?? "",
+    });
+    if (!domain) return { error: "domain_not_found" };
+    if (domain.status !== "verified") return { error: "domain_not_verified" };
+    const local = sanitizeInboxLocalPart(options.username, `inbox-${id}`);
+    address = `${local}@${domain.name}`;
+    domainId = domain.id;
+  } else {
+    if (options?.username?.trim()) {
+      return { error: "username_requires_domain" };
+    }
+    address = `${`inbox-${id}`}@${env.INBOX_DOMAIN}`;
+  }
+
   const expiresAt = new Date(Date.now() + ttl * 60_000).toISOString();
 
   await sql`
-    INSERT INTO inboxes (id, address, expires_at, allowed_senders, label, callback_url, api_key_hint)
-    VALUES (${id}, ${address}, ${expiresAt}, ${allowed}, ${label}, ${callbackUrl}, ${apiKeyHint})
+    INSERT INTO inboxes (
+      id, address, expires_at, allowed_senders, label, callback_url,
+      api_key_hint, domain_id
+    )
+    VALUES (
+      ${id}, ${address}, ${expiresAt}, ${allowed}, ${label}, ${callbackUrl},
+      ${apiKeyHint}, ${domainId}
+    )
   `;
 
   return {
@@ -73,7 +109,16 @@ export async function createInbox(
     label,
     callback_url: callbackUrl,
     api_key_hint: apiKeyHint,
+    domain_id: domainId,
   };
+}
+
+export function isCreateInboxError(
+  result: Awaited<ReturnType<typeof createInbox>>
+): result is {
+  error: "domain_not_found" | "domain_not_verified" | "username_requires_domain";
+} {
+  return "error" in result;
 }
 
 /** QA: найти inbox прогона (отладка после падения теста) */

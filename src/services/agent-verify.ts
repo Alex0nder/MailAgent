@@ -31,6 +31,9 @@ export type VerifyInput = {
   deleteAfter?: boolean;
   runId?: string;
   apiKeyHint: string;
+  teamId?: string | null;
+  username?: string;
+  domainId?: string;
   onProgress?: (event: WaitProgressEvent) => void;
 };
 
@@ -56,14 +59,21 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
     }
     inbox = existing;
   } else {
-    inbox = await createInbox(env, {
+    const created = await createInbox(env, {
       ttlMinutes: input.ttlMinutes,
       expectFrom,
       allowedSenders: input.allowedSenders,
       label,
       callbackUrl,
       apiKeyHint: input.apiKeyHint,
+      teamId: input.teamId ?? null,
+      username: input.username,
+      domainId: input.domainId,
     });
+    if ("error" in created) {
+      return { error: created.error, status: 400 as const };
+    }
+    inbox = created;
   }
 
   const timeoutSec = Math.min(Number(input.timeoutSeconds ?? 90), 120);

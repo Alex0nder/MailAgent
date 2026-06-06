@@ -48,3 +48,4 @@ jobs:
           npm run test:contract:qa:callback
           npm run test:contract:qa:attachments
           npm run test:contract:qa:threads
+          npm run test:contract:qa:domains

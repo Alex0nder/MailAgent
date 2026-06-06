@@ -11,7 +11,7 @@
 | Threads | ✅ | 🚧 v0.17 |
 | Attachments | ✅ | ✅ |
 | Realtime (SSE/webhooks) | ✅ | ✅ + MCP progress |
-| Custom domains | ✅ API | 🚧 v0.19 |
+| Custom domains | ✅ API | ✅ v0.19 |
 | Semantic search | ✅ | 🚧 v0.21 |
 | Document extraction | ✅ | 🚧 v0.22 |
 | MCP | ✅ | ✅ OAuth + 15+ tools |
@@ -40,7 +40,7 @@
 
 **Resend:** verified send domain (`OUTBOUND_FROM`), Reply-To = inbox address.
 
-### Phase 2 — v0.19–00.20: Custom domains как продукт
+### Phase 2 — v0.19–0.20: Custom domains ✅ (API v0.19)
 
 | Задача | |
 |--------|--|
@@ -104,4 +104,4 @@
 
 ## Следующий коммит
 
-v0.17: migration `011_outbound_threads.sql` + send + threads REST + MCP.
+v0.21: semantic search (`GET /v1/inboxes/:id/search`, pgvector).

@@ -56,6 +56,7 @@ teamRoutes.get("/", async (c) => {
     limits: {
       maxTeamKeys: limits.maxTeamKeys,
       maxActiveInboxes: limits.maxActiveInboxes,
+      maxCustomDomains: limits.maxCustomDomains,
     },
     usage: {
       keys: keys.length,

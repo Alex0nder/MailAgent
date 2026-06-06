@@ -1,6 +1,7 @@
 /** Выполнение MCP tools на Worker (без HTTP loopback) */
 import type { Env } from "../env";
 import type { ApiKeyScope } from "../lib/key-scope";
+import type { PlanId } from "../lib/plans";
 import {
   assertInboxAccessible,
   assertLabelForCreate,
@@ -17,9 +18,15 @@ import {
   deleteInbox,
   getInbox,
   getMessage,
+  isCreateInboxError,
   listInboxes,
   listMessages,
 } from "../services/inbox";
+import {
+  createDomain,
+  listDomains,
+  verifyDomain,
+} from "../services/domains";
 import { loadRawMessagePayload } from "../services/message-raw";
 import {
   formatAttachment,
@@ -37,6 +44,7 @@ import type { McpProgressParams, McpToolContext } from "../mcp/progress";
 export type McpAuth = {
   apiKeyHint: string;
   teamId: string | null;
+  plan: PlanId;
   scope: ApiKeyScope;
 };
 
@@ -112,6 +120,7 @@ export async function executeMcpTool(
         ttlMinutes: args.ttlMinutes as number | undefined,
         deleteAfter: args.deleteAfter as boolean | undefined,
         apiKeyHint: auth.apiKeyHint,
+        teamId: auth.teamId,
         onProgress: bindWaitProgress(ctx),
       });
       if ("error" in result) {
@@ -148,7 +157,13 @@ export async function executeMcpTool(
         label: labelCheck.label ?? undefined,
         callbackUrl,
         apiKeyHint: auth.apiKeyHint,
+        teamId: auth.teamId,
+        username: args.username as string | undefined,
+        domainId: args.domainId as string | undefined,
       });
+      if (isCreateInboxError(inbox)) {
+        return textResult({ error: inbox.error }, true);
+      }
       return textResult({
         id: inbox.id,
         address: inbox.address,
@@ -177,6 +192,7 @@ export async function executeMcpTool(
           timeoutSeconds: args.timeoutSeconds as number | undefined,
           deleteAfter: args.deleteAfter as boolean | undefined,
           apiKeyHint: auth.apiKeyHint,
+          teamId: auth.teamId,
           onProgress: bindWaitProgress(ctx),
         });
         if (v.status === "timeout" || "error" in v) {
@@ -494,6 +510,42 @@ export async function executeMcpTool(
       }
       const threads = await listThreads(env, inboxId);
       return textResult({ threads });
+    }
+
+    case "mailagent_add_domain": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr) return textResult(writeErr, true);
+      const name = args.name as string;
+      if (!name?.trim()) return textResult({ error: "name_required" }, true);
+      const result = await createDomain(env, {
+        teamId: auth.teamId,
+        apiKeyHint: auth.apiKeyHint,
+        plan: auth.plan,
+      }, name);
+      if (!result.ok) return textResult({ error: result.error, hint: result.hint }, true);
+      return textResult(result.domain);
+    }
+
+    case "mailagent_list_domains": {
+      const domains = await listDomains(env, {
+        teamId: auth.teamId,
+        apiKeyHint: auth.apiKeyHint,
+        plan: auth.plan,
+      });
+      return textResult({ domains });
+    }
+
+    case "mailagent_verify_domain": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr) return textResult(writeErr, true);
+      const domainId = args.domainId as string;
+      const result = await verifyDomain(env, domainId, {
+        teamId: auth.teamId,
+        apiKeyHint: auth.apiKeyHint,
+        plan: auth.plan,
+      });
+      if (!result.ok) return textResult({ error: result.error, hint: result.hint }, true);
+      return textResult(result.domain);
     }
 
     case "mailagent_diagnose_inbox": {

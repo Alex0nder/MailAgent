@@ -14,9 +14,9 @@ npm run test:contract:qa    # API simulate via POST …/simulate (MAILAGENT_API_
 npm run verify:codex        # Codex plugin scaffold
 ```
 
-## MCP tools (16)
+## MCP tools (19)
 
-`mailagent_verify_signup` · `mailagent_create_inbox` · `mailagent_wait_for_message` · `mailagent_wait_and_extract` · `mailagent_extract_verification` · `mailagent_list_messages` · `mailagent_get_raw_message` · `mailagent_list_attachments` · `mailagent_get_attachment` · `mailagent_diagnose_inbox` · `mailagent_simulate_message` · `mailagent_send_message` · `mailagent_list_threads` · `mailagent_list_inboxes` · `mailagent_get_inbox` · `mailagent_delete_inbox`
+`mailagent_verify_signup` · `mailagent_create_inbox` · `mailagent_wait_for_message` · `mailagent_wait_and_extract` · `mailagent_extract_verification` · `mailagent_list_messages` · `mailagent_get_raw_message` · `mailagent_list_attachments` · `mailagent_get_attachment` · `mailagent_diagnose_inbox` · `mailagent_simulate_message` · `mailagent_send_message` · `mailagent_list_threads` · `mailagent_add_domain` · `mailagent_list_domains` · `mailagent_verify_domain` · `mailagent_list_inboxes` · `mailagent_get_inbox` · `mailagent_delete_inbox`
 
 Source of truth: `src/mcp/manifest.ts` → `GET /v1/agent`.
 

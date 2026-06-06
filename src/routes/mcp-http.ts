@@ -128,6 +128,7 @@ async function handleJsonRpc(c: Ctx) {
   const auth = {
     apiKeyHint: c.get("apiKeyHint"),
     teamId: c.get("teamId"),
+    plan: c.get("apiPlan"),
     scope: c.get("apiKeyScope"),
   };
 
@@ -194,7 +195,7 @@ type JsonRpcResponse = {
 
 async function resolveSession(
   env: Env,
-  auth: { apiKeyHint: string; teamId: string | null; scope: ApiKeyScope },
+  auth: { apiKeyHint: string; teamId: string | null; plan: import("../lib/plans").PlanId; scope: ApiKeyScope },
   req: JsonRpcRequest,
   sessionIn?: string
 ): Promise<{
@@ -221,7 +222,7 @@ async function resolveSession(
 
 function streamToolCall(
   env: Env,
-  auth: { apiKeyHint: string; teamId: string | null; scope: ApiKeyScope },
+  auth: { apiKeyHint: string; teamId: string | null; plan: import("../lib/plans").PlanId; scope: ApiKeyScope },
   id: string | number | null,
   name: string,
   toolArgs: Record<string, unknown>,
@@ -266,7 +267,7 @@ function streamToolCall(
 
 async function dispatchRpcWithSession(
   env: Env,
-  auth: { apiKeyHint: string; teamId: string | null; scope: ApiKeyScope },
+  auth: { apiKeyHint: string; teamId: string | null; plan: import("../lib/plans").PlanId; scope: ApiKeyScope },
   req: JsonRpcRequest,
   sessionIn?: string,
   _wantsSse = false
@@ -297,7 +298,7 @@ async function dispatchRpcWithSession(
 
 async function dispatchRpc(
   env: Env,
-  auth: { apiKeyHint: string; teamId: string | null; scope: ApiKeyScope },
+  auth: { apiKeyHint: string; teamId: string | null; plan: import("../lib/plans").PlanId; scope: ApiKeyScope },
   req: JsonRpcRequest
 ): Promise<JsonRpcResponse | null> {
   const id = req.id ?? null;

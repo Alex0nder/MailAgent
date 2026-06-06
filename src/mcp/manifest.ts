@@ -45,6 +45,11 @@ export const MCP_TOOLS = [
         label: { type: "string" },
         ttlMinutes: { type: "integer" },
         callbackUrl: { type: "string", format: "uri" },
+        username: {
+          type: "string",
+          description: "Local part for custom domain inbox (requires domainId)",
+        },
+        domainId: { type: "string", description: "Verified custom domain id" },
       },
     },
   },
@@ -155,6 +160,32 @@ export const MCP_TOOLS = [
         inboxId: { type: "string" },
         threadId: { type: "string", description: "If set, return messages in thread" },
       },
+    },
+  },
+  {
+    name: "mailagent_add_domain",
+    description:
+      "Register custom domain in Resend; returns DNS records to add before verify.",
+    inputSchema: {
+      type: "object",
+      required: ["name"],
+      properties: {
+        name: { type: "string", description: "e.g. mail.example.com" },
+      },
+    },
+  },
+  {
+    name: "mailagent_list_domains",
+    description: "List custom domains for the current team or API key.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "mailagent_verify_domain",
+    description: "Trigger DNS verification poll for a custom domain.",
+    inputSchema: {
+      type: "object",
+      required: ["domainId"],
+      properties: { domainId: { type: "string" } },
     },
   },
   {

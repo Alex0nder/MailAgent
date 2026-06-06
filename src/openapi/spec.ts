@@ -25,6 +25,8 @@ const inboxBody = {
     },
     label: { type: "string", maxLength: 128 },
     callbackUrl: { type: "string", format: "uri", description: "HTTPS webhook" },
+    username: { type: "string", description: "Local part on custom domain" },
+    domainId: { type: "string", description: "Verified domain from POST /v1/domains" },
   },
 } as const;
 
@@ -123,6 +125,31 @@ const callbackDelivery = {
   },
 } as const;
 
+const domain = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    name: { type: "string" },
+    status: { type: "string", enum: ["pending", "verified", "failed"] },
+    region: { type: "string", nullable: true },
+    dnsRecords: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          type: { type: "string" },
+          name: { type: "string" },
+          value: { type: "string" },
+          priority: { type: "integer", nullable: true },
+          status: { type: "string" },
+        },
+      },
+    },
+    createdAt: { type: "string", format: "date-time" },
+    verifiedAt: { type: "string", format: "date-time", nullable: true },
+  },
+} as const;
+
 export const openApiSpec = {
   openapi: "3.0.3",
   info: {
@@ -153,6 +180,7 @@ export const openApiSpec = {
       Message: message,
       Verification: verification,
       CallbackDelivery: callbackDelivery,
+      Domain: domain,
     },
     responses: {
       Unauthorized: {
@@ -232,6 +260,99 @@ export const openApiSpec = {
           },
           "401": { $ref: "#/components/responses/Unauthorized" },
           "429": { $ref: "#/components/responses/RateLimited" },
+        },
+      },
+    },
+    "/v1/domains": {
+      get: {
+        tags: ["domains"],
+        summary: "List custom domains (team or API key scoped)",
+        security: bearer,
+        responses: {
+          "200": {
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    domains: {
+                      type: "array",
+                      items: { $ref: "#/components/schemas/Domain" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      post: {
+        tags: ["domains"],
+        summary: "Register domain in Resend (returns DNS records)",
+        security: bearer,
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["name"],
+                properties: { name: { type: "string" } },
+              },
+            },
+          },
+        },
+        responses: {
+          "201": {
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Domain" },
+              },
+            },
+          },
+          "409": { description: "domain_already_registered" },
+          "429": { description: "domain_limit_reached" },
+        },
+      },
+    },
+    "/v1/domains/{id}": {
+      get: {
+        tags: ["domains"],
+        summary: "Get domain + DNS records",
+        security: bearer,
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": {
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Domain" },
+              },
+            },
+          },
+          "404": { $ref: "#/components/responses/NotFound" },
+        },
+      },
+      delete: {
+        tags: ["domains"],
+        summary: "Remove domain from Resend and MailAgent",
+        security: bearer,
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: { "200": { description: "deleted" } },
+      },
+    },
+    "/v1/domains/{id}/verify": {
+      post: {
+        tags: ["domains"],
+        summary: "Poll DNS verification status",
+        security: bearer,
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": {
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Domain" },
+              },
+            },
+          },
         },
       },
     },

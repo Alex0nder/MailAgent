@@ -20,6 +20,7 @@ import {
   deleteInboxesByLabelPrefix,
   getInbox,
   getMessage,
+  isCreateInboxError,
   listInboxes,
   listMessages,
   type InboxRow,
@@ -60,6 +61,8 @@ type CreateBody = {
   messageIndex?: number;
   timeoutSeconds?: number;
   deleteAfter?: boolean;
+  username?: string;
+  domainId?: string;
 };
 
 inboxRoutes.post("/open", async (c) => {
@@ -87,7 +90,13 @@ inboxRoutes.post("/open", async (c) => {
     ...clean,
     label: labelCheck.label ?? undefined,
     apiKeyHint: c.get("apiKeyHint"),
+    teamId: c.get("teamId"),
+    username: body.username,
+    domainId: body.domainId,
   });
+  if (isCreateInboxError(inbox)) {
+    return createInboxErrorResponse(c, inbox.error);
+  }
   const timeoutSec = Math.min(Number(body.timeoutSeconds ?? 90), 120);
   const messageIndex = Math.max(0, Math.floor(Number(body.messageIndex ?? 0)));
   const waitOpts = {
@@ -178,7 +187,13 @@ inboxRoutes.post("/", async (c) => {
     ...clean,
     label: labelCheck.label ?? undefined,
     apiKeyHint: c.get("apiKeyHint"),
+    teamId: c.get("teamId"),
+    username: body.username,
+    domainId: body.domainId,
   });
+  if (isCreateInboxError(inbox)) {
+    return createInboxErrorResponse(c, inbox.error);
+  }
   return c.json({ id: inbox.id, ...formatInbox(inbox) }, 201);
 });
 
@@ -670,6 +685,8 @@ function inboxOptionsFromBody(body: CreateBody) {
     label: body.label,
     callbackUrl,
     callbackInvalid: Boolean(body.callbackUrl && !callbackUrl),
+    username: body.username,
+    domainId: body.domainId,
   };
 }
 
@@ -691,7 +708,26 @@ function formatInbox(inbox: InboxRow) {
     allowedSenders: inbox.allowed_senders,
     label: inbox.label,
     callbackUrl: inbox.callback_url,
+    ...(inbox.domain_id ? { domainId: inbox.domain_id } : {}),
   };
+}
+
+function createInboxErrorResponse(
+  c: import("hono").Context<{ Bindings: Env; Variables: ApiVariables }>,
+  error: "domain_not_found" | "domain_not_verified" | "username_requires_domain"
+) {
+  const status =
+    error === "domain_not_found"
+      ? 404
+      : error === "domain_not_verified"
+        ? 400
+        : 400;
+  const hints: Record<string, string> = {
+    domain_not_verified:
+      "Add DNS records from POST /v1/domains, then POST /v1/domains/:id/verify",
+    username_requires_domain: "Pass domainId when using username",
+  };
+  return c.json({ error, ...(hints[error] ? { hint: hints[error] } : {}) }, status);
 }
 
 async function checkInboxQuota(

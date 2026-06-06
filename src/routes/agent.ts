@@ -139,13 +139,25 @@ agentRoutes.post("/verify", async (c) => {
   const result = await runAgentVerify(c.env, {
     ...body,
     apiKeyHint: c.get("apiKeyHint"),
+    teamId: c.get("teamId"),
   });
 
   if ("error" in result && result.error === "invalid_callback_url") {
     return c.json(result, 400);
   }
-  if ("error" in result && result.error === "inbox_not_found") {
+  if (
+    "error" in result &&
+    (result.error === "inbox_not_found" ||
+      result.error === "domain_not_found")
+  ) {
     return c.json(result, 404);
+  }
+  if (
+    "error" in result &&
+    (result.error === "domain_not_verified" ||
+      result.error === "username_requires_domain")
+  ) {
+    return c.json(result, 400);
   }
   if (result.status === "timeout") {
     return c.json(result, 408);
