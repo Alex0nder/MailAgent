@@ -59,17 +59,11 @@ Details: [outbound.html](https://webmailagent.com/docs/outbound.html)
 
 ---
 
-## 3. OIDC (browser login for MCP)
+## 3. OIDC (browser login for MCP) ✅
 
-**When:** MCP clients without pasting API key (Auth0 / Google).
+Auth0 tenant `webmailagent.us.auth0.com` · app **MailAgent MCP** · `auth.oidc: enabled`.
 
-```bash
-npm run wizard:auth0         # Auth0 dashboard steps + paste creds → .dev.vars
-npm run wizard:auth0 -- --deploy   # same + wrangler secrets + contract test
-# or: npm run doctor:oidc → fill .dev.vars → npm run setup:oidc-prod
-```
-
-Auth0 callback: `https://api.webmailagent.com/v1/oauth/callback`
+Rotate Client Secret if it was shared in chat → `npm run setup:oidc-prod`.
 
 Guide: [MCP-OAUTH-IDP.md](./MCP-OAUTH-IDP.md)
 

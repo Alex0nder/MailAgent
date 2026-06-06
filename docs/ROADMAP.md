@@ -330,11 +330,19 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | awesome-codex-plugins PR | [#195](https://github.com/hashgraph-online/awesome-codex-plugins/pull/195) pending |
 | Docs page `/docs/agent-skills.html` | ✅ |
 
+### v0.40 OIDC prod + KV relief
+
+| Auth0 tenant `webmailagent.us.auth0.com` + MailAgent MCP app | ✅ |
+| OIDC secrets on Worker (`npm run wizard:auth0 -- --deploy`) | ✅ |
+| `auth.oidc: enabled` on prod | ✅ |
+| Stateless OIDC flow JWT (authorize state + auth code, no KV puts) | ✅ |
+| `npm run wizard:auth0` interactive setup | ✅ |
+
 ### Deferred (not QA)
 
 - ~~Agent session memory / multi-step run state~~ ✅ v0.35
+- ~~OIDC on prod~~ ✅ v0.40
 - **Stripe on prod** — on hold (skip `STRIPE_*` for now)
-- OIDC on prod (Auth0 secrets) — [YOUR-TURN.md](./YOUR-TURN.md#3-oidc-browser-login-for-mcp) · `npm run setup:oidc-prod`
 - ~~`OUTBOUND_FROM` on prod~~ ✅
 - ~~Codex repo marketplace~~ ✅ `.agents/plugins/marketplace.json`
 - Codex official Plugin Directory submit — coming soon (OpenAI)

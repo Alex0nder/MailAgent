@@ -3,6 +3,14 @@ import { nanoid } from "nanoid";
 import type { Env } from "../env";
 import { getDb } from "../db/client";
 import { FULL_ACCESS_SCOPE } from "../lib/key-scope";
+import { isJwtMatBody } from "../lib/mcp-jwt";
+import { mcpSigningSecret } from "../lib/mcp-signing-secret";
+import {
+  signOidcAuthCode,
+  signOidcPendingState,
+  verifyOidcAuthCode,
+  verifyOidcPendingState,
+} from "../lib/oidc-flow-jwt";
 import { normalizePlan, type PlanId } from "../lib/plans";
 import type { ResolvedAuth } from "./api-key-store";
 import { issueMcpAccessToken } from "./mcp-oauth";
@@ -76,14 +84,14 @@ export async function startOidcAuthorize(
   }
 ): Promise<string> {
   const cfg = oidcConfig(env);
+  const secret = mcpSigningSecret(env);
   const store = kv(env);
-  if (!cfg || !store) throw new Error("oidc_not_configured");
+  if (!cfg || (!secret && !store)) throw new Error("oidc_not_configured");
 
   const method = params.codeChallengeMethod ?? "S256";
   if (method !== "S256") throw new Error("invalid_code_challenge_method");
 
   const discovery = await fetchDiscovery(cfg.issuer);
-  const internalState = nanoid(32);
 
   const pending: PendingAuthorize = {
     clientRedirectUri: params.redirectUri,
@@ -91,9 +99,16 @@ export async function startOidcAuthorize(
     codeChallenge: params.codeChallenge,
     codeChallengeMethod: method,
   };
-  await store.put(STATE_PREFIX + internalState, JSON.stringify(pending), {
-    expirationTtl: FLOW_TTL_SEC,
-  });
+
+  let internalState: string;
+  if (secret) {
+    internalState = await signOidcPendingState(secret, pending);
+  } else {
+    internalState = nanoid(32);
+    await store!.put(STATE_PREFIX + internalState, JSON.stringify(pending), {
+      expirationTtl: FLOW_TTL_SEC,
+    });
+  }
 
   const callback = `${origin}/v1/oauth/callback`;
   const q = new URLSearchParams({
@@ -118,14 +133,21 @@ export async function finishOidcCallback(
   internalState: string
 ): Promise<{ redirectUrl: string }> {
   const cfg = oidcConfig(env);
+  const secret = mcpSigningSecret(env);
   const store = kv(env);
-  if (!cfg || !store) throw new Error("oidc_not_configured");
+  if (!cfg || (!secret && !store)) throw new Error("oidc_not_configured");
 
-  const raw = await store.get(STATE_PREFIX + internalState);
-  if (!raw) throw new Error("invalid_state");
-  await store.delete(STATE_PREFIX + internalState);
-
-  const pending = JSON.parse(raw) as PendingAuthorize;
+  let pending: PendingAuthorize | null = null;
+  if (secret && isJwtMatBody(internalState)) {
+    pending = await verifyOidcPendingState(secret, internalState);
+  } else if (store) {
+    const raw = await store.get(STATE_PREFIX + internalState);
+    if (raw) {
+      await store.delete(STATE_PREFIX + internalState);
+      pending = JSON.parse(raw) as PendingAuthorize;
+    }
+  }
+  if (!pending) throw new Error("invalid_state");
   const discovery = await fetchDiscovery(cfg.issuer);
   const callback = `${origin}/v1/oauth/callback`;
 
@@ -153,15 +175,21 @@ export async function finishOidcCallback(
   if (!sub) throw new Error("missing_sub");
 
   const auth = await resolveOidcTeam(env, cfg.issuer, sub, claims.email as string | undefined);
-  const mailagentCode = nanoid(40);
   const codePayload: PendingCode = {
     auth,
     codeChallenge: pending.codeChallenge,
     redirectUri: pending.clientRedirectUri,
   };
-  await store.put(CODE_PREFIX + mailagentCode, JSON.stringify(codePayload), {
-    expirationTtl: FLOW_TTL_SEC,
-  });
+
+  let mailagentCode: string;
+  if (secret) {
+    mailagentCode = await signOidcAuthCode(secret, codePayload);
+  } else {
+    mailagentCode = nanoid(40);
+    await store!.put(CODE_PREFIX + mailagentCode, JSON.stringify(codePayload), {
+      expirationTtl: FLOW_TTL_SEC,
+    });
+  }
 
   const redirect = new URL(pending.clientRedirectUri);
   redirect.searchParams.set("code", mailagentCode);
@@ -174,14 +202,27 @@ export async function exchangeAuthorizationCode(
   env: Env,
   input: { code: string; redirectUri: string; codeVerifier: string }
 ): Promise<{ access_token: string; token_type: "Bearer"; expires_in: number } | null> {
+  const secret = mcpSigningSecret(env);
   const store = kv(env);
-  if (!store) return null;
 
-  const raw = await store.get(CODE_PREFIX + input.code);
-  if (!raw) return null;
-  await store.delete(CODE_PREFIX + input.code);
-
-  const pending = JSON.parse(raw) as PendingCode;
+  let pending: PendingCode | null = null;
+  if (secret && isJwtMatBody(input.code)) {
+    const decoded = await verifyOidcAuthCode(secret, input.code);
+    if (decoded) {
+      pending = {
+        auth: decoded.auth,
+        codeChallenge: decoded.codeChallenge,
+        redirectUri: decoded.redirectUri,
+      };
+    }
+  } else if (store) {
+    const raw = await store.get(CODE_PREFIX + input.code);
+    if (raw) {
+      await store.delete(CODE_PREFIX + input.code);
+      pending = JSON.parse(raw) as PendingCode;
+    }
+  }
+  if (!pending) return null;
   if (pending.redirectUri !== input.redirectUri) return null;
 
   const challenge = await pkceChallengeS256(input.codeVerifier);
