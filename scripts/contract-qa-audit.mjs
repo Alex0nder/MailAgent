@@ -29,23 +29,35 @@ async function main() {
 
   const inboxId = created.json.id;
 
-  const audit = await contractApi(base, headers, "/v1/audit?limit=20");
-  if (!audit.ok || !Array.isArray(audit.json?.events)) {
-    console.error("audit list failed", audit.status, audit.json);
-    process.exit(1);
+  let hit = null;
+  for (let i = 0; i < 8; i++) {
+    const audit = await contractApi(base, headers, "/v1/audit?limit=20");
+    if (!audit.ok || !Array.isArray(audit.json?.events)) {
+      console.error("audit list failed", audit.status, audit.json);
+      process.exit(1);
+    }
+    hit = audit.json.events.find(
+      (e) => e.action === "inbox.created" && e.resourceId === inboxId
+    );
+    if (hit) break;
+    await new Promise((r) => setTimeout(r, 400));
   }
-
-  const hit = audit.json.events.find(
-    (e) => e.action === "inbox.created" && e.resourceId === inboxId
-  );
   if (!hit) {
-    console.error("inbox.created not in audit log", { inboxId, events: audit.json.events });
+    console.error("inbox.created not in audit log", { inboxId });
     process.exit(1);
   }
 
-  const summary = await contractApi(base, headers, "/v1/console/summary");
-  if (!summary.ok || !summary.json.recentAudit?.some((e) => e.resourceId === inboxId)) {
-    console.error("console summary missing audit event", summary.json?.recentAudit);
+  let inSummary = false;
+  for (let i = 0; i < 5; i++) {
+    const summary = await contractApi(base, headers, "/v1/console/summary");
+    if (summary.ok && summary.json.recentAudit?.some((e) => e.resourceId === inboxId)) {
+      inSummary = true;
+      break;
+    }
+    await new Promise((r) => setTimeout(r, 400));
+  }
+  if (!inSummary) {
+    console.error("console summary missing audit event");
     process.exit(1);
   }
 
