@@ -11,7 +11,7 @@ import {
   stripeConfigured,
 } from "../services/billing";
 import { getTeamBilling } from "../services/api-key-store";
-import { auditFire } from "../services/audit-log";
+import { auditRoute } from "../services/audit-log";
 
 export const billingRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
 
@@ -59,18 +59,14 @@ billingRoutes.post("/checkout", async (c) => {
       successUrl,
       cancelUrl,
     });
-    auditFire(
-      c.env,
-      {
-        teamId,
-        apiKeyHint: c.get("apiKeyHint"),
-        apiKeyId: c.get("apiKeyId"),
-      },
+    auditRoute(
+      c,
       {
         action: "billing.checkout",
         resourceType: "stripe_session",
         resourceId: session.sessionId,
-      }
+      },
+      { teamId }
     );
     return c.json({ url: session.url, sessionId: session.sessionId });
   } catch (e) {

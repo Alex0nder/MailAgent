@@ -12,7 +12,7 @@ import {
   scopeWriteDenied,
 } from "../lib/scope-guard";
 import { listCallbackDeliveries } from "../services/callback-log";
-import { auditFire } from "../services/audit-log";
+import { auditRoute } from "../services/audit-log";
 import {
   countActiveInboxesForHint,
   countActiveInboxesForTeam,
@@ -201,20 +201,12 @@ inboxRoutes.post("/", async (c) => {
   if (isCreateInboxError(inbox)) {
     return createInboxErrorResponse(c, inbox.error);
   }
-  auditFire(
-    c.env,
-    {
-      teamId: c.get("teamId"),
-      apiKeyHint: c.get("apiKeyHint"),
-      apiKeyId: c.get("apiKeyId"),
-    },
-    {
+  auditRoute(c, {
       action: "inbox.created",
       resourceType: "inbox",
       resourceId: inbox.id,
       meta: { address: inbox.address, label: inbox.label ?? null },
-    }
-  );
+    });
   return c.json({ id: inbox.id, ...formatInbox(inbox) }, 201);
 });
 
@@ -236,19 +228,11 @@ inboxRoutes.delete("/", async (c) => {
     labelPrefix,
     c.get("apiKeyHint")
   );
-  auditFire(
-    c.env,
-    {
-      teamId: c.get("teamId"),
-      apiKeyHint: c.get("apiKeyHint"),
-      apiKeyId: c.get("apiKeyId"),
-    },
-    {
+  auditRoute(c, {
       action: "inbox.bulk_deleted",
       resourceType: "inbox",
       meta: { labelPrefix, count: ids.length },
-    }
-  );
+    });
   return c.json({ deleted: ids.length, ids });
 });
 
@@ -366,20 +350,12 @@ inboxRoutes.post("/:id/send", async (c) => {
       inReplyToMessageId: body.inReplyToMessageId,
     });
     if (!result) return c.json({ error: "send_failed" }, 500);
-    auditFire(
-      c.env,
-      {
-        teamId: c.get("teamId"),
-        apiKeyHint: c.get("apiKeyHint"),
-        apiKeyId: c.get("apiKeyId"),
-      },
-      {
+    auditRoute(c, {
         action: "inbox.sent",
         resourceType: "message",
         resourceId: result.messageId,
         meta: { inboxId: inbox.id, to, subject: result.subject },
-      }
-    );
+      });
     return c.json(result, 201);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "send_failed";
@@ -429,14 +405,7 @@ inboxRoutes.post("/:id/messages/:messageId/reply", async (c) => {
       inReplyToMessageId: parent.id,
     });
     if (!result) return c.json({ error: "send_failed" }, 500);
-    auditFire(
-      c.env,
-      {
-        teamId: c.get("teamId"),
-        apiKeyHint: c.get("apiKeyHint"),
-        apiKeyId: c.get("apiKeyId"),
-      },
-      {
+    auditRoute(c, {
         action: "inbox.replied",
         resourceType: "message",
         resourceId: result.messageId,
@@ -446,8 +415,7 @@ inboxRoutes.post("/:id/messages/:messageId/reply", async (c) => {
           to,
           subject: result.subject,
         },
-      }
-    );
+      });
     return c.json(result, 201);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "send_failed";

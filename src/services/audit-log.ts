@@ -52,15 +52,43 @@ export async function recordAuditEvent(
   `;
 }
 
-/** Fire-and-forget — не блокирует основной запрос */
+/** Fire-and-forget — на Workers нужен executionCtx.waitUntil */
 export function auditFire(
   env: Env,
   ctx: AuditContext,
-  event: AuditEventInput
+  event: AuditEventInput,
+  executionCtx?: Pick<ExecutionContext, "waitUntil">
 ): void {
-  void recordAuditEvent(env, ctx, event).catch((err) => {
+  const task = recordAuditEvent(env, ctx, event).catch((err) => {
     console.error("audit_log_failed", event.action, err);
   });
+  if (executionCtx) {
+    executionCtx.waitUntil(task);
+  } else {
+    void task;
+  }
+}
+
+/** Route helper — всегда передаёт executionCtx.waitUntil на Workers */
+export function auditRoute(
+  c: {
+    env: Env;
+    executionCtx: Pick<ExecutionContext, "waitUntil">;
+    get: (key: "teamId" | "apiKeyHint" | "apiKeyId") => string | null;
+  },
+  event: AuditEventInput,
+  overrides?: Partial<AuditContext>
+): void {
+  auditFire(
+    c.env,
+    {
+      teamId: overrides?.teamId ?? c.get("teamId"),
+      apiKeyHint: overrides?.apiKeyHint ?? c.get("apiKeyHint") ?? "",
+      apiKeyId: overrides?.apiKeyId ?? c.get("apiKeyId"),
+    },
+    event,
+    c.executionCtx
+  );
 }
 
 export type AuditEventRow = {
