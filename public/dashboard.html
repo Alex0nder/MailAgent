@@ -129,7 +129,26 @@
 
         html += `<p class="console-meta">Rate limit: ${l.rateLimitPerMinute} req/min`;
         if (d.teamId) html += ` · Team <code>${esc(d.teamId)}</code>`;
+        if (d.policies?.auditRetentionDays) {
+          html += ` · Audit retention: ${d.policies.auditRetentionDays}d`;
+        }
         html += `</p>`;
+
+        html += `<h2>Recent threads</h2>`;
+        if (!d.recentThreads?.length) {
+          html += `<p class="console-empty">No conversations yet.</p>`;
+        } else {
+          html += `<table class="console-table"><thead><tr><th>Subject</th><th>Inbox</th><th>Msgs</th><th>Updated</th></tr></thead><tbody>`;
+          for (const t of d.recentThreads) {
+            html += `<tr>
+              <td>${esc(t.subject || "(no subject)")}</td>
+              <td><code>${esc(t.inboxAddress)}</code></td>
+              <td>${t.messageCount}</td>
+              <td>${esc(new Date(t.lastMessageAt).toLocaleString())}</td>
+            </tr>`;
+          }
+          html += `</tbody></table>`;
+        }
 
         html += `<h2>Recent inboxes</h2>`;
         if (!d.recentInboxes?.length) {

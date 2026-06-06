@@ -104,4 +104,4 @@
 
 ## Следующий коммит
 
-v0.24: team audit log + retention policies (enterprise prep).
+v0.25: console threads view + audit retention policies.

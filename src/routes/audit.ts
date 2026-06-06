@@ -4,7 +4,7 @@ import type { Env } from "../env";
 import type { ApiVariables } from "../lib/api-context";
 import { requireApiKey } from "../lib/auth";
 import { rateLimit } from "../lib/rate-limit";
-import { listAuditEvents } from "../services/audit-log";
+import { listAuditEvents, auditRetentionDays } from "../services/audit-log";
 
 export const auditRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
 
@@ -18,5 +18,9 @@ auditRoutes.get("/", async (c) => {
     { teamId: c.get("teamId"), apiKeyHint: c.get("apiKeyHint") },
     { limit }
   );
-  return c.json({ events, count: events.length });
+  return c.json({
+    events,
+    count: events.length,
+    policies: { auditRetentionDays: auditRetentionDays(c.env) },
+  });
 });

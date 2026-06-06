@@ -42,6 +42,8 @@ export interface Env {
   SEARCH_EMBED_MODEL?: string;
   /** LLM for structured extract (default @cf/meta/llama-3.1-8b-instruct) */
   EXTRACT_MODEL?: string;
+  /** Audit log retention in days (default 90, max 365) */
+  AUDIT_RETENTION_DAYS?: string;
 }
 
 export interface EmailQueueMessage {

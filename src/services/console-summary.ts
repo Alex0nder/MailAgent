@@ -11,7 +11,8 @@ import {
 import { listDomains } from "./domains";
 import { listInboxes } from "./inbox";
 import { getScopedUsage } from "./console-stats";
-import { listAuditEvents } from "./audit-log";
+import { listAuditEvents, auditRetentionDays } from "./audit-log";
+import { listRecentThreadsForScope } from "./console-threads";
 import { stripeConfigured } from "./billing";
 
 export async function buildConsoleSummary(
@@ -58,6 +59,12 @@ export async function buildConsoleSummary(
     env,
     { teamId: input.teamId, apiKeyHint: input.apiKeyHint },
     { limit: 10 }
+  );
+
+  const recentThreads = await listRecentThreadsForScope(
+    env,
+    { teamId: input.teamId, apiKeyHint: input.apiKeyHint },
+    { limit: 12 }
   );
 
   let team: {
@@ -144,6 +151,10 @@ export async function buildConsoleSummary(
       verifiedAt: d.verifiedAt,
     })),
     recentAudit,
+    recentThreads,
+    policies: {
+      auditRetentionDays: auditRetentionDays(env),
+    },
     team,
     links: {
       debug: "/debug.html",

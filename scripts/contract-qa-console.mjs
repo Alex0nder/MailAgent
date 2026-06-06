@@ -33,6 +33,10 @@ async function main() {
     console.error("billing paths missing", s0.billing);
     process.exit(1);
   }
+  if (s0.policies?.auditRetentionDays == null) {
+    console.error("audit retention policy missing", s0.policies);
+    process.exit(1);
+  }
   console.log("console summary OK", {
     plan: s0.plan,
     messagesLast24h: s0.usage.messagesLast24h,
@@ -55,9 +59,34 @@ async function main() {
   }
 
   const inboxId = created.json.id;
-  const sim = await contractSimulate(base, headers, inboxId, { otp: "445566" });
-  if (!sim.ok) {
-    console.error("simulate failed", sim.status);
+  const root = await contractSimulate(base, headers, inboxId, {
+    otp: "445566",
+    subject: "Console thread root",
+    rfcMessageId: `console-root-${Date.now()}@sim.mailagent`,
+  });
+  if (!root.ok || !root.json?.messageId) {
+    console.error("simulate failed", root.status);
+    process.exit(1);
+  }
+
+  const threadId = root.json.threadId ?? root.json.messageId;
+  const reply = await contractSimulate(base, headers, inboxId, {
+    otp: "445567",
+    subject: "Re: Console thread root",
+    inReplyToMessageId: root.json.messageId,
+  });
+  if (!reply.ok) {
+    console.error("thread reply simulate failed", reply.status);
+    process.exit(1);
+  }
+
+  const threadsApi = await contractApi(
+    base,
+    headers,
+    "/v1/console/threads?limit=10"
+  );
+  if (!threadsApi.ok || !Array.isArray(threadsApi.json?.threads)) {
+    console.error("console/threads failed", threadsApi.status, threadsApi.json);
     process.exit(1);
   }
 
@@ -79,8 +108,26 @@ async function main() {
     process.exit(1);
   }
 
+  const threadHit =
+    summary1.json.recentThreads?.find(
+      (t) => t.inboxId === inboxId && t.threadId === threadId
+    ) ??
+    threadsApi.json.threads.find(
+      (t) => t.inboxId === inboxId && t.threadId === threadId
+    );
+  if (!threadHit || threadHit.messageCount < 2) {
+    console.error("recentThreads missing threaded conversation", {
+      inboxId,
+      threadId,
+      recentThreads: summary1.json.recentThreads,
+    });
+    process.exit(1);
+  }
+
   console.log("contract-qa-console OK", {
     inboxId,
+    threadId,
+    messageCount: threadHit.messageCount,
     messagesLast24h: summary1.json.usage.messagesLast24h,
   });
 }

@@ -58,6 +58,11 @@ apiMetaRoutes.get("/", (c) => {
         path: "/v1/console/summary",
         note: "Hosted dashboard aggregate",
       },
+      consoleThreads: {
+        method: "GET",
+        path: "/v1/console/threads",
+        note: "Recent conversations across scoped inboxes",
+      },
       auditLog: { method: "GET", path: "/v1/audit", note: "Team/key audit events" },
       team: { method: "GET", path: "/v1/team", note: "team + API keys" },
       teamCreateKey: { method: "POST", path: "/v1/team/keys", note: "invite" },

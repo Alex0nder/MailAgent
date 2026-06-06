@@ -201,6 +201,13 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | Console `recentAudit` in summary + dashboard | ✅ |
 | `contract-qa-audit` | ✅ |
 
+### v0.25 Console threads + audit retention
+
+| `GET /v1/console/threads` scoped recent conversations | ✅ |
+| `recentThreads` in console summary + dashboard UI | ✅ |
+| Audit retention cron (`AUDIT_RETENTION_DAYS`, default 90) | ✅ |
+| `policies.auditRetentionDays` in audit + console APIs | ✅ |
+
 ### Отложено (не QA)
 
 - Agent session memory / multi-step run state

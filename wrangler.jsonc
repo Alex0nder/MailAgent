@@ -8,7 +8,8 @@
   "compatibility_flags": ["nodejs_compat_v2"],
   "vars": {
     "DEFAULT_TTL_MINUTES": "30",
-    "RATE_LIMIT_PER_MINUTE": "120"
+    "RATE_LIMIT_PER_MINUTE": "120",
+    "AUDIT_RETENTION_DAYS": "90"
   },
   "kv_namespaces": [
     {

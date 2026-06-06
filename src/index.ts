@@ -18,6 +18,7 @@ import { mcpHttpRoutes } from "./routes/mcp-http";
 import { oauthTokenRoutes, wellKnownRoutes } from "./routes/oauth";
 import { webhookRoutes } from "./routes/webhooks";
 import { purgeExpired } from "./services/inbox";
+import { purgeExpiredAuditEvents } from "./services/audit-log";
 import { auditRoutes } from "./routes/audit";
 
 export { InboxWait };
@@ -118,6 +119,7 @@ export default {
 
   async scheduled(_controller: ScheduledController, env: Env): Promise<void> {
     const result = await purgeExpired(env);
-    console.log("cron purge", result);
+    const audit = await purgeExpiredAuditEvents(env);
+    console.log("cron purge", { ...result, auditDeleted: audit.deleted });
   },
 };

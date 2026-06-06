@@ -102,6 +102,25 @@ export async function listAuditEvents(
   return rows.map(formatAuditEvent);
 }
 
+export function auditRetentionDays(env: Env): number {
+  const raw = Number(env.AUDIT_RETENTION_DAYS ?? 90);
+  if (!Number.isFinite(raw) || raw < 1) return 90;
+  return Math.min(Math.floor(raw), 365);
+}
+
+export async function purgeExpiredAuditEvents(
+  env: Env
+): Promise<{ deleted: number }> {
+  const days = auditRetentionDays(env);
+  const sql = getDb(env);
+  const deleted = await sql`
+    DELETE FROM audit_events
+    WHERE created_at < NOW() - (${days} * INTERVAL '1 day')
+    RETURNING id
+  `;
+  return { deleted: deleted.length };
+}
+
 function formatAuditEvent(row: AuditEventRow) {
   return {
     id: row.id,
