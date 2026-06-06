@@ -127,7 +127,7 @@ export const openApiSpec = {
   openapi: "3.0.3",
   info: {
     title: "MailAgent API",
-    version: "0.2.0",
+    version: "0.2.1",
     description:
       "Temporary inboxes for AI agents and QA. Bearer auth on /v1 except webhooks.",
   },
@@ -589,6 +589,83 @@ export const openApiSpec = {
         parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
         responses: {
           "200": { description: "text/event-stream" },
+        },
+      },
+    },
+    "/v1/inboxes/{id}/diagnose": {
+      get: {
+        tags: ["inboxes"],
+        summary: "Debug wait failures — messages, callbacks, troubleshooting",
+        security: bearer,
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string" } },
+          { name: "subjectContains", in: "query", schema: { type: "string" } },
+          { name: "messageIndex", in: "query", schema: { type: "integer", minimum: 0 } },
+        ],
+        responses: {
+          "200": {
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    inboxId: { type: "string" },
+                    address: { type: "string" },
+                    messageCount: { type: "integer" },
+                    messages: { type: "array", items: message },
+                    troubleshooting: { type: "array", items: { type: "string" } },
+                    debugUiUrl: { type: "string", format: "uri" },
+                  },
+                },
+              },
+            },
+          },
+          "404": { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
+    "/v1/inboxes/{id}/simulate": {
+      post: {
+        tags: ["inboxes"],
+        summary: "Inject test OTP email without Resend (QA/dev)",
+        security: bearer,
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  otp: { type: "string" },
+                  from: { type: "string" },
+                  subject: { type: "string" },
+                  fireCallback: { type: "boolean" },
+                  attachmentFilename: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "201": {
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    inboxId: { type: "string" },
+                    messageId: { type: "string" },
+                    address: { type: "string" },
+                    otp: { type: "string" },
+                    subject: { type: "string" },
+                    attachmentId: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+          "404": { $ref: "#/components/responses/NotFound" },
+          "500": { description: "simulate_failed" },
         },
       },
     },

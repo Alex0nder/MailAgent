@@ -113,6 +113,7 @@ curl -X DELETE "$MAILAGENT_API_URL/v1/inboxes?labelPrefix=ci-$GITHUB_RUN_ID" \
 - [QA-MIGRATION.md](./QA-MIGRATION.md) — Mailosaur / MailSlurp
 - [QA-CI-ALERTS.md](./QA-CI-ALERTS.md) — Slack webhook, PR comment на failure
 - Contract test без SMTP: `npm run test:contract:qa` (только `MAILAGENT_API_KEY`; `POST …/simulate` → wait/extract + `messageIndex`)
+- Simulate без Resend: [QA-SIMULATE.md](./QA-SIMULATE.md) · `mail.simulateAndVerify()`
 - Callback contract: `npm run test:contract:qa:callback` — simulate + `POST` на `callbackUrl` (по умолчанию `https://httpbin.org/post`), poll `GET …/callbacks`
 - Attachments contract: `npm run test:contract:qa:attachments` — simulate + `--with-attachment=…`, list/meta без Resend
 - Simulate с callback: `node scripts/simulate-inbound.mjs <inboxId> <otp> <from> --fire-callback`

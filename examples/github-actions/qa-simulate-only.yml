@@ -1,0 +1,47 @@
+# QA smoke в consumer-репо: только MAILAGENT_API_KEY, без Resend и DATABASE_URL.
+# Копируй в .github/workflows/ — проверяет create → simulate → extract.
+
+name: MailAgent simulate smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  mailagent-simulate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install @mailagent/qa
+        run: npm install @mailagent/qa
+
+      - name: Simulate OTP flow
+        env:
+          MAILAGENT_API_URL: https://api.webmailagent.com
+          MAILAGENT_API_KEY: ${{ secrets.MAILAGENT_API_KEY }}
+        run: |
+          node <<'EOF'
+          import { createMailAgentQa, MailAgentQa } from "@mailagent/qa";
+
+          const mail = createMailAgentQa();
+          const inbox = await mail.createInbox({
+            label: MailAgentQa.runLabel("gha-sim"),
+            ttlMinutes: 15,
+          });
+
+          try {
+            const v = await mail.simulateAndVerify(inbox.id, { otp: "909090" });
+            if (v.otp !== "909090") {
+              console.error("OTP mismatch", v);
+              process.exit(1);
+            }
+            console.log("OK simulateAndVerify", inbox.address, v.otp);
+          } finally {
+            await mail.deleteInbox(inbox.id).catch(() => {});
+          }
+          EOF

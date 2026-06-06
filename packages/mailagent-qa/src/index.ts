@@ -490,6 +490,33 @@ export class MailAgentQa {
     });
   }
 
+  /** Simulate + wait — E2E без реального SMTP (CI offline / SDK smoke) */
+  async simulateAndVerify(
+    inboxId: string,
+    options?: {
+      otp?: string;
+      from?: string;
+      subject?: string;
+      subjectContains?: string;
+      timeoutSeconds?: number;
+      fireCallback?: boolean;
+      attachmentFilename?: string;
+    }
+  ): Promise<Verification> {
+    const subject = options?.subject ?? "MailAgent simulated OTP";
+    await this.simulateMessage(inboxId, {
+      otp: options?.otp,
+      from: options?.from,
+      subject,
+      fireCallback: options?.fireCallback,
+      attachmentFilename: options?.attachmentFilename,
+    });
+    return this.waitForVerification(inboxId, {
+      subjectContains: options?.subjectContains ?? "simulated",
+      timeoutSeconds: options?.timeoutSeconds ?? 30,
+    });
+  }
+
   /** Удалить все inbox с label, начинающимся с prefix (CI cleanup) */
   async cleanupLabelPrefix(labelPrefix: string): Promise<{ deleted: number; ids: string[] }> {
     const q = encodeURIComponent(labelPrefix);

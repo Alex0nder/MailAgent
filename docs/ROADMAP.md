@@ -27,7 +27,7 @@ P0–P2 закрыты — см. [QA-ROADMAP.md](./QA-ROADMAP.md).
 | Пакет | Версия |
 |-------|--------|
 | `@mailagent/mcp` | 0.2.2 |
-| `@mailagent/qa` | 0.1.11 |
+| `@mailagent/qa` | 0.1.12 |
 | `@mailagent/agent` | 0.1.6 (npm may lag — `npm run publish:agent`) |
 
 ```bash
@@ -135,6 +135,14 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | CI deploy/qa-smoke: только `MAILAGENT_API_KEY` | ✅ |
 | `examples/github-actions/contract-qa.yml` | ✅ |
 | `scripts/lib/contract-api.mjs` | ✅ |
+
+### v0.16 Simulate-first QA
+
+| `@mailagent/qa` `simulateAndVerify()` | ✅ |
+| Playwright simulate example + fixture | ✅ |
+| `examples/github-actions/qa-simulate-only.yml` | ✅ |
+| OpenAPI `/diagnose` + `/simulate` | ✅ |
+| [QA-SIMULATE.md](./QA-SIMULATE.md) | ✅ |
 
 ### Отложено (не QA)
 
