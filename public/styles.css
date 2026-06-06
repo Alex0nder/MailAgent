@@ -1888,3 +1888,71 @@ h1 {
   font-size: 14px;
   color: var(--text-muted);
 }
+
+.console-compose {
+  margin: 20px 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.console-compose label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin: 12px 0 4px;
+}
+
+.console-compose label:first-child {
+  margin-top: 0;
+}
+
+.console-compose input,
+.console-compose textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.console-compose textarea {
+  min-height: 88px;
+  resize: vertical;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.console-compose .app-btn {
+  margin-top: 12px;
+}
+
+.console-reply-btn {
+  font-size: 12px;
+  padding: 2px 8px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  color: var(--text-muted);
+}
+
+.console-reply-btn:hover {
+  color: var(--text);
+  border-color: var(--text-dim);
+}
+
+.console-banner {
+  margin: 12px 0;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+}

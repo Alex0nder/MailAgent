@@ -60,6 +60,10 @@ async function main() {
     console.error("links missing", d.links);
     process.exit(1);
   }
+  if (typeof d.outbound?.enabled !== "boolean") {
+    console.error("outbound capability missing", d.outbound);
+    process.exit(1);
+  }
 
   console.log("contract-qa-console-inbox OK", {
     inboxId,

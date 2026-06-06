@@ -366,6 +366,20 @@ inboxRoutes.post("/:id/send", async (c) => {
       inReplyToMessageId: body.inReplyToMessageId,
     });
     if (!result) return c.json({ error: "send_failed" }, 500);
+    auditFire(
+      c.env,
+      {
+        teamId: c.get("teamId"),
+        apiKeyHint: c.get("apiKeyHint"),
+        apiKeyId: c.get("apiKeyId"),
+      },
+      {
+        action: "inbox.sent",
+        resourceType: "message",
+        resourceId: result.messageId,
+        meta: { inboxId: inbox.id, to, subject: result.subject },
+      }
+    );
     return c.json(result, 201);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "send_failed";
@@ -415,6 +429,25 @@ inboxRoutes.post("/:id/messages/:messageId/reply", async (c) => {
       inReplyToMessageId: parent.id,
     });
     if (!result) return c.json({ error: "send_failed" }, 500);
+    auditFire(
+      c.env,
+      {
+        teamId: c.get("teamId"),
+        apiKeyHint: c.get("apiKeyHint"),
+        apiKeyId: c.get("apiKeyId"),
+      },
+      {
+        action: "inbox.replied",
+        resourceType: "message",
+        resourceId: result.messageId,
+        meta: {
+          inboxId: inbox.id,
+          inReplyTo: parent.id,
+          to,
+          subject: result.subject,
+        },
+      }
+    );
     return c.json(result, 201);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "send_failed";

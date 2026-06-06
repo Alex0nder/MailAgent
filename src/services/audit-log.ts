@@ -10,7 +10,9 @@ export type AuditAction =
   | "team.key.revoked"
   | "domain.created"
   | "domain.deleted"
-  | "billing.checkout";
+  | "billing.checkout"
+  | "inbox.sent"
+  | "inbox.replied";
 
 export type AuditContext = {
   teamId: string | null;

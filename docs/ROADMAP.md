@@ -216,6 +216,14 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | Skill updated (21 MCP tools) | ✅ |
 | `contract-qa-console-inbox` | ✅ |
 
+### v0.27 Console send/reply + npm publish prep
+
+| Send / reply forms in `console-inbox.html` | ✅ |
+| `outbound` capability in console inbox detail | ✅ |
+| Audit `inbox.sent` / `inbox.replied` | ✅ |
+| `publish-check` compares local vs npm registry | ✅ |
+| Bump `@mailagent/qa@0.1.13`, `@mailagent/agent@0.1.7` | ✅ |
+
 ### Отложено (не QA)
 
 - Agent session memory / multi-step run state

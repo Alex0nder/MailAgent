@@ -104,4 +104,4 @@
 
 ## Следующий коммит
 
-v0.26: console inbox detail + Codex plugin marketplace pack.
+v0.27: console outbound send/reply + npm publish alignment.

@@ -32,6 +32,12 @@ export async function buildConsoleInboxDetail(
     threads,
     callbacks: diagnose?.callbacks ?? [],
     troubleshooting: diagnose?.troubleshooting ?? [],
+    outbound: {
+      enabled: Boolean(env.RESEND_API_KEY?.trim()),
+      verifiedFrom: Boolean(env.OUTBOUND_FROM?.trim()),
+      sendPath: `/v1/inboxes/${inbox.id}/send`,
+      replyPathTemplate: `/v1/inboxes/${inbox.id}/messages/{messageId}/reply`,
+    },
     links: {
       debug: `/debug.html?inbox=${inbox.id}`,
       diagnose: `/v1/inboxes/${inbox.id}/diagnose`,

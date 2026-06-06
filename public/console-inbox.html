@@ -48,6 +48,8 @@
       const titleEl = document.getElementById("title");
       const leadEl = document.getElementById("lead");
 
+      let lastDetail = null;
+
       if (localStorage.getItem(KEY)) keyEl.value = localStorage.getItem(KEY);
       if (!inboxId) {
         leadEl.textContent = "Missing ?inbox=INBOX_ID in URL.";
@@ -61,23 +63,82 @@
           .replace(/"/g, "&quot;");
       }
 
-      async function load() {
-        if (!inboxId) return;
-        const key = keyEl.value.trim();
-        if (!key) return;
-        localStorage.setItem(KEY, key);
-        out.textContent = "Loading…";
+      function apiHeaders() {
+        return {
+          Authorization: `Bearer ${keyEl.value.trim()}`,
+          "Content-Type": "application/json",
+        };
+      }
 
+      async function api(path, opts) {
         const base = baseEl.value.replace(/\/$/, "");
-        const r = await fetch(`${base}/v1/console/inboxes/${encodeURIComponent(inboxId)}`, {
-          headers: { Authorization: `Bearer ${key}` },
+        const r = await fetch(`${base}${path}`, {
+          ...opts,
+          headers: { ...apiHeaders(), ...(opts?.headers || {}) },
         });
-        const d = await r.json().catch(() => ({}));
-        if (!r.ok) {
-          out.innerHTML = `<p class="app-err">${esc(d.error || r.status)}</p>`;
-          return;
-        }
+        const json = await r.json().catch(() => ({}));
+        return { ok: r.ok, status: r.status, json };
+      }
 
+      function renderCompose(d) {
+        if (!d.outbound?.enabled) {
+          return `<div class="console-banner">Outbound send unavailable (Resend not configured on API).</div>`;
+        }
+        let banner = "";
+        if (!d.outbound.verifiedFrom) {
+          banner = `<div class="console-banner">Tip: set <code>OUTBOUND_FROM</code> on the Worker for a verified send domain.</div>`;
+        }
+        return `${banner}
+          <div class="console-compose" id="compose">
+            <h2>Send email</h2>
+            <label for="send-to">To</label>
+            <input id="send-to" type="email" placeholder="user@example.com" />
+            <label for="send-subject">Subject</label>
+            <input id="send-subject" type="text" placeholder="Hello from MailAgent" />
+            <label for="send-text">Body</label>
+            <textarea id="send-text" placeholder="Plain text body…"></textarea>
+            <button type="button" class="app-btn" id="send-btn">Send</button>
+          </div>`;
+      }
+
+      function bindCompose(d) {
+        document.getElementById("send-btn")?.addEventListener("click", async () => {
+          const to = document.getElementById("send-to").value.trim();
+          const subject = document.getElementById("send-subject").value.trim();
+          const text = document.getElementById("send-text").value;
+          if (!to || !subject) {
+            alert("To and subject required");
+            return;
+          }
+          const r = await api(`/v1/inboxes/${encodeURIComponent(inboxId)}/send`, {
+            method: "POST",
+            body: JSON.stringify({ to, subject, text }),
+          });
+          if (r.ok) {
+            load();
+          } else {
+            alert(r.json.error || r.json.message || "Send failed");
+          }
+        });
+
+        out.querySelectorAll("[data-reply]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const messageId = btn.getAttribute("data-reply");
+            const from = btn.getAttribute("data-from") || "";
+            const subject = btn.getAttribute("data-subject") || "";
+            const text = prompt(`Reply to ${from}:`, "");
+            if (text == null) return;
+            const r = await api(
+              `/v1/inboxes/${encodeURIComponent(inboxId)}/messages/${encodeURIComponent(messageId)}/reply`,
+              { method: "POST", body: JSON.stringify({ text }) }
+            );
+            if (r.ok) load();
+            else alert(r.json.error || r.json.message || "Reply failed");
+          });
+        });
+      }
+
+      function renderDetail(d) {
         titleEl.textContent = d.address || "Inbox";
         leadEl.textContent = d.label
           ? `Label: ${d.label} · expires ${new Date(d.expiresAt).toLocaleString()}`
@@ -86,6 +147,8 @@
         let html = `<p class="console-meta"><code>${esc(d.id)}</code>`;
         if (d.callbackUrl) html += ` · callback configured`;
         html += `</p>`;
+
+        html += renderCompose(d);
 
         if (d.troubleshooting?.length) {
           html += `<h2>Hints</h2><ul class="console-keys">`;
@@ -97,13 +160,17 @@
         if (!d.messages?.length) {
           html += `<p class="console-empty">No messages yet.</p>`;
         } else {
-          html += `<table class="console-table"><thead><tr><th>From</th><th>Subject</th><th>OTP</th><th>Received</th></tr></thead><tbody>`;
+          html += `<table class="console-table"><thead><tr><th>From</th><th>Subject</th><th>OTP</th><th>Received</th><th></th></tr></thead><tbody>`;
           for (const m of d.messages) {
+            const replyBtn = d.outbound?.enabled
+              ? `<button type="button" class="console-reply-btn" data-reply="${esc(m.id)}" data-from="${esc(m.from)}" data-subject="${esc(m.subject)}">Reply</button>`
+              : "";
             html += `<tr>
               <td>${esc(m.from)}</td>
               <td>${esc(m.subject)}</td>
               <td>${m.otp ? `<code>${esc(m.otp)}</code>` : "—"}</td>
               <td>${esc(new Date(m.receivedAt).toLocaleString())}</td>
+              <td>${replyBtn}</td>
             </tr>`;
           }
           html += `</tbody></table>`;
@@ -138,6 +205,23 @@
 
         html += `<p class="console-links"><a href="${esc(d.links?.debug)}">Full debug UI</a></p>`;
         out.innerHTML = html;
+        bindCompose(d);
+      }
+
+      async function load() {
+        if (!inboxId) return;
+        const key = keyEl.value.trim();
+        if (!key) return;
+        localStorage.setItem(KEY, key);
+        out.textContent = "Loading…";
+
+        const r = await api(`/v1/console/inboxes/${encodeURIComponent(inboxId)}`);
+        if (!r.ok) {
+          out.innerHTML = `<p class="app-err">${esc(r.json.error || r.status)}</p>`;
+          return;
+        }
+        lastDetail = r.json;
+        renderDetail(lastDetail);
       }
 
       document.getElementById("load").onclick = load;
