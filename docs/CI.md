@@ -4,30 +4,30 @@
 
 Workflow: [`.github/workflows/deploy-worker.yml`](../.github/workflows/deploy-worker.yml)
 
-Триггер: push в `main` (`src/`, `public/`, `wrangler.jsonc`, `package-lock.json`) или **Run workflow**.  
-Изменения только `package.json` / `scripts/` / `docs/` **не** деплоят Worker.
+Trigger: push to `main` (`src/`, `public/`, `wrangler.jsonc`, `package-lock.json`) or **Run workflow**.  
+Changes only in `package.json` / `scripts/` / `docs/` **do not** deploy the Worker.
 
 ### Secrets (Settings → Secrets and variables → Actions)
 
-| Secret | Обязательно | Значение |
+| Secret | Required | Value |
 |--------|-------------|----------|
-| `CLOUDFLARE_API_TOKEN` | да | API token с **Workers Scripts Edit** |
-| `CLOUDFLARE_ACCOUNT_ID` | да | `42ae092824ce3429ee3f914b43603273` |
-| `MAILAGENT_API_KEY` | **да** (prod gate) | CI key для `npm run test:prod` после deploy и на PR |
-| `DATABASE_URL` | нет | не нужен — contract использует `POST …/simulate` |
+| `CLOUDFLARE_API_TOKEN` | yes | API token with **Workers Scripts Edit** |
+| `CLOUDFLARE_ACCOUNT_ID` | yes | `42ae092824ce3429ee3f914b43603273` |
+| `MAILAGENT_API_KEY` | **yes** (prod gate) | CI key for `npm run test:prod` after deploy and on PR |
+| `DATABASE_URL` | no | not needed — contract uses `POST …/simulate` |
 
-`account_id` также прописан в `wrangler.jsonc` — локальный deploy работает после `wrangler login` без env.
+`account_id` is also set in `wrangler.jsonc` — local deploy works after `wrangler login` without env.
 
-### Локально vs CI
+### Local vs CI
 
 ```bash
-npx wrangler login          # локально
+npx wrangler login          # local
 npm run deploy
 
-# CI — только push в main (с секретами)
+# CI — push to main only (with secrets)
 ```
 
-После деплоя CI сам запускает `npm run test:prod`. Локально:
+After deploy, CI runs `npm run test:prod` automatically. Locally:
 
 ```bash
 MAILAGENT_API_URL=https://api.webmailagent.com \
@@ -35,31 +35,31 @@ MAILAGENT_API_KEY=ma_… \
   npm run test:prod
 ```
 
-Операторский чеклист: [OPERATOR.md](./OPERATOR.md).
+Operator checklist: [OPERATOR.md](./OPERATOR.md).
 
-Инструкции для агентов по автотестам: [AUTOTESTS.md](./AUTOTESTS.md).
+Agent autotest instructions: [AUTOTESTS.md](./AUTOTESTS.md).
 
 ### Deploy failed: `CLOUDFLARE_API_TOKEN` / npx exit 1
 
-Типичная причина ([пример run](https://github.com/Alex0nder/MailAgent/actions/runs/27020682647)):
+Typical cause ([example run](https://github.com/Alex0nder/MailAgent/actions/runs/27020682647)):
 
 ```
 In a non-interactive environment, it's necessary to set a CLOUDFLARE_API_TOKEN
 ```
 
-**Не связано с codex:install** — `verify:codex` проходит; падает `wrangler deploy`.
+**Unrelated to codex:install** — `verify:codex` passes; `wrangler deploy` fails.
 
 1. GitHub → **Settings → Secrets and variables → Actions**
-2. Добавь `CLOUDFLARE_API_TOKEN` (Workers Scripts **Edit**)
-3. Добавь `CLOUDFLARE_ACCOUNT_ID` = `42ae092824ce3429ee3f914b43603273`
+2. Add `CLOUDFLARE_API_TOKEN` (Workers Scripts **Edit**)
+3. Add `CLOUDFLARE_ACCOUNT_ID` = `42ae092824ce3429ee3f914b43603273`
 4. **Actions → Deploy Worker → Re-run all jobs**
 
-Локальный deploy без CI: `npm run deploy` (после `wrangler login`).
+Local deploy without CI: `npm run deploy` (after `wrangler login`).
 
 ## Publish npm packages
 
 Workflow: [`.github/workflows/publish-packages.yml`](../.github/workflows/publish-packages.yml)
 
-Secret: **Trusted Publishing (OIDC)** — без `NPM_TOKEN`. См. [PUBLISH.md](./PUBLISH.md).
+Secret: **Trusted Publishing (OIDC)** — no `NPM_TOKEN`. See [PUBLISH.md](./PUBLISH.md).
 
-См. [PUBLISH.md](./PUBLISH.md).
+See [PUBLISH.md](./PUBLISH.md).

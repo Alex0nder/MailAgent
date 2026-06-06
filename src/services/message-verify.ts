@@ -1,4 +1,4 @@
-/** Формат verification для REST, callback, agent */
+/** Verification format for REST, callback, agent */
 import { primaryLink } from "./extract";
 import type { MessageRow } from "./inbox";
 

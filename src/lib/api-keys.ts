@@ -1,4 +1,4 @@
-/** Проверка Bearer: один API_KEY или список API_KEYS через запятую */
+/** Validate Bearer: single API_KEY or comma-separated API_KEYS */
 import type { Env } from "../env";
 
 export function allowedApiKeys(env: Env): string[] {

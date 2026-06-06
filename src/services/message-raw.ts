@@ -1,4 +1,4 @@
-/** Загрузка raw MIME для REST и MCP (read-only, scope-aware через caller) */
+/** Load raw MIME for REST and MCP (read-only, scope-aware via caller) */
 import type { Env } from "../env";
 import { getMessage } from "./inbox";
 import {

@@ -1,4 +1,4 @@
--- Лог POST на callbackUrl (отладка CI webhook)
+-- POST log for callbackUrl (CI webhook debugging)
 
 CREATE TABLE IF NOT EXISTS callback_deliveries (
   id TEXT PRIMARY KEY,

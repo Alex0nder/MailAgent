@@ -1,4 +1,4 @@
-/** Профиль ключа: план, лимиты, usage */
+/** Key profile: plan, limits, usage */
 import { Hono } from "hono";
 import type { Env } from "../env";
 import type { ApiVariables } from "../lib/api-context";

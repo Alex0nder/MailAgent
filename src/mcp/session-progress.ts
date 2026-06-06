@@ -1,4 +1,4 @@
-/** Очередь progress events для GET SSE session channel */
+/** Progress event queue for GET SSE session channel */
 import type { Env } from "../env";
 
 const PREFIX = "mcp:prog:";

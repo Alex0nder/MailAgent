@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Contract: inbox + callbackUrl → POST …/simulate (fireCallback) → poll /callbacks.
- * Нужны только: MAILAGENT_API_KEY (+ optional CONTRACT_CALLBACK_URL).
+ * Requires only: MAILAGENT_API_KEY (+ optional CONTRACT_CALLBACK_URL).
  */
 import "./load-env.mjs";
 import {

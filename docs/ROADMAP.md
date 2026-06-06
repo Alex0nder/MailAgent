@@ -20,11 +20,11 @@
 
 ## QA ✅
 
-P0–P2 закрыты — см. [QA-ROADMAP.md](./QA-ROADMAP.md).
+P0–P2 done — see [QA-ROADMAP.md](./QA-ROADMAP.md).
 
 ## Publish ✅
 
-| Пакет | Версия (npm) |
+| Package | Version (npm) |
 |-------|----------------|
 | `@mailagent/mcp` | 0.2.3 |
 | `@mailagent/qa` | 0.1.13 |
@@ -34,11 +34,11 @@ P0–P2 закрыты — см. [QA-ROADMAP.md](./QA-ROADMAP.md).
 npm install @mailagent/mcp @mailagent/qa @mailagent/agent
 ```
 
-Повторный release: [PUBLISH.md](./PUBLISH.md) · CI: workflow **Publish npm packages** (OIDC Trusted Publishing, тег `v*`).
+Re-release: [PUBLISH.md](./PUBLISH.md) · CI: workflow **Publish npm packages** (OIDC Trusted Publishing, tag `v*`).
 
 ## CI ✅
 
-Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, **`MAILAGENT_API_KEY`** (prod gate).
+Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, **`MAILAGENT_API_KEY`** (prod gate).
 
 ## v0.6 Agent
 
@@ -54,12 +54,12 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | R2 cache for small attachments (≤2MB) | ✅ |
 | Verify `hasAttachments` + `attachmentCount` | ✅ |
 
-## Дальше (QA / Developer track)
+## Next (QA / Developer track)
 
 ### v0.8 QA relief ✅
 
 | `@mailagent/qa` 0.1.8+ debug + attachments + messageIndex | ✅ |
-| Debug UI `?inbox=` + таблицы | ✅ |
+| Debug UI `?inbox=` + tables | ✅ |
 | `npm run smoke:qa` | ✅ |
 | [QA-TROUBLESHOOTING.md](./QA-TROUBLESHOOTING.md) | ✅ |
 | [QA-LOCAL-SMTP.md](./QA-LOCAL-SMTP.md) + Mailpit compose | ✅ |
@@ -86,7 +86,7 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 
 ### v0.10 ✅
 
-| `@mailagent/agent@0.1.5` — `messageIndex` в verify | ✅ |
+| `@mailagent/agent@0.1.5` — `messageIndex` in verify | ✅ |
 | Simulate `--with-attachment`, contract attachments | ✅ |
 | Playwright `attachment.spec.example.ts` | ✅ |
 | Contract on deploy (optional secrets) | ✅ |
@@ -94,11 +94,11 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 
 ### v0.11 Codex (plugin + MCP)
 
-| [CODEX.md](./CODEX.md) — план и setup | ✅ |
+| [CODEX.md](./CODEX.md) — plan and setup | ✅ |
 | `examples/codex/config.toml.example` (stdio + remote) | ✅ |
 | Codex plugin scaffold (`examples/codex/plugin/`) | ✅ |
-| Skill `mailagent` для Codex | ✅ |
-| `npm run smoke:codex` + `verify:codex` в CI | ✅ |
+| Skill `mailagent` for Codex | ✅ |
+| `npm run smoke:codex` + `verify:codex` in CI | ✅ |
 | Remote OAuth preset | ✅ |
 | `AGENTS.md` | ✅ |
 | Playwright globalSetup | ✅ |
@@ -117,22 +117,22 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 ### v0.13 Jest + publish prep
 
 | Jest example (`examples/jest/`) | ✅ |
-| `smoke-codex` local fallback до npm publish | ✅ |
+| `smoke-codex` local fallback before npm publish | ✅ |
 | Publish `@mailagent/mcp@0.2.1` | manual |
 | Publish `@mailagent/qa@0.1.10` | manual |
 
-### v0.14 Simulate (QA без DATABASE_URL)
+### v0.14 Simulate (QA without DATABASE_URL)
 
 | `POST /v1/inboxes/:id/simulate` | ✅ |
 | MCP `mailagent_simulate_message` | ✅ |
-| Debug UI «Simulate OTP email» | ✅ |
+| Debug UI "Simulate OTP email" | ✅ |
 | `@mailagent/qa` / `@mailagent/agent` simulate + diagnose | ✅ |
 | smoke:qa simulate → extract | ✅ |
 
-### v0.15 Contract без DATABASE_URL
+### v0.15 Contract without DATABASE_URL
 
-| `contract-qa*` через `POST …/simulate` | ✅ |
-| CI deploy/qa-smoke: только `MAILAGENT_API_KEY` | ✅ |
+| `contract-qa*` via `POST …/simulate` | ✅ |
+| CI deploy/qa-smoke: `MAILAGENT_API_KEY` only | ✅ |
 | `examples/github-actions/contract-qa.yml` | ✅ |
 | `scripts/lib/contract-api.mjs` | ✅ |
 
@@ -151,7 +151,7 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | `GET …/threads`, `GET …/threads/:id/messages` | ✅ |
 | MCP `mailagent_send_message`, `mailagent_list_threads` | ✅ |
 | Migration `011_outbound_threads.sql` | ✅ |
-| [V1-PLATFORM.md](./V1-PLATFORM.md) — полный план v1.0 | ✅ |
+| [V1-PLATFORM.md](./V1-PLATFORM.md) — full v1.0 plan | ✅ |
 
 ### v0.18 Inbound threading
 
@@ -224,7 +224,7 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | `publish-check` compares local vs npm registry | ✅ |
 | Bump `@mailagent/qa@0.1.13`, `@mailagent/agent@0.1.7` | ✅ |
 
-### v0.28 Team keys UI (без Stripe)
+### v0.28 Team keys UI (without Stripe)
 
 | Dashboard: create key form (label, prefix, read-only) | ✅ |
 | Dashboard: revoke key + show-once banner | ✅ |
@@ -257,21 +257,26 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 
 ### v0.32 Operator + prod gate
 
-| `docs/OPERATOR.md` — только секреты вручную | ✅ |
+| `docs/OPERATOR.md` — manual secrets only | ✅ |
 | `npm run test:contract:all` + `npm run test:prod` | ✅ |
-| CI: `MAILAGENT_API_KEY` обязателен, fail если нет | ✅ |
+| CI: `MAILAGENT_API_KEY` required, fail if missing | ✅ |
 | `contract-qa-agent` — hub / me / mcp/auth | ✅ |
 | AGENTS.md — autonomy + test:prod | ✅ |
 
 ### v0.33 Autotests guide for agents
 
-| `docs/AUTOTESTS.md` — полный гайд (RU) | ✅ |
+| `docs/AUTOTESTS.md` — full guide | ✅ |
 | `public/docs/autotests.html` + sidebar nav | ✅ |
 | `GET /v1/agent` → `tests`, `autotests` | ✅ |
-| `contract-qa-agent` проверяет autotests discovery | ✅ |
+| `contract-qa-agent` checks autotests discovery | ✅ |
 | AGENTS.md + skills + Codex skill — test:prod workflow | ✅ |
 
-### Отложено (не QA)
+### v0.34 English-only docs and comments
+
+| All `docs/*.md`, code comments, workflow messages → English | ✅ |
+| `docs/AUTOTESTS.md`, `OPERATOR.md` | ✅ |
+
+### Deferred (not QA)
 
 - Agent session memory / multi-step run state
 - OIDC on prod (Auth0 secrets)

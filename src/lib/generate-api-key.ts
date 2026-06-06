@@ -1,4 +1,4 @@
-/** Генерация ma_* токена (Worker + скрипты) */
+/** Generate ma_* token (Worker + scripts) */
 export function generateApiKeyToken(): string {
   const bytes = new Uint8Array(24);
   crypto.getRandomValues(bytes);

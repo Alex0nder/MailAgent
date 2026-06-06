@@ -1,24 +1,24 @@
-# Локальная разработка: Mailpit + MailAgent
+# Local development: Mailpit + MailAgent
 
-Два режима тестирования почты:
+Two mail testing modes:
 
-| Режим | Когда | Как |
+| Mode | When | How |
 |-------|--------|-----|
-| **Mailpit** | Локально / docker CI, app шлёт на SMTP | `docker compose -f examples/docker-compose.mailpit.yml up` |
-| **MailAgent** | Staging/CI с реальным inbound доменом | `@mailagent/qa` + Resend webhook |
+| **Mailpit** | Local / docker CI, app sends via SMTP | `docker compose -f examples/docker-compose.mailpit.yml up` |
+| **MailAgent** | Staging/CI with real inbound domain | `@mailagent/qa` + Resend webhook |
 
-## Mailpit (локально)
+## Mailpit (local)
 
 ```bash
 docker compose -f examples/docker-compose.mailpit.yml up -d
 ```
 
-| Сервис | URL / порт |
+| Service | URL / port |
 |--------|------------|
 | Web UI | http://localhost:8025 |
 | SMTP | `localhost:1025` |
 
-Настройте приложение:
+Configure your app:
 
 ```env
 SMTP_HOST=127.0.0.1
@@ -26,7 +26,7 @@ SMTP_PORT=1025
 SMTP_TLS=false
 ```
 
-### Playwright + mailpit-api (опционально)
+### Playwright + mailpit-api (optional)
 
 ```bash
 npm install mailpit-api --save-dev
@@ -47,7 +47,7 @@ export const test = base.extend<{ mailpit: MailpitClient }>({
 
 ## Staging / CI → MailAgent
 
-Когда письма идут через Resend inbound на ваш домен:
+When mail goes through Resend inbound on your domain:
 
 ```typescript
 import { createMailAgentQa, MailAgentQa } from "@mailagent/qa";
@@ -59,10 +59,10 @@ const inbox = await mail.createInbox({
 });
 ```
 
-См. [QA.md](./QA.md), [QA-TROUBLESHOOTING.md](./QA-TROUBLESHOOTING.md).
+See [QA.md](./QA.md), [QA-TROUBLESHOOTING.md](./QA-TROUBLESHOOTING.md).
 
-## Миграция local → CI
+## Migrating local → CI
 
-1. Локально: Mailpit + SMTP в `.env.development`
-2. CI: те же тесты, но `MAILAGENT_API_KEY` + `@mailagent/qa` вместо Mailpit fixture
-3. Один сценарий signup — разные env в `playwright.config.ts`
+1. Local: Mailpit + SMTP in `.env.development`
+2. CI: same tests, but `MAILAGENT_API_KEY` + `@mailagent/qa` instead of Mailpit fixture
+3. One signup scenario — different env in `playwright.config.ts`

@@ -1,4 +1,4 @@
--- Raw MIME в R2: ключ объекта для полного .eml (Resend raw.download_url)
+-- Raw MIME in R2: object key for full .eml (Resend raw.download_url)
 
 ALTER TABLE messages
   ADD COLUMN IF NOT EXISTS raw_r2_key TEXT;

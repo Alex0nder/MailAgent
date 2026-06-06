@@ -1,4 +1,4 @@
-/** HTTP helpers: проверка scoped key в routes */
+/** HTTP helpers: scoped key checks in routes */
 import type { Context } from "hono";
 import type { Env } from "../env";
 import type { ApiVariables } from "./api-context";

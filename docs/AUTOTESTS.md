@@ -1,10 +1,10 @@
-# Автотесты для агентов
+# Autotests for agents
 
-Инструкция для **Cursor / Codex / CI-ботов**: как проверять MailAgent на prod **без участия человека** (без реального SMTP, без `DATABASE_URL`).
+Guide for **Cursor / Codex / CI bots**: verify MailAgent on prod **without human involvement** (no real SMTP, no `DATABASE_URL`).
 
-Оператор подключает секреты один раз → [OPERATOR.md](./OPERATOR.md).
+Operator connects secrets once → [OPERATOR.md](./OPERATOR.md).
 
-## Быстрый старт
+## Quick start
 
 ```bash
 npm ci
@@ -14,93 +14,93 @@ MAILAGENT_API_KEY=ma_… \
   npm run test:prod
 ```
 
-Это **то же самое**, что post-deploy gate в GitHub Actions.
+Same as the post-deploy gate in GitHub Actions.
 
-## Уровни тестов
+## Test layers
 
-| Уровень | Команда | Где | Нужен ключ |
-|---------|---------|-----|------------|
-| **Prod gate** | `npm run test:prod` | CI + локально | `MAILAGENT_API_KEY` |
-| **Smoke agent** | `npm run smoke:agent` | MCP, OAuth, DCR, Streamable HTTP | да |
-| **Smoke QA** | `npm run smoke:qa` | inbox lifecycle на prod | да |
-| **Contract (все)** | `npm run test:contract:all` | 12 скриптов через `simulate` | да |
-| **Typecheck** | `npm run check` | PR, без prod | нет |
-| **Codex scaffold** | `npm run verify:codex` | PR | нет |
-| **Unit (локально)** | `npm run test:allowlist`, `test:extract`, … | dev, не prod | нет |
+| Layer | Command | Where | API key |
+|-------|---------|-------|---------|
+| **Prod gate** | `npm run test:prod` | CI + local | `MAILAGENT_API_KEY` |
+| **Smoke agent** | `npm run smoke:agent` | MCP, OAuth, DCR, Streamable HTTP | yes |
+| **Smoke QA** | `npm run smoke:qa` | inbox lifecycle on prod | yes |
+| **Contract (all)** | `npm run test:contract:all` | 12 scripts via `simulate` | yes |
+| **Typecheck** | `npm run check` | PR, no prod | no |
+| **Codex scaffold** | `npm run verify:codex` | PR | no |
+| **Unit (local)** | `npm run test:allowlist`, `test:extract`, … | dev, not prod | no |
 
-Contract-тесты **не шлют реальную почту**: письма создаются через `POST /v1/inboxes/:id/simulate`.
+Contract tests **do not send real mail**: messages are injected via `POST /v1/inboxes/:id/simulate`.
 
-## Переменные окружения
+## Environment variables
 
-| Переменная | Обязательно | Значение |
-|------------|-------------|----------|
-| `MAILAGENT_API_KEY` | да | team key или legacy `API_KEY` |
-| `MAILAGENT_API_URL` | нет | default `https://api.webmailagent.com` |
-| `API_KEY` | fallback | alias для `MAILAGENT_API_KEY` |
-| `SMOKE_EXPECT_ATTACHMENTS` | smoke:agent | `"1"` в CI |
+| Variable | Required | Value |
+|----------|----------|-------|
+| `MAILAGENT_API_KEY` | yes | team key or legacy `API_KEY` |
+| `MAILAGENT_API_URL` | no | default `https://api.webmailagent.com` |
+| `API_KEY` | fallback | alias for `MAILAGENT_API_KEY` |
+| `SMOKE_EXPECT_ATTACHMENTS` | smoke:agent | `"1"` in CI |
 
-Локально ключ можно положить в `.env` — подхватит `scripts/load-env.mjs`.
+Local key can live in `.env` — loaded by `scripts/load-env.mjs`.
 
 ## Prod gate (`test:prod`)
 
-Порядок (см. `scripts/test-prod.mjs`):
+Order (see `scripts/test-prod.mjs`):
 
 1. `smoke:agent` — discovery, OAuth metadata, DCR, MCP session, tool call
 2. `smoke:qa` — create → simulate → wait → extract → delete
-3. `test:contract:all` — все contract-qa скрипты
+3. `test:contract:all` — all contract-qa scripts
 
-Если любой шаг падает — exit code ≠ 0.
+Any failing step exits non-zero.
 
-## Contract-скрипты (по одному)
+## Contract scripts (one at a time)
 
-Запускай **узкий** скрипт после изменений в конкретной области:
+Run a **narrow** script after changes in a specific area:
 
-| Скрипт | npm script | Что проверяет |
-|--------|------------|---------------|
+| Script | npm script | Covers |
+|--------|------------|--------|
 | `contract-qa.mjs` | `test:contract:qa` | create → simulate OTP → wait → extract |
 | `contract-qa-agent.mjs` | `test:contract:qa:agent` | `GET /v1/agent`, `/v1/me`, `/mcp/auth` |
-| `contract-qa-callback.mjs` | `test:contract:qa:callback` | webhook callback после simulate |
-| `contract-qa-attachments.mjs` | `test:contract:qa:attachments` | вложения + raw MIME |
-| `contract-qa-threads.mjs` | `test:contract:qa:threads` | треды / reply grouping |
+| `contract-qa-callback.mjs` | `test:contract:qa:callback` | webhook callback after simulate |
+| `contract-qa-attachments.mjs` | `test:contract:qa:attachments` | attachments + raw MIME |
+| `contract-qa-threads.mjs` | `test:contract:qa:threads` | threads / reply grouping |
 | `contract-qa-domains.mjs` | `test:contract:qa:domains` | custom domains (Resend quota → skip) |
-| `contract-qa-search.mjs` | `test:contract:qa:search` | поиск по сообщениям |
+| `contract-qa-search.mjs` | `test:contract:qa:search` | message search |
 | `contract-qa-extract.mjs` | `test:contract:qa:extract` | structured extract |
 | `contract-qa-console.mjs` | `test:contract:qa:console` | console summary API |
 | `contract-qa-audit.mjs` | `test:contract:qa:audit` | audit log (async poll) |
 | `contract-qa-console-inbox.mjs` | `test:contract:qa:console-inbox` | console inbox UI API |
 | `contract-qa-team-keys.mjs` | `test:contract:qa:team-keys` | team keys CRUD |
 
-Пример — только agent hub после правок в `src/routes/agent.ts`:
+Example — agent hub only after edits to `src/routes/agent.ts`:
 
 ```bash
 MAILAGENT_API_KEY=ma_… npm run test:contract:qa:agent
 ```
 
-## CI (что гоняется автоматически)
+## CI (automatic runs)
 
-| Workflow | Триггер | Тесты |
+| Workflow | Trigger | Tests |
 |----------|---------|-------|
 | [deploy-worker.yml](../.github/workflows/deploy-worker.yml) | push `main` (Worker paths) | deploy → `test:prod` |
 | [qa-smoke.yml](../.github/workflows/qa-smoke.yml) | PR / `qa/**` | `check` + `verify:codex` + `test:prod` |
 | [publish-packages.yml](../.github/workflows/publish-packages.yml) | tag `v*` | npm publish (OIDC) |
 
-Без `MAILAGENT_API_KEY` в GitHub Secrets deploy **упадёт** — так задумано.
+Without `MAILAGENT_API_KEY` in GitHub Secrets, deploy **fails** — by design.
 
-## Алгоритм для агента после изменения кода
+## Agent workflow after a code change
 
 1. **Discovery** — `GET /v1/agent` (tools, docs, auth).
-2. **Локальный тип** — `npm run check` (если трогал `src/`).
-3. **Узкий contract** — скрипт из таблицы выше.
-4. **Полный gate** — `npm run test:prod` перед merge / после deploy.
-5. **Диагностика** — `npm run doctor:qa` (plan, outbound, oidc hints).
+2. **Types** — `npm run check` (if you changed `src/`).
+3. **Narrow contract** — script from the table above.
+4. **Full gate** — `npm run test:prod` before merge / after deploy.
+5. **Diagnostics** — `npm run doctor:qa` (plan, outbound, oidc hints).
 
-## Если тест упал
+## When a test fails
 
-1. Прочитай stderr последнего contract-скрипта (имя в `--- contract-qa-….mjs ---`).
-2. Повтори **один** скрипт локально с тем же ключом.
-3. Для inbox-flow: `mailagent_diagnose_inbox` или `POST …/simulate` вручную через curl.
-4. Для audit: событие асинхронное — contract уже делает poll; если flaky — увеличь задержку в скрипте.
-5. Для domains: Resend quota — скрипт cleanup + skip; не считай это регрессией API.
+1. Read stderr of the last contract script (name in `--- contract-qa-….mjs ---`).
+2. Re-run **one** script locally with the same key.
+3. Inbox flow: `mailagent_diagnose_inbox` or `POST …/simulate` via curl.
+4. Audit: event is async — contract already polls; if flaky, increase delay in the script.
+5. Domains: Resend quota — script cleanup + skip; not an API regression.
 
 ```bash
 npm run doctor:qa
@@ -108,25 +108,25 @@ curl -s -H "Authorization: Bearer $MAILAGENT_API_KEY" \
   https://api.webmailagent.com/v1/agent | jq .
 ```
 
-## Добавление нового contract-теста
+## Adding a new contract test
 
-1. Скопируй шаблон `scripts/contract-qa.mjs`.
-2. Используй `scripts/lib/contract-api.mjs` (`contractSimulate`, `contractApi`).
-3. Добавь скрипт в `scripts/test-contract-all.mjs`.
-4. Добавь npm script `test:contract:qa:<name>` в `package.json`.
-5. Обнови эту таблицу и [AGENTS.md](../AGENTS.md).
+1. Copy template `scripts/contract-qa.mjs`.
+2. Use `scripts/lib/contract-api.mjs` (`contractSimulate`, `contractApi`).
+3. Register in `scripts/test-contract-all.mjs`.
+4. Add npm script `test:contract:qa:<name>` in `package.json`.
+5. Update this table and [AGENTS.md](../AGENTS.md).
 
-**Не** используй `DATABASE_URL` или `simulate-inbound.mjs` в CI — только HTTP `simulate`.
+Do **not** use `DATABASE_URL` or `simulate-inbound.mjs` in CI — HTTP `simulate` only.
 
 ## E2E (Playwright / Vitest)
 
-Для продуктовых E2E с `@mailagent/qa` см. [QA.md](./QA.md) и `examples/playwright/`.  
-Contract-тесты покрывают **API-контракт**; Playwright — UI внешних сервисов.
+Product E2E with `@mailagent/qa`: [QA.md](./QA.md) and `examples/playwright/`.  
+Contract tests cover the **API contract**; Playwright covers external app UI.
 
-## Ссылки
+## Links
 
 - [AGENTS.md](../AGENTS.md) — MCP, verify flow
 - [CI.md](./CI.md) — secrets, workflows
-- [OPERATOR.md](./OPERATOR.md) — единственное ручное участие
-- [examples/github-actions/contract-qa.yml](../examples/github-actions/contract-qa.yml) — шаблон для своего репо
-- Публичная версия: [autotests.html](https://webmailagent.com/docs/autotests.html)
+- [OPERATOR.md](./OPERATOR.md) — human: secrets only
+- [examples/github-actions/contract-qa.yml](../examples/github-actions/contract-qa.yml) — template for your repo
+- Public docs: [autotests.html](https://webmailagent.com/docs/autotests.html)

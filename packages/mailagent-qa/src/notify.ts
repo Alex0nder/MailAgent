@@ -1,4 +1,4 @@
-/** Slack webhook + PR comment helpers при падении email-тестов */
+/** Slack webhook + PR comment helpers on email test failure */
 import type { DebugContext } from "./index.js";
 
 export type SlackNotifyMeta = {
@@ -14,7 +14,7 @@ export type SlackWebhookPayload = {
   blocks?: unknown[];
 };
 
-/** Slack Incoming Webhook body для timeout / mail failure */
+/** Slack Incoming Webhook body for timeout / mail failure */
 export function formatSlackMailFailure(
   contexts: DebugContext[],
   meta: SlackNotifyMeta = {}
@@ -61,7 +61,7 @@ export function formatSlackMailFailure(
   return { text: header, blocks };
 }
 
-/** POST Slack Incoming Webhook (no-op if url пустой) */
+/** POST Slack Incoming Webhook (no-op if url empty) */
 export async function notifySlackWebhook(
   webhookUrl: string | undefined,
   payload: SlackWebhookPayload
@@ -81,7 +81,7 @@ export async function notifySlackWebhook(
   return true;
 }
 
-/** Собрать Slack alert из MailAgentTimeoutError.details + meta */
+/** Build Slack alert from MailAgentTimeoutError.details + meta */
 export async function notifySlackOnMailFailure(
   webhookUrl: string | undefined,
   contexts: DebugContext[],
@@ -90,7 +90,7 @@ export async function notifySlackOnMailFailure(
   return notifySlackWebhook(webhookUrl, formatSlackMailFailure(contexts, meta));
 }
 
-/** Markdown для gh pr comment */
+/** Markdown for gh pr comment */
 export function formatPrCommentMailFailure(
   contexts: DebugContext[],
   meta: SlackNotifyMeta = {}

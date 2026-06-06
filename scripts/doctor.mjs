@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Диагностика окружения: .dev.vars, DB, prod API, webhook; --qa для QA-потребителей */
+/** Environment diagnostics: .dev.vars, DB, prod API, webhook; --qa for QA consumers */
 import "./load-env.mjs";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";

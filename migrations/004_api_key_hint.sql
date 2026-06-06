@@ -1,4 +1,4 @@
--- Изоляция inbox по хешу API-ключа (первые 16 hex SHA-256)
+-- Inbox isolation by API key hash (first 16 hex of SHA-256)
 
 ALTER TABLE inboxes
   ADD COLUMN IF NOT EXISTS api_key_hint TEXT;

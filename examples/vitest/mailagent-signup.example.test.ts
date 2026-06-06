@@ -1,6 +1,6 @@
 /**
- * Vitest + MailAgent — signup OTP без Mailosaur.
- * Запуск: MAILAGENT_API_KEY=… npx vitest run examples/vitest/mailagent-signup.example.test.ts
+ * Vitest + MailAgent — signup OTP without Mailosaur.
+ * Run: MAILAGENT_API_KEY=… npx vitest run examples/vitest/mailagent-signup.example.test.ts
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {

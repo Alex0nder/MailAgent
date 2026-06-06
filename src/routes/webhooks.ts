@@ -4,7 +4,7 @@ import type { Env, EmailQueueMessage } from "../env";
 
 export const webhookRoutes = new Hono<{ Bindings: Env }>();
 
-/** Resend webhook: verify → enqueue → быстрый 200 */
+/** Resend webhook: verify → enqueue → fast 200 */
 webhookRoutes.post("/resend", async (c) => {
   const payload = await c.req.text();
   const resend = new Resend(c.env.RESEND_API_KEY);

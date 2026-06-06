@@ -20,7 +20,7 @@ function applyAuthContext(
   c.set("apiKeyScope", auth.scope);
 }
 
-/** Bearer: API key или OAuth mat_ access token */
+/** Bearer: API key or OAuth mat_ access token */
 export async function requireApiKey(
   c: Context<{ Bindings: Env; Variables: ApiVariables }>,
   next: Next
@@ -33,7 +33,7 @@ export async function requireApiKey(
   await next();
 }
 
-/** MCP: 401 с WWW-Authenticate → OAuth discovery (RFC 9728) */
+/** MCP: 401 with WWW-Authenticate → OAuth discovery (RFC 9728) */
 export async function requireMcpAuth(
   c: Context<{ Bindings: Env; Variables: ApiVariables }>,
   next: Next

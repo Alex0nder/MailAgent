@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Smoke против прод API (нужны MAILAGENT_API_URL + MAILAGENT_API_KEY) */
+/** Smoke against prod API (requires MAILAGENT_API_URL + MAILAGENT_API_KEY) */
 import "./load-env.mjs";
 
 const base = (

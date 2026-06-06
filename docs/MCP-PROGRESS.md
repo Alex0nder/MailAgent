@@ -68,4 +68,4 @@ Progress from streaming `tools/call` is **also pushed** to this channel (KV rela
 "capabilities": { "tools": {}, "progress": true }
 ```
 
-См. [agents.html](https://webmailagent.com/docs/agents.html#mcp-progress).
+See [agents.html](https://webmailagent.com/docs/agents.html#mcp-progress).

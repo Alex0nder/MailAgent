@@ -1,4 +1,4 @@
-/** Вложения Resend: метаданные в Neon, опционально кэш в R2 */
+/** Resend attachments: metadata in Neon, optional R2 cache */
 import { nanoid } from "nanoid";
 import { Resend } from "resend";
 import type { Env } from "../env";
@@ -48,7 +48,7 @@ type ResendAttMeta = {
   content_id?: string | null;
 };
 
-/** Сохранить метаданные вложений при ingest (из receiving.get) */
+/** Save attachment metadata on ingest (from receiving.get) */
 export async function saveAttachmentsFromEmail(
   env: Env,
   inboxId: string,
@@ -175,7 +175,7 @@ export type AttachmentDownloadMeta = {
   expiresAt?: string;
 };
 
-/** Метаданные + свежий signed URL от Resend (1h) */
+/** Metadata + fresh signed URL from Resend (1h) */
 export async function fetchAttachmentDownloadMeta(
   env: Env,
   providerEmailId: string,

@@ -46,7 +46,7 @@ app.route("/", wellKnownRoutes);
 
 app.notFound((c) => c.json({ error: "not_found" }, 404));
 
-/** Cloudflare отдаёт http:// без редиректа, если не включён Always Use HTTPS */
+/** Cloudflare serves http:// without redirect unless Always Use HTTPS is enabled */
 function isInsecureRequest(request: Request): boolean {
   const proto = request.headers.get("X-Forwarded-Proto");
   if (proto === "http") return true;
@@ -68,7 +68,7 @@ const HTTPS_HOSTS = new Set([
   "api.webmailagent.com",
 ]);
 
-/** API → Hono; остальное → статика public/; www → apex; http → https */
+/** API → Hono; everything else → public/ static; www → apex; http → https */
 async function handleFetch(
   request: Request,
   env: Env,

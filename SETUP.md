@@ -1,54 +1,54 @@
-# Настройка MailAgent (ручные шаги)
+# MailAgent setup (manual steps)
 
-Worker уже поднимается локально (`npm run dev`). Для полного цикла нужны **3 сервиса**.
+Worker already runs locally (`npm run dev`). Full cycle needs **3 services**.
 
-## 1. Neon Postgres (5 мин)
+## 1. Neon Postgres (5 min)
 
-В Neon **Connect**: включите **Connection pooling**, скопируйте строку (кнопка **Copy snippet**), вставьте в `.dev.vars` как `DATABASE_URL=...`.  
-Можно убрать `&channel_binding=require` — иногда мешает serverless-драйверу.  
-Пароль: **Show password** → подставьте вместо `YOUR_PASSWORD` в `.dev.vars`.
+In Neon **Connect**: enable **Connection pooling**, copy string (**Copy snippet**), paste into `.dev.vars` as `DATABASE_URL=...`.  
+You can remove `&channel_binding=require` — sometimes blocks serverless driver.  
+Password: **Show password** → replace `YOUR_PASSWORD` in `.dev.vars`.
 
 1. [neon.tech](https://neon.tech) → New project
-2. Скопируйте **connection string** → `DATABASE_URL`
-3. Миграция:
+2. Copy **connection string** → `DATABASE_URL`
+3. Migrate:
 
 ```bash
 DATABASE_URL="postgresql://..." npm run db:migrate
 ```
 
-## 2. Resend (10 мин)
+## 2. Resend (10 min)
 
 1. [resend.com](https://resend.com) → API Keys → `RESEND_API_KEY`
-2. **Emails → Receiving** — домен вида `abc123.resend.app` → `INBOX_DOMAIN=abc123.resend.app`
+2. **Emails → Receiving** — domain like `abc123.resend.app` → `INBOX_DOMAIN=abc123.resend.app`
 3. **Webhooks** → `email.received` → URL:
-   - локально: `https://<tunnel>/webhooks/resend` (cloudflared / ngrok)
-   - прод: `https://mailagent.<subdomain>.workers.dev/webhooks/resend`
+   - local: `https://<tunnel>/webhooks/resend` (cloudflared / ngrok)
+   - prod: `https://mailagent.<subdomain>.workers.dev/webhooks/resend`
 4. Signing secret → `RESEND_WEBHOOK_SECRET`
 
-## 3. Локальные секреты
+## 3. Local secrets
 
 ```bash
 cp .dev.vars.example .dev.vars
 cp .env.example .env
-# заполните оба (API_KEY один и тот же)
+# fill both (API_KEY is the same)
 ```
 
-В `.env` для MCP:
+For MCP in `.env`:
 
 ```
 MAILAGENT_API_URL=http://127.0.0.1:8787
-MAILAGENT_API_KEY=<тот же что API_KEY в .dev.vars>
+MAILAGENT_API_KEY=<same as API_KEY in .dev.vars>
 ```
 
-Проверка:
+Check:
 
 ```bash
 node scripts/setup-check.mjs
-npm run dev          # терминал 1
-npm run verify       # терминал 2
+npm run dev          # terminal 1
+npm run verify       # terminal 2
 ```
 
-## 4. Cloudflare Deploy (ручной login)
+## 4. Cloudflare deploy (manual login)
 
 ```bash
 npx wrangler login
@@ -63,47 +63,47 @@ npm run deploy
 npm run db:migrate
 ```
 
-R2 хранит raw `.eml` (см. [docs/RAW-MIME-R2.md](./docs/RAW-MIME-R2.md)). Binding `RAW_MIME` уже в `wrangler.jsonc`.
+R2 stores raw `.eml` (see [docs/RAW-MIME-R2.md](./docs/RAW-MIME-R2.md)). Binding `RAW_MIME` is already in `wrangler.jsonc`.
 
-Обновите Resend webhook URL на прод Worker.  
-`MAILAGENT_API_URL` в `.env` → URL после deploy.
+Update Resend webhook URL to prod Worker.  
+`MAILAGENT_API_URL` in `.env` → URL after deploy.
 
-## 6. API на api.webmailagent.com (опционально)
+## 6. API at api.webmailagent.com (optional)
 
-Лендинг: **webmailagent.com** (Netlify). API: **api.webmailagent.com** (Worker).
+Landing: **webmailagent.com** (Netlify). API: **api.webmailagent.com** (Worker).
 
-**Не делайте** CNAME `api` → `*.workers.dev` — будет **522**.
+**Do not** CNAME `api` → `*.workers.dev` — you get **522**.
 
-Правильно (один из способов):
+Correct approach (one of):
 
-**A) Через Dashboard (проще)**  
+**A) Via Dashboard (simpler)**  
 1. **Workers & Pages** → Worker `mailagent` → **Settings** → **Domains & Routes**  
 2. **Add** → **Custom domain** → `api.webmailagent.com`  
-3. Cloudflare сам создаст/обновит DNS-запись  
-4. Удалите старый CNAME на `workers.dev`, если есть  
+3. Cloudflare creates/updates DNS record  
+4. Remove old CNAME to `workers.dev` if present  
 
-**B) Через CLI**  
+**B) Via CLI**  
 ```bash
 npm run deploy
 npx wrangler domains add api.webmailagent.com
 ```
 
-После деплоя и проверки:
+After deploy and check:
 
 ```bash
 curl https://api.webmailagent.com/health
 ```
 
-В `.env` / MCP:
+In `.env` / MCP:
 
 ```
 MAILAGENT_API_URL=https://api.webmailagent.com
 ```
 
-Если deploy падает из‑за `routes` в `wrangler.jsonc` — зона должна быть в том же Cloudflare-аккаунте, либо уберите блок `routes` и привяжите домен в Dashboard → Workers → Custom Domains.
+If deploy fails due to `routes` in `wrangler.jsonc` — zone must be in same Cloudflare account, or remove `routes` block and attach domain in Dashboard → Workers → Custom Domains.
 
 ## 5. Cursor MCP
 
-После `npm run build:mcp` и заполненного `.env`:
+After `npm run build:mcp` and filled `.env`:
 
 **Settings → MCP** → `mailagent` → Refresh tools.

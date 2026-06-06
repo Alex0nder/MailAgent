@@ -1,24 +1,24 @@
 # Callback cookbook (QA / CI)
 
-Асинхронная альтернатива poll: MailAgent шлёт `POST` на ваш `callbackUrl`, когда письмо обработано.
+Async alternative to poll: MailAgent sends `POST` to your `callbackUrl` when the message is processed.
 
-## Когда использовать
+## When to use
 
 | Poll (`/wait`) | Callback |
 |----------------|----------|
-| Простой E2E, один поток | Параллельные тесты, длинный flow |
-| Нет публичного URL | Есть smee.io / staging hook / webhook.site |
-| Playwright по умолчанию | Custom runner ждёт HTTP event |
+| Simple E2E, single flow | Parallel tests, long flow |
+| No public URL | smee.io / staging hook / webhook.site |
+| Playwright default | Custom runner waits for HTTP event |
 
-## 1. Публичный URL в dev
+## 1. Public URL in dev
 
-### smee.io (рекомендуется локально)
+### smee.io (recommended locally)
 
 ```bash
 npx smee -u https://smee.io/YOUR_CHANNEL -t http://127.0.0.1:9999/mailagent
 ```
 
-В другом терминале — простой listener (Node):
+In another terminal — simple listener (Node):
 
 ```javascript
 // scripts/callback-listener.mjs
@@ -59,16 +59,16 @@ export function waitCallback(inboxId, timeoutMs = 120_000) {
 }
 ```
 
-Публичный URL для MailAgent: `https://smee.io/YOUR_CHANNEL` (smee проксирует на localhost).
+Public URL for MailAgent: `https://smee.io/YOUR_CHANNEL` (smee proxies to localhost).
 
-### webhook.site (быстрый ручной тест)
+### webhook.site (quick manual test)
 
-1. Откройте https://webhook.site → скопируйте unique URL.
-2. `callbackUrl: "https://webhook.site/xxxx-..."` при create inbox.
-3. Триггерите письмо → смотрите payload в UI.
-4. Для автотестов webhook.site неудобен — лучше smee или свой endpoint.
+1. Open https://webhook.site → copy unique URL.
+2. `callbackUrl: "https://webhook.site/xxxx-..."` on create inbox.
+3. Trigger mail → view payload in UI.
+4. For autotests webhook.site is awkward — prefer smee or your own endpoint.
 
-## 2. Create inbox с callback
+## 2. Create inbox with callback
 
 ```bash
 CALLBACK="https://smee.io/YOUR_CHANNEL"
@@ -79,7 +79,7 @@ curl -sS -X POST "$MAILAGENT_API_URL/v1/inboxes" \
   -d "{\"label\":\"cb-test\",\"callbackUrl\":\"$CALLBACK\",\"service\":\"auth0\"}"
 ```
 
-Тело webhook:
+Webhook body:
 
 ```json
 {
@@ -103,22 +103,22 @@ curl -sS -X POST "$MAILAGENT_API_URL/v1/inboxes" \
 }
 ```
 
-Поле `verification` — готовый блок для assert в CI (как `GET /extract`).
+`verification` field — ready block for CI assert (like `GET /extract`).
 
-## 3. Assert в тесте (poll логов API)
+## 3. Assert in test (poll API logs)
 
-Если webhook не дошёл — смотрите доставку:
+If webhook did not arrive — check delivery:
 
 ```bash
 curl -sS "$MAILAGENT_API_URL/v1/inboxes/INBOX_ID/callbacks" \
   -H "Authorization: Bearer $MAILAGENT_API_KEY" | jq .
 ```
 
-Поля: `deliveries[].ok`, `statusCode`, `error`, `durationMs`.
+Fields: `deliveries[].ok`, `statusCode`, `error`, `durationMs`.
 
 ### SDK: `waitForCallback` (@mailagent/qa ≥0.1.9)
 
-Когда inbox с `callbackUrl`, но тест не слушает webhook напрямую — poll лога доставки:
+When inbox has `callbackUrl` but test does not listen to webhook directly — poll delivery log:
 
 ```typescript
 import { createMailAgentQa, MailAgentQa } from "@mailagent/qa";
@@ -132,7 +132,7 @@ const inbox = await mail.createInbox({
   callbackUrl: "https://smee.io/YOUR_CHANNEL",
 });
 
-// ... signup с inbox.address ...
+// ... signup with inbox.address ...
 
 const { verification, delivery } = await mail.waitForCallback(inbox.id, {
   since,
@@ -147,20 +147,20 @@ Cypress: `cy.task("mailagentWaitCallback", { inboxId })`.
 
 ## 4. GitHub Actions
 
-Публичный URL в GHA без smee сложнее. Варианты:
+Public URL in GHA without smee is harder. Options:
 
-1. **Poll** — `waitForVerification` / `GET /wait` (проще).
-2. **Self-hosted runner** + ngrok/smee на той же машине.
-3. **Staging hook** вашего приложения, который пишет OTP в artifact / Redis — callback бьёт туда.
+1. **Poll** — `waitForVerification` / `GET /wait` (simpler).
+2. **Self-hosted runner** + ngrok/smee on same machine.
+3. **Staging hook** in your app that writes OTP to artifact / Redis — callback hits there.
 
-Пример job только с poll: [examples/github-actions/qa-email.yml](../examples/github-actions/qa-email.yml).
+Poll-only job example: [examples/github-actions/qa-email.yml](../examples/github-actions/qa-email.yml).
 
-## 5. Чеклист отладки callback
+## 5. Callback debug checklist
 
-- [ ] URL **HTTPS** (http отклонится при create)
-- [ ] Endpoint отвечает **2xx** за &lt; 10s
-- [ ] Firewall не режет исходящие с Cloudflare Workers
-- [ ] `GET …/callbacks` — `ok: false` → смотрите `statusCode` / `error`
+- [ ] URL **HTTPS** (http rejected on create)
+- [ ] Endpoint responds **2xx** within &lt; 10s
+- [ ] Firewall does not block outbound from Cloudflare Workers
+- [ ] `GET …/callbacks` — `ok: false` → check `statusCode` / `error`
 - [ ] UI: [debug.html](https://webmailagent.com/debug.html) → inbox id
 
-См. [QA.md](./QA.md#callback-webhook-в-ci).
+See [QA.md](./QA.md#callback-webhook-in-ci).

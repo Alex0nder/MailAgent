@@ -64,7 +64,7 @@ async function fetchDiscovery(issuer: string): Promise<OidcDiscovery> {
   return (await res.json()) as OidcDiscovery;
 }
 
-/** GET /v1/oauth/authorize — redirect на IdP (Auth0/Google) */
+/** GET /v1/oauth/authorize — redirect to IdP (Auth0/Google) */
 export async function startOidcAuthorize(
   env: Env,
   origin: string,
@@ -110,7 +110,7 @@ export async function startOidcAuthorize(
   return `${discovery.authorization_endpoint}?${q}`;
 }
 
-/** GET /v1/oauth/callback — IdP → MailAgent code для MCP client */
+/** GET /v1/oauth/callback — IdP → MailAgent code for MCP client */
 export async function finishOidcCallback(
   env: Env,
   origin: string,

@@ -1,6 +1,6 @@
 /**
- * Jest + MailAgent — signup OTP для команд на Jest (не Vitest/Playwright).
- * Запуск: MAILAGENT_API_KEY=… npx jest examples/jest/mailagent-signup.example.test.js
+ * Jest + MailAgent — signup OTP for Jest teams (not Vitest/Playwright).
+ * Run: MAILAGENT_API_KEY=… npx jest examples/jest/mailagent-signup.example.test.js
  */
 const {
   MailAgentQa,

@@ -1,4 +1,4 @@
-/** Лимиты hosted-планов */
+/** Hosted plan limits */
 export type PlanId = "free" | "pro" | "legacy";
 
 export const PLAN_LIMITS: Record<

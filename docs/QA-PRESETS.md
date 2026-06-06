@@ -1,14 +1,14 @@
-# Матрица `service` presets (QA)
+# `service` preset matrix (QA)
 
-Поле `service` при `POST /v1/inboxes` задаёт **allowlist отправителя** (`expectFrom`). Письма с других доменов не попадут в inbox — это защита от чужих писем на общий catch-all.
+The `service` field on `POST /v1/inboxes` sets **sender allowlist** (`expectFrom`). Mail from other domains is not stored — protection against stray mail on a shared catch-all.
 
-Источник: `src/lib/service-presets.ts`.
+Source: `src/lib/service-presets.ts`.
 
-| `service` | Домены / From (allowlist) | Типичный контент | `subjectContains` (пример) |
+| `service` | Domains / From (allowlist) | Typical content | `subjectContains` (example) |
 |-----------|---------------------------|------------------|----------------------------|
 | `auth0` | auth0.com | OTP, magic link | `verify`, `code` |
 | `clerk` | clerk.com, clerk.dev | OTP | `verification` |
-| `stripe` | stripe.com | код, receipt | `verification`, `code` |
+| `stripe` | stripe.com | code, receipt | `verification`, `code` |
 | `github` | github.com, noreply@github.com | OTP, device | `verification` |
 | `google` | google.com, accounts.google.com | OTP | `verification`, `G-` |
 | `firebase` | firebase.google.com, google.com | OTP | `verify` |
@@ -32,14 +32,14 @@
 
 ## Staging vs production
 
-| Ситуация | Рекомендация |
+| Situation | Recommendation |
 |----------|----------------|
-| Staging Auth0 tenant | `service: "auth0"` + проверьте реальный From в первом письме |
-| Кастомный SMTP домен | `expectFrom: ["mail.your-staging.com"]` вместо или вместе с `service` |
-| Несколько отправителей | `expectFrom: ["a.com", "b.com"]` |
-| Не знаете From | Создайте inbox без `service`, пришлите тестовое письмо, смотрите `GET …/messages` → `from` |
+| Staging Auth0 tenant | `service: "auth0"` + verify real From in first message |
+| Custom SMTP domain | `expectFrom: ["mail.your-staging.com"]` instead of or with `service` |
+| Multiple senders | `expectFrom: ["a.com", "b.com"]` |
+| Unknown From | Create inbox without `service`, send test mail, check `GET …/messages` → `from` |
 
-## Пример create
+## Create example
 
 ```bash
 curl -sS -X POST "$MAILAGENT_API_URL/v1/inboxes" \
@@ -52,8 +52,8 @@ curl -sS -X POST "$MAILAGENT_API_URL/v1/inboxes" \
 await mail.createInbox({
   label: mail.runLabel("ci"),
   service: "auth0",
-  expectFrom: "mail.staging.example.com", // дополнительно к preset
+  expectFrom: "mail.staging.example.com", // in addition to preset
 });
 ```
 
-См. также [QA.md](./QA.md), [agents recipes](../src/lib/agent-recipes.ts).
+See also [QA.md](./QA.md), [agents recipes](../src/lib/agent-recipes.ts).

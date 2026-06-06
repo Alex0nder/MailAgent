@@ -1,4 +1,4 @@
-/** POST в callback URL + запись в callback_deliveries */
+/** POST to callback URL + record in callback_deliveries */
 import type { Env, MessageNotifyPayload } from "../env";
 import { recordCallbackDelivery } from "./callback-log";
 

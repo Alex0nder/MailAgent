@@ -1,4 +1,4 @@
-/** Console inbox detail — messages, threads, callbacks для hosted UI */
+/** Console inbox detail — messages, threads, callbacks for hosted UI */
 import type { Env } from "../env";
 import { getInbox } from "./inbox";
 import { buildInboxDiagnose } from "./inbox-diagnose";

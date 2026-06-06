@@ -1,4 +1,4 @@
-/** HTTP-клиент к MailAgent Worker API (SSE-first ожидание письма) */
+/** HTTP client to MailAgent Worker API (SSE-first message wait) */
 
 import { parseSseChunk } from "./sse.js";
 import { resolveExpectFrom } from "./service-presets.js";
@@ -72,7 +72,7 @@ export class MailAgentClient {
     });
   }
 
-  /** POST /v1/agent/verify — ответ с agent.primaryAction для LLM */
+  /** POST /v1/agent/verify — response with agent.primaryAction for LLM */
   async verifySignup(options: WaitAndExtractOptions) {
     const body: Record<string, unknown> = {
       timeoutSeconds: options.timeoutSeconds ?? 90,
@@ -107,7 +107,7 @@ export class MailAgentClient {
     return parsed as AgentVerifyResponse;
   }
 
-  /** create → wait → extract → delete; без inboxId — один POST /v1/inboxes/open */
+  /** create → wait → extract → delete; without inboxId — single POST /v1/inboxes/open */
   async waitAndExtract(options: WaitAndExtractOptions) {
     if (!options.inboxId) {
       return this.openInbox(options);
@@ -141,7 +141,7 @@ export class MailAgentClient {
     return result;
   }
 
-  /** Серверный one-shot (poll на Worker) */
+  /** Server-side one-shot (poll on Worker) */
   async openInbox(options: WaitAndExtractOptions) {
     const body: Record<string, unknown> = {
       timeoutSeconds: options.timeoutSeconds ?? 90,
@@ -251,7 +251,7 @@ export class MailAgentClient {
     );
   }
 
-  /** SSE → fallback poll /wait (500ms на сервере) */
+  /** SSE → fallback poll /wait (500ms on server) */
   async waitForMessage(
     id: string,
     timeoutSec: number,
@@ -379,13 +379,13 @@ export class MailAgentClient {
 
 export interface CreateInboxOptions {
   ttlMinutes?: number;
-  /** Пресет: dribbble, github, google, auth0, stripe */
+  /** Preset: dribbble, github, google, auth0, stripe */
   service?: string;
   expectFrom?: string | string[];
   allowedSenders?: string | string[];
-  /** QA: id прогона CI / parallel worker */
+  /** QA: CI run id / parallel worker */
   label?: string;
-  /** QA: HTTPS webhook при письме */
+  /** QA: HTTPS webhook on message */
   callbackUrl?: string;
 }
 
@@ -397,10 +397,10 @@ export interface WaitAndExtractOptions {
   allowedSenders?: string | string[];
   label?: string;
   callbackUrl?: string;
-  /** QA: ждать письмо с подстрокой в subject */
+  /** QA: wait for message with subject substring */
   subjectContains?: string;
   timeoutSeconds?: number;
-  /** Default true — удалить inbox после успешного extract */
+  /** Default true — delete inbox after successful extract */
   deleteAfter?: boolean;
 }
 

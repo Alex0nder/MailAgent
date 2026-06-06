@@ -1,54 +1,54 @@
 # Troubleshooting email tests
 
-Быстрый чеклист когда `wait` / `open` вернули **408 timeout** или OTP пустой.
+Quick checklist when `wait` / `open` returned **408 timeout** or OTP is empty.
 
-## Дерево решений
+## Decision tree
 
-### 1. В inbox 0 сообщений
+### 1. Zero messages in inbox
 
-**Симптом:** `GET …/messages` → `[]`, timeout на wait.
+**Symptom:** `GET …/messages` → `[]`, wait timeout.
 
-| Проверка | Действие |
+| Check | Action |
 |----------|----------|
-| Staging отправил письмо? | Логи app, mail queue |
-| Resend webhook | `GET /health` → `webhook: /webhooks/resend`; в Resend Dashboard — Events → receiving |
-| Домен inbox | Адрес `@your-inbox-domain`, не случайный Gmail |
-| Allowlist | `service` preset или `expectFrom` — письмо от другого From отбрасывается |
+| Did staging send mail? | App logs, mail queue |
+| Resend webhook | `GET /health` → `webhook: /webhooks/resend`; Resend Dashboard — Events → receiving |
+| Inbox domain | Address `@your-inbox-domain`, not random Gmail |
+| Allowlist | `service` preset or `expectFrom` — mail from other From is dropped |
 
 ```bash
 curl -sS "$MAILAGENT_API_URL/v1/inboxes/INBOX_ID/messages" \
   -H "Authorization: Bearer $MAILAGENT_API_KEY" | jq .
 ```
 
-### 2. Сообщения есть, wait всё равно timeout
+### 2. Messages exist, wait still times out
 
-**Симптом:** в debug UI видны письма, но wait вернул 408 с `subjects[]`.
+**Symptom:** debug UI shows mail, but wait returned 408 with `subjects[]`.
 
-- Ослабьте `subjectContains` или уберите временно
-- **Welcome + verify:** первое письмо — welcome, второе — OTP → `messageIndex=1`
+- Relax `subjectContains` or remove temporarily
+- **Welcome + verify:** first mail is welcome, second is OTP → `messageIndex=1`
 
 ```bash
 curl "$MAILAGENT_API_URL/v1/inboxes/INBOX_ID/wait?timeout=120&messageIndex=1&subjectContains=verify"
 ```
 
-### 3. Сообщение есть, OTP / link пустые
+### 3. Message exists, OTP / link empty
 
-- Откройте raw MIME: `GET …/messages/:id/raw` (если `hasRaw: true`)
-- Проверьте HTML-only письма — extract идёт по text + html от Resend
-- Magic link в кнопке — смотрите `links[]` и `primaryLink`
+- Open raw MIME: `GET …/messages/:id/raw` (if `hasRaw: true`)
+- Check HTML-only mail — extract uses text + html from Resend
+- Magic link in button — see `links[]` and `primaryLink`
 
-### 4. callbackUrl не сработал
+### 4. callbackUrl did not fire
 
 ```bash
 curl -sS "$MAILAGENT_API_URL/v1/inboxes/INBOX_ID/callbacks" \
   -H "Authorization: Bearer $MAILAGENT_API_KEY" | jq .
 ```
 
-| `ok` | Что делать |
+| `ok` | What to do |
 |------|------------|
-| `false`, 4xx/5xx | URL CI runner недоступен с интернета — smee.io / webhook.site ([QA-CALLBACK.md](./QA-CALLBACK.md)) |
-| `false`, timeout | Увеличить timeout на вашем endpoint |
-| нет записей | `callbackUrl` не передали при create или письмо не дошло |
+| `false`, 4xx/5xx | CI runner URL not reachable from internet — smee.io / webhook.site ([QA-CALLBACK.md](./QA-CALLBACK.md)) |
+| `false`, timeout | Increase timeout on your endpoint |
+| no records | `callbackUrl` not passed on create or mail did not arrive |
 
 ### 5. Rate limit / quota
 
@@ -57,9 +57,9 @@ curl -sS "$MAILAGENT_API_URL/v1/me" -H "Authorization: Bearer $KEY" | jq .
 ```
 
 - `429 inbox_limit_reached` — cleanup: `DELETE …/inboxes?labelPrefix=ci-RUN_ID`
-- `429` + `Retry-After` — подождать или scoped key на отдельную команду
+- `429` + `Retry-After` — wait or scoped key for separate team
 
-## SDK: автоматический контекст
+## SDK: automatic context
 
 ```typescript
 import { createMailAgentQa, formatAllureAttachment } from "@mailagent/qa";
@@ -78,14 +78,14 @@ try {
 
 ## Debug UI
 
-[webmailagent.com/debug.html?inbox=INBOX_ID](https://webmailagent.com/debug.html) — таблица писем, callbacks, ссылки raw/attachments, **troubleshooting** из `GET …/diagnose`.
+[webmailagent.com/debug.html?inbox=INBOX_ID](https://webmailagent.com/debug.html) — message table, callbacks, raw/attachment links, **troubleshooting** from `GET …/diagnose`.
 
 ```bash
 curl -sS "$MAILAGENT_API_URL/v1/inboxes/INBOX_ID/diagnose" \
   -H "Authorization: Bearer $MAILAGENT_API_KEY" | jq .
 ```
 
-## Smoke после деплоя
+## Smoke after deploy
 
 ```bash
 export MAILAGENT_API_URL=https://api.webmailagent.com

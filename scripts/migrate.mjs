@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Применяет migrations/*.sql к Neon (DATABASE_URL в .dev.vars / .env) */
+/** Apply migrations/*.sql to Neon (DATABASE_URL in .dev.vars / .env) */
 import "./load-env.mjs";
 import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";

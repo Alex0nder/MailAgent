@@ -1,4 +1,4 @@
-/** OAuth access tokens для remote MCP (client_credentials → mat_ token) */
+/** OAuth access tokens for remote MCP (client_credentials → mat_ token) */
 import { nanoid } from "nanoid";
 import type { Env } from "../env";
 import type { ResolvedAuth } from "./api-key-store";
@@ -38,7 +38,7 @@ export function isMcpAccessToken(token: string): boolean {
   return token.startsWith(TOKEN_PREFIX);
 }
 
-/** Выдать short-lived Bearer для MCP-клиентов (OAuth client_credentials) */
+/** Issue short-lived Bearer for MCP clients (OAuth client_credentials) */
 export async function issueMcpAccessToken(
   env: Env,
   auth: ResolvedAuth
@@ -64,7 +64,7 @@ export async function issueMcpAccessToken(
   return { access_token, token_type: "Bearer", expires_in };
 }
 
-/** Разрешить mat_ token из KV */
+/** Validate mat_ token from KV */
 export async function resolveMcpAccessToken(
   env: Env,
   token: string

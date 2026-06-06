@@ -1,4 +1,4 @@
-/** Читает контекст из globalSetup (.mailagent-context.json). */
+/** Read context from globalSetup (.mailagent-context.json). */
 import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

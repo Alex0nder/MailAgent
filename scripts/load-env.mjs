@@ -1,4 +1,4 @@
-/** Загружает .dev.vars и .env в process.env (без перетирания уже заданных) */
+/** Load .dev.vars and .env into process.env (without overwriting existing) */
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";

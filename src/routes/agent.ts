@@ -1,4 +1,4 @@
-/** REST для AI-агентов: verify + recipes */
+/** REST for AI agents: verify + recipes */
 import { Hono } from "hono";
 import type { Env } from "../env";
 import type { ApiVariables } from "../lib/api-context";
@@ -93,7 +93,7 @@ agentRoutes.get("/recipes/:service", (c) => {
   return c.json(recipe);
 });
 
-/** Активные прогоны агентов (label agent-*) */
+/** Active agent runs (label agent-*) */
 agentRoutes.get("/runs", async (c) => {
   const limit = Number(c.req.query("limit") ?? "30");
   const runId = c.req.query("runId") ?? undefined;

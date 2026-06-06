@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * CLI для агента: inbox + wait + extract (JSON на stdout)
- * MAILAGENT_API_URL, MAILAGENT_API_KEY — как у MCP
+ * CLI for agent: inbox + wait + extract (JSON on stdout)
+ * MAILAGENT_API_URL, MAILAGENT_API_KEY — same as MCP
  */
 import { MailAgentClient } from "./client.js";
 import { SERVICE_NAMES } from "./service-presets.js";

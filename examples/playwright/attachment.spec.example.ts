@@ -1,5 +1,5 @@
 /**
- * Playwright: attachments после globalSetup (simulate) или MAILAGENT_TEST_MESSAGE_ID.
+ * Playwright: attachments after globalSetup (simulate) or MAILAGENT_TEST_MESSAGE_ID.
  */
 import { test, expect } from "@playwright/test";
 import { createMailAgentQa } from "@mailagent/qa";

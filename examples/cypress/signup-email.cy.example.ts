@@ -1,6 +1,6 @@
 /**
- * Пример: signup с OTP через Cypress tasks (@mailagent/qa/cypress).
- * Скопируйте в cypress/e2e/ и задайте CYPRESS_BASE_URL + MAILAGENT_API_*.
+ * Example: signup with OTP via Cypress tasks (@mailagent/qa/cypress).
+ * Copy to cypress/e2e/ and set CYPRESS_BASE_URL + MAILAGENT_API_*.
  */
 describe("signup with MailAgent", () => {
   const runId = Cypress.env("GITHUB_RUN_ID") ?? String(Date.now());

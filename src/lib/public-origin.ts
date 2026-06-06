@@ -1,4 +1,4 @@
-/** Публичный origin API (prod / workers.dev / local) */
+/** Public API origin (prod / workers.dev / local) */
 export function publicOriginFromUrl(url: string): string {
   const u = new URL(url);
   if (u.hostname === "127.0.0.1" || u.hostname === "localhost") {

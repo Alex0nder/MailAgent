@@ -1,19 +1,19 @@
-# Миграция с Mailosaur / MailSlurp / Mailtrap
+# Migration from Mailosaur / MailSlurp / Mailtrap
 
-Краткое сопоставление концепций MailAgent ↔ классические email testing API.
+Brief mapping of MailAgent concepts ↔ classic email testing APIs.
 
-## Концепции
+## Concepts
 
-| Другой сервис | MailAgent |
+| Other service | MailAgent |
 |---------------|-----------|
 | Inbox / inbox id | `POST /v1/inboxes` → `id`, `address` |
 | Email address | `address` (`*@your-inbox-domain`) |
-| Wait for email | `GET /v1/inboxes/:id/wait` или SDK `waitForVerification` |
+| Wait for email | `GET /v1/inboxes/:id/wait` or SDK `waitForVerification` |
 | Get OTP / links | `GET /v1/inboxes/:id/extract` |
 | List messages | `GET /v1/inboxes/:id/messages` |
 | Delete inbox | `DELETE /v1/inboxes/:id` |
-| Tags / metadata | `label` на create |
-| Allowlist sender | `service` или `expectFrom` |
+| Tags / metadata | `label` on create |
+| Allowlist sender | `service` or `expectFrom` |
 
 ## Mailosaur
 
@@ -47,7 +47,7 @@ const { inboxId, verification } = await mail.open({
 
 ## Mailtrap (testing inbox)
 
-Mailtrap часто используют как SMTP sandbox — письма не уходят наружу. MailAgent принимает **реальный inbound** через Resend на ваш домен. Для CI без SMTP используйте `npm run test:contract:qa` (simulate в БД).
+Mailtrap is often used as SMTP sandbox — mail does not go out. MailAgent accepts **real inbound** via Resend on your domain. For CI without SMTP use `npm run test:contract:qa` (simulate in DB).
 
 ## Playwright / Cypress
 
@@ -57,12 +57,12 @@ Mailtrap часто используют как SMTP sandbox — письма н
 | CI secret | `MAILOSAUR_API_KEY` | `MAILAGENT_API_KEY` |
 | Parallel runs | random address | `mail.runLabel("ci")` + cleanup |
 
-## Чеклист переезда
+## Migration checklist
 
-1. Заменить env: `MAILAGENT_API_URL`, `MAILAGENT_API_KEY`
-2. Убрать polling по стороннему API → `waitForVerification` или `open`
-3. Настроить `service` под From вашего staging ([QA-PRESETS.md](./QA-PRESETS.md))
-4. Добавить cleanup: `cleanupRun(GITHUB_RUN_ID)` или `DELETE ?labelPrefix=`
-5. При 429 смотреть заголовки `X-RateLimit-*`, `Retry-After`
+1. Replace env: `MAILAGENT_API_URL`, `MAILAGENT_API_KEY`
+2. Remove polling on third-party API → `waitForVerification` or `open`
+3. Set `service` for your staging From ([QA-PRESETS.md](./QA-PRESETS.md))
+4. Add cleanup: `cleanupRun(GITHUB_RUN_ID)` or `DELETE ?labelPrefix=`
+5. On 429 check headers `X-RateLimit-*`, `Retry-After`
 
-См. [QA.md](./QA.md), [QA-ONBOARDING.md](./QA-ONBOARDING.md).
+See [QA.md](./QA.md), [QA-ONBOARDING.md](./QA-ONBOARDING.md).

@@ -1,6 +1,6 @@
 /**
- * Пример E2E с MailAgent — скопируй в свой проект и задай MAILAGENT_API_KEY.
- * Запуск: npx playwright test (после установки @mailagent/qa)
+ * MailAgent E2E example — copy into your project and set MAILAGENT_API_KEY.
+ * Run: npx playwright test (after installing @mailagent/qa)
  */
 import { test, expect } from "@playwright/test";
 import { createMailAgentQa, MailAgentQa } from "@mailagent/qa";

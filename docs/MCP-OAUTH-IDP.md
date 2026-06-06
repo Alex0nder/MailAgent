@@ -1,17 +1,17 @@
-# MCP OAuth через Auth0 / Google (OIDC)
+# MCP OAuth via Auth0 / Google (OIDC)
 
-MailAgent может принимать **login через внешний IdP** для remote MCP (Cursor, Claude Desktop) — без ручного API key в конфиге клиента.
+MailAgent can accept **login via external IdP** for remote MCP (Cursor, Claude Desktop) — without manual API key in client config.
 
-## Два режима OAuth
+## Two OAuth modes
 
-| Режим | Когда | Flow |
+| Mode | When | Flow |
 |-------|-------|------|
-| **client_credentials** | по умолчанию | API key → `mat_` token |
-| **authorization_code + PKCE** | `OIDC_*` на Worker | Browser login (Auth0/Google) → `mat_` token |
+| **client_credentials** | default | API key → `mat_` token |
+| **authorization_code + PKCE** | `OIDC_*` on Worker | Browser login (Auth0/Google) → `mat_` token |
 
-Оба могут работать одновременно.
+Both can work simultaneously.
 
-## Настройка Auth0 (пример)
+## Auth0 setup (example)
 
 1. [Auth0 Dashboard](https://manage.auth0.com) → Applications → Create → **Regular Web Application**
 2. **Allowed Callback URLs:**
@@ -19,7 +19,7 @@ MailAgent может принимать **login через внешний IdP** 
    https://api.webmailagent.com/v1/oauth/callback
    http://127.0.0.1:8787/v1/oauth/callback
    ```
-3. Скопируй **Domain**, **Client ID**, **Client Secret**
+3. Copy **Domain**, **Client ID**, **Client Secret**
 
 Worker secrets:
 
@@ -30,19 +30,19 @@ npx wrangler secret put OIDC_ISSUER
 npx wrangler secret put OIDC_CLIENT_ID
 npx wrangler secret put OIDC_CLIENT_SECRET
 
-# опционально для Auth0 API
+# optional for Auth0 API
 npx wrangler secret put OIDC_AUDIENCE
 ```
 
-Локально в `.dev.vars` — те же ключи.
+Locally in `.dev.vars` — same keys.
 
-4. Миграция:
+4. Migrate:
 
 ```bash
 npm run db:migrate
 ```
 
-5. Deploy + проверка discovery:
+5. Deploy + check discovery:
 
 ```bash
 curl -sS https://api.webmailagent.com/.well-known/oauth-authorization-server | jq .
@@ -68,11 +68,11 @@ sequenceDiagram
 
 ## Endpoints
 
-| Method | Path | Описание |
+| Method | Path | Description |
 |--------|------|----------|
-| GET | `/v1/oauth/authorize` | Старт login (PKCE: `redirect_uri`, `state`, `code_challenge`) |
-| GET | `/v1/oauth/callback` | Callback от IdP (internal) |
-| POST | `/v1/oauth/token` | `grant_type=authorization_code` или `client_credentials` |
+| GET | `/v1/oauth/authorize` | Start login (PKCE: `redirect_uri`, `state`, `code_challenge`) |
+| GET | `/v1/oauth/callback` | Callback from IdP (internal) |
+| POST | `/v1/oauth/token` | `grant_type=authorization_code` or `client_credentials` |
 
 ### Token exchange (authorization_code)
 
@@ -87,18 +87,18 @@ curl -sS -X POST https://api.webmailagent.com/v1/oauth/token \
 
 ## Teams
 
-Первый login через IdP создаёт **team `free`** + запись в `oidc_identities` (issuer + sub).
+First IdP login creates **team `free`** + row in `oidc_identities` (issuer + sub).
 
-План меняется как обычно: `npm run team:plan`, Stripe checkout.
+Plan changes as usual: `npm run team:plan`, Stripe checkout.
 
 ## Google
 
-Используй Google OAuth Client (Web) + OIDC issuer `https://accounts.google.com`  
-или Auth0 с Google social login (проще для MCP).
+Use Google OAuth Client (Web) + OIDC issuer `https://accounts.google.com`  
+or Auth0 with Google social login (simpler for MCP).
 
-## Без OIDC
+## Without OIDC
 
-Если секреты не заданы — `GET /v1/oauth/authorize` → `501 oidc_not_configured`.  
-client_credentials и DCR работают как раньше.
+If secrets not set — `GET /v1/oauth/authorize` → `501 oidc_not_configured`.  
+client_credentials and DCR work as before.
 
-См. также [MCP-OAUTH.md](./MCP-OAUTH.md).
+See also [MCP-OAUTH.md](./MCP-OAUTH.md).

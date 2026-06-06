@@ -1,4 +1,4 @@
-/** Извлечение OTP и ссылок при ingest (не в hot path webhook) */
+/** Extract OTP and links on ingest (not in webhook hot path) */
 import parseOtpMessage from "parse-otp-message";
 
 const OTP_PATTERNS = [
@@ -11,11 +11,11 @@ const OTP_PATTERNS = [
 
 const LINK_PATTERN = /https?:\/\/[^\s<>"')\]]+/gi;
 
-/** Шум в письмах — не отдавать агенту как magic link */
+/** Noise in emails — do not return to agent as magic link */
 const LINK_NOISE =
   /unsubscribe|list-manage|mailto:|privacy|preferences|trk\.|click\./i;
 
-/** Вероятные verify / magic links — выше в списке */
+/** Likely verify / magic links — higher in list */
 const LINK_VERIFY =
   /verify|confirm|activation|magic|token|oauth|sign[-_]?in|signup|password[-_]?reset|auth/i;
 
@@ -44,7 +44,7 @@ function linkScore(url: string): number {
   return LINK_VERIFY.test(url) ? 2 : 0;
 }
 
-/** Лучшая ссылка для verify (уже отсортирована в extractLinks) */
+/** Best link for verify (already sorted in extractLinks) */
 export function primaryLink(links: string[]): string | null {
   return links[0] ?? null;
 }

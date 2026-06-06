@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Сгенерировать ключ; --register сохраняет в Neon (teams + api_keys) */
+/** Generate key; --register saves to Neon (teams + api_keys) */
 import "./load-env.mjs";
 import { randomBytes, createHash } from "node:crypto";
 import { neon } from "@neondatabase/serverless";

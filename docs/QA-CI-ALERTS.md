@@ -1,10 +1,10 @@
 # CI alerts: Slack + PR comments
 
-Когда email-шаг падает в nightly или PR, команда должна быстро увидеть inbox id и debug UI.
+When the email step fails in nightly or PR, the team should quickly see inbox id and debug UI.
 
 ## Label convention
 
-В тестах используйте label с префиксом run id:
+In tests use label with run id prefix:
 
 ```typescript
 import { MailAgentQa } from "@mailagent/qa";
@@ -13,7 +13,7 @@ const label = MailAgentQa.ciLabel(); // ci-{GITHUB_RUN_ID}-0-{timestamp}
 await mail.createInbox({ label, service: "auth0" });
 ```
 
-Cleanup после job: `DELETE /v1/inboxes?labelPrefix=ci-$GITHUB_RUN_ID`
+Cleanup after job: `DELETE /v1/inboxes?labelPrefix=ci-$GITHUB_RUN_ID`
 
 ## Slack (Incoming Webhook)
 
@@ -35,7 +35,7 @@ Cleanup после job: `DELETE /v1/inboxes?labelPrefix=ci-$GITHUB_RUN_ID`
   run: npm run ci:mailagent-alerts
 ```
 
-Или из кода:
+Or from code:
 
 ```typescript
 import { notifySlackOnMailFailure, formatSlackMailFailure } from "@mailagent/qa/notify";
@@ -49,7 +49,7 @@ await notifySlackOnMailFailure(process.env.MAILAGENT_SLACK_WEBHOOK, [ctx], {
 
 ## PR comment
 
-На `pull_request` тот же скрипт постит комментарий через `gh pr comment`, если есть `GITHUB_TOKEN` / `GH_TOKEN`.
+On `pull_request` the same script posts a comment via `gh pr comment` if `GITHUB_TOKEN` / `GH_TOKEN` exists.
 
 ```yaml
 permissions:
@@ -67,22 +67,22 @@ permissions:
   run: npm run ci:mailagent-alerts
 ```
 
-Комментарий содержит:
+Comment includes:
 
-- inbox id и address
-- ссылку на [debug.html](https://webmailagent.com/debug.html)
-- список messages (from, subject)
-- ссылку на workflow run
+- inbox id and address
+- link to [debug.html](https://webmailagent.com/debug.html)
+- message list (from, subject)
+- link to workflow run
 
 ## Screenshot (optional)
 
-Playwright при падении:
+Playwright on failure:
 
 ```typescript
 await page.screenshot({ path: "test-results/failure.png", fullPage: true });
 ```
 
-Прикрепите артефакт в workflow:
+Attach artifact in workflow:
 
 ```yaml
 - uses: actions/upload-artifact@v4
@@ -92,7 +92,7 @@ await page.screenshot({ path: "test-results/failure.png", fullPage: true });
     path: test-results/
 ```
 
-Ссылку на artifact можно добавить в PR body вручную или расширить `ci-mailagent-alerts.mjs`.
+Artifact link can be added to PR body manually or extend `ci-mailagent-alerts.mjs`.
 
 ## API: list by prefix
 
@@ -101,4 +101,4 @@ curl -sS "$MAILAGENT_API_URL/v1/inboxes?labelPrefix=ci-12345" \
   -H "Authorization: Bearer $MAILAGENT_API_KEY" | jq .
 ```
 
-См. [examples/github-actions/qa-email.yml](../examples/github-actions/qa-email.yml).
+See [examples/github-actions/qa-email.yml](../examples/github-actions/qa-email.yml).

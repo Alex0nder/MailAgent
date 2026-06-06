@@ -142,7 +142,7 @@ oauthTokenRoutes.get("/callback", async (c) => {
   }
 });
 
-/** RFC 7591 Dynamic Client Registration — новый MCP client key для team */
+/** RFC 7591 Dynamic Client Registration — new MCP client key for team */
 oauthTokenRoutes.post("/register", requireApiKey, rateLimit, async (c) => {
   const adminErr = scopeAdminDenied(c);
   if (adminErr) return adminErr;
@@ -214,7 +214,7 @@ oauthTokenRoutes.post("/register", requireApiKey, rateLimit, async (c) => {
   );
 });
 
-/** GET /v1/oauth/clients/:id — metadata без secret (Bearer team key) */
+/** GET /v1/oauth/clients/:id — metadata without secret (Bearer team key) */
 oauthTokenRoutes.get("/clients/:id", requireApiKey, rateLimit, async (c) => {
   const teamId = c.get("teamId");
   if (!teamId) {

@@ -1,15 +1,15 @@
-# Simulate-first QA (без Resend)
+# Simulate-first QA (without Resend)
 
-Когда staging ещё не шлёт письма, или нужен **детерминированный OTP** в CI — используй `POST /v1/inboxes/:id/simulate`.
+When staging does not send mail yet, or you need **deterministic OTP** in CI — use `POST /v1/inboxes/:id/simulate`.
 
-## Когда использовать
+## When to use
 
-| Сценарий | Решение |
+| Scenario | Solution |
 |----------|---------|
-| CI consumer-репо без Neon | `simulate` через REST или `@mailagent/qa` |
-| Локальная отладка OTP-парсера | Debug UI → «Simulate OTP email» |
-| Contract / smoke MailAgent | `npm run test:contract:qa` (только API key) |
-| Полный E2E со staging | Обычный `waitForVerification` + Resend |
+| CI consumer repo without Neon | `simulate` via REST or `@mailagent/qa` |
+| Local OTP parser debug | Debug UI → "Simulate OTP email" |
+| MailAgent contract / smoke | `npm run test:contract:qa` (API key only) |
+| Full E2E with staging | Normal `waitForVerification` + Resend |
 
 ## REST
 
@@ -30,7 +30,7 @@ curl -sS "$MAILAGENT_API_URL/v1/inboxes/$INBOX/extract" \
 
 ## Threading (v0.18)
 
-Симулируй цепочку без SMTP — для contract `npm run test:contract:qa:threads`:
+Simulate a thread without SMTP — for contract `npm run test:contract:qa:threads`:
 
 ```bash
 ROOT=$(curl -sS -X POST "$MAILAGENT_API_URL/v1/inboxes/$INBOX/simulate" \
@@ -65,15 +65,15 @@ await mail.deleteInbox(inbox.id);
 
 ## Playwright
 
-- Пример: [examples/playwright/signup-simulate.spec.example.ts](../examples/playwright/signup-simulate.spec.example.ts)
+- Example: [examples/playwright/signup-simulate.spec.example.ts](../examples/playwright/signup-simulate.spec.example.ts)
 - Fixture: [examples/playwright/mailagent-simulate.fixture.ts](../examples/playwright/mailagent-simulate.fixture.ts)
 
 ## GitHub Actions (consumer repo)
 
-Скопируй [examples/github-actions/qa-simulate-only.yml](../examples/github-actions/qa-simulate-only.yml) — secret: `MAILAGENT_API_KEY`.
+Copy [examples/github-actions/qa-simulate-only.yml](../examples/github-actions/qa-simulate-only.yml) — secret: `MAILAGENT_API_KEY`.
 
 ## MCP / Codex
 
-`mailagent_simulate_message` → затем `mailagent_wait_and_extract` или `mailagent_verify_signup`.
+`mailagent_simulate_message` → then `mailagent_wait_and_extract` or `mailagent_verify_signup`.
 
-См. также [QA-TROUBLESHOOTING.md](./QA-TROUBLESHOOTING.md) · [QA-LOCAL-SMTP.md](./QA-LOCAL-SMTP.md).
+See also [QA-TROUBLESHOOTING.md](./QA-TROUBLESHOOTING.md) · [QA-LOCAL-SMTP.md](./QA-LOCAL-SMTP.md).

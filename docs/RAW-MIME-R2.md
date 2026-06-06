@@ -1,6 +1,6 @@
 # Raw MIME in R2
 
-Resend отдаёт `raw.download_url` только ~1 час. MailAgent скачивает `.eml` при ingest и хранит в **Cloudflare R2** до удаления inbox (TTL / cron / DELETE).
+Resend exposes `raw.download_url` for only ~1 hour. MailAgent downloads `.eml` on ingest and stores it in **Cloudflare R2** until inbox deletion (TTL / cron / DELETE).
 
 ## Setup
 
@@ -13,42 +13,42 @@ npm run deploy
 npm run db:migrate   # 009_message_raw_r2.sql
 ```
 
-Binding уже в `wrangler.jsonc`:
+Binding is already in `wrangler.jsonc`:
 
 ```jsonc
 "r2_buckets": [{ "binding": "RAW_MIME", "bucket_name": "mailagent-raw-mime" }]
 ```
 
-Опционально: `RAW_MIME_MAX_BYTES` (default `15728640` = 15MB).
+Optional: `RAW_MIME_MAX_BYTES` (default `15728640` = 15MB).
 
 ## API
 
 ```bash
-# Список — поле hasRaw + rawUrl
+# List — hasRaw + rawUrl fields
 GET /v1/inboxes/:inboxId/messages
 
-# Скачать .eml
+# Download .eml
 GET /v1/inboxes/:inboxId/messages/:messageId/raw
 
-# Метаданные (размер)
+# Metadata (size)
 GET /v1/inboxes/:inboxId/messages/:messageId/raw \
   -H "Accept: application/json"
 ```
 
-## Ошибки
+## Errors
 
-| Code | Причина |
-|------|---------|
-| `raw_mime_disabled` | Worker без R2 binding |
-| `raw_not_stored` | Письмо до включения R2 или download failed |
-| `raw_not_found` | Ключ в БД, объект в R2 удалён |
+| Code | Cause |
+|------|-------|
+| `raw_mime_disabled` | Worker without R2 binding |
+| `raw_not_stored` | Message before R2 was enabled or download failed |
+| `raw_not_found` | Key in DB, R2 object deleted |
 
 ## Cleanup
 
-R2 объекты удаляются при:
+R2 objects are deleted on:
 
 - `DELETE /v1/inboxes/:id`
 - `DELETE /v1/inboxes?labelPrefix=`
 - hourly cron `purgeExpired`
 
-Сайт: [webmailagent.com/docs/raw-mime.html](https://webmailagent.com/docs/raw-mime.html)
+Site: [webmailagent.com/docs/raw-mime.html](https://webmailagent.com/docs/raw-mime.html)

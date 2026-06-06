@@ -1,4 +1,4 @@
-/** Пресеты expectFrom для популярных сервисов (агент / MCP / API) */
+/** expectFrom presets for popular services (agent / MCP / API) */
 
 export const SERVICE_EXPECT_FROM: Record<string, string[]> = {
   dribbble: ["dribbble.com", "m.dribbble.com"],

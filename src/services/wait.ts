@@ -1,4 +1,4 @@
-/** Ожидание письма (poll) — для /wait, /open, MCP progress */
+/** Wait for message (poll) — for /wait, /open, MCP progress */
 import type { Env } from "../env";
 import { listMessages, type MessageRow } from "./inbox";
 
@@ -34,7 +34,7 @@ export type WaitTimeoutDebug = {
   hint: string;
 };
 
-/** Ждём N-е письмо (0 = самое новое среди совпадений) */
+/** Wait for Nth message (0 = newest among matches) */
 export async function waitForMessage(
   env: Env,
   inboxId: string,
@@ -94,7 +94,7 @@ export async function waitForFirstMessage(
   return waitForMessage(env, inboxId, timeoutSec, options);
 }
 
-/** Контекст для 408 timeout — QA debug */
+/** Context for 408 timeout — QA debug */
 export async function buildWaitTimeoutDebug(
   env: Env,
   inboxId: string,

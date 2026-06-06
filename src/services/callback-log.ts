@@ -1,4 +1,4 @@
-/** Запись и чтение лога доставки callbackUrl */
+/** Write and read callbackUrl delivery log */
 import { nanoid } from "nanoid";
 import type { Env } from "../env";
 import { getDb } from "../db/client";

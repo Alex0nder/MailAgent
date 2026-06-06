@@ -1,4 +1,4 @@
--- Phase 3: команды, ключи в БД, планы (Stripe → teams.plan)
+-- Phase 3: teams, keys in DB, plans (Stripe → teams.plan)
 
 CREATE TABLE IF NOT EXISTS teams (
   id TEXT PRIMARY KEY,

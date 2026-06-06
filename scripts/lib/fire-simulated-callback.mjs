@@ -1,5 +1,5 @@
 /**
- * Имитация Worker fireInboxCallback после simulate-inbound (для contract без SMTP).
+ * Simulate Worker fireInboxCallback after simulate-inbound (for contract without SMTP).
  */
 import { nanoid } from "nanoid";
 
@@ -44,7 +44,7 @@ function parseLinks(raw) {
   return [];
 }
 
-/** POST на callback_url inbox + запись в callback_deliveries */
+/** POST to inbox callback_url + record in callback_deliveries */
 export async function fireSimulatedCallback(sql, inboxId, messageId) {
   const inboxes = await sql`
     SELECT id, address, label, callback_url FROM inboxes WHERE id = ${inboxId} LIMIT 1

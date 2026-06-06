@@ -1,4 +1,4 @@
-/** Discovery endpoint для агентов и документации */
+/** Discovery endpoint for agents and documentation */
 
 import { Hono } from "hono";
 import { SERVICE_EXPECT_FROM } from "../lib/service-presets";

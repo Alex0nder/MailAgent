@@ -1,4 +1,4 @@
-/** OpenAPI 3.0 — полная схема REST API MailAgent */
+/** OpenAPI 3.0 — full MailAgent REST API schema */
 
 const bearer = [{ bearerAuth: [] }];
 

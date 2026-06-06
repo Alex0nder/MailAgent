@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Contract test без реального SMTP: API create → POST …/simulate → wait/extract.
- * Нужны только: MAILAGENT_API_URL, MAILAGENT_API_KEY (DATABASE_URL не требуется).
+ * Contract test without real SMTP: API create → POST …/simulate → wait/extract.
+ * Requires only: MAILAGENT_API_URL, MAILAGENT_API_KEY (DATABASE_URL not required).
  */
 import "./load-env.mjs";
 import {

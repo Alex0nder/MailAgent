@@ -1,5 +1,5 @@
-# Mailpit для локальной разработки (SMTP capture)
-# Запуск: docker compose -f examples/docker-compose.mailpit.yml up -d
+# Mailpit for local development (SMTP capture)
+# Run: docker compose -f examples/docker-compose.mailpit.yml up -d
 # UI: http://localhost:8025  SMTP: localhost:1025
 
 services:

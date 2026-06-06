@@ -1,4 +1,4 @@
-/** MCP tool definitions для remote HTTP + docs */
+/** MCP tool definitions for remote HTTP + docs */
 import { SERVICE_EXPECT_FROM } from "../lib/service-presets";
 
 export const SERVICE_NAMES = Object.keys(SERVICE_EXPECT_FROM);
@@ -311,5 +311,5 @@ export const MCP_TOOLS = [
   },
 ] as const;
 
-/** Имена tools для GET /v1/agent и GET /v1 — единый источник с MCP_TOOLS */
+/** Tool names for GET /v1/agent and GET /v1 — single source with MCP_TOOLS */
 export const MCP_TOOL_NAMES: string[] = MCP_TOOLS.map((t) => t.name);

@@ -1,4 +1,4 @@
-/** Исходящая почта из inbox через Resend (threads + reply) */
+/** Outbound mail from inbox via Resend (threads + reply) */
 import { nanoid } from "nanoid";
 import { Resend } from "resend";
 import type { Env } from "../env";

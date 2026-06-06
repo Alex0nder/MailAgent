@@ -1,4 +1,4 @@
-/** Team admin: ключи команды (invite = выдать новый ключ) */
+/** Team admin: team keys (invite = issue a new key) */
 import { Hono } from "hono";
 import type { Env } from "../env";
 import type { ApiVariables } from "../lib/api-context";

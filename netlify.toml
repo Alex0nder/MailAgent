@@ -1,4 +1,4 @@
-# Опционально: Netlify. Прод-лендинг рекомендуется на Cloudflare Worker — см. docs/HOSTING-CLOUDFLARE.md
+# Optional: Netlify. Prod landing is recommended on Cloudflare Worker — see docs/HOSTING-CLOUDFLARE.md
 [build]
   publish = "public"
   command = ""

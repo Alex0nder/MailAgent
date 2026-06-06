@@ -1,4 +1,4 @@
-/** Сохранение raw MIME из Resend в R2 + cleanup при удалении inbox */
+/** Store raw MIME from Resend in R2 + cleanup on inbox delete */
 import type { Env } from "../env";
 import { getDb } from "../db/client";
 
@@ -18,7 +18,7 @@ export function rawMimeEnabled(env: Env): boolean {
   return Boolean(env.RAW_MIME);
 }
 
-/** Скачать signed URL Resend и положить в R2; null если binding нет или ошибка */
+/** Download Resend signed URL and store in R2; null if no binding or error */
 export async function storeRawMimeFromUrl(
   env: Env,
   inboxId: string,
@@ -84,7 +84,7 @@ export async function deleteRawR2Keys(
   return unique.length;
 }
 
-/** Удалить R2-объекты для inbox перед CASCADE delete */
+/** Delete R2 objects for inbox before CASCADE delete */
 export async function purgeRawMimeForInboxes(
   env: Env,
   inboxIds: string[]

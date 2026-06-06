@@ -1,4 +1,4 @@
-/** Валидация callback URL для QA (только HTTPS, без localhost) */
+/** Validate callback URL for QA (HTTPS only, no localhost) */
 
 export function parseCallbackUrl(raw: unknown): string | null {
   if (typeof raw !== "string" || !raw.trim()) return null;

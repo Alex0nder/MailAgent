@@ -1,4 +1,4 @@
-/** SHA-256 Bearer-токена */
+/** SHA-256 of Bearer token */
 async function sha256Hex(token: string): Promise<string> {
   const digest = await crypto.subtle.digest(
     "SHA-256",
@@ -9,12 +9,12 @@ async function sha256Hex(token: string): Promise<string> {
     .join("");
 }
 
-/** Префикс для inbox / rate limit (16 hex) */
+/** Prefix for inbox / rate limit (16 hex) */
 export async function apiKeyHintFromToken(token: string): Promise<string> {
   return (await sha256Hex(token)).slice(0, 16);
 }
 
-/** Полный хеш для таблицы api_keys */
+/** Full hash for api_keys table */
 export async function apiKeyHashFromToken(token: string): Promise<string> {
   return sha256Hex(token);
 }

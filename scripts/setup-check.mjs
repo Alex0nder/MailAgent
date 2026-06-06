@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Проверяет, что готово к локальному запуску и деплою */
+/** Check readiness for local run and deploy */
 import "./load-env.mjs";
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -35,7 +35,7 @@ console.log("MailAgent setup check\n");
 let ok = true;
 
 if (!existsSync(join(root, ".dev.vars"))) {
-  console.log("✗ .dev.vars — скопируйте: cp .dev.vars.example .dev.vars");
+  console.log("✗ .dev.vars — copy: cp .dev.vars.example .dev.vars");
   ok = false;
 } else {
   console.log("✓ .dev.vars exists");
@@ -48,7 +48,7 @@ if (!existsSync(join(root, ".dev.vars"))) {
       v.includes("YOUR_PASSWORD") ||
       v.includes("placeholder")
     ) {
-      console.log(`  ✗ ${key} — не заполнен`);
+      console.log(`  ✗ ${key} — not set`);
       ok = false;
     } else {
       console.log(`  ✓ ${key}`);
@@ -64,12 +64,12 @@ if (!existsSync(join(root, "mcp/dist/index.js"))) {
 }
 
 if (!merged.MAILAGENT_API_KEY && merged.API_KEY) {
-  console.log("ℹ Для MCP добавьте в .env: MAILAGENT_API_KEY=<same as API_KEY>");
+  console.log("ℹ For MCP add to .env: MAILAGENT_API_KEY=<same as API_KEY>");
 }
 
 if (!merged.OUTBOUND_FROM?.trim()) {
   console.log("ℹ OUTBOUND_FROM not set — inbound-only OK; see /docs/outbound.html for send/reply");
 }
 
-console.log(ok ? "\nReady for: npm run dev && npm run verify" : "\nЗаполните .dev.vars и повторите: node scripts/setup-check.mjs");
+console.log(ok ? "\nReady for: npm run dev && npm run verify" : "\nFill in .dev.vars and retry: node scripts/setup-check.mjs");
 process.exit(ok ? 0 : 1);

@@ -18,11 +18,11 @@ description: >-
 
 ## Recommended flow (agents)
 
-**mailagent_verify_signup** — главный инструмент:
+**mailagent_verify_signup** — primary tool:
 
-1. Создаёт inbox (или принимает `inboxId` после submit формы)
-2. Ждёт письмо от allowlist (`service` preset)
-3. Возвращает **`agent.primaryAction`**: тип `otp` | `magic_link`, `value`, `instruction`
+1. Creates inbox (or accepts `inboxId` after form submit)
+2. Waits for email from allowlist (`service` preset)
+3. Returns **`agent.primaryAction`**: type `otp` | `magic_link`, `value`, `instruction`
 
 ```json
 {
@@ -31,23 +31,23 @@ description: >-
 }
 ```
 
-Двухшаговый flow: сначала verify без ожидания — нет, verify всегда ждёт. Правильно:
-1. `mailagent_create_inbox` → address на форму
-2. `mailagent_verify_signup` с `inboxId` → primaryAction
+Two-step flow: there is no verify without waiting — verify always waits. Correct approach:
+1. `mailagent_create_inbox` → address on form
+2. `mailagent_verify_signup` with `inboxId` → primaryAction
 
-Или one-shot после submit: один `mailagent_verify_signup` с `service` (создаст inbox и будет ждать — адрес нужно успеть ввести на форме; для автomation лучше create → submit → verify с inboxId).
+Or one-shot after submit: single `mailagent_verify_signup` with `service` (creates inbox and waits — you must enter the address on the form in time; for automation prefer create → submit → verify with inboxId).
 
-REST: `POST /v1/agent/verify` — то же поведение. Docs: `/docs/agents.html`
+REST: `POST /v1/agent/verify` — same behavior. Docs: `/docs/agents.html`
 
-## Альтернатива
+## Alternative
 
-**mailagent_wait_and_extract** — без `agent.primaryAction`, сырой `verification`.
+**mailagent_wait_and_extract** — no `agent.primaryAction`, raw `verification`.
 
 ## Service presets
 
 `dribbble`, `github`, `google`, `auth0`, `stripe`, `vercel`, `supabase`, `clerk`, `discord`, `openai`, `resend`, `firebase`, `figma`, `notion`, `linear`, `slack`, `shopify`, `atlassian`, `aws`, `microsoft`, `apple`, `twilio`, `posthog`
 
-Рецепты: `GET /v1/agent/recipes/github`
+Recipes: `GET /v1/agent/recipes/github`
 
 ## Manual flow
 

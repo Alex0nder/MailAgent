@@ -1,4 +1,4 @@
-/** MCP Streamable HTTP: сессии в KV (reuse RATE_LIMIT binding) */
+/** MCP Streamable HTTP: sessions in KV (reuse RATE_LIMIT binding) */
 import type { Env } from "../env";
 import { nanoid } from "nanoid";
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * CI: Slack + PR comment при падении email-тестов.
+ * CI: Slack + PR comment on email test failure.
  * Env: MAILAGENT_API_URL, MAILAGENT_API_KEY, GITHUB_RUN_ID,
  *      MAILAGENT_SLACK_WEBHOOK (optional), GH_TOKEN + pull_request event
  */

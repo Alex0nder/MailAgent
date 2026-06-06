@@ -1,4 +1,4 @@
-/** SSE framing для MCP Streamable HTTP */
+/** SSE framing for MCP Streamable HTTP */
 import type { Env } from "../env";
 import { drainSessionProgress } from "./session-progress";
 
@@ -20,7 +20,7 @@ export function sseResponse(
   });
 }
 
-/** GET /mcp — keepalive + progress relay из KV очереди session */
+/** GET /mcp — keepalive + progress relay from KV session queue */
 export function mcpSseSessionStream(
   env: Env,
   sessionId: string,

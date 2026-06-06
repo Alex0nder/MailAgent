@@ -1,4 +1,4 @@
--- Вложения входящих писем (метаданные + опционально R2)
+-- Inbound message attachments (metadata + optional R2)
 
 CREATE TABLE IF NOT EXISTS message_attachments (
   id TEXT PRIMARY KEY,

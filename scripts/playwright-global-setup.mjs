@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Playwright globalSetup: inbox + simulate attachment → .mailagent-context.json
- * Нужны: MAILAGENT_API_KEY, DATABASE_URL, MAILAGENT_API_URL (optional)
+ * Requires: MAILAGENT_API_KEY, DATABASE_URL, MAILAGENT_API_URL (optional)
  */
 import "./load-env.mjs";
 import { writeFileSync } from "node:fs";

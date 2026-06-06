@@ -1,7 +1,7 @@
 import type { PlanId } from "./plans";
 import type { ApiKeyScope } from "./key-scope";
 
-/** Hono context после Bearer-auth */
+/** Hono context after Bearer auth */
 export type ApiVariables = {
   apiKeyHint: string;
   apiPlan: PlanId;

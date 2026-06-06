@@ -1,5 +1,5 @@
 /**
- * MailAgent QA SDK — inbox на прогон тестов, OTP и magic link для Playwright/Cypress.
+ * MailAgent QA SDK — inbox per test run, OTP and magic link for Playwright/Cypress.
  */
 
 export interface MailAgentQaConfig {
@@ -101,7 +101,7 @@ export class MailAgentQa {
     this.base = (config.apiUrl ?? process.env.MAILAGENT_API_URL ?? "https://api.webmailagent.com").replace(/\/$/, "");
   }
 
-  /** TTL из env `QA_TTL_MINUTES` (1–1440), иначе дефолт API */
+  /** TTL from env `QA_TTL_MINUTES` (1–1440), else API default */
   static qaTtlMinutes(): number | undefined {
     const raw = process.env.QA_TTL_MINUTES?.trim();
     if (!raw) return undefined;
@@ -110,7 +110,7 @@ export class MailAgentQa {
     return Math.min(1440, Math.max(1, Math.floor(n)));
   }
 
-  /** Уникальный label для параллельных воркеров Playwright */
+  /** Unique label for parallel Playwright workers */
   static runLabel(prefix = "pw"): string {
     const w = process.env.PLAYWRIGHT_WORKER_INDEX ?? process.env.CI_NODE_INDEX ?? "0";
     return `${prefix}-${w}-${Date.now()}`;
@@ -130,7 +130,7 @@ export class MailAgentQa {
     return { id: body.id, address: body.address, label: body.label };
   }
 
-  /** Create → wait → extract (рекомендуется для signup flow) */
+  /** Create → wait → extract (recommended for signup flow) */
   async open(options: OpenInboxOptions = {}): Promise<OpenResult> {
     const body = await this.requestRaw("/v1/inboxes/open", {
       method: "POST",
@@ -159,7 +159,7 @@ export class MailAgentQa {
     };
   }
 
-  /** Создать inbox → заполнить форму → вызвать wait */
+  /** Create inbox → fill form → call wait */
   async waitForVerification(
     inboxId: string,
     options?: {
@@ -208,7 +208,7 @@ export class MailAgentQa {
     return ext;
   }
 
-  /** Повтор wait при timeout (flaky staging / сеть) */
+  /** Retry wait on timeout (flaky staging / network) */
   async waitWithRetry(
     inboxId: string,
     options?: { timeoutSeconds?: number; subjectContains?: string },
@@ -254,7 +254,7 @@ export class MailAgentQa {
     return data.attachments ?? [];
   }
 
-  /** Метаданные вложения (Accept: application/json) */
+  /** Attachment metadata (Accept: application/json) */
   async getAttachmentMeta(
     inboxId: string,
     messageId: string,
@@ -284,7 +284,7 @@ export class MailAgentQa {
     return data.deliveries ?? [];
   }
 
-  /** OTP/links из latest или конкретного messageId */
+  /** OTP/links from latest or specific messageId */
   async getVerification(
     inboxId: string,
     messageId?: string
@@ -308,15 +308,15 @@ export class MailAgentQa {
   }
 
   /**
-   * Ждёт успешную доставку callbackUrl (poll GET …/callbacks).
-   * Inbox должен быть создан с callbackUrl; после письма Worker POSTит verification.
+   * Wait for successful callbackUrl delivery (poll GET …/callbacks).
+   * Inbox must be created with callbackUrl; Worker POSTs verification after message.
    */
   async waitForCallback(
     inboxId: string,
     options?: {
       timeoutSeconds?: number;
       pollIntervalMs?: number;
-      /** Игнорировать deliveries до этого момента (ISO или Date) */
+      /** Ignore deliveries before this moment (ISO or Date) */
       since?: Date | string;
       /** 0 = newest ok delivery (default) */
       callbackIndex?: number;
@@ -357,16 +357,16 @@ export class MailAgentQa {
       callbackIndex: index,
       callbacks: ctx?.callbacks ?? [],
       troubleshooting: [
-        "Убедитесь что inbox создан с callbackUrl (HTTPS).",
-        "Endpoint должен ответить 2xx за <10s.",
-        "См. GET …/callbacks — ok:false и statusCode.",
+        "Ensure inbox was created with callbackUrl (HTTPS).",
+        "Endpoint must respond 2xx within <10s.",
+        "See GET …/callbacks — ok:false and statusCode.",
         ...(ctx?.troubleshooting ?? []),
       ],
       debugUiUrl: this.debugUiUrl(inboxId),
     });
   }
 
-  /** Контекст для Allure / ReportPortal / CI log — предпочитает GET …/diagnose */
+  /** Context for Allure / ReportPortal / CI log — prefers GET …/diagnose */
   async getDebugContext(
     inboxId: string,
     options?: { subjectContains?: string; messageIndex?: number; address?: string; label?: string | null }
@@ -429,7 +429,7 @@ export class MailAgentQa {
     return `${origin.replace(/\/$/, "")}/debug.html?inbox=${encodeURIComponent(inboxId)}`;
   }
 
-  /** Label для CI: ci-{GITHUB_RUN_ID}-{worker}-{ts} */
+  /** Label for CI: ci-{GITHUB_RUN_ID}-{worker}-{ts} */
   static ciLabel(prefix = "ci"): string {
     const run = process.env.GITHUB_RUN_ID ?? process.env.CI ?? "local";
     return MailAgentQa.runLabel(`${prefix}-${run}`);
@@ -466,7 +466,7 @@ export class MailAgentQa {
     await this.request(`/v1/inboxes/${inboxId}`, { method: "DELETE" });
   }
 
-  /** POST /v1/inboxes/:id/simulate — test OTP без реального SMTP */
+  /** POST /v1/inboxes/:id/simulate — test OTP without real SMTP */
   async simulateMessage(
     inboxId: string,
     options?: {
@@ -495,7 +495,7 @@ export class MailAgentQa {
     });
   }
 
-  /** Simulate + wait — E2E без реального SMTP (CI offline / SDK smoke) */
+  /** Simulate + wait — E2E without real SMTP (CI offline / SDK smoke) */
   async simulateAndVerify(
     inboxId: string,
     options?: {
@@ -522,13 +522,13 @@ export class MailAgentQa {
     });
   }
 
-  /** Удалить все inbox с label, начинающимся с prefix (CI cleanup) */
+  /** Delete all inboxes with label starting with prefix (CI cleanup) */
   async cleanupLabelPrefix(labelPrefix: string): Promise<{ deleted: number; ids: string[] }> {
     const q = encodeURIComponent(labelPrefix);
     return this.request(`/v1/inboxes?labelPrefix=${q}`, { method: "DELETE" });
   }
 
-  /** Алиас: cleanupLabelPrefix("ci-12345") после job */
+  /** Alias: cleanupLabelPrefix("ci-12345") after job */
   async cleanupRun(runId: string): Promise<{ deleted: number; ids: string[] }> {
     return this.cleanupLabelPrefix(`ci-${runId}`);
   }
@@ -594,7 +594,7 @@ export class MailAgentRateLimitError extends Error {
   }
 }
 
-/** Вложение для Allure `testInfo.attach(...)` */
+/** Attachment for Allure `testInfo.attach(...)` */
 export function formatAllureAttachment(ctx: DebugContext): {
   name: string;
   body: string;
@@ -617,7 +617,7 @@ export class MailAgentTimeoutError extends Error {
   }
 }
 
-/** Чеклист при timeout / падении email-шага */
+/** Checklist on timeout / email step failure */
 export function timeoutTroubleshooting(input: {
   subjectContains?: string;
   messageIndex?: number;
@@ -630,35 +630,35 @@ export function timeoutTroubleshooting(input: {
   const idx = input.messageIndex ?? 0;
 
   if (!msgs.length) {
-    steps.push("0 messages: проверьте Resend webhook → POST /webhooks/resend и что staging реально шлёт письмо.");
-    steps.push("Проверьте service / expectFrom allowlist (GET /v1 для presets).");
+    steps.push("0 messages: check Resend webhook → POST /webhooks/resend and that staging actually sends mail.");
+    steps.push("Check service / expectFrom allowlist (GET /v1 for presets).");
   } else if (input.subjectContains) {
     steps.push(
-      `${msgs.length} message(s) в inbox, фильтр subjectContains="${input.subjectContains}", messageIndex=${idx}.`
+      `${msgs.length} message(s) in inbox, filter subjectContains="${input.subjectContains}", messageIndex=${idx}.`
     );
     if (idx > 0) {
-      steps.push("Welcome + verify flow: используйте messageIndex=1 для второго письма.");
+      steps.push("Welcome + verify flow: use messageIndex=1 for the second message.");
     }
   } else if (idx > 0 && msgs.length <= idx) {
-    steps.push(`Нужен messageIndex=${idx}, но в списке только ${msgs.length} письмо(а).`);
+    steps.push(`Need messageIndex=${idx}, but list has only ${msgs.length} message(s).`);
   } else {
-    steps.push(`${msgs.length} message(s) есть — проверьте subjectContains / messageIndex или extract.`);
+    steps.push(`${msgs.length} message(s) present — check subjectContains / messageIndex or extract.`);
   }
 
   const failedCb = cbs.filter((d) => !d.ok);
   if (failedCb.length) {
     steps.push(
-      `Callback failed (${failedCb.length}): status ${failedCb.map((d) => d.statusCode).join(", ")} — см. GET …/callbacks.`
+      `Callback failed (${failedCb.length}): status ${failedCb.map((d) => d.statusCode).join(", ")} — see GET …/callbacks.`
     );
   } else if (cbs.length) {
     steps.push(`Callbacks OK (${cbs.length} delivery log entries).`);
   }
 
-  steps.push("Откройте debug UI из ошибки или: GET /v1/inboxes?label=…");
+  steps.push("Open debug UI from error or: GET /v1/inboxes?label=…");
   return steps;
 }
 
-/** Из env: MAILAGENT_API_URL, MAILAGENT_API_KEY */
+/** From env: MAILAGENT_API_URL, MAILAGENT_API_KEY */
 export function createMailAgentQa(config?: Partial<MailAgentQaConfig>): MailAgentQa {
   const apiKey = config?.apiKey ?? process.env.MAILAGENT_API_KEY ?? "";
   return new MailAgentQa({

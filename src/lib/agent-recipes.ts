@@ -1,4 +1,4 @@
-/** Рецепты signup-flow для LLM-агентов (MCP + REST) */
+/** Signup-flow recipes for LLM agents (MCP + REST) */
 import { SERVICE_EXPECT_FROM } from "./service-presets";
 
 export interface AgentRecipe {
@@ -114,7 +114,7 @@ export function buildPrimaryAction(verification: {
   };
 }
 
-/** label + runId для трассировки прогона агента */
+/** label + runId for agent run tracing */
 export function resolveAgentLabel(args: {
   label?: string;
   runId?: string;
@@ -126,7 +126,7 @@ export function resolveAgentLabel(args: {
   return lab?.slice(0, 128);
 }
 
-/** Парсинг runId из label `agent-{runId}` или `agent-{runId}:suffix` */
+/** Parse runId from label `agent-{runId}` or `agent-{runId}:suffix` */
 export function parseRunIdFromLabel(label: string | null): string | null {
   if (!label?.startsWith("agent-")) return null;
   const rest = label.slice("agent-".length);

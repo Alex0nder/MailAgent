@@ -1,5 +1,5 @@
 /**
- * Playwright fixture: авто-cleanup inbox после теста.
+ * Playwright fixture: auto-cleanup inbox after test.
  * Usage: import { test, expect } from "./mailagent.fixture";
  */
 import { test as base, expect } from "@playwright/test";

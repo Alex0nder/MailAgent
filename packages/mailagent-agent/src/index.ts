@@ -1,4 +1,4 @@
-/** SDK для AI-агентов: verify signup + list runs */
+/** SDK for AI agents: verify signup + list runs */
 export type MailAgentOptions = {
   baseUrl: string;
   apiKey: string;
@@ -136,7 +136,7 @@ export class MailAgent {
     return body as T;
   }
 
-  /** POST /v1/agent/verify — главный метод для агентов */
+  /** POST /v1/agent/verify — primary method for agents */
   verifySignup(options: VerifySignupOptions = {}): Promise<VerifySignupResult> {
     return this.request("/v1/agent/verify", {
       method: "POST",

@@ -1,6 +1,6 @@
-/** Нормализация и проверка allowlist From для inbox */
+/** Normalize and validate allowlist From for inbox */
 
-/** Приводит expectFrom / allowedSenders к списку правил (lowercase) */
+/** Normalize expectFrom / allowedSenders to rule list (lowercase) */
 export function normalizeAllowedSenders(
   input: string | string[] | undefined
 ): string[] {
@@ -19,7 +19,7 @@ export function normalizeAllowedSenders(
   return [...new Set(out)];
 }
 
-/** Пустой allowlist = любой отправитель; домен матчит и поддомены (m.dribbble.com → dribbble.com) */
+/** Empty allowlist = any sender; domain matches subdomains (m.dribbble.com → dribbble.com) */
 export function isSenderAllowed(
   from: string,
   allowedSenders: string[] | null | undefined

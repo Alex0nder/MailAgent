@@ -1,4 +1,4 @@
-/** KV: лимит запросов в минуту на api_key_hint (hosted) */
+/** KV: requests per minute limit per api_key_hint (hosted) */
 import type { Context, Next } from "hono";
 import type { Env } from "../env";
 import type { ApiVariables } from "./api-context";

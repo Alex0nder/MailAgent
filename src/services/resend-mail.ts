@@ -31,7 +31,7 @@ export function createResendClient(env: Env) {
   return new Resend(env.RESEND_API_KEY);
 }
 
-/** Обработка письма из очереди: fetch body, extract, save, notify DO */
+/** Process queued message: fetch body, extract, save, notify DO */
 export async function processInboundEmail(
   env: Env,
   job: EmailQueueMessage,

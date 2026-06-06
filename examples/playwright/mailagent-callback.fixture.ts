@@ -1,6 +1,6 @@
 /**
- * Playwright: inbox с callbackUrl + ожидание доставки через listCallbackDeliveries.
- * Требует реальное письмо или simulate-inbound --fire-callback в contract.
+ * Playwright: inbox with callbackUrl + wait for delivery via listCallbackDeliveries.
+ * Requires real message or simulate-inbound --fire-callback in contract.
  */
 import { test as base, expect } from "@playwright/test";
 import {

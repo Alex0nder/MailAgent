@@ -52,7 +52,7 @@ export async function recordAuditEvent(
   `;
 }
 
-/** Fire-and-forget — на Workers нужен executionCtx.waitUntil */
+/** Fire-and-forget — on Workers requires executionCtx.waitUntil */
 export function auditFire(
   env: Env,
   ctx: AuditContext,
@@ -69,7 +69,7 @@ export function auditFire(
   }
 }
 
-/** Route helper — всегда передаёт executionCtx.waitUntil на Workers */
+/** Route helper — always passes executionCtx.waitUntil on Workers */
 export function auditRoute(
   c: {
     env: Env;

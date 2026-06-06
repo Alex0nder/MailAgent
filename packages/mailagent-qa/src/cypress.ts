@@ -1,5 +1,5 @@
 /**
- * Cypress node tasks для MailAgent — подключение в cypress.config.
+ * Cypress node tasks for MailAgent — wire in cypress.config.
  */
 import {
   createMailAgentQa,
@@ -41,7 +41,7 @@ export type MailAgentCypressTasks = {
   mailagentCleanupRun: (runId: string) => Promise<{ deleted: number; ids: string[] }>;
 };
 
-/** Зарегистрировать tasks: on('task', createMailAgentCypressTasks()) */
+/** Register tasks: on('task', createMailAgentCypressTasks()) */
 export function createMailAgentCypressTasks(
   config?: Partial<MailAgentQaConfig>
 ): MailAgentCypressTasks {

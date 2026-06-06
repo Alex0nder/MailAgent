@@ -1,4 +1,4 @@
-/** QA/dev: вставка тестового письма без Resend (обходит allowlist ingest) */
+/** QA/dev: inject test message without Resend (bypasses allowlist ingest) */
 import { nanoid } from "nanoid";
 import type { Env, MessageNotifyPayload } from "../env";
 import { primaryLink } from "./extract";

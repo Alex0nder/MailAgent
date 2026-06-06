@@ -55,7 +55,7 @@ html {
   scrollbar-width: thin;
 }
 
-/* Кастомный скроллбар — WebKit (Chrome, Safari, Edge) */
+/* Custom scrollbar — WebKit (Chrome, Safari, Edge) */
 * {
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   scrollbar-width: thin;
@@ -118,7 +118,7 @@ img {
   height: auto;
 }
 
-/* Единая колонка лендинга: nav, hero, секции, footer — одни вертикали */
+/* Single landing column: nav, hero, sections, footer — shared vertical rhythm */
 .site-container,
 main.landing .section-inner {
   width: 100%;
@@ -128,7 +128,7 @@ main.landing .section-inner {
   box-sizing: border-box;
 }
 
-/* Полноширинные фоны секций; контент — только в .site-container */
+/* Full-width section backgrounds; content only in .site-container */
 main.landing > .page-section,
 main.landing > .cta-block {
   width: 100%;
@@ -255,7 +255,7 @@ main.landing > .cta-block {
   border-color: var(--border-strong);
 }
 
-/* Компактные кнопки в nav (не дублируют hero primary) */
+/* Compact nav buttons (do not duplicate hero primary) */
 .btn-sm {
   padding: 6px 12px;
   font-size: 13px;
@@ -514,7 +514,7 @@ h1 {
   font-size: 18px;
 }
 
-/* —— Stack strip: label + chips слева, без «пирамиды» по центру —— */
+/* —— Stack strip: label + chips left, no centered pyramid —— */
 .stack-strip {
   padding-block: 32px var(--section-y);
 }
@@ -660,7 +660,7 @@ h1 {
   }
 }
 
-/* 8 карточек — 4×2, без пустой 9-й ячейки при 3 колонках */
+/* 8 cards — 4×2, no empty 9th cell with 3 columns */
 @media (min-width: 1024px) {
   .features-grid {
     grid-template-columns: repeat(4, 1fr);

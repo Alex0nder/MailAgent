@@ -52,7 +52,7 @@
     },
   };
 
-  /** Фиксируем высоту под самый длинный таб — без скачка при переключении */
+  /** Lock height to the tallest tab — no layout jump when switching */
   function lockCodeBodyHeight(panel, samples, pre) {
     const body = panel.querySelector(".code-body");
     if (!body || !pre) return;

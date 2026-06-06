@@ -1,4 +1,4 @@
-/** Ограничения scoped API key (label prefix, read-only) */
+/** Scoped API key constraints (label prefix, read-only) */
 import type { InboxRow } from "../services/inbox";
 
 export type ApiKeyScope = {
@@ -26,7 +26,7 @@ export function isRestrictedScope(scope: ApiKeyScope): boolean {
   return scope.readOnly || Boolean(scope.labelPrefix);
 }
 
-/** Подмножество scope для нового ключа (team admin → sub-key) */
+/** Scope subset for new key (team admin → sub-key) */
 export function narrowScope(
   parent: ApiKeyScope,
   child: { labelPrefix?: string | null; readOnly?: boolean }
@@ -91,7 +91,7 @@ export function assertInboxAccessible(
   return { ok: true };
 }
 
-/** GET list: scoped key не может запросить чужой prefix */
+/** GET list: scoped key cannot query another prefix */
 export function effectiveLabelPrefix(
   scope: ApiKeyScope,
   requested?: string | null

@@ -1,4 +1,4 @@
-/** Список прогонов агентов (label agent-*) */
+/** List agent runs (label agent-*) */
 import type { Env } from "../env";
 import { parseRunIdFromLabel } from "../lib/agent-recipes";
 import { getDb } from "../db/client";

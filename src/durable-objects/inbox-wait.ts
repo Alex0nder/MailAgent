@@ -1,6 +1,6 @@
 import type { MessageNotifyPayload } from "../env";
 
-/** SSE-подписка: агент ждёт письмо без long-poll на serverless */
+/** SSE subscription: agent waits for message without serverless long-poll */
 export class InboxWait implements DurableObject {
   private subscribers = new Set<WritableStreamDefaultWriter<string>>();
 

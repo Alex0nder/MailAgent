@@ -1,4 +1,4 @@
-# Деплой MailAgent Worker на Cloudflare (API; лендинг — Netlify)
+# Deploy MailAgent Worker to Cloudflare (API; landing — Netlify)
 name: Deploy Worker
 
 on:
@@ -33,11 +33,11 @@ jobs:
       - name: Require Cloudflare secrets
         run: |
           if [ -z "${{ secrets.CLOUDFLARE_API_TOKEN }}" ]; then
-            echo "::error::Missing GitHub secret CLOUDFLARE_API_TOKEN — см. docs/CI.md"
+            echo "::error::Missing GitHub secret CLOUDFLARE_API_TOKEN — see docs/CI.md"
             exit 1
           fi
           if [ -z "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" ]; then
-            echo "::error::Missing GitHub secret CLOUDFLARE_ACCOUNT_ID (см. wrangler.jsonc account_id)"
+            echo "::error::Missing GitHub secret CLOUDFLARE_ACCOUNT_ID (see wrangler.jsonc account_id)"
             exit 1
           fi
 
@@ -57,7 +57,7 @@ jobs:
           SMOKE_EXPECT_ATTACHMENTS: "1"
         run: |
           if [ -z "$MAILAGENT_API_KEY" ]; then
-            echo "::error::Set MAILAGENT_API_KEY in GitHub Actions secrets — см. docs/OPERATOR.md"
+            echo "::error::Set MAILAGENT_API_KEY in GitHub Actions secrets — see docs/OPERATOR.md"
             exit 1
           fi
           npm run test:prod

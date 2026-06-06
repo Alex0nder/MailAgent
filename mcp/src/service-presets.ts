@@ -1,4 +1,4 @@
-/** Синхронно с src/lib/service-presets.ts */
+/** In sync with src/lib/service-presets.ts */
 
 export const SERVICE_EXPECT_FROM: Record<string, string[]> = {
   dribbble: ["dribbble.com", "m.dribbble.com"],

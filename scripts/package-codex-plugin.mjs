@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Собирает tarball Codex plugin для marketplace / ручной публикации */
+/** Build Codex plugin tarball for marketplace / manual publish */
 import { readFileSync, mkdirSync, existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";

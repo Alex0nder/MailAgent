@@ -1,14 +1,9 @@
-# Jest + MailAgent
+# Jest example
 
-Для команд на **Jest** (CommonJS `require`).
+For teams on **Jest** (CommonJS `require`).
 
 ```bash
-npm install -D jest @mailagent/qa
-export MAILAGENT_API_KEY=…
-export MAILAGENT_API_URL=https://api.webmailagent.com
-npx jest examples/jest/mailagent-signup.example.test.js
+MAILAGENT_API_KEY=ma_… npx jest examples/jest/mailagent-signup.example.test.js
 ```
 
-Vitest: [../vitest/README.md](../vitest/README.md).
-
-При timeout: `getDebugContext()` → `formatAllureAttachment()` в CI artifact.
+On timeout: `getDebugContext()` → `formatAllureAttachment()` in CI artifact.

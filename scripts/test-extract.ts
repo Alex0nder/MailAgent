@@ -1,4 +1,4 @@
-/** Быстрая проверка extract OTP/links */
+/** Quick check of extract OTP/links */
 import { extractLinks, extractOtp, primaryLink } from "../src/services/extract";
 
 const sample = `

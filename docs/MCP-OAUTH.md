@@ -1,12 +1,12 @@
 # MCP OAuth (remote)
 
-MailAgent MCP поддерживает **OAuth 2.0 client_credentials**, **authorization_code (OIDC IdP)**, и прямой Bearer API key.
+MailAgent MCP supports **OAuth 2.0 client_credentials**, **authorization_code (OIDC IdP)**, and direct Bearer API key.
 
-MCP-клиенты (Cursor, Claude Desktop, custom agents) могут:
+MCP clients (Cursor, Claude Desktop, custom agents) can:
 
-1. **Напрямую** — `Authorization: Bearer mak_…` (API key)
-2. **Через OAuth** — обменять API key на short-lived `mat_…` access token
-3. **Через IdP login** — Auth0/Google browser login → `mat_` token ([MCP-OAUTH-IDP.md](./MCP-OAUTH-IDP.md))
+1. **Directly** — `Authorization: Bearer mak_…` (API key)
+2. **Via OAuth** — exchange API key for short-lived `mat_…` access token
+3. **Via IdP login** — Auth0/Google browser login → `mat_` token ([MCP-OAUTH-IDP.md](./MCP-OAUTH-IDP.md))
 
 ## Discovery (RFC 8414 / 9728)
 
@@ -18,7 +18,7 @@ curl -sS https://api.webmailagent.com/mcp/auth | jq .
 
 ## Dynamic Client Registration (RFC 7591)
 
-MCP-клиенты с поддержкой DCR могут зарегистрировать отдельный ключ под team:
+MCP clients with DCR support can register a separate key under team:
 
 ```bash
 curl -sS -X POST https://api.webmailagent.com/v1/oauth/register \
@@ -26,13 +26,13 @@ curl -sS -X POST https://api.webmailagent.com/v1/oauth/register \
   -H "Content-Type: application/json" \
   -d '{"client_name":"cursor-mcp"}'
 
-# опционально — scoped key для CI/agent:
+# optional — scoped key for CI/agent:
 # -d '{"client_name":"cursor-mcp","scope":{"labelPrefix":"agent-","readOnly":true}}'
 ```
 
-Опциональное поле `scope` — [SCOPED-API-KEYS.md](./SCOPED-API-KEYS.md) · [сайт](https://webmailagent.com/docs/scoped-keys.html).
+Optional `scope` field — [SCOPED-API-KEYS.md](./SCOPED-API-KEYS.md) · [site](https://webmailagent.com/docs/scoped-keys.html).
 
-Ответ (201, `client_secret` показывается один раз):
+Response (201, `client_secret` shown once):
 
 ```json
 {
@@ -45,19 +45,19 @@ curl -sS -X POST https://api.webmailagent.com/v1/oauth/register \
 }
 ```
 
-Metadata без secret:
+Metadata without secret:
 
 ```bash
 curl -sS https://api.webmailagent.com/v1/oauth/clients/abc123 \
   -H "Authorization: Bearer $MAILAGENT_TEAM_API_KEY"
 ```
 
-Требования:
+Requirements:
 
-- Bearer — **team API key** из dashboard / `npm run issue:key:db`
+- Bearer — **team API key** from dashboard / `npm run issue:key:db`
 - Legacy keys (`API_KEY` env) → `403 team_required`
 
-Discovery включает `registration_endpoint` в `/.well-known/oauth-authorization-server`.
+Discovery includes `registration_endpoint` in `/.well-known/oauth-authorization-server`.
 
 ## Token exchange
 
@@ -67,7 +67,7 @@ curl -sS -X POST https://api.webmailagent.com/v1/oauth/token \
   -d "grant_type=client_credentials&client_secret=$MAILAGENT_API_KEY"
 ```
 
-Ответ:
+Response:
 
 ```json
 {
@@ -77,7 +77,7 @@ curl -sS -X POST https://api.webmailagent.com/v1/oauth/token \
 }
 ```
 
-Basic auth (client_id произвольный, password = API key):
+Basic auth (client_id arbitrary, password = API key):
 
 ```bash
 curl -sS -X POST https://api.webmailagent.com/v1/oauth/token \
@@ -85,7 +85,7 @@ curl -sS -X POST https://api.webmailagent.com/v1/oauth/token \
   -d "grant_type=client_credentials"
 ```
 
-## MCP с access token
+## MCP with access token
 
 ```bash
 curl -sS -X POST https://api.webmailagent.com/mcp \
@@ -96,7 +96,7 @@ curl -sS -X POST https://api.webmailagent.com/mcp \
 
 ## 401 → discovery
 
-Без токена MCP возвращает:
+Without token MCP returns:
 
 ```
 WWW-Authenticate: Bearer resource_metadata="https://api.webmailagent.com/.well-known/oauth-protected-resource/mcp"
@@ -104,7 +104,7 @@ WWW-Authenticate: Bearer resource_metadata="https://api.webmailagent.com/.well-k
 
 ## Cursor / remote MCP config
 
-**Вариант A — API key напрямую** (проще):
+**Option A — API key directly** (simpler):
 
 ```json
 {
@@ -119,9 +119,9 @@ WWW-Authenticate: Bearer resource_metadata="https://api.webmailagent.com/.well-k
 }
 ```
 
-**Вариант B — OAuth** (клиент сам ходит на token endpoint):
+**Option B — OAuth** (client calls token endpoint):
 
-Некоторые MCP-клиенты читают `/.well-known/oauth-protected-resource/mcp` и делают client_credentials с вашим API key как `client_secret`.
+Some MCP clients read `/.well-known/oauth-protected-resource/mcp` and do client_credentials with your API key as `client_secret`.
 
 ## SDK
 
@@ -135,12 +135,12 @@ await mail.callMcpTool("mailagent_verify_signup", { service: "github" }, null, a
 
 ## TTL
 
-Wrangler var `MCP_OAUTH_TOKEN_TTL_SEC` (default `3600`, max `86400`). Токены хранятся в KV `RATE_LIMIT`.
+Wrangler var `MCP_OAUTH_TOKEN_TTL_SEC` (default `3600`, max `86400`). Tokens stored in KV `RATE_LIMIT`.
 
-## Безопасность
+## Security
 
-- `mat_` токены привязаны к team/plan того API key, которым выданы
-- Отзыв API key в dashboard → старые `mat_` истекают по TTL
-- Для CI/agents предпочитайте scoped key — [SCOPED-API-KEYS.md](./SCOPED-API-KEYS.md) · [QA-ONBOARDING.md](./QA-ONBOARDING.md)
+- `mat_` tokens bound to team/plan of issuing API key
+- Revoke API key in dashboard → old `mat_` expire by TTL
+- For CI/agents prefer scoped key — [SCOPED-API-KEYS.md](./SCOPED-API-KEYS.md) · [QA-ONBOARDING.md](./QA-ONBOARDING.md)
 
-См. [agents.html](https://webmailagent.com/docs/agents.html#mcp-oauth).
+See [agents.html](https://webmailagent.com/docs/agents.html#mcp-oauth).

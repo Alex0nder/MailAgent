@@ -1,36 +1,36 @@
 # MailAgent × OpenAI Codex
 
-Codex поддерживает MCP через `~/.codex/config.toml` и **plugins** (bundled MCP + skills).  
-У MailAgent уже есть всё нужное для агентов — остаётся упаковать под Codex.
+Codex supports MCP via `~/.codex/config.toml` and **plugins** (bundled MCP + skills).  
+MailAgent already has everything agents need — packaging for Codex remains.
 
-## Что уже есть
+## What exists
 
-| Компонент | Назначение |
+| Component | Purpose |
 |-----------|------------|
-| `@mailagent/mcp` (stdio) | Локальный MCP — тот же стек, что Cursor (`.cursor/mcp.json`) |
+| `@mailagent/mcp` (stdio) | Local MCP — same stack as Cursor (`.cursor/mcp.json`) |
 | Remote MCP `POST https://api.webmailagent.com/mcp` | Streamable HTTP + OAuth `mat_` tokens |
 | `@mailagent/agent` | REST verify + MCP helpers |
-| Skill `.cursor/skills/mailagent-mcp/` | Подсказки агенту для Cursor |
+| Skill `.cursor/skills/mailagent-mcp/` | Agent hints for Cursor |
 
-## Два способа подключения (v0.11)
+## Two connection methods (v0.11)
 
-### A. Быстро — config.toml (stdio)
+### A. Quick — config.toml (stdio)
 
-Скопируй [examples/codex/config.toml.example](../examples/codex/config.toml.example) в `~/.codex/config.toml` или `.codex/config.toml` в trusted-проекте.
+Copy [examples/codex/config.toml.example](../examples/codex/config.toml.example) to `~/.codex/config.toml` or `.codex/config.toml` in a trusted project.
 
 ```bash
 codex mcp list
-# или в сессии Codex: tools должны включать mailagent_*
+# or in Codex session: tools should include mailagent_*
 ```
 
-Переменные:
+Variables:
 
-- `MAILAGENT_API_URL` — `https://api.webmailagent.com` (prod) или `http://127.0.0.1:8787` (local)
+- `MAILAGENT_API_URL` — `https://api.webmailagent.com` (prod) or `http://127.0.0.1:8787` (local)
 - `MAILAGENT_API_KEY` — team key (`ma_…` / `mak_…`)
 
-### B. Без локального процесса — remote HTTP
+### B. No local process — remote HTTP
 
-В `config.toml`:
+In `config.toml`:
 
 ```toml
 [mcp_servers.mailagent-remote]
@@ -41,55 +41,55 @@ Authorization = "Bearer YOUR_API_KEY"
 Accept = "application/json, text/event-stream"
 ```
 
-OAuth (team keys): `POST /v1/oauth/token` → `mat_…` вместо legacy key. См. [agents docs](https://webmailagent.com/docs/agents.html).
+OAuth (team keys): `POST /v1/oauth/token` → `mat_…` instead of legacy key. See [agents docs](https://webmailagent.com/docs/agents.html).
 
 ## Codex Plugin (v0.11+)
 
-**Цель:** один install — inbox + verify tools в Codex UI (marketplace / local plugin).
+**Goal:** one install — inbox + verify tools in Codex UI (marketplace / local plugin).
 
-Структура в репо: [examples/codex/plugin/](../examples/codex/plugin/)
+Repo structure: [examples/codex/plugin/](../examples/codex/plugin/)
 
-| Файл | Роль |
+| File | Role |
 |------|------|
-| `.codex-plugin/plugin.json` | Манифест plugin |
+| `.codex-plugin/plugin.json` | Plugin manifest |
 | `.mcp.json` | MCP server entry (stdio → `@mailagent/mcp`) |
-| `scripts/run-mailagent-mcp.sh` | Launcher: env из `.env` / shell |
-| `skills/mailagent/SKILL.md` | Когда вызывать create/wait/verify |
+| `scripts/run-mailagent-mcp.sh` | Launcher: env from `.env` / shell |
+| `skills/mailagent/SKILL.md` | When to call create/wait/verify |
 
-### Этапы реализации
+### Implementation stages
 
-| # | Задача | Статус |
+| # | Task | Status |
 |---|--------|--------|
 | 1 | `config.toml.example` + docs | ✅ |
 | 2 | Plugin scaffold (local test) | ✅ |
-| 3 | Skill для Codex (signup / OTP flow) | ✅ scaffold |
-| 4 | `npm run smoke:codex` — проверка что `@mailagent/mcp` стартует | ✅ |
-| 5 | `npm run verify:codex` в CI | ✅ |
+| 3 | Skill for Codex (signup / OTP flow) | ✅ scaffold |
+| 4 | `npm run smoke:codex` — verify `@mailagent/mcp` starts | ✅ |
+| 5 | `npm run verify:codex` in CI | ✅ |
 | 6 | Remote MCP + OAuth preset (`config.remote-oauth.toml.example`) | ✅ |
 | 7 | `AGENTS.md` one-pager | ✅ |
 | 8 | Playwright `global-setup` + attachment spec | ✅ |
-| 9 | Локальный тест plugin в Codex CLI | manual (Codex not in CI) |
+| 9 | Local plugin test in Codex CLI | manual (Codex not in CI) |
 | 10 | Publish `@mailagent/agent@0.1.5` | manual (`npm run publish:agent`) |
 | 11 | Marketplace / `codex plugin install` publish | ✅ pack (`npm run package:codex`) — submit tarball manually |
 
-### Локальный тест plugin
+### Local plugin test
 
 ```bash
 cd examples/codex/plugin
 export MAILAGENT_API_KEY=...
 export MAILAGENT_API_URL=https://api.webmailagent.com
 
-# Codex: открыть этот каталог как trusted project
-# Settings → MCP → должен появиться mailagent из plugin manifest
+# Codex: open this directory as trusted project
+# Settings → MCP → mailagent should appear from plugin manifest
 
-# Или только MCP без plugin:
-npm run codex:install   # ключ и URL из .dev.vars / .env
+# Or MCP only without plugin:
+npm run codex:install   # key and URL from .dev.vars / .env
 # codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.2 mailagent-mcp
 ```
 
 ### Remote MCP + OAuth
 
-Team keys: получи `mat_` token и подставь в remote config.
+Team keys: get `mat_` token and use in remote config.
 
 ```bash
 curl -sS -X POST https://api.webmailagent.com/v1/oauth/token \
@@ -97,33 +97,33 @@ curl -sS -X POST https://api.webmailagent.com/v1/oauth/token \
   -d "grant_type=client_credentials&client_secret=YOUR_TEAM_KEY"
 ```
 
-Пример: [examples/codex/config.remote-oauth.toml.example](../examples/codex/config.remote-oauth.toml.example) · [MCP-OAUTH.md](./MCP-OAUTH.md).
+Example: [examples/codex/config.remote-oauth.toml.example](../examples/codex/config.remote-oauth.toml.example) · [MCP-OAUTH.md](./MCP-OAUTH.md).
 
 ### Troubleshooting
 
-| Симптом | Решение |
+| Symptom | Fix |
 |---------|---------|
-| Tools не видны | `codex mcp list`; проверь `MAILAGENT_API_KEY` |
-| 401 remote | Bearer `mat_…` или legacy key |
-| Plugin не грузится | trusted project + `examples/codex/plugin` |
-| Без Codex CLI | `npm run verify:codex` в CI |
+| Tools not visible | `codex mcp list`; check `MAILAGENT_API_KEY` |
+| 401 remote | Bearer `mat_…` or legacy key |
+| Plugin won't load | trusted project + `examples/codex/plugin` |
+| No Codex CLI | `npm run verify:codex` in CI |
 
-### Ограничения Codex (на момент плана)
+### Codex limitations (at plan time)
 
-- MCP в **Codex Cloud** может быть недоступен — stdio/remote работают в **локальном** CLI/IDE.
-- Секреты: не коммитить ключи; plugin launcher читает env / `.env` (gitignored).
+- MCP in **Codex Cloud** may be unavailable — stdio/remote work in **local** CLI/IDE.
+- Secrets: do not commit keys; plugin launcher reads env / `.env` (gitignored).
 
-## Рекомендуемый agent flow в Codex
+## Recommended agent flow in Codex
 
-1. `mailagent_create_inbox` или `mailagent_verify_signup` с `service: "github"` / `"auth0"`.
-2. Агент заполняет email на форме signup.
-3. `mailagent_wait_and_extract` / `mailagent_wait_for_message` с `subjectContains`.
-4. OTP или `primaryLink` → следующий шаг сценария.
-5. `mailagent_delete_inbox` при cleanup.
+1. `mailagent_create_inbox` or `mailagent_verify_signup` with `service: "github"` / `"auth0"`.
+2. Agent fills email on signup form.
+3. `mailagent_wait_and_extract` / `mailagent_wait_for_message` with `subjectContains`.
+4. OTP or `primaryLink` → next scenario step.
+5. `mailagent_delete_inbox` on cleanup.
 
-Skill: см. `examples/codex/plugin/skills/mailagent/SKILL.md`.
+Skill: see `examples/codex/plugin/skills/mailagent/SKILL.md`.
 
-## Связанные документы
+## Related docs
 
 - [agents.html](https://webmailagent.com/docs/agents.html) — REST + remote MCP
 - [mcp/README.md](../mcp/README.md) — stdio server

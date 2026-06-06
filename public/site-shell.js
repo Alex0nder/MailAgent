@@ -122,7 +122,7 @@
     }).join("");
   }
 
-  /** Полный футер лендинга — один источник для всех страниц. */
+  /** Full landing footer — single source for all pages. */
   function renderFooterInner() {
     return `<div class="footer-inner">
         <div class="footer-col">

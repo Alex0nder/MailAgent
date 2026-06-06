@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Smoke: Codex MCP entrypoint — npm @mailagent/mcp или локальный mcp/dist до publish. */
+/** Smoke: Codex MCP entrypoint — npm @mailagent/mcp or local mcp/dist before publish. */
 import { readFileSync, existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import path from "node:path";

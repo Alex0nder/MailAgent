@@ -1,4 +1,4 @@
--- MailAgent: временные inbox для агентов (Neon Postgres)
+-- MailAgent: temporary inboxes for agents (Neon Postgres)
 
 CREATE TABLE IF NOT EXISTS inboxes (
   id TEXT PRIMARY KEY,

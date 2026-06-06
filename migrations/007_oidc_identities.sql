@@ -1,4 +1,4 @@
--- OIDC login (Auth0/Google) → team для MCP authorization_code flow
+-- OIDC login (Auth0/Google) → team for MCP authorization_code flow
 
 CREATE TABLE IF NOT EXISTS oidc_identities (
   id TEXT PRIMARY KEY,

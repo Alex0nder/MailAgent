@@ -1,4 +1,4 @@
-/** Usage stats для hosted / self-host мониторинга */
+/** Usage stats for hosted / self-host monitoring */
 import { Hono } from "hono";
 import type { Env } from "../env";
 import type { ApiVariables } from "../lib/api-context";

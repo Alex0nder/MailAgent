@@ -1,39 +1,39 @@
 # Billing
 
-## Без Stripe (сейчас)
+## Without Stripe (current)
 
-Stripe **не нужен**. Секреты `STRIPE_*` не задавайте — billing просто выключен.
+Stripe **not required**. Do not set `STRIPE_*` secrets — billing stays disabled.
 
-**Вариант A — один hosted-ключ (проще всего):**
+**Option A — single hosted key (simplest):**
 
 ```bash
 npm run issue:key
-npx wrangler secret put API_KEY   # или API_KEYS
+npx wrangler secret put API_KEY   # or API_KEYS
 ```
 
-План **legacy**: 120 req/min, до 500 активных inbox.
+**Legacy** plan: 120 req/min, up to 500 active inboxes.
 
-**Вариант B — ключ в Neon (free, для пилотов с `team_id`):**
+**Option B — key in Neon (free, for pilots with `team_id`):**
 
 ```bash
 npm run issue:key:db -- pilot-name
 ```
 
-План **free**: 60 req/min, 10 inbox. Pro вручную:
+**Free** plan: 60 req/min, 10 inboxes. Pro manually:
 
 ```bash
 npm run team:plan -- TEAM_ID pro
 ```
 
-`team_id` виден в `GET /v1/me` или в выводе `issue:key:db`.
+`team_id` visible in `GET /v1/me` or `issue:key:db` output.
 
-Dashboard и API работают без кнопки Upgrade.
+Dashboard and API work without Upgrade button.
 
 ---
 
-## Stripe Pro (когда появится)
+## Stripe Pro (when available)
 
-## Планы
+## Plans
 
 | Plan | Rate limit | Active inboxes |
 |------|------------|----------------|
@@ -41,13 +41,13 @@ Dashboard и API работают без кнопки Upgrade.
 | pro | 300/min | 100 |
 | legacy | 120/min | 500 (wrangler `API_KEY` only) |
 
-## Новый ключ в БД
+## New key in DB
 
 ```bash
 npm run issue:key:db -- acme-corp
 ```
 
-Ключ сохраняется в `teams` + `api_keys`. Не дублируйте его в `API_KEYS`.
+Key stored in `teams` + `api_keys`. Do not duplicate in `API_KEYS`.
 
 ## Stripe (hosted)
 
@@ -62,5 +62,5 @@ npx wrangler secret put STRIPE_WEBHOOK_SECRET
 npx wrangler secret put STRIPE_PRICE_PRO
 ```
 
-4. Клиент: `GET /v1/me` → `POST /v1/billing/checkout` → redirect to Stripe  
+4. Client: `GET /v1/me` → `POST /v1/billing/checkout` → redirect to Stripe  
    Or UI: [dashboard.html](https://webmailagent.com/dashboard.html)

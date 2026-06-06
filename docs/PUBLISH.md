@@ -1,47 +1,47 @@
-# Публикация @mailagent/* на npm
+# Publishing @mailagent/* to npm
 
-## Пакеты
+## Packages
 
-| Пакет | Версия | Назначение |
+| Package | Version | Purpose |
 |-------|--------|------------|
-| `@mailagent/mcp` | см. `mcp/package.json` | stdio MCP для Cursor |
-| `@mailagent/qa` | см. `packages/mailagent-qa/package.json` | Playwright / Cypress QA SDK |
-| `@mailagent/agent` | см. `packages/mailagent-agent/package.json` | REST + remote MCP SDK |
+| `@mailagent/mcp` | see `mcp/package.json` | stdio MCP for Cursor |
+| `@mailagent/qa` | see `packages/mailagent-qa/package.json` | Playwright / Cypress QA SDK |
+| `@mailagent/agent` | see `packages/mailagent-agent/package.json` | REST + remote MCP SDK |
 
-Проверка сборки:
+Build check:
 
 ```bash
 npm run publish:check
 ```
 
-## Перед первым publish (обязательно)
+## Before first publish (required)
 
-### 1. Организация `@mailagent`
+### 1. `@mailagent` organization
 
-Scope `@mailagent` на npm **ещё не создан** (или у тебя нет прав).
+Scope `@mailagent` on npm **is not created yet** (or you lack permissions).
 
 1. [npmjs.com/org/create](https://www.npmjs.com/org/create)
-2. Имя org: **`mailagent`** (будет `@mailagent/mcp`, …)
-3. Free plan достаточно для public packages
+2. Org name: **`mailagent`** (yields `@mailagent/mcp`, …)
+3. Free plan is enough for public packages
 
-### 2. Двухфакторная аутентификация (2FA)
+### 2. Two-factor authentication (2FA)
 
-npm **не публикует** без 2FA. Ошибка:
+npm **will not publish** without 2FA. Error:
 
 ```
 403 … Two-factor authentication or granular access token with bypass 2fa enabled is required
 ```
 
 1. [npmjs.com/settings](https://www.npmjs.com/settings) → **Two-Factor Authentication**
-2. Режим: **Authorization and publishing** (не только login)
-3. Перелогинься:
+2. Mode: **Authorization and publishing** (not login only)
+3. Re-login:
 
 ```bash
 npm logout
 npm login
 ```
 
-При `npm publish` CLI попросит **OTP-код** из приложения (Google Authenticator и т.п.).
+On `npm publish`, CLI will ask for **OTP** from your app (Google Authenticator, etc.).
 
 ### 3. Publish
 
@@ -49,7 +49,7 @@ npm login
 npm run publish:all
 ```
 
-Или по одному:
+Or one at a time:
 
 ```bash
 npm run publish:mcp
@@ -59,12 +59,12 @@ npm run publish:agent
 
 ## GitHub Actions (OIDC Trusted Publishing)
 
-Без `NPM_TOKEN` и без OTP при каждом релизе:
+No `NPM_TOKEN` and no OTP on every release:
 
-1. npm → каждый пакет → **Settings → Trusted Publisher**
+1. npm → each package → **Settings → Trusted Publisher**
 2. GitHub Actions · org/user `Alex0nder` · repo `MailAgent` · workflow `publish-packages.yml`
 3. Permissions: `npm publish`, `npm stage publish`
-4. Push тег:
+4. Push tag:
 
 ```bash
 git tag v0.27.0 && git push origin v0.27.0
@@ -72,26 +72,26 @@ git tag v0.27.0 && git push origin v0.27.0
 
 Workflow: `.github/workflows/publish-packages.yml` (`id-token: write`, `npm publish --provenance`).
 
-### Ручной publish (fallback)
+### Manual publish (fallback)
 
 ```bash
 npm run publish:all
 ```
 
-Нужны 2FA/passkey OTP или granular token с bypass 2FA.
+Requires 2FA/passkey OTP or granular token with bypass 2FA.
 
-## Частые ошибки
+## Common errors
 
-| Ошибка | Решение |
+| Error | Fix |
 |--------|---------|
-| `403 … Two-factor authentication` | Включить 2FA + `npm logout` / `npm login`, при publish ввести OTP |
-| `403 … you do not have access` | Создать org `@mailagent`, ты должен быть owner |
-| `402 … must pay` | Scope занят — другое имя org или связаться с владельцем scope |
-| Версия уже существует | Поднять `version` в `package.json` и повторить |
+| `403 … Two-factor authentication` | Enable 2FA + `npm logout` / `npm login`, enter OTP on publish |
+| `403 … you do not have access` | Create org `@mailagent`, you must be owner |
+| `402 … must pay` | Scope taken — different org name or contact scope owner |
+| Version already exists | Bump `version` in `package.json` and retry |
 
-## После publish
+## After publish
 
-Проверка:
+Verify:
 
 ```bash
 npm view @mailagent/mcp version
@@ -99,4 +99,4 @@ npm view @mailagent/qa version
 npm view @mailagent/agent version
 ```
 
-Обновите README / docs, если менялись major/minor.
+Update README / docs if major/minor changed.

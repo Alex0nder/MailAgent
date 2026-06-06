@@ -1,77 +1,77 @@
-# Хостинг всего на Cloudflare (без Netlify)
+# Hosting everything on Cloudflare (without Netlify)
 
-Лендинг (`public/`), API и webhook — один Worker. Free tier обычно хватает для старта.
+Landing (`public/`), API and webhook — one Worker. Free tier is usually enough to start.
 
-## Уже работает
+## Already working
 
 - https://api.webmailagent.com — API + health
-- https://mailagent.alex-young33rd.workers.dev/ — лендинг + API
+- https://mailagent.alex-young33rd.workers.dev/ — landing + API
 
-После переноса DNS:
+After DNS migration:
 
-- https://webmailagent.com — лендинг
-- https://www.webmailagent.com — редирект на apex
+- https://webmailagent.com — landing
+- https://www.webmailagent.com — redirect to apex
 
-## Шаг 1 — Custom domains в Worker
+## Step 1 — Custom domains on Worker
 
 **Workers & Pages** → **mailagent** → **Domains** → **+ Add domain**
 
-| Subdomain | Домен |
+| Subdomain | Domain |
 |-----------|--------|
-| *(пусто)* | `webmailagent.com` |
+| *(empty)* | `webmailagent.com` |
 | `www` | `www.webmailagent.com` |
 
-`api.webmailagent.com` уже должен быть в списке.
+`api.webmailagent.com` should already be in the list.
 
-## Шаг 2 — Удалить DNS на Netlify
+## Step 2 — Remove Netlify DNS
 
-**Cloudflare** → **DNS** → **Records**, удалить:
+**Cloudflare** → **DNS** → **Records**, delete:
 
 - **A** `webmailagent.com` → `75.2.60.5` (Netlify)
 - **CNAME** `www` → `alex0nder-mailagent.netlify.app`
 
-Custom domain в Worker создаст новые записи сам (подожди 2–5 мин).
+Custom domain on Worker will create new records (wait 2–5 min).
 
-## Шаг 3 — Деплой
+## Step 3 — Deploy
 
 ```bash
 npm run deploy
 ```
 
-## Шаг 4 — Проверка
+## Step 4 — Verify
 
 ```bash
 curl -sI https://webmailagent.com | head -5
-curl -sI http://webmailagent.com | grep -i location   # должен быть 301 → https
+curl -sI http://webmailagent.com | grep -i location   # should be 301 → https
 curl -s https://api.webmailagent.com/health
 ```
 
-### HTTPS / «Подключение не защищено»
+### HTTPS / "Connection not secure"
 
-Сертификат Cloudflare для apex обычно появляется через несколько минут после Custom Domain.
+Cloudflare certificate for apex usually appears within minutes after Custom Domain.
 
-Если Chrome пишет «не защищено», но в меню есть «Действительный сертификат» — вы на **http://**, не на **https://**.
+If Chrome says "not secure" but menu shows "Valid certificate" — you are on **http://**, not **https://**.
 
-1. **Cloudflare** → **SSL/TLS** → **Edge Certificates** → включить **Always Use HTTPS**
-2. Worker уже редиректит `http` → `https` (см. `src/index.ts`)
-3. Открывайте `https://webmailagent.com` или обновите закладку
+1. **Cloudflare** → **SSL/TLS** → **Edge Certificates** → enable **Always Use HTTPS**
+2. Worker already redirects `http` → `https` (see `src/index.ts`)
+3. Open `https://webmailagent.com` or update bookmark
 
 ## Netlify
 
-Сайт в Netlify можно **отключить** или удалить custom domain — чтобы не путаться. Репозиторий и `netlify.toml` можно оставить как запасной вариант.
+Netlify site can be **disabled** or custom domain removed — to avoid confusion. Repo and `netlify.toml` can stay as fallback.
 
-## Стоимость
+## Cost
 
-| Компонент | Где | Free tier |
+| Component | Where | Free tier |
 |-----------|-----|-----------|
-| Worker + Assets | Cloudflare | ~100k req/день |
-| Durable Objects, Queues | Cloudflare | лимиты есть |
-| Postgres | Neon | отдельно |
-| Inbound mail | Resend | отдельно |
+| Worker + Assets | Cloudflare | ~100k req/day |
+| Durable Objects, Queues | Cloudflare | limits apply |
+| Postgres | Neon | separate |
+| Inbound mail | Resend | separate |
 
-## Доступ агента
+## Agent access
 
-MCP не управляет DNS. Деплой с машины:
+MCP does not manage DNS. Deploy from machine:
 
 ```bash
 npx wrangler whoami

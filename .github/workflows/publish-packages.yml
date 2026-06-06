@@ -1,5 +1,5 @@
-# Публикация @mailagent/* на npm (тег v* или manual)
-# Trusted Publishing (OIDC) — без NPM_TOKEN, если настроено на npmjs.com
+# Publish @mailagent/* to npm (tag v* or manual)
+# Trusted Publishing (OIDC) — no NPM_TOKEN if configured on npmjs.com
 name: Publish npm packages
 
 on:

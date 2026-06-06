@@ -1,4 +1,4 @@
--- QA: метка прогона тестов + webhook при письме (CI)
+-- QA: test run label + webhook on message (CI)
 
 ALTER TABLE inboxes
   ADD COLUMN IF NOT EXISTS label TEXT,

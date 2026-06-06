@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Проверка структуры Codex plugin + smoke npm package. */
+/** Verify Codex plugin structure + smoke npm package. */
 import { readFileSync, accessSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";

@@ -1,4 +1,4 @@
-/** Progress notifications для MCP wait tools */
+/** Progress notifications for MCP wait tools */
 export type McpProgressParams = {
   progressToken: string;
   progress: number;

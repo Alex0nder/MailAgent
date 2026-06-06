@@ -1,4 +1,4 @@
-/** Выполнение MCP tools на Worker (без HTTP loopback) */
+/** Execute MCP tools on Worker (no HTTP loopback) */
 import type { Env } from "../env";
 import type { ApiKeyScope } from "../lib/key-scope";
 import type { PlanId } from "../lib/plans";

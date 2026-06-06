@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Smoke-тест Worker API (читает .dev.vars / .env) */
+/** Smoke test Worker API (reads .dev.vars / .env) */
 import "./load-env.mjs";
 
 const base = (process.env.MAILAGENT_API_URL ?? "http://127.0.0.1:8787").replace(
@@ -39,7 +39,7 @@ async function main() {
 
   const health = await req("/health");
   if (!health.res.ok) {
-    fail(`/health ${health.res.status} — Worker не запущен? npm run dev`);
+    fail(`/health ${health.res.status} — Worker not running? npm run dev`);
   }
   console.log("OK /health", health.json);
 
@@ -52,7 +52,7 @@ async function main() {
   console.log("OK /v1/openapi.json");
 
   if (!apiKey) {
-    fail("Нужен MAILAGENT_API_KEY или API_KEY в env");
+    fail("MAILAGENT_API_KEY or API_KEY required in env");
   }
 
   const created = await req("/v1/inboxes", {

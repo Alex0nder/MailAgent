@@ -1,4 +1,4 @@
-/** Разбор SSE-стрима MailAgent /v1/inboxes/:id/events */
+/** Parse MailAgent SSE stream /v1/inboxes/:id/events */
 
 export interface SseEvent {
   event: string;

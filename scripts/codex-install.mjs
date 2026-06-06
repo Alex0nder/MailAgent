@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Регистрирует MailAgent MCP в Codex из .dev.vars / .env (без ручного копирования ключа).
+ * Register MailAgent MCP in Codex from .dev.vars / .env (no manual key copy).
  */
 import "./load-env.mjs";
 import { spawnSync } from "node:child_process";
@@ -12,7 +12,7 @@ const apiUrl = (
 ).replace(/\/$/, "");
 
 if (!apiKey) {
-  console.error("codex-install: задай API_KEY или MAILAGENT_API_KEY в .dev.vars");
+  console.error("codex-install: set API_KEY or MAILAGENT_API_KEY in .dev.vars");
   process.exit(1);
 }
 
@@ -23,7 +23,7 @@ function findCodex() {
   const which = spawnSync("which", ["codex"], { encoding: "utf8" });
   if (which.status === 0 && which.stdout.trim()) return which.stdout.trim();
   console.error(
-    "codex-install: Codex CLI не найден (ожидался Codex.app или codex в PATH)"
+    "codex-install: Codex CLI not found (expected Codex.app or codex in PATH)"
   );
   process.exit(1);
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Prod gate: smoke + full contract suite (как CI после deploy) */
+/** Prod gate: smoke + full contract suite (same as CI after deploy) */
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import path from "node:path";

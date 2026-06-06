@@ -1,5 +1,5 @@
 /**
- * Playwright fixture: inbox + simulateAndVerify — без реального SMTP.
+ * Playwright fixture: inbox + simulateAndVerify — without real SMTP.
  * Usage: import { test, expect } from "./mailagent-simulate.fixture";
  */
 import { test as base, expect } from "@playwright/test";

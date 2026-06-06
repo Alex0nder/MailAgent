@@ -1,6 +1,6 @@
 /**
- * Playwright + simulate — проверка OTP-пайплайна без staging-почты и Resend.
- * Запуск: MAILAGENT_API_KEY=… npx playwright test signup-simulate.spec.example.ts
+ * Playwright + simulate — OTP pipeline check without staging mail and Resend.
+ * Run: MAILAGENT_API_KEY=… npx playwright test signup-simulate.spec.example.ts
  */
 import { test, expect } from "@playwright/test";
 import { createMailAgentQa, MailAgentQa } from "@mailagent/qa";

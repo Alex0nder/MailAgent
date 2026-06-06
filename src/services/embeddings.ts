@@ -1,4 +1,4 @@
-/** Workers AI embeddings для semantic search (optional binding) */
+/** Workers AI embeddings for semantic search (optional binding) */
 import type { Env } from "../env";
 
 export const EMBED_MODEL = "@cf/baai/bge-base-en-v1.5";

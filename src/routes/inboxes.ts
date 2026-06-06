@@ -56,7 +56,7 @@ export const inboxRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>(
 inboxRoutes.use("*", requireApiKey);
 inboxRoutes.use("*", rateLimit);
 
-/** One-shot: create → wait → extract → delete (для агентов и CI) */
+/** One-shot: create → wait → extract → delete (for agents and CI) */
 type CreateBody = {
   ttlMinutes?: number;
   service?: string;
@@ -147,7 +147,7 @@ inboxRoutes.post("/open", async (c) => {
   );
 });
 
-/** QA: список inbox по label или labelPrefix */
+/** QA: list inboxes by label or labelPrefix */
 inboxRoutes.get("/", async (c) => {
   const label = c.req.query("label");
   const labelPrefix = scopeListPrefix(c, c.req.query("labelPrefix"));
@@ -210,7 +210,7 @@ inboxRoutes.post("/", async (c) => {
   return c.json({ id: inbox.id, ...formatInbox(inbox) }, 201);
 });
 
-/** QA: bulk delete по префиксу label (после nightly / suite) */
+/** QA: bulk delete by label prefix (after nightly / suite) */
 inboxRoutes.delete("/", async (c) => {
   const writeErr = scopeWriteDenied(c);
   if (writeErr) return writeErr;
@@ -673,7 +673,7 @@ inboxRoutes.post("/:id/messages/:messageId/extract", async (c) => {
   return c.json(result);
 });
 
-/** SSE: ждём первое письмо (надёжнее long-poll 120s на Workers) */
+/** SSE: wait for first message (more reliable than 120s long-poll on Workers) */
 inboxRoutes.get("/:id/events", async (c) => {
   const inbox = await getInbox(c.env, c.req.param("id"), {
     apiKeyHint: c.get("apiKeyHint"),

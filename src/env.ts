@@ -1,24 +1,24 @@
-/** Bindings Cloudflare Worker + секреты */
+/** Cloudflare Worker bindings + secrets */
 export interface Env {
   ASSETS: Fetcher;
   DATABASE_URL: string;
   RESEND_API_KEY: string;
   RESEND_WEBHOOK_SECRET: string;
   API_KEY: string;
-  /** Опционально: ключи пилотов через запятую (hosted) */
+  /** Optional: pilot keys comma-separated (hosted) */
   API_KEYS?: string;
   INBOX_DOMAIN: string;
   DEFAULT_TTL_MINUTES: string;
   MAIL_QUEUE: Queue<EmailQueueMessage>;
   INBOX_WAIT: DurableObjectNamespace;
-  /** Опционально: rate limit per API key (hosted) */
+  /** Optional: rate limit per API key (hosted) */
   RATE_LIMIT?: KVNamespace;
   RATE_LIMIT_PER_MINUTE?: string;
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
-  /** Price id (price_…) для Pro подписки */
+  /** Price id (price_…) for Pro subscription */
   STRIPE_PRICE_PRO?: string;
-  /** TTL OAuth access token для MCP (сек, default 3600) */
+  /** OAuth access token TTL for MCP (seconds, default 3600) */
   MCP_OAUTH_TOKEN_TTL_SEC?: string;
   /** OIDC IdP (Auth0/Google): issuer URL, e.g. https://tenant.us.auth0.com */
   OIDC_ISSUER?: string;
@@ -26,7 +26,7 @@ export interface Env {
   OIDC_CLIENT_SECRET?: string;
   /** Optional API audience for Auth0 */
   OIDC_AUDIENCE?: string;
-  /** R2: raw MIME (.eml) после ingest из Resend */
+  /** R2: raw MIME (.eml) after ingest from Resend */
   RAW_MIME?: R2Bucket;
   /** Max raw MIME size in bytes (default 15MB) */
   RAW_MIME_MAX_BYTES?: string;

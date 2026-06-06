@@ -1,6 +1,6 @@
 /**
- * Playwright config для MailAgent examples.
- * globalSetup создаёт inbox + attachment через simulate (нужен DATABASE_URL).
+ * Playwright config for MailAgent examples.
+ * globalSetup creates inbox + attachment via simulate (requires DATABASE_URL).
  */
 import { defineConfig } from "@playwright/test";
 import path from "node:path";

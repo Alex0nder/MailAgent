@@ -1,15 +1,15 @@
 # MailAgent
 
-Временные inbox для **AI-агентов** и **QA/E2E**: webhook → очередь → Neon, SSE, OTP/magic link.  
+Temporary inboxes for **AI agents** and **QA/E2E**: webhook → queue → Neon, SSE, OTP/magic link.  
 **Roadmap:** [docs/ROADMAP.md](./docs/ROADMAP.md)  
-**Свой агент без нашего API:** [docs/INTEGRATE.md](./docs/INTEGRATE.md) — self-host, MCP, REST.  
-**Тестировщикам:** [docs/QA.md](./docs/QA.md) — label, subjectContains, callback, Playwright.
+**Your own agent without our API:** [docs/INTEGRATE.md](./docs/INTEGRATE.md) — self-host, MCP, REST.  
+**For QA:** [docs/QA.md](./docs/QA.md) — label, subjectContains, callback, Playwright.
 
-**Лендинг + API** на одном Cloudflare Worker (`public/` + `/v1`).  
-Прод: [webmailagent.com](https://webmailagent.com) (после DNS) · API: [api.webmailagent.com](https://api.webmailagent.com).  
-Перенос с Netlify: **[docs/HOSTING-CLOUDFLARE.md](./docs/HOSTING-CLOUDFLARE.md)**.
+**Landing + API** on one Cloudflare Worker (`public/` + `/v1`).  
+Prod: [webmailagent.com](https://webmailagent.com) (after DNS) · API: [api.webmailagent.com](https://api.webmailagent.com).  
+Moving from Netlify: **[docs/HOSTING-CLOUDFLARE.md](./docs/HOSTING-CLOUDFLARE.md)**.
 
-## Стек
+## Stack
 
 - Cloudflare Workers + Hono
 - Cloudflare Queues (+ DLQ)
@@ -17,11 +17,11 @@
 - Neon Postgres
 - Resend Inbound
 
-Полная настройка с секретами: **[SETUP.md](./SETUP.md)** · проверка: `npm run setup:check`
+Full setup with secrets: **[SETUP.md](./SETUP.md)** · check: `npm run setup:check`
 
-## Быстрый старт
+## Quick start
 
-### 1. Зависимости
+### 1. Dependencies
 
 ```bash
 npm install
@@ -29,24 +29,24 @@ npm install
 
 ### 2. Neon
 
-Создайте проект на [neon.tech](https://neon.tech), скопируйте connection string.
+Create a project on [neon.tech](https://neon.tech), copy connection string.
 
 ```bash
 cp .env.example .env
-# заполните DATABASE_URL
+# fill DATABASE_URL
 npm run db:migrate
 ```
 
 ### 3. Resend
 
 1. API key → `RESEND_API_KEY`
-2. Dashboard → **Emails → Receiving** — скопируйте домен (`xxxx.resend.app`) → `INBOX_DOMAIN`
-3. **Webhooks** → событие `email.received` → URL: `https://<worker>/webhooks/resend`
+2. Dashboard → **Emails → Receiving** — copy domain (`xxxx.resend.app`) → `INBOX_DOMAIN`
+3. **Webhooks** → event `email.received` → URL: `https://<worker>/webhooks/resend`
 4. Signing secret → `RESEND_WEBHOOK_SECRET`
 
-Локально: `npm run dev` + туннель (cloudflared / ngrok) на порт wrangler.
+Locally: `npm run dev` + tunnel (cloudflared / ngrok) to wrangler port.
 
-### 4. Секреты Worker
+### 4. Worker secrets
 
 ```bash
 npx wrangler secret put DATABASE_URL
@@ -56,84 +56,84 @@ npx wrangler secret put API_KEY
 npx wrangler secret put INBOX_DOMAIN
 ```
 
-Локальная разработка: создайте `.dev.vars` (те же ключи, см. `.env.example`).
+Local dev: create `.dev.vars` (same keys, see `.env.example`).
 
-### 5. Деплой
+### 5. Deploy
 
 ```bash
 npm run deploy
 ```
 
-Первый деплой создаст очереди `mailagent-email` и `mailagent-email-dlq`.
+First deploy creates queues `mailagent-email` and `mailagent-email-dlq`.
 
 ## API
 
-Все `/v1/inboxes/*` требуют заголовок:
+All `/v1/inboxes/*` require header:
 
 ```
 Authorization: Bearer <API_KEY>
 ```
 
-| Метод | Путь | Описание |
+| Method | Path | Description |
 |-------|------|----------|
 | `GET` | `/v1` | Discovery: endpoints, presets, MCP tools |
-| `GET` | `/v1/openapi.json` | OpenAPI 3.0 (агенты) |
+| `GET` | `/v1/openapi.json` | OpenAPI 3.0 (agents) |
 | `POST` | `/v1/inboxes/open` | **One-shot:** create → wait → extract → delete |
-| `POST` | `/v1/inboxes` | Создать inbox (`ttlMinutes`, `service`, `expectFrom`, `allowedSenders`) |
-| `GET` | `/v1/inboxes/:id` | Статус |
-| `GET` | `/v1/inboxes/:id/messages` | Письма |
-| `GET` | `/v1/inboxes/:id/extract` | OTP + ссылки из последнего письма |
-| `GET` | `/v1/inboxes/:id/events` | **SSE** — ждать новое письмо |
-| `GET` | `/v1/inboxes/:id/wait?timeout=60` | Poll fallback (каждые 500ms) |
-| `GET` | `/v1/inboxes/:id/callbacks` | Лог доставки `callbackUrl` (QA) |
-| `DELETE` | `/v1/inboxes/:id` | Удалить |
-| `GET` | `/v1/stats` | Счётчики inbox / messages (24h) |
-| `POST` | `/webhooks/resend` | Webhook Resend (без API key) |
+| `POST` | `/v1/inboxes` | Create inbox (`ttlMinutes`, `service`, `expectFrom`, `allowedSenders`) |
+| `GET` | `/v1/inboxes/:id` | Status |
+| `GET` | `/v1/inboxes/:id/messages` | Messages |
+| `GET` | `/v1/inboxes/:id/extract` | OTP + links from latest message |
+| `GET` | `/v1/inboxes/:id/events` | **SSE** — wait for new message |
+| `GET` | `/v1/inboxes/:id/wait?timeout=60` | Poll fallback (every 500ms) |
+| `GET` | `/v1/inboxes/:id/callbacks` | `callbackUrl` delivery log (QA) |
+| `DELETE` | `/v1/inboxes/:id` | Delete |
+| `GET` | `/v1/stats` | Inbox / message counters (24h) |
+| `POST` | `/webhooks/resend` | Resend webhook (no API key) |
 | `GET` | `/health` | DB ping |
 
-### Пример
+### Example
 
 ```bash
-# создать ящик
+# create inbox
 curl -s -X POST https://mailagent.<subdomain>.workers.dev/v1/inboxes \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"ttlMinutes":15,"expectFrom":"noreply@auth0.com"}' | jq
 
-# SSE (в другом терминале)
+# SSE (another terminal)
 curl -N "https://.../v1/inboxes/<id>/events" \
   -H "Authorization: Bearer $API_KEY"
 
-# отправьте письмо на address из ответа → в SSE придёт event: message
+# send mail to address from response → SSE gets event: message
 ```
 
-## Надёжность
+## Reliability
 
-- Webhook отвечает сразу после `MAIL_QUEUE.send`
-- Идемпотентность: `messages.provider_id` = Resend `email_id` (UNIQUE)
-- Retry очереди до 5 раз → DLQ
-- Cron каждый час: удаление просроченных inbox
-- OTP/ссылки извлекаются при обработке очереди, не в webhook
+- Webhook responds right after `MAIL_QUEUE.send`
+- Idempotency: `messages.provider_id` = Resend `email_id` (UNIQUE)
+- Queue retry up to 5 times → DLQ
+- Hourly cron: delete expired inboxes
+- OTP/links extracted in queue processing, not in webhook
 
-## Свой домен (прод)
+## Custom domain (prod)
 
-В Resend: MX на поддомен `inbox.yourbrand.com`, `INBOX_DOMAIN=inbox.yourbrand.com`.
+In Resend: MX on subdomain `inbox.yourbrand.com`, `INBOX_DOMAIN=inbox.yourbrand.com`.
 
-## MCP для Cursor
+## MCP for Cursor
 
-Официальный протокол [Model Context Protocol](https://modelcontextprotocol.io); SDK: [`@modelcontextprotocol/sdk`](https://www.npmjs.com/package/@modelcontextprotocol/sdk) (stdio).
+Official protocol [Model Context Protocol](https://modelcontextprotocol.io); SDK: [`@modelcontextprotocol/sdk`](https://www.npmjs.com/package/@modelcontextprotocol/sdk) (stdio).
 
-### npm-пакеты
+### npm packages
 
-После publish на npm (см. [docs/PUBLISH.md](./docs/PUBLISH.md)):
+After publish to npm (see [docs/PUBLISH.md](./docs/PUBLISH.md)):
 
 ```bash
-npm install @mailagent/mcp      # stdio MCP для Cursor
+npm install @mailagent/mcp      # stdio MCP for Cursor
 npm install @mailagent/agent    # REST + remote MCP SDK
 npm install @mailagent/qa       # Playwright / Cypress QA
 ```
 
-Локальная сборка из репо:
+Local build from repo:
 
 ```bash
 npm run build:mcp
@@ -143,18 +143,18 @@ npm run build:agent
 
 Remote MCP (prod): `https://api.webmailagent.com/mcp` — OAuth/DCR: [docs/MCP-OAUTH.md](./docs/MCP-OAUTH.md).
 
-### Сборка MCP-сервера (из репо)
+### Build MCP server (from repo)
 
-В `.env` добавьте (см. `.env.example`):
+Add to `.env` (see `.env.example`):
 
 ```
 MAILAGENT_API_URL=https://mailagent.<your-subdomain>.workers.dev
-MAILAGENT_API_KEY=<тот же API_KEY что у Worker>
+MAILAGENT_API_KEY=<same API_KEY as Worker>
 ```
 
-### Подключение в Cursor
+### Connect in Cursor
 
-Проект уже содержит [`.cursor/mcp.json`](.cursor/mcp.json):
+Project already has [`.cursor/mcp.json`](.cursor/mcp.json):
 
 ```json
 {
@@ -168,43 +168,43 @@ MAILAGENT_API_KEY=<тот же API_KEY что у Worker>
 }
 ```
 
-1. **Cursor Settings → MCP** — сервер `mailagent` должен быть зелёным
-2. Нажмите **Refresh** у списка tools
-3. В Agent/Composer: «создай inbox через mailagent» — агент вызовет tools
+1. **Cursor Settings → MCP** — server `mailagent` should be green
+2. Click **Refresh** on tools list
+3. In Agent/Composer: "create inbox via mailagent" — agent will call tools
 
-Глобально для всех проектов: скопируйте блок в `~/.cursor/mcp.json` (абсолютный путь к `mcp/dist/index.js`).
+Globally for all projects: copy block to `~/.cursor/mcp.json` (absolute path to `mcp/dist/index.js`).
 
 ### Tools
 
-| Tool | Назначение |
+| Tool | Purpose |
 |------|------------|
-| `mailagent_create_inbox` | Создать ящик (`service` или `expectFrom`) |
-| `mailagent_wait_and_extract` | **Рекомендуется:** create → SSE wait → OTP → delete |
-| `mailagent_wait_for_message` | Ждать первое письмо (SSE, до 120s) |
-| `mailagent_extract_verification` | OTP + ссылки из последнего письма |
-| `mailagent_list_messages` | Все письма |
-| `mailagent_get_inbox` | Статус ящика |
-| `mailagent_delete_inbox` | Удалить досрочно |
+| `mailagent_create_inbox` | Create inbox (`service` or `expectFrom`) |
+| `mailagent_wait_and_extract` | **Recommended:** create → SSE wait → OTP → delete |
+| `mailagent_wait_for_message` | Wait for first message (SSE, up to 120s) |
+| `mailagent_extract_verification` | OTP + links from latest message |
+| `mailagent_list_messages` | All messages |
+| `mailagent_get_inbox` | Inbox status |
+| `mailagent_delete_inbox` | Delete early |
 
-Skill для агента: [`.cursor/skills/mailagent-mcp/SKILL.md`](.cursor/skills/mailagent-mcp/SKILL.md)
+Agent skill: [`.cursor/skills/mailagent-mcp/SKILL.md`](.cursor/skills/mailagent-mcp/SKILL.md)
 
-### CLI (терминал / CI)
+### CLI (terminal / CI)
 
-После `npm run build:mcp`:
+After `npm run build:mcp`:
 
 ```bash
-# один шаг: ящик + ждать OTP (service=dribbble)
+# one step: inbox + wait OTP (service=dribbble)
 MAILAGENT_API_URL=... MAILAGENT_API_KEY=... \
   node mcp/dist/cli.js open --service dribbble --json
 
-# или по шагам
+# or step by step
 node mcp/dist/cli.js inbox create --service dribbble
 node mcp/dist/cli.js wait <inboxId> --json
 ```
 
-Пресеты `service`: `dribbble`, `github`, `google`, `auth0`, `stripe`, `vercel`, `supabase`, `clerk`, `discord`, `openai`, `resend`, `firebase`.
+`service` presets: `dribbble`, `github`, `google`, `auth0`, `stripe`, `vercel`, `supabase`, `clerk`, `discord`, `openai`, `resend`, `firebase`.
 
-### One-shot (агент / CI)
+### One-shot (agent / CI)
 
 ```bash
 curl -s -X POST https://mailagent.<worker>/v1/inboxes/open \
@@ -213,15 +213,15 @@ curl -s -X POST https://mailagent.<worker>/v1/inboxes/open \
   -d '{"service":"github","timeoutSeconds":90}' | jq
 ```
 
-### Отладка MCP
+### MCP debugging
 
-- Логи: Command Palette → **MCP: Show Logs**
-- Не используйте `console.log` в MCP — только `stderr`, иначе ломается JSON-RPC
-- Проверка вручную: `cd mcp && MAILAGENT_API_KEY=... MAILAGENT_API_URL=... node dist/index.js`
+- Logs: Command Palette → **MCP: Show Logs**
+- Do not use `console.log` in MCP — stderr only, otherwise JSON-RPC breaks
+- Manual check: `cd mcp && MAILAGENT_API_KEY=... MAILAGENT_API_URL=... node dist/index.js`
 
-## Безопасность (allowlist)
+## Security (allowlist)
 
-При создании inbox передайте ожидаемого отправителя — остальные письма **не сохраняются**:
+When creating inbox pass expected sender — other mail **is not stored**:
 
 ```json
 { "expectFrom": "noreply@stripe.com" }
@@ -229,17 +229,17 @@ curl -s -X POST https://mailagent.<worker>/v1/inboxes/open \
 { "allowedSenders": "github.com" }
 ```
 
-Пустой `allowedSenders` = принимать всех (только для dev).
+Empty `allowedSenders` = accept all (dev only).
 
 ## CI
 
-- **Deploy:** `.github/workflows/deploy-worker.yml` — секреты `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`; опционально `MAILAGENT_API_KEY` для smoke после деплоя
+- **Deploy:** `.github/workflows/deploy-worker.yml` — secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`; optional `MAILAGENT_API_KEY` for smoke after deploy
 - **npm publish:** `.github/workflows/publish-packages.yml` — secret `NPM_TOKEN`
 
-Подробно: [docs/CI.md](./docs/CI.md) · [docs/PUBLISH.md](./docs/PUBLISH.md)
+Details: [docs/CI.md](./docs/CI.md) · [docs/PUBLISH.md](./docs/PUBLISH.md)
 
-## Дальше
+## Next
 
-- ~~R2 для сырых MIME~~ ✅ — [docs/RAW-MIME-R2.md](./docs/RAW-MIME-R2.md) · [сайт](https://webmailagent.com/docs/raw-mime.html)
-- ~~Scoped API keys per tenant~~ ✅ — [docs/SCOPED-API-KEYS.md](./docs/SCOPED-API-KEYS.md) · [сайт](https://webmailagent.com/docs/scoped-keys.html)
-- `api.webmailagent.com` → Worker — см. [SETUP.md](./SETUP.md) §6
+- ~~R2 for raw MIME~~ ✅ — [docs/RAW-MIME-R2.md](./docs/RAW-MIME-R2.md) · [site](https://webmailagent.com/docs/raw-mime.html)
+- ~~Scoped API keys per tenant~~ ✅ — [docs/SCOPED-API-KEYS.md](./docs/SCOPED-API-KEYS.md) · [site](https://webmailagent.com/docs/scoped-keys.html)
+- `api.webmailagent.com` → Worker — see [SETUP.md](./SETUP.md) §6

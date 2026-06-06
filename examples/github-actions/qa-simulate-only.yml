@@ -1,5 +1,5 @@
-# QA smoke в consumer-репо: только MAILAGENT_API_KEY, без Resend и DATABASE_URL.
-# Копируй в .github/workflows/ — проверяет create → simulate → extract.
+# QA smoke in consumer repo: MAILAGENT_API_KEY only, no Resend or DATABASE_URL.
+# Copy to .github/workflows/ — checks create → simulate → extract.
 
 name: MailAgent simulate smoke
 

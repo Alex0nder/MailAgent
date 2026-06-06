@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Локальный тест без Gmail: вставляет письмо в Neon (обходит allowlist ingest).
+ * Local test without Gmail: inserts message into Neon (bypasses allowlist ingest).
  * Usage: node scripts/simulate-inbound.mjs <inboxId> [otp] [from] [--fire-callback] [--subject=...] [--with-attachment=filename.pdf]
  */
 import "./load-env.mjs";

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * MailAgent MCP server для Cursor (stdio).
- * Официальный SDK: https://github.com/modelcontextprotocol/typescript-sdk
- * Логи только в stderr — stdout занят JSON-RPC.
+ * MailAgent MCP server for Cursor (stdio).
+ * Official SDK: https://github.com/modelcontextprotocol/typescript-sdk
+ * Logs only to stderr — stdout is reserved for JSON-RPC.
  */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";

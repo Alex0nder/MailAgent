@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Contract: POST …/simulate with attachment → list + JSON meta (без Resend, без DATABASE_URL).
+ * Contract: POST …/simulate with attachment → list + JSON meta (no Resend, no DATABASE_URL).
  */
 import "./load-env.mjs";
 import {

@@ -1,5 +1,5 @@
 /**
- * Allure: при падении теста прикрепить MailAgent debug (inbox + messages).
+ * Allure: on test failure attach MailAgent debug (inbox + messages).
  */
 import { test } from "@playwright/test";
 import {

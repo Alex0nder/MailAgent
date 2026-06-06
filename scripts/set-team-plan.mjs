@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Ручной план без Stripe: npm run team:plan -- TEAM_ID pro|free */
+/** Manual plan without Stripe: npm run team:plan -- TEAM_ID pro|free */
 import "./load-env.mjs";
 import { neon } from "@neondatabase/serverless";
 

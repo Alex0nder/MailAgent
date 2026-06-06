@@ -121,7 +121,7 @@ export function isCreateInboxError(
   return "error" in result;
 }
 
-/** QA: найти inbox прогона (отладка после падения теста) */
+/** QA: find run inbox (debug after test failure) */
 export async function listInboxes(
   env: Env,
   options?: {
@@ -226,7 +226,7 @@ export async function getInbox(
   return row;
 }
 
-/** Legacy inbox без hint — видны любому ключу; с hint — только владельцу */
+/** Legacy inbox without hint — visible to any key; with hint — owner only */
 export function inboxAccessible(
   row: InboxRow,
   apiKeyHint: string | undefined
@@ -277,7 +277,7 @@ export async function deleteInbox(
   return rows.length > 0;
 }
 
-/** QA: удалить все inbox с label LIKE prefix% (только свой api_key_hint) */
+/** QA: delete all inboxes with label LIKE prefix% (own api_key_hint only) */
 export async function deleteInboxesByLabelPrefix(
   env: Env,
   labelPrefix: string,
@@ -414,7 +414,7 @@ export async function countActiveInboxesForHint(
   return rows[0]?.n ?? 0;
 }
 
-/** Квота inbox на всю команду (все key_hint команды) */
+/** Inbox quota for entire team (all team key_hints) */
 export async function countActiveInboxesForTeam(
   env: Env,
   teamId: string

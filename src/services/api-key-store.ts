@@ -1,4 +1,4 @@
-/** Ключи и команды в Neon (Phase 3) */
+/** Keys and teams in Neon (Phase 3) */
 import { nanoid } from "nanoid";
 import type { Env } from "../env";
 import { getDb } from "../db/client";

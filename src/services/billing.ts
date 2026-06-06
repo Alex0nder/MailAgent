@@ -1,4 +1,4 @@
-/** Stripe Checkout + webhook (опционально) */
+/** Stripe Checkout + webhook (optional) */
 import type { Env } from "../env";
 import { findTeamByStripeSubscription, setTeamPlan } from "./api-key-store";
 

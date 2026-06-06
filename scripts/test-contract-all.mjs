@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Запуск всех contract-qa против prod (только MAILAGENT_API_KEY) */
+/** Run all contract-qa against prod (MAILAGENT_API_KEY only) */
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import path from "node:path";

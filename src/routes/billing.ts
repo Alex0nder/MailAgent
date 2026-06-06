@@ -1,4 +1,4 @@
-/** Stripe Checkout для upgrade free → pro */
+/** Stripe Checkout for free → pro upgrade */
 import { Hono } from "hono";
 import type { Env } from "../env";
 import type { ApiVariables } from "../lib/api-context";

@@ -1,4 +1,4 @@
-/** Agent verify: inbox → wait → extract + primaryAction для LLM */
+/** Agent verify: inbox → wait → extract + primaryAction for LLM */
 import type { Env } from "../env";
 import { parseCallbackUrl } from "../lib/callback-url";
 import { buildPrimaryAction, resolveAgentLabel } from "../lib/agent-recipes";

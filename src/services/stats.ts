@@ -1,4 +1,4 @@
-/** Агрегаты для GET /v1/stats */
+/** Aggregates for GET /v1/stats */
 import { neon } from "@neondatabase/serverless";
 import type { Env } from "../env";
 

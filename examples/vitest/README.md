@@ -1,28 +1,18 @@
-# Vitest + MailAgent
+# Vitest example
 
-Минимальный пример для команд на **Vitest** (не Playwright/Cypress).
-
-## Setup
+Minimal example for teams on **Vitest** (not Playwright/Cypress).
 
 ```bash
-npm install -D vitest @mailagent/qa
-export MAILAGENT_API_KEY=…
-export MAILAGENT_API_URL=https://api.webmailagent.com
+MAILAGENT_API_KEY=ma_… npx vitest run examples/vitest/mailagent-signup.example.test.ts
 ```
 
-## Run
+## Pattern
 
-```bash
-npx vitest run examples/vitest/mailagent-signup.example.test.ts
-```
+1. `createInbox({ label: MailAgentQa.runLabel("vitest") })` — isolation per test
+2. Submit form on staging with `address`
+3. `waitForVerification` / `extractVerification`
+4. On `MailAgentTimeoutError` — `getDebugContext()` / `formatAllureAttachment()` in CI log
 
-## Паттерн
+API diagnostics: `GET /v1/inboxes/:id/diagnose` (or MCP `mailagent_diagnose_inbox`).
 
-1. `createInbox({ label: MailAgentQa.runLabel("vitest") })` — изоляция на тест
-2. Submit форму на staging с `address`
-3. `waitForVerification(inboxId, { subjectContains, messageIndex })`
-4. При `MailAgentTimeoutError` — `getDebugContext()` / `formatAllureAttachment()` в CI log
-
-Диагностика на API: `GET /v1/inboxes/:id/diagnose` (или MCP `mailagent_diagnose_inbox`).
-
-См. также [QA-TROUBLESHOOTING.md](../../docs/QA-TROUBLESHOOTING.md).
+See also [QA-TROUBLESHOOTING.md](../../docs/QA-TROUBLESHOOTING.md).
