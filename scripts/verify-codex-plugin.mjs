@@ -36,6 +36,12 @@ if (bash.status !== 0) {
   process.exit(1);
 }
 
+const buildMcp = spawnSync("npm", ["run", "build:mcp"], {
+  cwd: root,
+  stdio: "inherit",
+});
+if (buildMcp.status !== 0) process.exit(buildMcp.status ?? 1);
+
 const smoke = spawnSync(process.execPath, [path.join(root, "scripts/smoke-codex.mjs")], {
   stdio: "inherit",
 });

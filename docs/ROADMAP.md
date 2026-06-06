@@ -114,6 +114,13 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | `npm run doctor:qa` | ✅ |
 | Vitest example (`examples/vitest/`) | ✅ |
 
+### v0.13 Jest + publish prep
+
+| Jest example (`examples/jest/`) | ✅ |
+| `smoke-codex` local fallback до npm publish | ✅ |
+| Publish `@mailagent/mcp@0.2.1` | manual |
+| Publish `@mailagent/qa@0.1.10` | manual |
+
 ### Отложено (не QA)
 
 - Agent session memory / multi-step run state

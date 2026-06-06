@@ -1,24 +1,36 @@
 #!/usr/bin/env node
-/** Smoke: Codex MCP entrypoint resolvable (@mailagent/mcp on npm). */
+/** Smoke: Codex MCP entrypoint — npm @mailagent/mcp или локальный mcp/dist до publish. */
+import { readFileSync, existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const pkg = "@mailagent/mcp@0.2.1";
-console.log("smoke-codex → npm pack", pkg);
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
+const mcpPkgPath = path.join(root, "mcp/package.json");
+const mcpVersion = JSON.parse(readFileSync(mcpPkgPath, "utf8")).version;
+const pkg = `@mailagent/mcp@${mcpVersion}`;
+
+console.log("smoke-codex →", pkg);
 
 const view = spawnSync("npm", ["view", pkg, "version"], {
   encoding: "utf8",
   stdio: ["ignore", "pipe", "pipe"],
 });
-if (view.status !== 0) {
-  console.error("npm view failed", view.stderr || view.stdout);
+const onNpm = view.status === 0;
+if (onNpm) {
+  console.log("npm version:", view.stdout.trim());
+} else {
+  console.log("npm: not published yet — using local mcp/dist");
+}
+
+const script = path.join(root, "examples/codex/plugin/scripts/run-mailagent-mcp.sh");
+const localMcp = path.join(root, "mcp/dist/index.js");
+
+if (!onNpm && !existsSync(localMcp)) {
+  console.error("missing mcp/dist — run: npm run build:mcp");
   process.exit(1);
 }
-console.log("npm version:", view.stdout.trim());
 
-const script = new URL(
-  "../examples/codex/plugin/scripts/run-mailagent-mcp.sh",
-  import.meta.url
-).pathname;
 const bash = spawnSync("bash", ["-n", script], { encoding: "utf8" });
 if (bash.status !== 0) {
   console.error("bash -n launcher failed", bash.stderr);
@@ -42,16 +54,26 @@ const rpcInput = [
   .map((line) => JSON.stringify(line))
   .join("\n");
 
-const tools = spawnSync("bash", [script], {
-  encoding: "utf8",
-  input: `${rpcInput}\n`,
-  env: {
-    ...process.env,
-    MAILAGENT_API_URL: process.env.MAILAGENT_API_URL ?? "https://api.webmailagent.com",
-    MAILAGENT_API_KEY: process.env.MAILAGENT_API_KEY ?? "mailagent_codex_smoke_redacted",
-  },
-  timeout: 30000,
-});
+const env = {
+  ...process.env,
+  MAILAGENT_API_URL: process.env.MAILAGENT_API_URL ?? "https://api.webmailagent.com",
+  MAILAGENT_API_KEY: process.env.MAILAGENT_API_KEY ?? "mailagent_codex_smoke_redacted",
+};
+
+const tools = onNpm
+  ? spawnSync("bash", [script], {
+      encoding: "utf8",
+      input: `${rpcInput}\n`,
+      env,
+      timeout: 60000,
+    })
+  : spawnSync(process.execPath, [localMcp], {
+      encoding: "utf8",
+      input: `${rpcInput}\n`,
+      env,
+      timeout: 30000,
+    });
+
 if (tools.status !== 0) {
   console.error("MCP tools/list failed", tools.stderr || tools.stdout);
   process.exit(1);
@@ -64,11 +86,17 @@ const listResponse = toolLines
   .map((line) => JSON.parse(line))
   .find((msg) => msg.id === 2);
 const names = new Set(listResponse?.result?.tools?.map((tool) => tool.name));
-for (const requiredTool of ["mailagent_verify_signup", "mailagent_create_inbox"]) {
+
+const required = [
+  "mailagent_verify_signup",
+  "mailagent_create_inbox",
+  "mailagent_diagnose_inbox",
+];
+for (const requiredTool of required) {
   if (!names.has(requiredTool)) {
     console.error(`missing MCP tool: ${requiredTool}`);
     process.exit(1);
   }
 }
 
-console.log("OK — Codex launcher resolves MCP tools:", Array.from(names).join(", "));
+console.log("OK — MCP tools:", Array.from(names).join(", "));
