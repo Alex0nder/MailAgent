@@ -29,7 +29,7 @@ Source of truth: `src/mcp/manifest.ts` → `GET /v1/agent`.
 | Remote | `POST https://api.webmailagent.com/mcp` + Bearer |
 
 ```bash
-codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.1 mailagent-mcp
+codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.3 mailagent-mcp
 ```
 
 ## npm packages

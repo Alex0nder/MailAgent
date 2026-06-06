@@ -104,4 +104,4 @@
 
 ## Следующий коммит
 
-v0.25: console threads view + audit retention policies.
+v0.26: console inbox detail + Codex plugin marketplace pack.

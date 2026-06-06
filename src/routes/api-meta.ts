@@ -63,6 +63,11 @@ apiMetaRoutes.get("/", (c) => {
         path: "/v1/console/threads",
         note: "Recent conversations across scoped inboxes",
       },
+      consoleInbox: {
+        method: "GET",
+        path: "/v1/console/inboxes/:id",
+        note: "Inbox detail — messages, threads, callbacks",
+      },
       auditLog: { method: "GET", path: "/v1/audit", note: "Team/key audit events" },
       team: { method: "GET", path: "/v1/team", note: "team + API keys" },
       teamCreateKey: { method: "POST", path: "/v1/team/keys", note: "invite" },

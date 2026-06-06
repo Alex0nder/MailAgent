@@ -160,7 +160,7 @@
               <td><code>${esc(i.address)}</code></td>
               <td>${esc(i.label || "—")}</td>
               <td>${esc(new Date(i.expiresAt).toLocaleString())}</td>
-              <td><a href="${esc(i.debugUrl)}">Debug</a></td>
+              <td><a href="/console-inbox.html?inbox=${esc(i.id)}">Open</a> · <a href="/debug.html?inbox=${esc(i.id)}">Debug</a></td>
             </tr>`;
           }
           html += `</tbody></table>`;

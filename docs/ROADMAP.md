@@ -208,6 +208,14 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | Audit retention cron (`AUDIT_RETENTION_DAYS`, default 90) | ✅ |
 | `policies.auditRetentionDays` in audit + console APIs | ✅ |
 
+### v0.26 Console inbox detail + Codex marketplace pack
+
+| `GET /v1/console/inboxes/:id` messages + threads + callbacks | ✅ |
+| `console-inbox.html` hosted inbox view | ✅ |
+| Codex plugin v0.2.3 + `npm run package:codex` tarball | ✅ |
+| Skill updated (21 MCP tools) | ✅ |
+| `contract-qa-console-inbox` | ✅ |
+
 ### Отложено (не QA)
 
 - Agent session memory / multi-step run state

@@ -142,6 +142,7 @@ export async function buildConsoleSummary(
       label: i.label,
       expiresAt: i.expires_at,
       createdAt: i.created_at,
+      consoleUrl: `/console-inbox.html?inbox=${i.id}`,
       debugUrl: `/debug.html?inbox=${i.id}`,
     })),
     domains: domains.map((d) => ({

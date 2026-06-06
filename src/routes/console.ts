@@ -7,6 +7,10 @@ import { rateLimit } from "../lib/rate-limit";
 import { buildConsoleSummary } from "../services/console-summary";
 import { listRecentThreadsForScope } from "../services/console-threads";
 import { auditRetentionDays } from "../services/audit-log";
+import { buildConsoleInboxDetail } from "../services/console-inbox";
+import { publicOriginFromUrl } from "../lib/public-origin";
+import { getInbox } from "../services/inbox";
+import { scopeInboxDenied } from "../lib/scope-guard";
 
 export const consoleRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
 
@@ -36,4 +40,21 @@ consoleRoutes.get("/threads", async (c) => {
     count: threads.length,
     policies: { auditRetentionDays: auditRetentionDays(c.env) },
   });
+});
+
+consoleRoutes.get("/inboxes/:id", async (c) => {
+  const inboxId = c.req.param("id");
+  const inbox = await getInbox(c.env, inboxId, {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
+  if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const denied = scopeInboxDenied(c, inbox);
+  if (denied) return denied;
+
+  const detail = await buildConsoleInboxDetail(c.env, inboxId, {
+    apiKeyHint: c.get("apiKeyHint"),
+    apiBaseUrl: publicOriginFromUrl(c.req.url),
+  });
+  if (!detail) return c.json({ error: "inbox_not_found" }, 404);
+  return c.json(detail);
 });

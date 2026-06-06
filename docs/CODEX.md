@@ -70,7 +70,7 @@ OAuth (team keys): `POST /v1/oauth/token` → `mat_…` вместо legacy key.
 | 8 | Playwright `global-setup` + attachment spec | ✅ |
 | 9 | Локальный тест plugin в Codex CLI | manual (Codex not in CI) |
 | 10 | Publish `@mailagent/agent@0.1.5` | manual (`npm run publish:agent`) |
-| 11 | Marketplace / `codex plugin install` publish | planned |
+| 11 | Marketplace / `codex plugin install` publish | ✅ pack (`npm run package:codex`) — submit tarball manually |
 
 ### Локальный тест plugin
 
