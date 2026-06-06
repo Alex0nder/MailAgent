@@ -42,6 +42,7 @@ import {
 } from "../services/outbound-mail";
 import { simulateInboundMessage } from "../services/simulate-inbound";
 import { buildWaitTimeoutDebug, waitForMessage } from "../services/wait";
+import { searchInboxMessages, type SearchMode } from "../services/message-search";
 import { publicOriginFromUrl } from "../lib/public-origin";
 
 export const inboxRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
@@ -417,6 +418,30 @@ inboxRoutes.get("/:id/threads/:threadId/messages", async (c) => {
     threadId: c.req.param("threadId"),
     messages: messages.map(formatThreadMessage),
   });
+});
+
+/** Search messages: keyword + optional semantic (Workers AI) */
+inboxRoutes.get("/:id/search", async (c) => {
+  const inbox = await getInbox(c.env, c.req.param("id"), {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
+  if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const denied = scopeInboxDenied(c, inbox);
+  if (denied) return denied;
+
+  const q = c.req.query("q") ?? "";
+  if (!q.trim()) return c.json({ error: "q_required" }, 400);
+
+  const limit = Number(c.req.query("limit") ?? "10");
+  const modeRaw = c.req.query("mode") ?? "auto";
+  const mode: SearchMode =
+    modeRaw === "keyword" || modeRaw === "semantic" ? modeRaw : "auto";
+
+  const result = await searchInboxMessages(c.env, inbox.id, q, {
+    limit,
+    mode,
+  });
+  return c.json(result);
 });
 
 inboxRoutes.get("/:id/diagnose", async (c) => {

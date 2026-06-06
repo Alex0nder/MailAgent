@@ -12,7 +12,7 @@
 | Attachments | ✅ | ✅ |
 | Realtime (SSE/webhooks) | ✅ | ✅ + MCP progress |
 | Custom domains | ✅ API | ✅ v0.19 |
-| Semantic search | ✅ | 🚧 v0.21 |
+| Semantic search | ✅ | ✅ v0.21 |
 | Document extraction | ✅ | 🚧 v0.22 |
 | MCP | ✅ | ✅ OAuth + 15+ tools |
 | SDK (TS/Python) | ✅ | ✅ TS + MCP |
@@ -49,7 +49,7 @@
 | `POST /v1/inboxes` `{ username, domainId }` | как AgentMail |
 | Team-scoped domains | multi-tenant |
 
-### Phase 3 — v0.21: Semantic search
+### Phase 3 — v0.21: Semantic search ✅
 
 | Задача | |
 |--------|--|
@@ -104,4 +104,4 @@
 
 ## Следующий коммит
 
-v0.21: semantic search (`GET /v1/inboxes/:id/search`, pgvector).
+v0.22: structured extraction (`POST /v1/messages/:id/extract` with JSON schema).

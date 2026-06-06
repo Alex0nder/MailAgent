@@ -10,6 +10,7 @@ import {
   normalizeMessageId,
   resolveInboundThread,
 } from "./thread-resolve";
+import { indexMessageSearch } from "./message-search";
 
 export type SimulateInboundInput = {
   inboxId: string;
@@ -110,6 +111,8 @@ export async function simulateInboundMessage(
     rfcMessageId,
   });
   if (!row) return null;
+
+  await indexMessageSearch(env, row);
 
   let attachmentId: string | undefined;
   if (input.attachmentFilename?.trim()) {

@@ -57,6 +57,9 @@
       "bucket_name": "mailagent-raw-mime"
     }
   ],
+  "ai": {
+    "binding": "AI"
+  },
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",

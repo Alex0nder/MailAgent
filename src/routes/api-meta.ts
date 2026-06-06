@@ -55,6 +55,11 @@ apiMetaRoutes.get("/", (c) => {
       addDomain: { method: "POST", path: "/v1/domains", note: "Resend DNS records" },
       verifyDomain: { method: "POST", path: "/v1/domains/:id/verify" },
       deleteDomain: { method: "DELETE", path: "/v1/domains/:id" },
+      searchMessages: {
+        method: "GET",
+        path: "/v1/inboxes/:id/search?q=",
+        note: "keyword + optional semantic (Workers AI)",
+      },
       health: { method: "GET", path: "/health" },
     },
     services: Object.keys(SERVICE_EXPECT_FROM),

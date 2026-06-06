@@ -169,6 +169,13 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | Migration `012_custom_domains.sql` | ✅ |
 | `contract-qa-domains` | ✅ |
 
+### v0.21 Semantic search
+
+| `GET /v1/inboxes/:id/search?q=` keyword + semantic | ✅ |
+| pgvector `message_search` + Workers AI embeddings | ✅ |
+| MCP `mailagent_search_messages` | ✅ |
+| `contract-qa-search` | ✅ |
+
 ### Отложено (не QA)
 
 - Agent session memory / multi-step run state

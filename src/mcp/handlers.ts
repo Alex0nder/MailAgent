@@ -38,6 +38,7 @@ import {
 import { buildInboxDiagnose } from "../services/inbox-diagnose";
 import { simulateInboundMessage } from "../services/simulate-inbound";
 import { listThreadMessages, listThreads, sendFromInbox } from "../services/outbound-mail";
+import { searchInboxMessages, type SearchMode } from "../services/message-search";
 import { buildWaitTimeoutDebug, waitForMessage, type WaitProgressEvent } from "../services/wait";
 import type { McpProgressParams, McpToolContext } from "../mcp/progress";
 
@@ -546,6 +547,26 @@ export async function executeMcpTool(
       });
       if (!result.ok) return textResult({ error: result.error, hint: result.hint }, true);
       return textResult(result.domain);
+    }
+
+    case "mailagent_search_messages": {
+      const inboxId = args.inboxId as string;
+      const inbox = await getInbox(env, inboxId, {
+        apiKeyHint: auth.apiKeyHint,
+      });
+      if (!inbox || !assertInboxAccessible(auth.scope, inbox).ok) {
+        return textResult({ error: "inbox_not_found" }, true);
+      }
+      const q = args.q as string;
+      if (!q?.trim()) return textResult({ error: "q_required" }, true);
+      const modeRaw = args.mode as string | undefined;
+      const mode: SearchMode =
+        modeRaw === "keyword" || modeRaw === "semantic" ? modeRaw : "auto";
+      const result = await searchInboxMessages(env, inboxId, q, {
+        limit: args.limit as number | undefined,
+        mode,
+      });
+      return textResult(result);
     }
 
     case "mailagent_diagnose_inbox": {

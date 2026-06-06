@@ -11,6 +11,7 @@ import {
   type MessageRow,
 } from "./inbox";
 import { extractLinks, extractOtp } from "./extract";
+import { indexMessageSearch } from "./message-search";
 
 export type SendMailInput = {
   inboxId: string;
@@ -131,6 +132,8 @@ export async function sendFromInbox(
   });
 
   if (!row) return null;
+
+  await indexMessageSearch(env, row);
 
   return {
     messageId: row.id,

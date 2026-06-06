@@ -189,6 +189,21 @@ export const MCP_TOOLS = [
     },
   },
   {
+    name: "mailagent_search_messages",
+    description:
+      "Search inbox messages by keyword (subject/body/from/otp) and optional semantic similarity.",
+    inputSchema: {
+      type: "object",
+      required: ["inboxId", "q"],
+      properties: {
+        inboxId: { type: "string" },
+        q: { type: "string" },
+        limit: { type: "integer", maximum: 50 },
+        mode: { type: "string", enum: ["auto", "keyword", "semantic"] },
+      },
+    },
+  },
+  {
     name: "mailagent_diagnose_inbox",
     description:
       "When wait/verify fails: messages, callbacks, wait hints, debugUiUrl, troubleshooting steps.",

@@ -17,6 +17,7 @@ import {
 import { storeRawMimeFromUrl } from "./raw-mime-r2";
 import { saveAttachmentsFromEmail } from "./message-attachments";
 import { formatMessageVerification } from "./message-verify";
+import { indexMessageSearch } from "./message-search";
 import {
   normalizeMessageId,
   parseMessageIdList,
@@ -115,6 +116,8 @@ export async function processInboundEmail(
   });
 
   if (!row) return;
+
+  await indexMessageSearch(env, row);
 
   await saveAttachmentsFromEmail(
     env,

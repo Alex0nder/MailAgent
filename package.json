@@ -40,6 +40,8 @@
     "test:contract:qa:attachments": "node scripts/contract-qa-attachments.mjs",
     "test:contract:qa:threads": "node scripts/contract-qa-threads.mjs",
     "test:contract:qa:domains": "node scripts/contract-qa-domains.mjs",
+    "test:contract:qa:search": "node scripts/contract-qa-search.mjs",
+    "test:message-search": "npx tsx scripts/test-message-search.ts",
     "test:thread-resolve": "npx tsx scripts/test-thread-resolve.ts",
     "smoke:codex": "node scripts/smoke-codex.mjs",
     "verify:codex": "node scripts/verify-codex-plugin.mjs",

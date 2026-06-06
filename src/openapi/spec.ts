@@ -745,6 +745,57 @@ export const openApiSpec = {
         },
       },
     },
+    "/v1/inboxes/{id}/search": {
+      get: {
+        tags: ["inboxes"],
+        summary: "Search messages (keyword + optional semantic)",
+        security: bearer,
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string" } },
+          { name: "q", in: "query", required: true, schema: { type: "string" } },
+          { name: "limit", in: "query", schema: { type: "integer", maximum: 50 } },
+          {
+            name: "mode",
+            in: "query",
+            schema: { type: "string", enum: ["auto", "keyword", "semantic"] },
+          },
+        ],
+        responses: {
+          "200": {
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    query: { type: "string" },
+                    mode: { type: "string" },
+                    semanticAvailable: { type: "boolean" },
+                    results: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          messageId: { type: "string" },
+                          score: { type: "number" },
+                          matchType: { type: "string" },
+                          subject: { type: "string" },
+                          from: { type: "string" },
+                          snippet: { type: "string" },
+                          receivedAt: { type: "string" },
+                          otp: { type: "string", nullable: true },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          "400": { description: "q_required" },
+          "404": { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
     "/v1/inboxes/{id}/simulate": {
       post: {
         tags: ["inboxes"],
