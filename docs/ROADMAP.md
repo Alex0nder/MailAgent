@@ -176,6 +176,14 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | MCP `mailagent_search_messages` | ✅ |
 | `contract-qa-search` | ✅ |
 
+### v0.22 Structured extraction
+
+| `POST …/messages/:id/extract` presets + custom schema | ✅ |
+| Presets `2fa`, `invoice`, `receipt` (rules; AI for custom) | ✅ |
+| `GET …/extract/presets` | ✅ |
+| MCP `mailagent_extract_structured` | ✅ |
+| `contract-qa-extract` | ✅ |
+
 ### Отложено (не QA)
 
 - Agent session memory / multi-step run state

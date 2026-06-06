@@ -56,6 +56,7 @@ async function main() {
     "mailagent_send_message",
     "mailagent_list_threads",
     "mailagent_search_messages",
+    "mailagent_extract_structured",
   ]) {
     if (!tools.includes(name)) {
       console.error("missing mcpTool on API:", name);

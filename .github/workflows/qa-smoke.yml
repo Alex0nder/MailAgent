@@ -50,3 +50,4 @@ jobs:
           npm run test:contract:qa:threads
           npm run test:contract:qa:domains
           npm run test:contract:qa:search
+          npm run test:contract:qa:extract

@@ -189,6 +189,21 @@ export const MCP_TOOLS = [
     },
   },
   {
+    name: "mailagent_extract_structured",
+    description:
+      "Extract structured JSON from a message using preset (2fa, invoice, receipt) or custom schema (requires Workers AI).",
+    inputSchema: {
+      type: "object",
+      required: ["inboxId", "messageId"],
+      properties: {
+        inboxId: { type: "string" },
+        messageId: { type: "string" },
+        preset: { type: "string", enum: ["2fa", "invoice", "receipt"] },
+        schema: { type: "object", description: "Custom JSON schema properties (AI)" },
+      },
+    },
+  },
+  {
     name: "mailagent_search_messages",
     description:
       "Search inbox messages by keyword (subject/body/from/otp) and optional semantic similarity.",

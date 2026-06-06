@@ -43,6 +43,11 @@ import {
 import { simulateInboundMessage } from "../services/simulate-inbound";
 import { buildWaitTimeoutDebug, waitForMessage } from "../services/wait";
 import { searchInboxMessages, type SearchMode } from "../services/message-search";
+import {
+  extractStructuredFromMessage,
+  listExtractPresets,
+  type ExtractPreset,
+} from "../services/structured-extract";
 import { publicOriginFromUrl } from "../lib/public-origin";
 
 export const inboxRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
@@ -573,6 +578,17 @@ inboxRoutes.get("/:id/messages", async (c) => {
   });
 });
 
+/** Presets for structured extraction (before GET …/extract) */
+inboxRoutes.get("/:id/extract/presets", async (c) => {
+  const inbox = await getInbox(c.env, c.req.param("id"), {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
+  if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const denied = scopeInboxDenied(c, inbox);
+  if (denied) return denied;
+  return c.json({ presets: listExtractPresets() });
+});
+
 inboxRoutes.get("/:id/extract", async (c) => {
   const inbox = await getInbox(c.env, c.req.param("id"), {
     apiKeyHint: c.get("apiKeyHint"),
@@ -584,6 +600,48 @@ inboxRoutes.get("/:id/extract", async (c) => {
   const latest = messages[0];
   if (!latest) return c.json({ error: "no_messages" }, 404);
   return c.json(formatMessageVerification(latest, inbox.id));
+});
+
+/** Structured JSON extraction from a message (presets or custom schema + AI) */
+inboxRoutes.post("/:id/messages/:messageId/extract", async (c) => {
+  const inbox = await getInbox(c.env, c.req.param("id"), {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
+  if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const denied = scopeInboxDenied(c, inbox);
+  if (denied) return denied;
+
+  let body: { preset?: string; schema?: Record<string, unknown> } = {};
+  try {
+    body = await c.req.json();
+  } catch {
+    body = {};
+  }
+
+  const message = await getMessage(
+    c.env,
+    inbox.id,
+    c.req.param("messageId")
+  );
+  if (!message) return c.json({ error: "message_not_found" }, 404);
+
+  const preset = body.preset as ExtractPreset | undefined;
+  const result = await extractStructuredFromMessage(c.env, message, {
+    preset,
+    schema: body.schema,
+  });
+
+  if ("error" in result) {
+    const status =
+      result.error === "ai_required_for_custom_schema"
+        ? 501
+        : result.error === "ai_extract_failed"
+          ? 502
+          : 400;
+    return c.json({ error: result.error }, status);
+  }
+
+  return c.json(result);
 });
 
 /** SSE: ждём первое письмо (надёжнее long-poll 120s на Workers) */

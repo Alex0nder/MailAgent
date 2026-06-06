@@ -60,6 +60,12 @@ apiMetaRoutes.get("/", (c) => {
         path: "/v1/inboxes/:id/search?q=",
         note: "keyword + optional semantic (Workers AI)",
       },
+      extractPresets: { method: "GET", path: "/v1/inboxes/:id/extract/presets" },
+      extractStructured: {
+        method: "POST",
+        path: "/v1/inboxes/:id/messages/:messageId/extract",
+        note: "preset 2fa|invoice|receipt or custom schema (AI)",
+      },
       health: { method: "GET", path: "/health" },
     },
     services: Object.keys(SERVICE_EXPECT_FROM),

@@ -745,6 +745,57 @@ export const openApiSpec = {
         },
       },
     },
+    "/v1/inboxes/{id}/extract/presets": {
+      get: {
+        tags: ["inboxes"],
+        summary: "List structured extraction presets",
+        security: bearer,
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: { "200": { description: "2fa, invoice, receipt presets" } },
+      },
+    },
+    "/v1/inboxes/{id}/messages/{messageId}/extract": {
+      post: {
+        tags: ["inboxes"],
+        summary: "Structured JSON extract (preset or custom schema)",
+        security: bearer,
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string" } },
+          { name: "messageId", in: "path", required: true, schema: { type: "string" } },
+        ],
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  preset: { type: "string", enum: ["2fa", "invoice", "receipt"] },
+                  schema: { type: "object" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    messageId: { type: "string" },
+                    preset: { type: "string", nullable: true },
+                    extractor: { type: "string", enum: ["rules", "ai", "hybrid"] },
+                    data: { type: "object" },
+                  },
+                },
+              },
+            },
+          },
+          "501": { description: "ai_required_for_custom_schema" },
+        },
+      },
+    },
     "/v1/inboxes/{id}/search": {
       get: {
         tags: ["inboxes"],

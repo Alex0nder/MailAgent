@@ -40,6 +40,8 @@ export interface Env {
   AI?: Ai;
   /** Override embed model (default @cf/baai/bge-base-en-v1.5) */
   SEARCH_EMBED_MODEL?: string;
+  /** LLM for structured extract (default @cf/meta/llama-3.1-8b-instruct) */
+  EXTRACT_MODEL?: string;
 }
 
 export interface EmailQueueMessage {

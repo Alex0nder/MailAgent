@@ -39,6 +39,10 @@ import { buildInboxDiagnose } from "../services/inbox-diagnose";
 import { simulateInboundMessage } from "../services/simulate-inbound";
 import { listThreadMessages, listThreads, sendFromInbox } from "../services/outbound-mail";
 import { searchInboxMessages, type SearchMode } from "../services/message-search";
+import {
+  extractStructuredFromMessage,
+  type ExtractPreset,
+} from "../services/structured-extract";
 import { buildWaitTimeoutDebug, waitForMessage, type WaitProgressEvent } from "../services/wait";
 import type { McpProgressParams, McpToolContext } from "../mcp/progress";
 
@@ -547,6 +551,28 @@ export async function executeMcpTool(
       });
       if (!result.ok) return textResult({ error: result.error, hint: result.hint }, true);
       return textResult(result.domain);
+    }
+
+    case "mailagent_extract_structured": {
+      const inboxId = args.inboxId as string;
+      const messageId = args.messageId as string;
+      const inbox = await getInbox(env, inboxId, {
+        apiKeyHint: auth.apiKeyHint,
+      });
+      if (!inbox || !assertInboxAccessible(auth.scope, inbox).ok) {
+        return textResult({ error: "inbox_not_found" }, true);
+      }
+      const message = await getMessage(env, inboxId, messageId);
+      if (!message) return textResult({ error: "message_not_found" }, true);
+
+      const preset = args.preset as ExtractPreset | undefined;
+      const schema = args.schema as Record<string, unknown> | undefined;
+      const result = await extractStructuredFromMessage(env, message, {
+        preset,
+        schema,
+      });
+      if ("error" in result) return textResult({ error: result.error }, true);
+      return textResult(result);
     }
 
     case "mailagent_search_messages": {

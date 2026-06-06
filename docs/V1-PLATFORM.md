@@ -13,7 +13,7 @@
 | Realtime (SSE/webhooks) | ✅ | ✅ + MCP progress |
 | Custom domains | ✅ API | ✅ v0.19 |
 | Semantic search | ✅ | ✅ v0.21 |
-| Document extraction | ✅ | 🚧 v0.22 |
+| Document extraction | ✅ | ✅ v0.22 |
 | MCP | ✅ | ✅ OAuth + 15+ tools |
 | SDK (TS/Python) | ✅ | ✅ TS + MCP |
 | Enterprise / SOC 2 | ✅ | 🚧 v0.23+ |
@@ -57,7 +57,7 @@
 | `GET /v1/inboxes/:id/search?q=` | semantic + keyword |
 | MCP `mailagent_search_messages` | |
 
-### Phase 4 — v0.22: Structured extraction
+### Phase 4 — v0.22: Structured extraction ✅
 
 | Задача | |
 |--------|--|
@@ -104,4 +104,4 @@
 
 ## Следующий коммит
 
-v0.22: structured extraction (`POST /v1/messages/:id/extract` with JSON schema).
+v0.23: hosted SaaS console + Stripe live billing.
