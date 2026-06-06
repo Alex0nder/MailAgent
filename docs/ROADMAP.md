@@ -28,7 +28,7 @@ P0–P2 done — see [QA-ROADMAP.md](./QA-ROADMAP.md).
 |-------|----------------|
 | `@mailagent/mcp` | 0.2.5 |
 | `@mailagent/qa` | 0.1.13 |
-| `@mailagent/agent` | 0.1.10 |
+| `@mailagent/agent` | 0.1.11 |
 
 ```bash
 npm install @mailagent/mcp @mailagent/qa @mailagent/agent
@@ -308,6 +308,13 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | MCP `runId` on verify / wait_and_extract | ✅ |
 | MCP `create_inbox` → `inbox.created` session step | ✅ |
 | API hub `0.8.0` · npm `@mailagent/agent@0.1.10` `@mailagent/mcp@0.2.5` | ✅ |
+
+### v0.38 Stateless MCP sessions + session in verify/run
+
+| MCP `Mcp-Session-Id` as JWT (no KV put on initialize) | ✅ |
+| `POST /v1/agent/verify` response includes `session` when `runId` set | ✅ |
+| `GET /v1/agent/runs/:runId` includes `session` | ✅ |
+| `@mailagent/agent@0.1.11` · API hub `0.8.1` | ✅ |
 
 ### Deferred (not QA)
 

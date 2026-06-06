@@ -68,3 +68,45 @@ export async function verifyMcpAccessJwt(
     return null;
   }
 }
+
+type McpSessionJwtClaims = {
+  sub: string;
+  tid?: string | null;
+};
+
+/** Stateless Streamable HTTP session (mcp_<jwt>) */
+export async function signMcpSessionJwt(
+  secret: string,
+  auth: { apiKeyHint: string; teamId: string | null },
+  expiresInSec: number
+): Promise<string> {
+  const claims: McpSessionJwtClaims = {
+    sub: auth.apiKeyHint,
+    tid: auth.teamId,
+  };
+  return new SignJWT(claims as Record<string, unknown>)
+    .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+    .setIssuedAt()
+    .setExpirationTime(`${expiresInSec}s`)
+    .sign(secretKey(secret));
+}
+
+export async function verifyMcpSessionJwt(
+  secret: string,
+  jwt: string
+): Promise<{ apiKeyHint: string; teamId: string | null; createdAt: string } | null> {
+  try {
+    const { payload } = await jwtVerify(jwt, secretKey(secret), {
+      algorithms: ["HS256"],
+    });
+    const c = payload as McpSessionJwtClaims;
+    if (!c.sub || typeof c.sub !== "string") return null;
+    return {
+      apiKeyHint: c.sub,
+      teamId: c.tid ?? null,
+      createdAt: new Date().toISOString(),
+    };
+  } catch {
+    return null;
+  }
+}

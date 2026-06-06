@@ -19,7 +19,10 @@ import {
 import {
   recordVerifyRunSession,
   sessionOwnerKey,
+  getAgentRunSession,
+  type AgentRunSession,
 } from "./agent-run-session";
+import { validateRunId } from "../lib/validate-run-id";
 
 export type VerifyInput = {
   inboxId?: string;
@@ -40,6 +43,20 @@ export type VerifyInput = {
   domainId?: string;
   onProgress?: (event: WaitProgressEvent) => void;
 };
+
+async function attachRunSession<T extends Record<string, unknown>>(
+  env: Env,
+  input: VerifyInput,
+  result: T
+): Promise<T & { session?: AgentRunSession }> {
+  if (!input.runId || !validateRunId(input.runId)) return result;
+  const session = await getAgentRunSession(
+    env,
+    input.runId,
+    sessionOwnerKey(input.teamId, input.apiKeyHint)
+  );
+  return session ? { ...result, session } : result;
+}
 
 export async function runAgentVerify(env: Env, input: VerifyInput) {
   const callbackUrl = parseCallbackUrl(input.callbackUrl);
@@ -109,7 +126,7 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
       input.service,
       { status: "timeout", email: { inboxId: inbox.id } }
     );
-    return timeoutResult;
+    return await attachRunSession(env, input, timeoutResult);
   }
 
   const attachmentCount = await countAttachmentsForMessage(env, message.id);
@@ -151,7 +168,7 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
       },
     }
   );
-  return verifiedResult;
+  return await attachRunSession(env, input, verifiedResult);
 }
 
 function formatEmail(inbox: InboxRow) {

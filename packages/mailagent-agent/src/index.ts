@@ -73,6 +73,14 @@ export type McpAuthInfo = {
   docs: string;
 };
 
+export type AgentRunSession = {
+  runId: string;
+  state: Record<string, unknown>;
+  steps: Array<{ name: string; at: string; data?: Record<string, unknown> }>;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type VerifySignupResult = {
   status: "verified" | "timeout";
   email?: { inboxId: string; address: string };
@@ -87,6 +95,7 @@ export type VerifySignupResult = {
     hasAttachments?: boolean;
   };
   agent?: { primaryAction: PrimaryAction; service: string | null };
+  session?: AgentRunSession;
   error?: string;
   hint?: string;
 };
@@ -304,9 +313,11 @@ export class MailAgent {
   listRuns(options?: { runId?: string; limit?: number }) {
     const q = new URLSearchParams();
     if (options?.runId) {
-      return this.request<{ runId: string; inboxes: unknown[] }>(
-        `/v1/agent/runs/${encodeURIComponent(options.runId)}`
-      );
+      return this.request<{
+        runId: string;
+        inboxes: unknown[];
+        session: AgentRunSession | null;
+      }>(`/v1/agent/runs/${encodeURIComponent(options.runId)}`);
     }
     if (options?.limit) q.set("limit", String(options.limit));
     return this.request<{ runs: unknown[] }>(`/v1/agent/runs?${q}`);

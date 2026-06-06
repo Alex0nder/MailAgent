@@ -72,6 +72,10 @@ async function main() {
     console.error("verify timeout expected", verify.status, verify.json);
     process.exit(1);
   }
+  if (!verify.json?.session?.steps?.some((s) => s.name === "verify.timeout")) {
+    console.error("verify response missing session", verify.json?.session);
+    process.exit(1);
+  }
 
   const afterVerify = await contractApi(
     base,

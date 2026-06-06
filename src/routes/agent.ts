@@ -46,7 +46,7 @@ agentRoutes.get("/", (c) => {
   const oidc = isOidcEnabled(c.env);
   return c.json({
     name: "MailAgent Agent API",
-    version: "0.8.0",
+    version: "0.8.1",
     auth: {
       oidc: oidc ? "enabled" : "disabled",
       me: "GET /v1/me",
@@ -56,7 +56,11 @@ agentRoutes.get("/", (c) => {
         : "https://webmailagent.com/docs/agents.html#mcp-oauth",
     },
     recommended: {
-      verify: { method: "POST", path: "/v1/agent/verify" },
+      verify: {
+        method: "POST",
+        path: "/v1/agent/verify",
+        runSession: "pass runId → response includes session",
+      },
       oneShot: { method: "POST", path: "/v1/inboxes/open" },
       rawMessage: {
         method: "GET",
@@ -68,7 +72,7 @@ agentRoutes.get("/", (c) => {
     recipes: "/v1/agent/recipes",
     runs: {
       list: "GET /v1/agent/runs",
-      detail: "GET /v1/agent/runs/:runId",
+      detail: "GET /v1/agent/runs/:runId (includes session)",
       session: {
         get: "GET /v1/agent/runs/:runId/session",
         patch: "PATCH /v1/agent/runs/:runId/session",
@@ -76,7 +80,7 @@ agentRoutes.get("/", (c) => {
     },
     remoteMcp: {
       endpoint: "POST /mcp",
-      streamableHttp: "Mcp-Session-Id on initialize",
+      streamableHttp: "Mcp-Session-Id on initialize (JWT, no KV when API_KEY set)",
       sse: "GET /mcp",
       oauth: {
         token: "POST /v1/oauth/token",
@@ -169,7 +173,9 @@ agentRoutes.get("/runs/:runId", async (c) => {
   });
   const run = runs[0];
   if (!run) return c.json({ error: "run_not_found" }, 404);
-  return c.json(run);
+  const owner = sessionOwnerKey(c.get("teamId"), c.get("apiKeyHint"));
+  const session = await getAgentRunSession(c.env, runId, owner);
+  return c.json({ ...run, session: session ?? null });
 });
 
 agentRoutes.post("/verify", async (c) => {

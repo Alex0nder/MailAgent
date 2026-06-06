@@ -8,6 +8,7 @@ import {
   signMcpAccessJwt,
   verifyMcpAccessJwt,
 } from "../lib/mcp-jwt";
+import { mcpSigningSecret } from "../lib/mcp-signing-secret";
 import { normalizePlan, type PlanId } from "../lib/plans";
 
 const KV_PREFIX = "oauth:mat:";
@@ -29,11 +30,7 @@ function kv(env: Env): KVNamespace | undefined {
 }
 
 function signingSecret(env: Env): string | null {
-  const fromEnv = env.MCP_OAUTH_JWT_SECRET?.trim();
-  if (fromEnv) return fromEnv;
-  const apiKey = env.API_KEY?.trim();
-  if (apiKey) return apiKey;
-  return null;
+  return mcpSigningSecret(env);
 }
 
 async function tokenDigest(token: string): Promise<string> {
