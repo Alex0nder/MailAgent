@@ -28,7 +28,11 @@ export async function createMcpSession(
     teamId: auth.teamId,
     createdAt: new Date().toISOString(),
   };
-  await store.put(PREFIX + id, JSON.stringify(data), { expirationTtl: TTL_SEC });
+  try {
+    await store.put(PREFIX + id, JSON.stringify(data), { expirationTtl: TTL_SEC });
+  } catch {
+    return null;
+  }
   return id;
 }
 

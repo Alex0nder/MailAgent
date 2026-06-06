@@ -57,9 +57,13 @@ export async function issueMcpAccessToken(
     scopeReadOnly: auth.scope.readOnly,
   };
   const expires_in = ttlSec(env);
-  await store.put(KV_PREFIX + (await tokenDigest(access_token)), JSON.stringify(payload), {
-    expirationTtl: expires_in + 60,
-  });
+  try {
+    await store.put(KV_PREFIX + (await tokenDigest(access_token)), JSON.stringify(payload), {
+      expirationTtl: expires_in + 60,
+    });
+  } catch {
+    return null;
+  }
 
   return { access_token, token_type: "Bearer", expires_in };
 }

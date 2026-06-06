@@ -213,8 +213,12 @@ async function resolveSession(
     return { sessionId: sessionIn };
   }
   if (req.method === "initialize") {
-    const created = await createMcpSession(env, auth);
-    if (created) return { sessionId: created };
+    try {
+      const created = await createMcpSession(env, auth);
+      if (created) return { sessionId: created };
+    } catch {
+      /* KV quota */
+    }
   }
   return { sessionId: sessionIn };
 }
@@ -285,8 +289,12 @@ async function dispatchRpcWithSession(
 
   let sessionId = sessionIn;
   if (req.method === "initialize" && !sessionIn) {
-    const created = await createMcpSession(env, auth);
-    if (created) sessionId = created;
+    try {
+      const created = await createMcpSession(env, auth);
+      if (created) sessionId = created;
+    } catch {
+      /* KV quota — initialize still succeeds without session */
+    }
   }
 
   const result = await dispatchRpc(env, auth, req);

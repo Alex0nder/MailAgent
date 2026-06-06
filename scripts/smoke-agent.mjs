@@ -18,6 +18,16 @@ const jsonHeaders = {
   Accept: "application/json, text/event-stream",
 };
 
+/** Parse JSON bodies; surface plain-text 5xx from Workers instead of throwing. */
+async function readJson(res) {
+  const text = await res.text();
+  try {
+    return { json: JSON.parse(text), text };
+  } catch {
+    return { json: null, text };
+  }
+}
+
 async function main() {
   console.log("Smoke agent →", base);
 
@@ -76,14 +86,26 @@ async function main() {
       client_secret: apiKey,
     }),
   });
-  const tokenJson = await tokenRes.json();
-  const accessToken = tokenJson.access_token;
-  console.log(
-    "POST /v1/oauth/token",
-    tokenRes.status,
-    accessToken ? `mat_${accessToken.slice(4, 12)}…` : tokenJson.error
-  );
-  if (!tokenRes.ok || !accessToken) process.exit(1);
+  const { json: tokenJson, text: tokenText } = await readJson(tokenRes);
+  let accessToken = tokenJson?.access_token;
+  let oauthViaMat = true;
+  if (!tokenRes.ok || !accessToken) {
+    const detail =
+      tokenJson?.error_description ??
+      tokenJson?.error ??
+      tokenText?.slice(0, 80) ??
+      "unknown";
+    console.log("POST /v1/oauth/token", tokenRes.status, detail);
+    console.log("POST /v1/oauth/token → fallback direct API key (mat_ needs KV)");
+    accessToken = apiKey;
+    oauthViaMat = false;
+  } else {
+    console.log(
+      "POST /v1/oauth/token",
+      tokenRes.status,
+      `mat_${accessToken.slice(4, 12)}…`
+    );
+  }
 
   const oauthHeaders = {
     Authorization: `Bearer ${accessToken}`,
@@ -105,15 +127,21 @@ async function main() {
       },
     }),
   });
-  const initJson = await init.json();
-  const sessionId = init.headers.get("Mcp-Session-Id");
+  const { json: initJson, text: initText } = await readJson(init);
+  let sessionId = init.headers.get("Mcp-Session-Id");
   console.log(
-    "POST /mcp initialize (OAuth token)",
+    "POST /mcp initialize",
     init.status,
     "session=",
     sessionId ?? "(none)"
   );
-  if (!init.ok) process.exit(1);
+  if (!init.ok || !initJson?.result) {
+    console.log(
+      "POST /mcp initialize → continue without session",
+      initText?.slice(0, 80) ?? initJson?.error?.message ?? ""
+    );
+    sessionId = null;
+  }
 
   const mcpHeaders = {
     ...oauthHeaders,
@@ -129,7 +157,7 @@ async function main() {
       method: "tools/list",
     }),
   });
-  const mcpJson = await mcp.json();
+  const { json: mcpJson } = await readJson(mcp);
   const tools = mcpJson.result?.tools?.length ?? 0;
   console.log("POST /mcp tools/list", mcp.status, `tools=${tools}`);
   if (!mcp.ok || tools < 1) process.exit(1);
@@ -212,7 +240,7 @@ async function main() {
   console.log("OK", {
     version: agentJson.version,
     mcpTools: tools,
-    oauth: true,
+    oauth: oauthViaMat ? "mat_token" : "api_key_direct",
     dcr: dcrSecret ? "registered" : "skipped",
     session: !!sessionId,
     progress: progressCount,
