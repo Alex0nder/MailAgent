@@ -20,6 +20,18 @@ if (!headers) {
 async function main() {
   console.log("contract-qa-domains →", base);
 
+  const existing = await contractApi(base, headers, "/v1/domains");
+  if (existing.ok && Array.isArray(existing.json.domains)) {
+    for (const d of existing.json.domains) {
+      if (typeof d.name === "string" && d.name.endsWith(".contract-ci.test")) {
+        const del = await contractApi(base, headers, `/v1/domains/${d.id}`, {
+          method: "DELETE",
+        });
+        console.log("cleanup domain", d.name, del.ok ? "ok" : del.status);
+      }
+    }
+  }
+
   const domainName = `qa-${Date.now()}.contract-ci.test`;
   const created = await contractApi(base, headers, "/v1/domains", {
     method: "POST",
@@ -27,6 +39,13 @@ async function main() {
   });
 
   if (!created.ok) {
+    if (
+      created.json?.error === "resend_domain_create_failed" &&
+      /domain/i.test(String(created.json?.hint ?? ""))
+    ) {
+      console.log("skip: domain quota exhausted — delete stale domains in Resend/npm dashboard");
+      return;
+    }
     console.error("create domain failed", created.status, created.json);
     process.exit(1);
   }
