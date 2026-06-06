@@ -112,6 +112,11 @@
         }
         html += `</div></div>`;
 
+        const ob = d.capabilities?.outbound;
+        if (ob?.enabled && !ob.verifiedFrom) {
+          html += `<div class="console-banner">Outbound send works, but <code>OUTBOUND_FROM</code> is not set — deliverability may suffer. <a href="/docs/outbound.html">Setup guide</a></div>`;
+        }
+
         const scope = d.scope;
         if (scope && (scope.labelPrefix || scope.readOnly)) {
           html += `<p class="console-scope">Scope: `;

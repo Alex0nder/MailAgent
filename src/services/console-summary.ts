@@ -14,6 +14,7 @@ import { listInboxes } from "./inbox";
 import { getScopedUsage } from "./console-stats";
 import { listAuditEvents, auditRetentionDays } from "./audit-log";
 import { listRecentThreadsForScope } from "./console-threads";
+import { outboundCapabilities } from "../lib/outbound-capabilities";
 import { stripeConfigured } from "./billing";
 
 export async function buildConsoleSummary(
@@ -160,6 +161,9 @@ export async function buildConsoleSummary(
     recentThreads,
     policies: {
       auditRetentionDays: auditRetentionDays(env),
+    },
+    capabilities: {
+      outbound: outboundCapabilities(env),
     },
     team,
     links: {

@@ -67,5 +67,9 @@ if (!merged.MAILAGENT_API_KEY && merged.API_KEY) {
   console.log("ℹ Для MCP добавьте в .env: MAILAGENT_API_KEY=<same as API_KEY>");
 }
 
+if (!merged.OUTBOUND_FROM?.trim()) {
+  console.log("ℹ OUTBOUND_FROM not set — inbound-only OK; see /docs/outbound.html for send/reply");
+}
+
 console.log(ok ? "\nReady for: npm run dev && npm run verify" : "\nЗаполните .dev.vars и повторите: node scripts/setup-check.mjs");
 process.exit(ok ? 0 : 1);

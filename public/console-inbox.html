@@ -86,7 +86,10 @@
         }
         let banner = "";
         if (!d.outbound.verifiedFrom) {
-          banner = `<div class="console-banner">Tip: set <code>OUTBOUND_FROM</code> on the Worker for a verified send domain.</div>`;
+          const hint = d.outbound.hint
+            ? esc(d.outbound.hint)
+            : "Set <code>OUTBOUND_FROM</code> on the Worker for a verified send domain.";
+          banner = `<div class="console-banner">${hint} <a href="/docs/outbound.html">Setup guide</a></div>`;
         }
         return `${banner}
           <div class="console-compose" id="compose">

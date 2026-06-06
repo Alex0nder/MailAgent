@@ -25,6 +25,7 @@
         { id: "raw-mime", href: "/docs/raw-mime.html", label: "Raw MIME" },
         { id: "attachments", href: "/docs/attachments.html", label: "Attachments" },
         { id: "custom-domain", href: "/docs/custom-domain.html", label: "Custom domain" },
+        { id: "outbound", href: "/docs/outbound.html", label: "Outbound send" },
       ],
     },
     {

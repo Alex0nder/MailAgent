@@ -3,6 +3,7 @@ import type { Env } from "../env";
 import { getInbox } from "./inbox";
 import { buildInboxDiagnose } from "./inbox-diagnose";
 import { listThreads } from "./outbound-mail";
+import { outboundCapabilities } from "../lib/outbound-capabilities";
 
 export async function buildConsoleInboxDetail(
   env: Env,
@@ -20,6 +21,8 @@ export async function buildConsoleInboxDetail(
     }),
   ]);
 
+  const outbound = outboundCapabilities(env);
+
   return {
     id: inbox.id,
     address: inbox.address,
@@ -33,8 +36,7 @@ export async function buildConsoleInboxDetail(
     callbacks: diagnose?.callbacks ?? [],
     troubleshooting: diagnose?.troubleshooting ?? [],
     outbound: {
-      enabled: Boolean(env.RESEND_API_KEY?.trim()),
-      verifiedFrom: Boolean(env.OUTBOUND_FROM?.trim()),
+      ...outbound,
       sendPath: `/v1/inboxes/${inbox.id}/send`,
       replyPathTemplate: `/v1/inboxes/${inbox.id}/messages/{messageId}/reply`,
     },

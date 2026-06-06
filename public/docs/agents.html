@@ -71,13 +71,13 @@ Authorization: Bearer &lt;API_KEY&gt;
 
       <h2>OpenAI Codex</h2>
       <p>
-        Same MCP tools via <code>~/.codex/config.toml</code> or a
-        <a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/CODEX.md">Codex plugin</a>.
+        Same MCP tools via plugin or <code>~/.codex/config.toml</code> —
+        <a href="/docs/codex.html">Codex install guide</a>.
       </p>
       <pre class="doc-pre"><code># ~/.codex/config.toml
 [mcp_servers.mailagent]
 command = "npx"
-args = ["-y", "-p", "@mailagent/mcp@0.2.2", "mailagent-mcp"]
+args = ["-y", "-p", "@mailagent/mcp@0.2.3", "mailagent-mcp"]
 
 [mcp_servers.mailagent.env]
 MAILAGENT_API_URL = "https://api.webmailagent.com"
@@ -196,6 +196,13 @@ REST: GET …/messages/:messageId/raw
 
 Verify: hasRaw, rawUrl, hasAttachments, attachmentCount</code></pre>
       <p><a href="/docs/attachments.html">Attachments guide →</a></p>
+
+      <h2 id="outbound">Outbound send &amp; reply</h2>
+      <p>
+        Two-way agent mail: <code>POST …/send</code>, <code>POST …/reply</code>, threads, console UI.
+        Requires Resend + optional <code>OUTBOUND_FROM</code> on a verified domain.
+      </p>
+      <p><a href="/docs/outbound.html">Outbound setup guide →</a></p>
 
       <h2>Security</h2>
       <ul class="doc-list">

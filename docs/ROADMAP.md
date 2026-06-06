@@ -240,6 +240,14 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | Codex plugin manifest 0.2.4 | ✅ |
 | Dashboard + sidebar nav links | ✅ |
 
+### v0.30 Outbound setup guide
+
+| `public/docs/outbound.html` — Resend + OUTBOUND_FROM | ✅ |
+| `capabilities.outbound` in console summary + dashboard banner | ✅ |
+| Shared `outboundCapabilities()` in console inbox | ✅ |
+| `setup-check` hint + `.env.example` | ✅ |
+| agents.html outbound + Codex links | ✅ |
+
 ### Отложено (не QA)
 
 - Agent session memory / multi-step run state
