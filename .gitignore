@@ -8,3 +8,6 @@ dist/
 *.log
 worker-configuration.d.ts
 examples/playwright/.mailagent-context.json
+test-results/
+playwright-report/
+blob-report/
