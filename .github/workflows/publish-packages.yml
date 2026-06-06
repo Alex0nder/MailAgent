@@ -31,13 +31,10 @@ jobs:
       - run: npm run publish:check
 
       - name: Publish @mailagent/mcp
-        working-directory: mcp
-        run: npm publish --access public --provenance
+        run: node scripts/publish-if-new.mjs mcp/package.json
 
       - name: Publish @mailagent/qa
-        working-directory: packages/mailagent-qa
-        run: npm publish --access public --provenance
+        run: node scripts/publish-if-new.mjs packages/mailagent-qa/package.json
 
       - name: Publish @mailagent/agent
-        working-directory: packages/mailagent-agent
-        run: npm publish --access public --provenance
+        run: node scripts/publish-if-new.mjs packages/mailagent-agent/package.json
