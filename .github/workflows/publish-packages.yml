@@ -1,4 +1,5 @@
-# Публикация @mailagent/* на npm (ручной запуск или git tag v*)
+# Публикация @mailagent/* на npm (тег v* или manual)
+# Trusted Publishing (OIDC) — без NPM_TOKEN, если настроено на npmjs.com
 name: Publish npm packages
 
 on:
@@ -6,6 +7,10 @@ on:
   push:
     tags:
       - "v*"
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   publish:
@@ -19,20 +24,20 @@ jobs:
           cache: npm
           registry-url: https://registry.npmjs.org
 
+      - name: npm 11+ for trusted publishing / GAT CLI
+        run: npm install -g npm@latest
+
       - run: npm ci
       - run: npm run publish:check
 
       - name: Publish @mailagent/mcp
-        run: cd mcp && npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        working-directory: mcp
+        run: npm publish --access public --provenance
 
       - name: Publish @mailagent/qa
-        run: cd packages/mailagent-qa && npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        working-directory: packages/mailagent-qa
+        run: npm publish --access public --provenance
 
       - name: Publish @mailagent/agent
-        run: cd packages/mailagent-agent && npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        working-directory: packages/mailagent-agent
+        run: npm publish --access public --provenance
