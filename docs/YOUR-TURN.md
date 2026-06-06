@@ -105,16 +105,25 @@ npm run doctor:operator
 
 ---
 
-## 5. Codex Marketplace (optional)
+## 5. Codex Marketplace
 
-Manual submit when ready:
+**Repo marketplace (works today):**
+
+```bash
+codex plugin marketplace add Alex0nder/MailAgent
+codex plugin install mailagent --source mailagent
+```
+
+Set `MAILAGENT_API_KEY` when prompted. Verify: `codex mcp list` → server `mailagent`.
+
+**Tarball (manual share):**
 
 ```bash
 npm run package:codex
-# upload tarball from examples/codex/plugin/
+# → dist/mailagent-codex-plugin-0.2.5.tar.gz
 ```
 
-See [CODEX.md](./CODEX.md).
+**Official Plugin Directory:** self-serve publish coming soon — see [CODEX.md](./CODEX.md).
 
 ---
 

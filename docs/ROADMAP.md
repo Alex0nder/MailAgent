@@ -322,4 +322,5 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 - **Stripe on prod** — on hold (skip `STRIPE_*` for now)
 - OIDC on prod (Auth0 secrets) — [YOUR-TURN.md](./YOUR-TURN.md#3-oidc-browser-login-for-mcp) · `npm run setup:oidc-prod`
 - ~~`OUTBOUND_FROM` on prod~~ ✅
-- Codex Marketplace submit (manual)
+- ~~Codex repo marketplace~~ ✅ `.agents/plugins/marketplace.json`
+- Codex official Plugin Directory submit — coming soon (OpenAI)

@@ -25,6 +25,12 @@
           domains, and simulate-first QA in Codex.
         </p>
 
+        <h2>Install from GitHub (Codex CLI)</h2>
+        <pre class="doc-pre"><code>codex plugin marketplace add Alex0nder/MailAgent
+codex plugin install mailagent --source mailagent
+codex mcp list</code></pre>
+        <p>Set <code>MAILAGENT_API_KEY</code> when prompted (team key from <a href="/docs/teams.html">console</a>).</p>
+
         <h2>Quick install (local plugin)</h2>
         <pre class="doc-pre"><code>git clone https://github.com/Alex0nder/MailAgent.git
 cd MailAgent/examples/codex/plugin
@@ -45,8 +51,8 @@ chmod +x scripts/run-mailagent-mcp.sh</code></pre>
 
         <h2>Marketplace tarball</h2>
         <pre class="doc-pre"><code>npm run package:codex
-# → dist/mailagent-codex-plugin-0.2.4.tar.gz</code></pre>
-        <p>Submit the tarball via Codex marketplace workflow when publishing.</p>
+# → dist/mailagent-codex-plugin-0.2.5.tar.gz</code></pre>
+        <p>Official Plugin Directory self-serve publish is coming soon; tarball is for manual share.</p>
 
         <h2>Recommended agent flow</h2>
         <ol class="doc-list">

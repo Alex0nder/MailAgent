@@ -66,8 +66,16 @@ Accept = "application/json, text/event-stream"
 ```
 
 Keep the plugin `.mcp.json` on the local stdio preset so it has a single entry through
-`npx -y -p @mailagent/mcp@0.2.3 mailagent-mcp`.
+`npx -y -p @mailagent/mcp@0.2.5 mailagent-mcp`.
 
-Pack for marketplace: `npm run package:codex` from repo root → `dist/mailagent-codex-plugin-0.2.4.tar.gz`.
+Pack for marketplace: `npm run package:codex` from repo root → `dist/mailagent-codex-plugin-0.2.5.tar.gz`.
+
+Install from GitHub marketplace (Codex CLI):
+
+```bash
+codex plugin marketplace add Alex0nder/MailAgent
+codex plugin install mailagent --source mailagent
+# set MAILAGENT_API_KEY when prompted (or in plugin .env after install)
+```
 
 Docs: https://webmailagent.com/docs/codex.html

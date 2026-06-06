@@ -70,7 +70,18 @@ Repo structure: [examples/codex/plugin/](../examples/codex/plugin/)
 | 8 | Playwright `global-setup` + attachment spec | ✅ |
 | 9 | Local plugin test in Codex CLI | manual (Codex not in CI) |
 | 10 | Publish `@mailagent/agent@0.1.5` | manual (`npm run publish:agent`) |
-| 11 | Marketplace / `codex plugin install` publish | ✅ pack (`npm run package:codex`) — submit tarball manually |
+| 11 | Repo marketplace (`.agents/plugins/marketplace.json`) | ✅ |
+| 12 | Official Plugin Directory submit | coming soon (OpenAI) |
+
+### Install from GitHub (repo marketplace)
+
+```bash
+codex plugin marketplace add Alex0nder/MailAgent
+codex plugin install mailagent --source mailagent
+codex mcp list
+```
+
+Marketplace manifest: [`.agents/plugins/marketplace.json`](../.agents/plugins/marketplace.json).
 
 ### Local plugin test
 

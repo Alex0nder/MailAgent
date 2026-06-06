@@ -17,6 +17,15 @@ const required = [
   ".env.example",
 ];
 
+const marketplace = path.join(root, ".agents/plugins/marketplace.json");
+try {
+  accessSync(marketplace);
+  JSON.parse(readFileSync(marketplace, "utf8"));
+} catch {
+  console.error("missing or invalid: .agents/plugins/marketplace.json");
+  process.exit(1);
+}
+
 for (const rel of required) {
   const p = path.join(pluginRoot, rel);
   try {
