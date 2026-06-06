@@ -35,14 +35,13 @@ jobs:
           fi
           npm run smoke:qa
 
-      - name: Contract QA (optional, needs Neon DATABASE_URL)
+      - name: Contract QA (optional, API simulate — no DATABASE_URL)
         env:
           MAILAGENT_API_URL: https://api.webmailagent.com
           MAILAGENT_API_KEY: ${{ secrets.MAILAGENT_API_KEY }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          if [ -z "$MAILAGENT_API_KEY" ] || [ -z "$DATABASE_URL" ]; then
-            echo "MAILAGENT_API_KEY or DATABASE_URL missing — skip contract"
+          if [ -z "$MAILAGENT_API_KEY" ]; then
+            echo "MAILAGENT_API_KEY missing — skip contract"
             exit 0
           fi
           npm run test:contract:qa

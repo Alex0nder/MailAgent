@@ -10,7 +10,7 @@ npm run doctor:qa           # QA consumer: API key + diagnose smoke
 npm run codex:install       # Codex MCP из .dev.vars
 npm run smoke:qa            # prod API lifecycle
 npm run smoke:agent         # MCP + OAuth smoke
-npm run test:contract:qa    # API + DB simulate (needs DATABASE_URL)
+npm run test:contract:qa    # API simulate via POST …/simulate (MAILAGENT_API_KEY only)
 npm run verify:codex        # Codex plugin scaffold
 ```
 

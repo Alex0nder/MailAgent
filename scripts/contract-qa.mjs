@@ -1,58 +1,36 @@
 #!/usr/bin/env node
 /**
- * Contract test без реального SMTP: API create → DB simulate → API wait/extract.
- * Нужны: MAILAGENT_API_URL, MAILAGENT_API_KEY, DATABASE_URL (Neon, как у worker).
+ * Contract test без реального SMTP: API create → POST …/simulate → wait/extract.
+ * Нужны только: MAILAGENT_API_URL, MAILAGENT_API_KEY (DATABASE_URL не требуется).
  */
 import "./load-env.mjs";
-import { spawnSync } from "node:child_process";
-import { fileURLToPath } from "node:url";
-import path from "node:path";
+import {
+  contractApi,
+  contractBase,
+  contractHeaders,
+  contractSimulate,
+} from "./lib/contract-api.mjs";
 
-const base = (process.env.MAILAGENT_API_URL ?? "https://api.webmailagent.com").replace(/\/$/, "");
-const apiKey = process.env.MAILAGENT_API_KEY ?? process.env.API_KEY;
-const dbUrl = process.env.DATABASE_URL;
-
-if (!apiKey) {
+const base = contractBase();
+const headers = contractHeaders();
+if (!headers) {
   console.error("contract-qa: set MAILAGENT_API_KEY");
   process.exit(1);
 }
-if (!dbUrl) {
-  console.error("contract-qa: set DATABASE_URL (Neon) for simulate-inbound");
-  process.exit(1);
-}
-
-const headers = {
-  Authorization: `Bearer ${apiKey}`,
-  "Content-Type": "application/json",
-};
 
 const label = `contract-${Date.now()}`;
 const expectedOtp = "739182";
 
-async function api(path, init = {}) {
-  const res = await fetch(`${base}${path}`, { ...init, headers: { ...headers, ...init.headers } });
-  const text = await res.text();
-  let json = null;
-  if (text) {
-    try {
-      json = JSON.parse(text);
-    } catch {
-      json = { raw: text };
-    }
-  }
-  return { ok: res.ok, status: res.status, json };
-}
-
 async function main() {
   console.log("contract-qa →", base, "label:", label);
 
-  const health = await api("/health");
+  const health = await contractApi(base, headers, "/health");
   if (!health.ok) {
     console.error("health failed", health.status, health.json);
     process.exit(1);
   }
 
-  const created = await api("/v1/inboxes", {
+  const created = await contractApi(base, headers, "/v1/inboxes", {
     method: "POST",
     body: JSON.stringify({ label, ttlMinutes: 15, service: "auth0" }),
   });
@@ -65,15 +43,20 @@ async function main() {
   const address = created.json.address;
   console.log("inbox:", inboxId, address);
 
-  const simScript = path.join(path.dirname(fileURLToPath(import.meta.url)), "simulate-inbound.mjs");
-  const sim = spawnSync(
-    process.execPath,
-    [simScript, inboxId, expectedOtp, "noreply@auth0.com"],
-    { env: process.env, stdio: "inherit" }
-  );
-  if (sim.status !== 0) process.exit(sim.status ?? 1);
+  const sim = await contractSimulate(base, headers, inboxId, {
+    otp: expectedOtp,
+    from: "noreply@auth0.com",
+    subject: "MailAgent simulated OTP",
+  });
+  if (!sim.ok) {
+    console.error("simulate failed", sim.status, sim.json);
+    process.exit(1);
+  }
+  console.log("simulate OK", sim.json.messageId);
 
-  const wait = await api(
+  const wait = await contractApi(
+    base,
+    headers,
     `/v1/inboxes/${inboxId}/wait?timeout=30&subjectContains=simulated`
   );
   if (!wait.ok) {
@@ -81,7 +64,7 @@ async function main() {
     process.exit(1);
   }
 
-  const ext = await api(`/v1/inboxes/${inboxId}/extract`);
+  const ext = await contractApi(base, headers, `/v1/inboxes/${inboxId}/extract`);
   if (!ext.ok) {
     console.error("extract failed", ext.status, ext.json);
     process.exit(1);
@@ -92,28 +75,25 @@ async function main() {
     process.exit(1);
   }
 
-  // messageIndex: второе письмо, wait должен вернуть его
   const otp2 = "112233";
   for (const [subj, otpVal] of [
     ["contract-first", "000001"],
     ["contract-second", otp2],
   ]) {
-    const sim2 = spawnSync(
-      process.execPath,
-      [
-        simScript,
-        inboxId,
-        otpVal,
-        "noreply@auth0.com",
-        `--subject=${subj}`,
-      ],
-      { env: process.env, stdio: "inherit" }
-    );
-    if (sim2.status !== 0) process.exit(sim2.status ?? 1);
+    const sim2 = await contractSimulate(base, headers, inboxId, {
+      otp: otpVal,
+      from: "noreply@auth0.com",
+      subject: subj,
+    });
+    if (!sim2.ok) {
+      console.error("simulate messageIndex seed failed", sim2.status, sim2.json);
+      process.exit(1);
+    }
   }
 
-  // messageIndex среди отфильтрованных: 0=contract-second (новее), 1=contract-first
-  const waitIdx = await api(
+  const waitIdx = await contractApi(
+    base,
+    headers,
     `/v1/inboxes/${inboxId}/wait?timeout=30&messageIndex=1&subjectContains=contract`
   );
   if (!waitIdx.ok) {
@@ -123,17 +103,27 @@ async function main() {
   const waitOtp = waitIdx.json.message?.otp ?? waitIdx.json.otp;
   const waitSubject = waitIdx.json.message?.subject ?? waitIdx.json.subject;
   if (waitOtp !== "000001") {
-    console.error("messageIndex otp mismatch", { expected: "000001", got: waitOtp, waitIdx: waitIdx.json });
+    console.error("messageIndex otp mismatch", {
+      expected: "000001",
+      got: waitOtp,
+      waitIdx: waitIdx.json,
+    });
     process.exit(1);
   }
   console.log("messageIndex OK", { subject: waitSubject, otp: waitOtp });
 
-  const del = await api(`/v1/inboxes/${inboxId}`, { method: "DELETE" });
+  const del = await contractApi(base, headers, `/v1/inboxes/${inboxId}`, {
+    method: "DELETE",
+  });
   if (!del.ok) {
     console.warn("delete inbox failed", del.status);
   }
 
-  console.log("contract-qa OK", { inboxId, otp: ext.json.otp, primaryLink: ext.json.primaryLink });
+  console.log("contract-qa OK", {
+    inboxId,
+    otp: ext.json.otp,
+    primaryLink: ext.json.primaryLink,
+  });
 }
 
 main().catch((e) => {

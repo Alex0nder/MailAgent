@@ -91,6 +91,7 @@ const required = [
   "mailagent_verify_signup",
   "mailagent_create_inbox",
   "mailagent_diagnose_inbox",
+  "mailagent_simulate_message",
 ];
 for (const requiredTool of required) {
   if (!names.has(requiredTool)) {

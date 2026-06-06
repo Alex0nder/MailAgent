@@ -60,13 +60,12 @@ jobs:
           npm run smoke:agent
           npm run smoke:qa
 
-      - name: Contract QA (optional)
+      - name: Contract QA (optional, API simulate — no DATABASE_URL)
         env:
           MAILAGENT_API_URL: https://api.webmailagent.com
           MAILAGENT_API_KEY: ${{ secrets.MAILAGENT_API_KEY }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          if [ -z "$MAILAGENT_API_KEY" ] || [ -z "$DATABASE_URL" ]; then
+          if [ -z "$MAILAGENT_API_KEY" ]; then
             echo "skip contract on deploy"
             exit 0
           fi

@@ -129,6 +129,13 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | `@mailagent/qa` / `@mailagent/agent` simulate + diagnose | ✅ |
 | smoke:qa simulate → extract | ✅ |
 
+### v0.15 Contract без DATABASE_URL
+
+| `contract-qa*` через `POST …/simulate` | ✅ |
+| CI deploy/qa-smoke: только `MAILAGENT_API_KEY` | ✅ |
+| `examples/github-actions/contract-qa.yml` | ✅ |
+| `scripts/lib/contract-api.mjs` | ✅ |
+
 ### Отложено (не QA)
 
 - Agent session memory / multi-step run state

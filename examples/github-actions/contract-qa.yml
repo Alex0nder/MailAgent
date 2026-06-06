@@ -1,5 +1,5 @@
-# Contract test: create inbox → simulate message in DB → wait/extract (no real SMTP).
-# Secrets: MAILAGENT_API_URL, MAILAGENT_API_KEY, DATABASE_URL (Neon, same as worker)
+# Contract test: create inbox → POST …/simulate → wait/extract (no real SMTP, no DATABASE_URL).
+# Secret: MAILAGENT_API_KEY only
 
 name: MailAgent contract QA
 
@@ -8,10 +8,8 @@ on:
   push:
     paths:
       - "src/**"
-      - "scripts/contract-qa.mjs"
-      - "scripts/contract-qa-callback.mjs"
-      - "scripts/simulate-inbound.mjs"
-      - "scripts/lib/**"
+      - "scripts/contract-qa*.mjs"
+      - "scripts/lib/contract-api.mjs"
 
 jobs:
   contract:
@@ -26,11 +24,11 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Contract QA (API + simulate inbound)
+      - name: Contract QA (API simulate)
         env:
-          MAILAGENT_API_URL: ${{ secrets.MAILAGENT_API_URL }}
+          MAILAGENT_API_URL: https://api.webmailagent.com
           MAILAGENT_API_KEY: ${{ secrets.MAILAGENT_API_KEY }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           npm run test:contract:qa
           npm run test:contract:qa:callback
+          npm run test:contract:qa:attachments

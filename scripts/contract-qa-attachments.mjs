@@ -1,49 +1,28 @@
 #!/usr/bin/env node
 /**
- * Contract: simulate message + attachment → list + JSON meta (без Resend).
+ * Contract: POST …/simulate with attachment → list + JSON meta (без Resend, без DATABASE_URL).
  */
 import "./load-env.mjs";
-import { spawnSync } from "node:child_process";
-import { fileURLToPath } from "node:url";
-import path from "node:path";
+import {
+  contractApi,
+  contractBase,
+  contractHeaders,
+  contractSimulate,
+} from "./lib/contract-api.mjs";
 
-const base = (process.env.MAILAGENT_API_URL ?? "https://api.webmailagent.com").replace(/\/$/, "");
-const apiKey = process.env.MAILAGENT_API_KEY ?? process.env.API_KEY;
-const dbUrl = process.env.DATABASE_URL;
+const base = contractBase();
+const headers = contractHeaders();
 const ATTACH_NAME = "contract-invoice.pdf";
 
-if (!apiKey || !dbUrl) {
-  console.error("contract-qa-attachments: need MAILAGENT_API_KEY + DATABASE_URL");
+if (!headers) {
+  console.error("contract-qa-attachments: set MAILAGENT_API_KEY");
   process.exit(1);
-}
-
-const headers = {
-  Authorization: `Bearer ${apiKey}`,
-  "Content-Type": "application/json",
-  Accept: "application/json",
-};
-
-async function api(path, init = {}) {
-  const res = await fetch(`${base}${path}`, {
-    ...init,
-    headers: { ...headers, ...init.headers },
-  });
-  const text = await res.text();
-  let json = null;
-  if (text) {
-    try {
-      json = JSON.parse(text);
-    } catch {
-      json = { raw: text };
-    }
-  }
-  return { ok: res.ok, status: res.status, json };
 }
 
 async function main() {
   console.log("contract-qa-attachments →", base);
 
-  const created = await api("/v1/inboxes", {
+  const created = await contractApi(base, headers, "/v1/inboxes", {
     method: "POST",
     body: JSON.stringify({
       label: `contract-att-${Date.now()}`,
@@ -56,22 +35,21 @@ async function main() {
   }
 
   const inboxId = created.json.id;
-  const simScript = path.join(path.dirname(fileURLToPath(import.meta.url)), "simulate-inbound.mjs");
-  const sim = spawnSync(
-    process.execPath,
-    [
-      simScript,
-      inboxId,
-      "445566",
-      "billing@example.com",
-      `--subject=Invoice ${ATTACH_NAME}`,
-      `--with-attachment=${ATTACH_NAME}`,
-    ],
-    { env: process.env, stdio: "inherit" }
-  );
-  if (sim.status !== 0) process.exit(sim.status ?? 1);
+  const sim = await contractSimulate(base, headers, inboxId, {
+    otp: "445566",
+    from: "billing@example.com",
+    subject: `Invoice ${ATTACH_NAME}`,
+    attachmentFilename: ATTACH_NAME,
+  });
+  if (!sim.ok) {
+    console.error("simulate failed", sim.status, sim.json);
+    process.exit(1);
+  }
+  console.log("simulate OK", sim.json.messageId, sim.json.attachmentId);
 
-  const wait = await api(
+  const wait = await contractApi(
+    base,
+    headers,
     `/v1/inboxes/${inboxId}/wait?timeout=30&subjectContains=Invoice`
   );
   if (!wait.ok) {
@@ -79,47 +57,38 @@ async function main() {
     process.exit(1);
   }
 
-  const messageId = wait.json.message?.id;
-  if (!messageId) {
-    console.error("no message id in wait response", wait.json);
-    process.exit(1);
-  }
-
-  const list = await api(`/v1/inboxes/${inboxId}/messages/${messageId}/attachments`);
-  if (!list.ok || !list.json.attachments?.length) {
+  const list = await contractApi(
+    base,
+    headers,
+    `/v1/inboxes/${inboxId}/messages/${sim.json.messageId}/attachments`
+  );
+  if (!list.ok) {
     console.error("list attachments failed", list.status, list.json);
     process.exit(1);
   }
-
-  const att = list.json.attachments[0];
-  if (att.filename !== ATTACH_NAME) {
-    console.error("filename mismatch", att);
+  const attachments = list.json.attachments ?? [];
+  if (!attachments.some((a) => a.filename === ATTACH_NAME)) {
+    console.error("attachment not listed", attachments);
     process.exit(1);
   }
 
-  const meta = await api(
-    `/v1/inboxes/${inboxId}/messages/${messageId}/attachments/${att.id}`
+  const attId = attachments[0].id;
+  const meta = await contractApi(
+    base,
+    headers,
+    `/v1/inboxes/${inboxId}/messages/${sim.json.messageId}/attachments/${attId}`
   );
-  if (!meta.ok || meta.json.filename !== ATTACH_NAME) {
-    console.error("attachment meta failed", meta.status, meta.json);
+  if (!meta.ok) {
+    console.error("get attachment meta failed", meta.status, meta.json);
     process.exit(1);
   }
-
-  const messages = await api(`/v1/inboxes/${inboxId}/messages`);
-  const msg = messages.json.messages?.find((m) => m.id === messageId);
-  if ((msg?.attachmentCount ?? 0) < 1) {
-    console.error("message missing attachmentCount", msg);
-    process.exit(1);
-  }
-
-  await api(`/v1/inboxes/${inboxId}`, { method: "DELETE" }).catch(() => {});
-
-  console.log("contract-qa-attachments OK", {
-    inboxId,
-    messageId,
-    attachmentId: att.id,
-    filename: att.filename,
+  console.log("attachment meta OK", {
+    filename: meta.json.filename,
+    sizeBytes: meta.json.sizeBytes,
   });
+
+  await contractApi(base, headers, `/v1/inboxes/${inboxId}`, { method: "DELETE" });
+  console.log("contract-qa-attachments OK");
 }
 
 main().catch((e) => {

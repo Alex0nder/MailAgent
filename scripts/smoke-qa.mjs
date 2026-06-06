@@ -52,6 +52,7 @@ async function main() {
     "mailagent_create_inbox",
     "mailagent_list_messages",
     "mailagent_diagnose_inbox",
+    "mailagent_simulate_message",
   ]) {
     if (!tools.includes(name)) {
       console.error("missing mcpTool on API:", name);
