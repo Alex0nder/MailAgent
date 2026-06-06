@@ -11,6 +11,8 @@ on:
       - "wrangler.jsonc"
       - "package-lock.json"
       - "scripts/contract-qa*.mjs"
+      - "scripts/test-prod.mjs"
+      - "scripts/test-contract-all.mjs"
   workflow_dispatch:
 
 jobs:
@@ -48,36 +50,14 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Smoke agent (optional)
+      - name: Smoke + contract (prod gate)
         env:
           MAILAGENT_API_URL: https://api.webmailagent.com
           MAILAGENT_API_KEY: ${{ secrets.MAILAGENT_API_KEY }}
           SMOKE_EXPECT_ATTACHMENTS: "1"
         run: |
           if [ -z "$MAILAGENT_API_KEY" ]; then
-            echo "MAILAGENT_API_KEY not set — skip smoke"
-            exit 0
+            echo "::error::Set MAILAGENT_API_KEY in GitHub Actions secrets — см. docs/OPERATOR.md"
+            exit 1
           fi
-          npm run smoke:agent
-          npm run smoke:qa
-
-      - name: Contract QA (optional, API simulate — no DATABASE_URL)
-        env:
-          MAILAGENT_API_URL: https://api.webmailagent.com
-          MAILAGENT_API_KEY: ${{ secrets.MAILAGENT_API_KEY }}
-        run: |
-          if [ -z "$MAILAGENT_API_KEY" ]; then
-            echo "skip contract on deploy"
-            exit 0
-          fi
-          npm run test:contract:qa
-          npm run test:contract:qa:callback
-          npm run test:contract:qa:attachments
-          npm run test:contract:qa:threads
-          npm run test:contract:qa:domains
-          npm run test:contract:qa:search
-          npm run test:contract:qa:extract
-          npm run test:contract:qa:console
-          npm run test:contract:qa:audit
-          npm run test:contract:qa:console-inbox
-          npm run test:contract:qa:team-keys
+          npm run test:prod

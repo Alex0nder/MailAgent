@@ -24,30 +24,14 @@ jobs:
       - run: npm run build:qa
       - run: npm run verify:codex
 
-      - name: Smoke QA API (optional)
+      - name: Smoke + contract (prod gate)
         env:
           MAILAGENT_API_URL: https://api.webmailagent.com
           MAILAGENT_API_KEY: ${{ secrets.MAILAGENT_API_KEY }}
+          SMOKE_EXPECT_ATTACHMENTS: "1"
         run: |
           if [ -z "$MAILAGENT_API_KEY" ]; then
-            echo "MAILAGENT_API_KEY not set — skip smoke:qa"
-            exit 0
+            echo "::error::Set MAILAGENT_API_KEY in GitHub Actions secrets — см. docs/OPERATOR.md"
+            exit 1
           fi
-          npm run smoke:qa
-
-      - name: Contract QA (optional, API simulate — no DATABASE_URL)
-        env:
-          MAILAGENT_API_URL: https://api.webmailagent.com
-          MAILAGENT_API_KEY: ${{ secrets.MAILAGENT_API_KEY }}
-        run: |
-          if [ -z "$MAILAGENT_API_KEY" ]; then
-            echo "MAILAGENT_API_KEY missing — skip contract"
-            exit 0
-          fi
-          npm run test:contract:qa
-          npm run test:contract:qa:callback
-          npm run test:contract:qa:attachments
-          npm run test:contract:qa:threads
-          npm run test:contract:qa:domains
-          npm run test:contract:qa:search
-          npm run test:contract:qa:extract
+          npm run test:prod

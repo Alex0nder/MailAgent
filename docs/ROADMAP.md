@@ -255,6 +255,14 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | `public/docs/oauth-idp.html` — Auth0/Google setup | ✅ |
 | doctor/smoke — outbound + oidc in output | ✅ |
 
+### v0.32 Operator + prod gate
+
+| `docs/OPERATOR.md` — только секреты вручную | ✅ |
+| `npm run test:contract:all` + `npm run test:prod` | ✅ |
+| CI: `MAILAGENT_API_KEY` обязателен, fail если нет | ✅ |
+| `contract-qa-agent` — hub / me / mcp/auth | ✅ |
+| AGENTS.md — autonomy + test:prod | ✅ |
+
 ### Отложено (не QA)
 
 - Agent session memory / multi-step run state

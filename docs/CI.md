@@ -13,8 +13,8 @@ Workflow: [`.github/workflows/deploy-worker.yml`](../.github/workflows/deploy-wo
 |--------|-------------|----------|
 | `CLOUDFLARE_API_TOKEN` | да | API token с **Workers Scripts Edit** |
 | `CLOUDFLARE_ACCOUNT_ID` | да | `42ae092824ce3429ee3f914b43603273` |
-| `MAILAGENT_API_KEY` | нет | team/legacy key для post-deploy smoke + PR **QA Smoke** |
-| `DATABASE_URL` | нет | prod Neon — только для `test:contract:qa` на PR (`qa-smoke.yml`) |
+| `MAILAGENT_API_KEY` | **да** (prod gate) | CI key для `npm run test:prod` после deploy и на PR |
+| `DATABASE_URL` | нет | не нужен — contract использует `POST …/simulate` |
 
 `account_id` также прописан в `wrangler.jsonc` — локальный deploy работает после `wrangler login` без env.
 
@@ -27,11 +27,15 @@ npm run deploy
 # CI — только push в main (с секретами)
 ```
 
-После деплоя (ручно или CI):
+После деплоя CI сам запускает `npm run test:prod`. Локально:
 
 ```bash
-MAILAGENT_API_URL=https://api.webmailagent.com npm run smoke:agent
+MAILAGENT_API_URL=https://api.webmailagent.com \
+MAILAGENT_API_KEY=ma_… \
+  npm run test:prod
 ```
+
+Операторский чеклист: [OPERATOR.md](./OPERATOR.md).
 
 ### Deploy failed: `CLOUDFLARE_API_TOKEN` / npx exit 1
 
@@ -54,6 +58,6 @@ In a non-interactive environment, it's necessary to set a CLOUDFLARE_API_TOKEN
 
 Workflow: [`.github/workflows/publish-packages.yml`](../.github/workflows/publish-packages.yml)
 
-Secret: **`NPM_TOKEN`** — Granular Access Token с **Bypass 2FA** и publish для `@mailagent/*` (см. [PUBLISH.md](./PUBLISH.md)).
+Secret: **Trusted Publishing (OIDC)** — без `NPM_TOKEN`. См. [PUBLISH.md](./PUBLISH.md).
 
 См. [PUBLISH.md](./PUBLISH.md).
