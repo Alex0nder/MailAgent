@@ -18,6 +18,8 @@
       title: "Guides",
       items: [
         { id: "agents", href: "/docs/agents.html", label: "AI agents" },
+        { id: "codex", href: "/docs/codex.html", label: "OpenAI Codex" },
+        { id: "teams", href: "/docs/teams.html", label: "Teams & keys" },
         { id: "qa", href: "/docs/qa.html", label: "QA / Playwright" },
         { id: "scoped-keys", href: "/docs/scoped-keys.html", label: "Scoped keys" },
         { id: "raw-mime", href: "/docs/raw-mime.html", label: "Raw MIME" },

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Teams &amp; API keys — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="doc-page" data-site="docs" data-doc="teams">
+    <div id="site-nav"></div>
+    <div class="doc-layout">
+      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
+      <article class="doc-content">
+        <h1>Teams &amp; API keys</h1>
+        <p class="doc-lead">
+          Multi-key teams for hosted MailAgent — invite CI bots and teammates without Stripe.
+          Manage keys in the <a href="/dashboard.html">Console dashboard</a> or via
+          <code>/v1/team</code>.
+        </p>
+
+        <h2>Create a team (first key)</h2>
+        <p>Self-host or ops with Neon access:</p>
+        <pre class="doc-pre"><code>npm run issue:key:db -- acme-qa</code></pre>
+        <p>Save the printed <code>key</code> and <code>team_id</code>. Use the key in
+          <a href="/dashboard.html">dashboard</a>, MCP, or CI.</p>
+
+        <h2>Invite another key (dashboard)</h2>
+        <ol class="doc-list">
+          <li>Open <a href="/dashboard.html">Console</a> with an admin team key</li>
+          <li>Scroll to <strong>Team keys</strong></li>
+          <li>Fill label, optional prefix, read-only → <strong>Create key</strong></li>
+          <li>Copy the key from the one-time banner — it is not shown again</li>
+        </ol>
+
+        <h2>Invite via API</h2>
+        <pre class="doc-pre"><code>POST /v1/team/keys
+Authorization: Bearer &lt;ADMIN_TEAM_KEY&gt;
+Content-Type: application/json
+
+{ "label": "ci-bot" }</code></pre>
+        <p>Scoped CI key: see <a href="/docs/scoped-keys.html">Scoped keys</a>.</p>
+
+        <h2>List &amp; revoke</h2>
+        <pre class="doc-pre"><code>GET /v1/team
+DELETE /v1/team/keys/KEY_ID</code></pre>
+        <p>You cannot revoke the last key of a team. Scoped keys cannot create or revoke other keys.</p>
+
+        <h2>Plans (no Stripe)</h2>
+        <table class="doc-table">
+          <thead>
+            <tr><th>Plan</th><th>Team keys</th><th>Active inboxes</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>free</td><td>5</td><td>10</td></tr>
+            <tr><td>pro</td><td>20</td><td>100</td></tr>
+          </tbody>
+        </table>
+        <pre class="doc-pre"><code>npm run team:plan -- TEAM_ID pro</code></pre>
+
+        <h2>Legacy hosted key</h2>
+        <p>
+          A single wrangler <code>API_KEY</code> has no team (<code>403 team_required</code> on
+          <code>/v1/team</code>). Limit: 500 active inboxes. Migrate with
+          <code>issue:key:db</code> when you need invites or scoped keys.
+        </p>
+
+        <h2>More</h2>
+        <ul class="doc-list">
+          <li><a href="/docs/scoped-keys.html">Scoped keys</a></li>
+          <li><a href="/docs/agents.html">AI agents &amp; MCP</a></li>
+          <li><a href="/docs/qa.html">QA guide</a></li>
+        </ul>
+      </article>
+    </div>
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
+  </body>
+</html>

@@ -8,6 +8,7 @@ import { PLAN_LIMITS } from "../lib/plans";
 import { stripeConfigured } from "../services/billing";
 import { getTeamBilling } from "../services/api-key-store";
 import { getScopedUsage } from "../services/console-stats";
+import { outboundCapabilities } from "../lib/outbound-capabilities";
 
 export const meRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
 
@@ -63,6 +64,9 @@ meRoutes.get("/", async (c) => {
       checkoutPath: "/v1/billing/checkout",
       portalPath: "/v1/billing/portal",
       consolePath: "/v1/console/summary",
+    },
+    capabilities: {
+      outbound: outboundCapabilities(c.env),
     },
   });
 });

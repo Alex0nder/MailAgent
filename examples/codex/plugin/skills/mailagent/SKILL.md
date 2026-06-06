@@ -47,4 +47,4 @@ the API key in chat, command output, screenshots, or error summaries.
 
 ## Docs
 
-https://webmailagent.com/docs/agents.html · Console: https://webmailagent.com/dashboard.html
+https://webmailagent.com/docs/agents.html · Codex: https://webmailagent.com/docs/codex.html · Console: https://webmailagent.com/dashboard.html

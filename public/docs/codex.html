@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OpenAI Codex — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="doc-page" data-site="docs" data-doc="codex">
+    <div id="site-nav"></div>
+    <div class="doc-layout">
+      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
+      <article class="doc-content">
+        <h1>MailAgent × OpenAI Codex</h1>
+        <p class="doc-lead">
+          One plugin install — 21 MCP tools for disposable inboxes, OTP, magic links, threads,
+          domains, and simulate-first QA in Codex.
+        </p>
+
+        <h2>Quick install (local plugin)</h2>
+        <pre class="doc-pre"><code>git clone https://github.com/Alex0nder/MailAgent.git
+cd MailAgent/examples/codex/plugin
+cp .env.example .env
+# edit .env — MAILAGENT_API_KEY from dashboard or issue:key:db
+chmod +x scripts/run-mailagent-mcp.sh</code></pre>
+        <p>
+          Open <code>examples/codex/plugin</code> as a <strong>trusted</strong> Codex project.
+          In Codex: <code>codex mcp list</code> — expect server <code>mailagent</code> with tools
+          like <code>mailagent_verify_signup</code>.
+        </p>
+
+        <h2>Get an API key</h2>
+        <ul class="doc-list">
+          <li>Hosted: <a href="/docs/teams.html">Create a team key</a> → paste in <code>.env</code></li>
+          <li>Self-host: <code>npm run issue:key:db -- my-codex</code></li>
+        </ul>
+
+        <h2>Marketplace tarball</h2>
+        <pre class="doc-pre"><code>npm run package:codex
+# → dist/mailagent-codex-plugin-0.2.4.tar.gz</code></pre>
+        <p>Submit the tarball via Codex marketplace workflow when publishing.</p>
+
+        <h2>Recommended agent flow</h2>
+        <ol class="doc-list">
+          <li><code>mailagent_create_inbox</code> with <code>label</code> + <code>service</code></li>
+          <li>Submit returned <code>address</code> on the signup form</li>
+          <li><code>mailagent_wait_and_extract</code> with <code>subjectContains</code></li>
+          <li>Use <code>otp</code> or <code>primaryLink</code> to finish signup</li>
+          <li><code>mailagent_delete_inbox</code> for cleanup</li>
+        </ol>
+        <p>
+          On timeout: <code>mailagent_diagnose_inbox</code>. Without real SMTP:
+          <code>mailagent_simulate_message</code>.
+        </p>
+
+        <h2>Remote MCP (no local npx)</h2>
+        <pre class="doc-pre"><code>[mcp_servers.mailagent-remote]
+url = "https://api.webmailagent.com/mcp"
+
+[mcp_servers.mailagent-remote.http_headers]
+Authorization = "Bearer YOUR_API_KEY"
+Accept = "application/json, text/event-stream"</code></pre>
+        <p>OAuth <code>mat_</code> tokens: <a href="/docs/agents.html#mcp-oauth">MCP OAuth</a>.</p>
+
+        <h2>Verify in repo</h2>
+        <pre class="doc-pre"><code>npm run verify:codex
+npm run smoke:codex</code></pre>
+
+        <h2>More</h2>
+        <ul class="doc-list">
+          <li><a href="/docs/agents.html">AI agents reference</a></li>
+          <li><a href="https://github.com/Alex0nder/MailAgent/tree/main/examples/codex/plugin">Plugin source</a></li>
+          <li><a href="/dashboard.html">Console</a></li>
+        </ul>
+      </article>
+    </div>
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
+  </body>
+</html>

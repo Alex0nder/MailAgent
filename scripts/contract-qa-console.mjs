@@ -47,6 +47,10 @@ async function main() {
     console.error("/v1/me usage meters failed", me.status, me.json);
     process.exit(1);
   }
+  if (me.json?.capabilities?.outbound?.enabled == null) {
+    console.error("/v1/me outbound capabilities missing", me.json?.capabilities);
+    process.exit(1);
+  }
   console.log("me usage meters OK");
 
   const created = await contractApi(base, headers, "/v1/inboxes", {

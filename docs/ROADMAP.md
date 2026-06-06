@@ -232,6 +232,14 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | `contract-qa-team-keys` | ✅ |
 | ROADMAP / PUBLISH OIDC sync | ✅ |
 
+### v0.29 Codex & teams docs
+
+| `public/docs/codex.html` — Codex plugin install + marketplace pack | ✅ |
+| `public/docs/teams.html` — team keys without Stripe | ✅ |
+| `GET /v1/me` → `capabilities.outbound` | ✅ |
+| Codex plugin manifest 0.2.4 | ✅ |
+| Dashboard + sidebar nav links | ✅ |
+
 ### Отложено (не QA)
 
 - Agent session memory / multi-step run state
