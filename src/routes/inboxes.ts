@@ -34,6 +34,7 @@ import {
 import { primaryLink } from "../services/extract";
 import { formatMessageVerification } from "../services/message-verify";
 import { buildInboxDiagnose } from "../services/inbox-diagnose";
+import { simulateInboundMessage } from "../services/simulate-inbound";
 import { buildWaitTimeoutDebug, waitForMessage } from "../services/wait";
 import { publicOriginFromUrl } from "../lib/public-origin";
 
@@ -212,7 +213,45 @@ inboxRoutes.get("/:id", async (c) => {
   });
 });
 
-/** QA/agents: why wait failed — messages, callbacks, hints */
+/** QA/dev: inject test OTP email without Resend (write scope required) */
+inboxRoutes.post("/:id/simulate", async (c) => {
+  const writeErr = scopeWriteDenied(c);
+  if (writeErr) return writeErr;
+
+  const inbox = await getInbox(c.env, c.req.param("id"), {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
+  if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const denied = scopeInboxDenied(c, inbox);
+  if (denied) return denied;
+
+  let body: {
+    otp?: string;
+    from?: string;
+    subject?: string;
+    fireCallback?: boolean;
+    attachmentFilename?: string;
+  } = {};
+  try {
+    body = await c.req.json();
+  } catch {
+    body = {};
+  }
+
+  const result = await simulateInboundMessage(c.env, {
+    inboxId: inbox.id,
+    apiKeyHint: c.get("apiKeyHint"),
+    otp: body.otp,
+    from: body.from,
+    subject: body.subject,
+    fireCallback: body.fireCallback === true,
+    attachmentFilename: body.attachmentFilename,
+  });
+  if (!result) return c.json({ error: "simulate_failed" }, 500);
+
+  return c.json(result, 201);
+});
+
 inboxRoutes.get("/:id/diagnose", async (c) => {
   const inbox = await getInbox(c.env, c.req.param("id"), {
     apiKeyHint: c.get("apiKeyHint"),

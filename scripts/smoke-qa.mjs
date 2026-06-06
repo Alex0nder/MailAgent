@@ -125,6 +125,17 @@ async function main() {
   );
   if (!diagnose.res.ok || !diagnose.json?.debugUiUrl) process.exit(1);
 
+  const sim = await req("POST", `/v1/inboxes/${inboxId}/simulate`, {
+    otp: "991122",
+    subject: "smoke-qa simulate",
+  });
+  console.log("POST …/simulate", sim.res.status, sim.json?.messageId ?? sim.json?.error);
+  if (!sim.res.ok || !sim.json?.messageId) process.exit(1);
+
+  const extract = await req("GET", `/v1/inboxes/${inboxId}/extract`);
+  console.log("GET …/extract", extract.res.status, extract.json?.otp ?? "—");
+  if (!extract.res.ok || extract.json?.otp !== "991122") process.exit(1);
+
   const del = await req("DELETE", `/v1/inboxes/${inboxId}`);
   console.log("DELETE inbox", del.res.status);
   if (!del.res.ok) process.exit(1);

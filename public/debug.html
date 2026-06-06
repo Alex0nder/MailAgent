@@ -85,12 +85,36 @@
         await loadInboxList();
       });
 
-      async function authFetch(path) {
+      async function simulateInbox(id) {
+        errEl.hidden = true;
+        try {
+          const { res, data } = await authFetch(`/v1/inboxes/${id}/simulate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ otp: "482910", subject: "MailAgent simulated OTP" }),
+          });
+          if (!res.ok) {
+            errEl.textContent = data.error || res.statusText;
+            errEl.hidden = false;
+            return;
+          }
+          await loadInboxDetail(id, { address: data.address });
+        } catch (err) {
+          errEl.textContent = String(err);
+          errEl.hidden = false;
+        }
+      }
+
+      async function authFetch(path, init) {
         const base = baseEl.value.replace(/\/$/, "");
         const key = keyEl.value.trim();
         localStorage.setItem(STORAGE_KEY, key);
         const res = await fetch(`${base}${path}`, {
-          headers: { Authorization: `Bearer ${key}` },
+          ...init,
+          headers: {
+            Authorization: `Bearer ${key}`,
+            ...(init?.headers ?? {}),
+          },
         });
         const data = await res.json().catch(() => ({}));
         return { base, key, res, data };
@@ -152,6 +176,7 @@
         }
 
         html += `<div class="debug-actions">`;
+        html += btn("Simulate OTP email", () => simulateInbox(id));
         html += btn("Copy wait curl", () => copyCurl(base, id, "wait"));
         html += btn("Copy extract curl", () => copyCurl(base, id, "extract"));
         html += btn("Copy diagnose curl", () => copyCurl(base, id, "diagnose"));

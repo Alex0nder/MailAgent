@@ -28,6 +28,9 @@ When wait/verify fails, call **`mailagent_diagnose_inbox`** with the same
 `subjectContains` / `messageIndex` — it returns messages, callbacks, hints, and
 `debugUiUrl` for humans.
 
+For local QA without real SMTP, use **`mailagent_simulate_message`** (or
+`POST …/simulate`) to inject a test OTP, then `wait` / `extract` as usual.
+
 Use `mailagent_create_inbox` instead of `mailagent_verify_signup` when the email address must be
 created before submitting a signup form. Use `wait` before `extract` unless the message is already
 available from a previous tool call.

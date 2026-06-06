@@ -278,6 +278,25 @@ server.registerTool(
 );
 
 server.registerTool(
+  "mailagent_simulate_message",
+  {
+    description: "Inject test OTP email without SMTP (QA/dev, sim_* provider).",
+    inputSchema: {
+      inboxId: z.string(),
+      otp: z.string().optional(),
+      from: z.string().optional(),
+      subject: z.string().optional(),
+      fireCallback: z.boolean().optional(),
+      attachmentFilename: z.string().optional(),
+    },
+  },
+  async (args) => {
+    const client = new MailAgentClient();
+    return toolText(await client.simulateMessage(args.inboxId, args));
+  }
+);
+
+server.registerTool(
   "mailagent_diagnose_inbox",
   {
     description:

@@ -26,9 +26,9 @@ P0–P2 закрыты — см. [QA-ROADMAP.md](./QA-ROADMAP.md).
 
 | Пакет | Версия |
 |-------|--------|
-| `@mailagent/mcp` | 0.2.1 |
-| `@mailagent/qa` | 0.1.10 |
-| `@mailagent/agent` | 0.1.5 (npm may lag — `npm run publish:agent`) |
+| `@mailagent/mcp` | 0.2.2 |
+| `@mailagent/qa` | 0.1.11 |
+| `@mailagent/agent` | 0.1.6 (npm may lag — `npm run publish:agent`) |
 
 ```bash
 npm install @mailagent/mcp @mailagent/qa @mailagent/agent
@@ -120,6 +120,14 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | `smoke-codex` local fallback до npm publish | ✅ |
 | Publish `@mailagent/mcp@0.2.1` | manual |
 | Publish `@mailagent/qa@0.1.10` | manual |
+
+### v0.14 Simulate (QA без DATABASE_URL)
+
+| `POST /v1/inboxes/:id/simulate` | ✅ |
+| MCP `mailagent_simulate_message` | ✅ |
+| Debug UI «Simulate OTP email» | ✅ |
+| `@mailagent/qa` / `@mailagent/agent` simulate + diagnose | ✅ |
+| smoke:qa simulate → extract | ✅ |
 
 ### Отложено (не QA)
 

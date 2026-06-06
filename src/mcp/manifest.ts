@@ -108,6 +108,23 @@ export const MCP_TOOLS = [
     },
   },
   {
+    name: "mailagent_simulate_message",
+    description:
+      "QA/dev: inject a test OTP email into an inbox without real SMTP (provider id sim_*).",
+    inputSchema: {
+      type: "object",
+      required: ["inboxId"],
+      properties: {
+        inboxId: { type: "string" },
+        otp: { type: "string" },
+        from: { type: "string" },
+        subject: { type: "string" },
+        fireCallback: { type: "boolean" },
+        attachmentFilename: { type: "string" },
+      },
+    },
+  },
+  {
     name: "mailagent_diagnose_inbox",
     description:
       "When wait/verify fails: messages, callbacks, wait hints, debugUiUrl, troubleshooting steps.",

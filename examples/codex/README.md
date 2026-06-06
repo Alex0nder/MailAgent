@@ -13,7 +13,7 @@ export MAILAGENT_API_URL='https://api.webmailagent.com'
 npm run codex:install
 
 # или вручную:
-# codex mcp add mailagent --env MAILAGENT_API_KEY=... -- npx -y -p @mailagent/mcp@0.2.1 mailagent-mcp
+# codex mcp add mailagent --env MAILAGENT_API_KEY=... -- npx -y -p @mailagent/mcp@0.2.2 mailagent-mcp
 
 # 3. Or merge config.toml.example into ~/.codex/config.toml
 ```

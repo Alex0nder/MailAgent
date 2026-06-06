@@ -57,7 +57,7 @@ const code = run([
   "npx",
   "-y",
   "-p",
-  "@mailagent/mcp@0.2.1",
+  "@mailagent/mcp@0.2.2",
   "mailagent-mcp",
 ]);
 

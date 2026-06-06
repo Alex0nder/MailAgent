@@ -466,6 +466,30 @@ export class MailAgentQa {
     await this.request(`/v1/inboxes/${inboxId}`, { method: "DELETE" });
   }
 
+  /** POST /v1/inboxes/:id/simulate — test OTP без реального SMTP */
+  async simulateMessage(
+    inboxId: string,
+    options?: {
+      otp?: string;
+      from?: string;
+      subject?: string;
+      fireCallback?: boolean;
+      attachmentFilename?: string;
+    }
+  ): Promise<{
+    inboxId: string;
+    messageId: string;
+    address: string;
+    otp: string;
+    subject: string;
+    attachmentId?: string;
+  }> {
+    return this.request(`/v1/inboxes/${inboxId}/simulate`, {
+      method: "POST",
+      body: JSON.stringify(options ?? {}),
+    });
+  }
+
   /** Удалить все inbox с label, начинающимся с prefix (CI cleanup) */
   async cleanupLabelPrefix(labelPrefix: string): Promise<{ deleted: number; ids: string[] }> {
     const q = encodeURIComponent(labelPrefix);

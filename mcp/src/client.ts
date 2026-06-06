@@ -200,6 +200,22 @@ export class MailAgentClient {
     return this.request<Record<string, unknown>>(`/v1/inboxes/${id}/diagnose${suffix}`);
   }
 
+  simulateMessage(
+    id: string,
+    options?: {
+      otp?: string;
+      from?: string;
+      subject?: string;
+      fireCallback?: boolean;
+      attachmentFilename?: string;
+    }
+  ) {
+    return this.request<Record<string, unknown>>(`/v1/inboxes/${id}/simulate`, {
+      method: "POST",
+      body: JSON.stringify(options ?? {}),
+    });
+  }
+
   listMessages(id: string) {
     return this.request<{ messages: MessageSummary[] }>(
       `/v1/inboxes/${id}/messages`

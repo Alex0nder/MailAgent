@@ -160,6 +160,48 @@ export class MailAgent {
     );
   }
 
+  /** GET /v1/inboxes/:id/diagnose — troubleshooting after failed wait */
+  diagnoseInbox(
+    inboxId: string,
+    options?: { subjectContains?: string; messageIndex?: number }
+  ) {
+    const q = new URLSearchParams();
+    if (options?.subjectContains) q.set("subjectContains", options.subjectContains);
+    if (options?.messageIndex != null) q.set("messageIndex", String(options.messageIndex));
+    const suffix = q.size ? `?${q}` : "";
+    return this.request<{
+      inboxId: string;
+      address: string;
+      troubleshooting: string[];
+      debugUiUrl: string;
+      messages: MessageSummary[];
+    }>(`/v1/inboxes/${inboxId}/diagnose${suffix}`);
+  }
+
+  /** POST /v1/inboxes/:id/simulate — inject test OTP without Resend */
+  simulateMessage(
+    inboxId: string,
+    options?: {
+      otp?: string;
+      from?: string;
+      subject?: string;
+      fireCallback?: boolean;
+      attachmentFilename?: string;
+    }
+  ) {
+    return this.request<{
+      inboxId: string;
+      messageId: string;
+      address: string;
+      otp: string;
+      subject: string;
+      attachmentId?: string;
+    }>(`/v1/inboxes/${inboxId}/simulate`, {
+      method: "POST",
+      body: JSON.stringify(options ?? {}),
+    });
+  }
+
   /** GET /v1/agent/runs */
   listRuns(options?: { runId?: string; limit?: number }) {
     const q = new URLSearchParams();

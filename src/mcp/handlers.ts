@@ -29,6 +29,7 @@ import {
   listAttachments,
 } from "../services/message-attachments";
 import { buildInboxDiagnose } from "../services/inbox-diagnose";
+import { simulateInboundMessage } from "../services/simulate-inbound";
 import { buildWaitTimeoutDebug, waitForMessage, type WaitProgressEvent } from "../services/wait";
 import type { McpProgressParams, McpToolContext } from "../mcp/progress";
 
@@ -409,6 +410,29 @@ export async function executeMcpTool(
           : {}),
         attachmentCount: await countAttachmentsForMessage(env, latest.id),
       });
+    }
+
+    case "mailagent_simulate_message": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr) return textResult(writeErr, true);
+      const inboxId = args.inboxId as string;
+      const inbox = await getInbox(env, inboxId, {
+        apiKeyHint: auth.apiKeyHint,
+      });
+      if (!inbox || !assertInboxAccessible(auth.scope, inbox).ok) {
+        return textResult({ error: "inbox_not_found" }, true);
+      }
+      const result = await simulateInboundMessage(env, {
+        inboxId,
+        apiKeyHint: auth.apiKeyHint,
+        otp: args.otp as string | undefined,
+        from: args.from as string | undefined,
+        subject: args.subject as string | undefined,
+        fireCallback: args.fireCallback === true,
+        attachmentFilename: args.attachmentFilename as string | undefined,
+      });
+      if (!result) return textResult({ error: "simulate_failed" }, true);
+      return textResult(result);
     }
 
     case "mailagent_diagnose_inbox": {

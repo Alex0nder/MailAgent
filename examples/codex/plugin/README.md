@@ -66,4 +66,4 @@ Accept = "application/json, text/event-stream"
 ```
 
 Keep the plugin `.mcp.json` on the local stdio preset so it has a single entry through
-`npx -y -p @mailagent/mcp@0.2.1 mailagent-mcp`.
+`npx -y -p @mailagent/mcp@0.2.2 mailagent-mcp`.
