@@ -28,6 +28,27 @@ curl -sS "$MAILAGENT_API_URL/v1/inboxes/$INBOX/extract" \
   -H "Authorization: Bearer $MAILAGENT_API_KEY" | jq .otp
 ```
 
+## Threading (v0.18)
+
+Симулируй цепочку без SMTP — для contract `npm run test:contract:qa:threads`:
+
+```bash
+ROOT=$(curl -sS -X POST "$MAILAGENT_API_URL/v1/inboxes/$INBOX/simulate" \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"subject":"Support ticket","rfcMessageId":"root@sim.test"}')
+
+ROOT_ID=$(echo "$ROOT" | jq -r .messageId)
+
+curl -sS -X POST "$MAILAGENT_API_URL/v1/inboxes/$INBOX/simulate" \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d "{\"subject\":\"Re: Support ticket\",\"inReplyToMessageId\":\"$ROOT_ID\"}" | jq .threadId
+
+curl -sS "$MAILAGENT_API_URL/v1/inboxes/$INBOX/threads" \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" | jq .
+```
+
 ## `@mailagent/qa`
 
 ```typescript

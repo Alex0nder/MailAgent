@@ -2,10 +2,14 @@
 import { nanoid } from "nanoid";
 import type { Env, MessageNotifyPayload } from "../env";
 import { primaryLink } from "./extract";
-import { getInbox, insertMessage, type MessageRow } from "./inbox";
+import { getInbox, getMessage, insertMessage, type MessageRow } from "./inbox";
 import { fireInboxCallback } from "./callback";
 import { formatMessageVerification } from "./message-verify";
 import { getDb } from "../db/client";
+import {
+  normalizeMessageId,
+  resolveInboundThread,
+} from "./thread-resolve";
 
 export type SimulateInboundInput = {
   inboxId: string;
@@ -15,11 +19,19 @@ export type SimulateInboundInput = {
   subject?: string;
   fireCallback?: boolean;
   attachmentFilename?: string;
+  /** Parent message id — builds In-Reply-To for threading tests */
+  inReplyToMessageId?: string;
+  /** Optional RFC Message-ID for the simulated message */
+  rfcMessageId?: string;
+  inReplyTo?: string;
+  references?: string;
+  headers?: Record<string, string | string[] | undefined>;
 };
 
 export type SimulateInboundResult = {
   inboxId: string;
   messageId: string;
+  threadId: string;
   address: string;
   otp: string;
   subject: string;
@@ -43,6 +55,46 @@ export async function simulateInboundMessage(
   const messageId = nanoid(16);
   const providerId = `sim_${nanoid(12)}`;
 
+  let inReplyToHeader = input.inReplyTo ?? null;
+  let referencesHeader = input.references ?? null;
+  const headers: Record<string, string | string[] | undefined> = {
+    ...(input.headers ?? {}),
+  };
+
+  if (input.inReplyToMessageId) {
+    const parent = await getMessage(env, inbox.id, input.inReplyToMessageId);
+    if (parent && parent.inbox_id === inbox.id) {
+      const ref =
+        parent.rfc_message_id ??
+        (parent.provider_id ? `<${parent.provider_id}>` : null);
+      if (ref) {
+        inReplyToHeader = ref.startsWith("<") ? ref : `<${ref}>`;
+        referencesHeader = referencesHeader ?? inReplyToHeader;
+      }
+    }
+  }
+
+  if (input.rfcMessageId?.trim()) {
+    const mid = normalizeMessageId(input.rfcMessageId);
+    headers["Message-ID"] = `<${mid}>`;
+  }
+
+  const resolved = await resolveInboundThread(
+    env,
+    {
+      inboxId: inbox.id,
+      subject,
+      inReplyTo: inReplyToHeader,
+      references: referencesHeader,
+      headers,
+    },
+    messageId
+  );
+
+  const rfcMessageId = input.rfcMessageId?.trim()
+    ? normalizeMessageId(input.rfcMessageId)
+    : resolved.rfcMessageId;
+
   const row = await insertMessage(env, {
     id: messageId,
     inboxId: inbox.id,
@@ -53,7 +105,9 @@ export async function simulateInboundMessage(
     htmlPreview: null,
     otp,
     links,
-    threadId: messageId,
+    threadId: resolved.threadId,
+    inReplyTo: resolved.inReplyToMessageId,
+    rfcMessageId,
   });
   if (!row) return null;
 
@@ -86,6 +140,7 @@ export async function simulateInboundMessage(
   return {
     inboxId: inbox.id,
     messageId: row.id,
+    threadId: resolved.threadId,
     address: inbox.address,
     otp,
     subject,

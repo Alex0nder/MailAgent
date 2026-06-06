@@ -288,6 +288,10 @@ server.registerTool(
       subject: z.string().optional(),
       fireCallback: z.boolean().optional(),
       attachmentFilename: z.string().optional(),
+      inReplyToMessageId: z.string().optional(),
+      rfcMessageId: z.string().optional(),
+      inReplyTo: z.string().optional(),
+      references: z.string().optional(),
     },
   },
   async (args) => {

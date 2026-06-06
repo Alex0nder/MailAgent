@@ -153,6 +153,14 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | Migration `011_outbound_threads.sql` | ✅ |
 | [V1-PLATFORM.md](./V1-PLATFORM.md) — полный план v1.0 | ✅ |
 
+### v0.18 Inbound threading
+
+| Parse In-Reply-To / References / Message-ID on ingest | ✅ |
+| Re: / Fwd: subject fallback | ✅ |
+| `simulate` + `inReplyToMessageId` / `rfcMessageId` | ✅ |
+| `contract-qa-threads` + smoke thread grouping | ✅ |
+| `npm run test:thread-resolve` | ✅ |
+
 ### Отложено (не QA)
 
 - Agent session memory / multi-step run state

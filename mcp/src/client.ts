@@ -208,6 +208,10 @@ export class MailAgentClient {
       subject?: string;
       fireCallback?: boolean;
       attachmentFilename?: string;
+      inReplyToMessageId?: string;
+      rfcMessageId?: string;
+      inReplyTo?: string;
+      references?: string;
     }
   ) {
     return this.request<Record<string, unknown>>(`/v1/inboxes/${id}/simulate`, {

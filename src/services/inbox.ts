@@ -386,6 +386,42 @@ export async function countActiveInboxesForTeam(
   return rows[0]?.n ?? 0;
 }
 
+/** Match In-Reply-To / References against stored messages (inbound threading) */
+export async function findMessageForThreading(
+  env: Env,
+  inboxId: string,
+  refIds: string[]
+): Promise<MessageRow | null> {
+  if (!refIds.length) return null;
+  const sql = getDb(env);
+  const variants = new Set<string>();
+  for (const ref of refIds) {
+    const t = ref.trim();
+    variants.add(t);
+    if (t.startsWith("<") && t.endsWith(">")) {
+      variants.add(t.slice(1, -1));
+    } else if (t.includes("@")) {
+      variants.add(`<${t}>`);
+    }
+  }
+  const ids = [...variants];
+
+  const rows = (await sql`
+    SELECT id, inbox_id, provider_id, from_addr, subject,
+           text_preview, html_preview, otp, links_json, received_at,
+           raw_r2_key, direction, thread_id, in_reply_to, to_addrs, rfc_message_id
+    FROM messages
+    WHERE inbox_id = ${inboxId}
+      AND (
+        rfc_message_id = ANY(${ids}::text[])
+        OR provider_id = ANY(${ids}::text[])
+      )
+    ORDER BY received_at DESC
+    LIMIT 1
+  `) as MessageRow[];
+  return rows[0] ?? null;
+}
+
 export async function purgeExpired(
   env: Env
 ): Promise<{ inboxes: number; rawDeleted: number; attDeleted: number }> {

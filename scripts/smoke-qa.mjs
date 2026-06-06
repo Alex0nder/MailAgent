@@ -53,6 +53,8 @@ async function main() {
     "mailagent_list_messages",
     "mailagent_diagnose_inbox",
     "mailagent_simulate_message",
+    "mailagent_send_message",
+    "mailagent_list_threads",
   ]) {
     if (!tools.includes(name)) {
       console.error("missing mcpTool on API:", name);
@@ -132,6 +134,31 @@ async function main() {
   });
   console.log("POST …/simulate", sim.res.status, sim.json?.messageId ?? sim.json?.error);
   if (!sim.res.ok || !sim.json?.messageId) process.exit(1);
+
+  const simReply = await req("POST", `/v1/inboxes/${inboxId}/simulate`, {
+    otp: "991123",
+    subject: "Re: smoke-qa simulate",
+    inReplyToMessageId: sim.json.messageId,
+  });
+  console.log(
+    "POST …/simulate (reply)",
+    simReply.res.status,
+    simReply.json?.threadId ?? simReply.json?.error
+  );
+  if (!simReply.res.ok || !simReply.json?.threadId) process.exit(1);
+  const rootThread = sim.json.threadId ?? sim.json.messageId;
+  if (simReply.json.threadId !== rootThread) {
+    console.error("thread id mismatch after reply simulate");
+    process.exit(1);
+  }
+
+  const threads = await req("GET", `/v1/inboxes/${inboxId}/threads`);
+  console.log(
+    "GET …/threads",
+    threads.res.status,
+    `count=${threads.json?.threads?.length ?? 0}`
+  );
+  if (!threads.res.ok) process.exit(1);
 
   const extract = await req("GET", `/v1/inboxes/${inboxId}/extract`);
   console.log("GET …/extract", extract.res.status, extract.json?.otp ?? "—");

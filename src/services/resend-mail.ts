@@ -17,6 +17,12 @@ import {
 import { storeRawMimeFromUrl } from "./raw-mime-r2";
 import { saveAttachmentsFromEmail } from "./message-attachments";
 import { formatMessageVerification } from "./message-verify";
+import {
+  normalizeMessageId,
+  parseMessageIdList,
+  readInboundHeaders,
+  resolveInboundThread,
+} from "./thread-resolve";
 import type { EmailQueueMessage, MessageNotifyPayload } from "../env";
 import { nanoid } from "nanoid";
 
@@ -69,6 +75,29 @@ export async function processInboundEmail(
     );
   }
 
+  const inboundHeaders = readInboundHeaders(email);
+  const resolved = await resolveInboundThread(
+    env,
+    {
+      inboxId: inbox.id,
+      subject: job.subject,
+      inReplyTo: inboundHeaders.inReplyTo,
+      references: inboundHeaders.references,
+      headers:
+        email && typeof email === "object" && email.headers
+          ? (email.headers as Record<string, string | string[] | undefined>)
+          : null,
+    },
+    messageId
+  );
+
+  const rfcMessageId = inboundHeaders.messageId
+    ? normalizeMessageId(
+        parseMessageIdList(inboundHeaders.messageId)[0] ??
+          inboundHeaders.messageId
+      )
+    : resolved.rfcMessageId;
+
   const row = await insertMessage(env, {
     id: messageId,
     inboxId: inbox.id,
@@ -80,7 +109,9 @@ export async function processInboundEmail(
     otp,
     links,
     rawR2Key,
-    threadId: messageId,
+    threadId: resolved.threadId,
+    inReplyTo: resolved.inReplyToMessageId,
+    rfcMessageId,
   });
 
   if (!row) return;

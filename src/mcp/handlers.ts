@@ -431,6 +431,13 @@ export async function executeMcpTool(
         subject: args.subject as string | undefined,
         fireCallback: args.fireCallback === true,
         attachmentFilename: args.attachmentFilename as string | undefined,
+        inReplyToMessageId: args.inReplyToMessageId as string | undefined,
+        rfcMessageId: args.rfcMessageId as string | undefined,
+        inReplyTo: args.inReplyTo as string | undefined,
+        references: args.references as string | undefined,
+        headers: args.headers as
+          | Record<string, string | string[] | undefined>
+          | undefined,
       });
       if (!result) return textResult({ error: "simulate_failed" }, true);
       return textResult(result);

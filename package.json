@@ -38,6 +38,8 @@
     "test:contract:qa": "node scripts/contract-qa.mjs",
     "test:contract:qa:callback": "node scripts/contract-qa-callback.mjs",
     "test:contract:qa:attachments": "node scripts/contract-qa-attachments.mjs",
+    "test:contract:qa:threads": "node scripts/contract-qa-threads.mjs",
+    "test:thread-resolve": "npx tsx scripts/test-thread-resolve.ts",
     "smoke:codex": "node scripts/smoke-codex.mjs",
     "verify:codex": "node scripts/verify-codex-plugin.mjs",
     "codex:install": "node scripts/codex-install.mjs",

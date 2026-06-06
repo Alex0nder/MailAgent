@@ -475,10 +475,15 @@ export class MailAgentQa {
       subject?: string;
       fireCallback?: boolean;
       attachmentFilename?: string;
+      inReplyToMessageId?: string;
+      rfcMessageId?: string;
+      inReplyTo?: string;
+      references?: string;
     }
   ): Promise<{
     inboxId: string;
     messageId: string;
+    threadId: string;
     address: string;
     otp: string;
     subject: string;

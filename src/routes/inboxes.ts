@@ -236,6 +236,11 @@ inboxRoutes.post("/:id/simulate", async (c) => {
     subject?: string;
     fireCallback?: boolean;
     attachmentFilename?: string;
+    inReplyToMessageId?: string;
+    rfcMessageId?: string;
+    inReplyTo?: string;
+    references?: string;
+    headers?: Record<string, string | string[] | undefined>;
   } = {};
   try {
     body = await c.req.json();
@@ -251,6 +256,11 @@ inboxRoutes.post("/:id/simulate", async (c) => {
     subject: body.subject,
     fireCallback: body.fireCallback === true,
     attachmentFilename: body.attachmentFilename,
+    inReplyToMessageId: body.inReplyToMessageId,
+    rfcMessageId: body.rfcMessageId,
+    inReplyTo: body.inReplyTo,
+    references: body.references,
+    headers: body.headers,
   });
   if (!result) return c.json({ error: "simulate_failed" }, 500);
 

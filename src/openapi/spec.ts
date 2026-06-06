@@ -641,6 +641,13 @@ export const openApiSpec = {
                   subject: { type: "string" },
                   fireCallback: { type: "boolean" },
                   attachmentFilename: { type: "string" },
+                  inReplyToMessageId: {
+                    type: "string",
+                    description: "Parent message id for threading tests",
+                  },
+                  rfcMessageId: { type: "string" },
+                  inReplyTo: { type: "string" },
+                  references: { type: "string" },
                 },
               },
             },
@@ -655,6 +662,7 @@ export const openApiSpec = {
                   properties: {
                     inboxId: { type: "string" },
                     messageId: { type: "string" },
+                    threadId: { type: "string" },
                     address: { type: "string" },
                     otp: { type: "string" },
                     subject: { type: "string" },
