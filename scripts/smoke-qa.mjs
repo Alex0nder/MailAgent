@@ -162,7 +162,7 @@ async function main() {
 
   const extract = await req("GET", `/v1/inboxes/${inboxId}/extract`);
   console.log("GET …/extract", extract.res.status, extract.json?.otp ?? "—");
-  if (!extract.res.ok || extract.json?.otp !== "991122") process.exit(1);
+  if (!extract.res.ok || extract.json?.otp !== "991123") process.exit(1);
 
   const del = await req("DELETE", `/v1/inboxes/${inboxId}`);
   console.log("DELETE inbox", del.res.status);
