@@ -23,6 +23,7 @@
     "doctor:qa": "node scripts/doctor.mjs --qa",
     "doctor:operator": "node scripts/doctor-operator.mjs",
     "doctor:oidc": "node scripts/doctor-oidc.mjs",
+    "wizard:auth0": "node scripts/wizard-auth0-oidc.mjs",
     "setup:oidc-prod": "node scripts/setup-oidc-prod.mjs",
     "deploy": "wrangler deploy",
     "check": "tsc --noEmit",

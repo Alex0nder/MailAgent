@@ -64,9 +64,9 @@ Details: [outbound.html](https://webmailagent.com/docs/outbound.html)
 **When:** MCP clients without pasting API key (Auth0 / Google).
 
 ```bash
-npm run doctor:oidc          # checklist + prod status
-# fill .dev.vars (see .dev.vars.example)
-npm run setup:oidc-prod      # wrangler secrets + contract test
+npm run wizard:auth0         # Auth0 dashboard steps + paste creds → .dev.vars
+npm run wizard:auth0 -- --deploy   # same + wrangler secrets + contract test
+# or: npm run doctor:oidc → fill .dev.vars → npm run setup:oidc-prod
 ```
 
 Auth0 callback: `https://api.webmailagent.com/v1/oauth/callback`

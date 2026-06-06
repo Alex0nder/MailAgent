@@ -52,7 +52,8 @@ if (missingLocal.length) {
   console.log("  OIDC_ISSUER=https://YOUR-TENANT.us.auth0.com");
   console.log("  OIDC_CLIENT_ID=...");
   console.log("  OIDC_CLIENT_SECRET=...");
-  console.log("\nThen: npm run setup:oidc-prod");
+  console.log("\nThen: npm run wizard:auth0 -- --deploy");
+  console.log("  (or: npm run setup:oidc-prod after filling .dev.vars)");
   console.log("Guide: docs/MCP-OAUTH-IDP.md · docs/oauth-idp.html\n");
 }
 
