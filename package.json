@@ -65,6 +65,7 @@
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
     "hono": "^4.11.1",
+    "jose": "^6.2.3",
     "nanoid": "^5.1.6",
     "parse-otp-message": "^1.0.2",
     "resend": "^6.9.2"

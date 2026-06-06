@@ -288,7 +288,7 @@ oauthTokenRoutes.post("/token", async (c) => {
     return c.json(
       {
         error: "server_error",
-        error_description: "OAuth tokens require RATE_LIMIT KV binding",
+        error_description: "OAuth token issuance unavailable (check API_KEY or MCP_OAUTH_JWT_SECRET)",
       },
       503
     );

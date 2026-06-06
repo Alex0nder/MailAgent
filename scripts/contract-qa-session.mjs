@@ -60,6 +60,30 @@ async function main() {
     process.exit(1);
   }
 
+  const verify = await contractApi(base, headers, "/v1/agent/verify", {
+    method: "POST",
+    body: JSON.stringify({
+      runId,
+      timeoutSeconds: 3,
+      deleteAfter: false,
+    }),
+  });
+  if (verify.status !== 408 || verify.json?.status !== "timeout") {
+    console.error("verify timeout expected", verify.status, verify.json);
+    process.exit(1);
+  }
+
+  const afterVerify = await contractApi(
+    base,
+    headers,
+    `/v1/agent/runs/${encodeURIComponent(runId)}/session`
+  );
+  const verifyStep = afterVerify.json?.steps?.find((s) => s.name === "verify.timeout");
+  if (!verifyStep || afterVerify.json?.state?.lastVerify?.status !== "timeout") {
+    console.error("verify did not patch session", afterVerify.json);
+    process.exit(1);
+  }
+
   const hub = await contractApi(base, headers, "/v1/agent");
   if (!hub.json?.runs?.session) {
     console.error("hub missing runs.session", hub.json?.runs);

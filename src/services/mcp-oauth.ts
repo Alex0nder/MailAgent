@@ -3,6 +3,11 @@ import { nanoid } from "nanoid";
 import type { Env } from "../env";
 import type { ResolvedAuth } from "./api-key-store";
 import { apiKeyHashFromToken } from "../lib/api-key-hint";
+import {
+  isJwtMatBody,
+  signMcpAccessJwt,
+  verifyMcpAccessJwt,
+} from "../lib/mcp-jwt";
 import { normalizePlan, type PlanId } from "../lib/plans";
 
 const KV_PREFIX = "oauth:mat:";
@@ -21,6 +26,14 @@ type StoredMcpToken = {
 
 function kv(env: Env): KVNamespace | undefined {
   return env.RATE_LIMIT;
+}
+
+function signingSecret(env: Env): string | null {
+  const fromEnv = env.MCP_OAUTH_JWT_SECRET?.trim();
+  if (fromEnv) return fromEnv;
+  const apiKey = env.API_KEY?.trim();
+  if (apiKey) return apiKey;
+  return null;
 }
 
 async function tokenDigest(token: string): Promise<string> {
@@ -43,6 +56,17 @@ export async function issueMcpAccessToken(
   env: Env,
   auth: ResolvedAuth
 ): Promise<{ access_token: string; token_type: "Bearer"; expires_in: number } | null> {
+  const expires_in = ttlSec(env);
+  const secret = signingSecret(env);
+  if (secret) {
+    const jwt = await signMcpAccessJwt(secret, auth, expires_in);
+    return {
+      access_token: `${TOKEN_PREFIX}${jwt}`,
+      token_type: "Bearer",
+      expires_in,
+    };
+  }
+
   const store = kv(env);
   if (!store) return null;
 
@@ -56,7 +80,6 @@ export async function issueMcpAccessToken(
     scopeLabelPrefix: auth.scope.labelPrefix,
     scopeReadOnly: auth.scope.readOnly,
   };
-  const expires_in = ttlSec(env);
   try {
     await store.put(KV_PREFIX + (await tokenDigest(access_token)), JSON.stringify(payload), {
       expirationTtl: expires_in + 60,
@@ -68,12 +91,20 @@ export async function issueMcpAccessToken(
   return { access_token, token_type: "Bearer", expires_in };
 }
 
-/** Validate mat_ token from KV */
+/** Validate mat_ token (JWT first, legacy KV fallback) */
 export async function resolveMcpAccessToken(
   env: Env,
   token: string
 ): Promise<ResolvedAuth | null> {
   if (!isMcpAccessToken(token)) return null;
+
+  const body = token.slice(TOKEN_PREFIX.length);
+  const secret = signingSecret(env);
+  if (secret && isJwtMatBody(body)) {
+    const jwtAuth = await verifyMcpAccessJwt(secret, body);
+    if (jwtAuth) return jwtAuth;
+  }
+
   const store = kv(env);
   if (!store) return null;
 

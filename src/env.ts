@@ -22,6 +22,8 @@ export interface Env {
   STRIPE_PRICE_PRO?: string;
   /** OAuth access token TTL for MCP (seconds, default 3600) */
   MCP_OAUTH_TOKEN_TTL_SEC?: string;
+  /** HMAC secret for stateless mat_ JWT (default: API_KEY) */
+  MCP_OAUTH_JWT_SECRET?: string;
   /** OIDC IdP (Auth0/Google): issuer URL, e.g. https://tenant.us.auth0.com */
   OIDC_ISSUER?: string;
   OIDC_CLIENT_ID?: string;

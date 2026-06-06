@@ -60,6 +60,41 @@ async function main() {
   }
   console.log("mcp auth OK", { oidc: mcpAuth.json.oidc });
 
+  const apiKey = process.env.MAILAGENT_API_KEY ?? process.env.API_KEY;
+  const tokenRes = await fetch(`${base}/v1/oauth/token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_secret: apiKey,
+    }),
+  });
+  const tokenJson = await tokenRes.json();
+  const accessToken = tokenJson.access_token;
+  if (!tokenRes.ok || !accessToken?.startsWith("mat_")) {
+    console.error("POST /v1/oauth/token failed", tokenRes.status, tokenJson);
+    process.exit(1);
+  }
+  if (!accessToken.slice(4).includes(".")) {
+    console.error("expected JWT body in mat_ token");
+    process.exit(1);
+  }
+
+  const mcpList = await fetch(`${base}/mcp`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+  });
+  const mcpJson = await mcpList.json();
+  if (!mcpList.ok || !mcpJson.result?.tools?.length) {
+    console.error("MCP tools/list with mat_ JWT failed", mcpList.status, mcpJson);
+    process.exit(1);
+  }
+  console.log("oauth mat_ JWT OK", { tools: mcpJson.result.tools.length });
+
   console.log("contract-qa-agent OK");
 }
 

@@ -5,7 +5,7 @@ MailAgent MCP supports **OAuth 2.0 client_credentials**, **authorization_code (O
 MCP clients (Cursor, Claude Desktop, custom agents) can:
 
 1. **Directly** — `Authorization: Bearer mak_…` (API key)
-2. **Via OAuth** — exchange API key for short-lived `mat_…` access token
+2. **Via OAuth** — exchange API key for short-lived `mat_…` access token (stateless JWT, no KV)
 3. **Via IdP login** — Auth0/Google browser login → `mat_` token ([MCP-OAUTH-IDP.md](./MCP-OAUTH-IDP.md))
 
 ## Discovery (RFC 8414 / 9728)

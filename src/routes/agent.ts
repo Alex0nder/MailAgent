@@ -217,6 +217,28 @@ agentRoutes.post("/verify", async (c) => {
     teamId: c.get("teamId"),
   });
 
+  if (body.runId && validateRunId(body.runId)) {
+    const owner = sessionOwnerKey(c.get("teamId"), c.get("apiKeyHint"));
+    if ("status" in result && (result.status === "verified" || result.status === "timeout")) {
+      const lastVerify: Record<string, unknown> = {
+        status: result.status,
+        at: new Date().toISOString(),
+        service: body.service ?? null,
+      };
+      if (result.status === "verified" && "verification" in result) {
+        lastVerify.inboxId = result.email.inboxId;
+        lastVerify.otp = result.verification.otp ?? null;
+        lastVerify.primaryLink = result.verification.primaryLink ?? null;
+      }
+      await patchAgentRunSession(c.env, body.runId, owner, {
+        step: {
+          name: result.status === "verified" ? "verify.success" : "verify.timeout",
+        },
+        merge: { lastVerify },
+      }).catch(() => undefined);
+    }
+  }
+
   if ("error" in result && result.error === "invalid_callback_url") {
     return c.json(result, 400);
   }

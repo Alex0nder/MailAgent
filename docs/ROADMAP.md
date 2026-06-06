@@ -293,6 +293,14 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 
 | Rate limit: sample KV writes (`RATE_LIMIT_KV_WRITE_EVERY=10`) | ✅ |
 | MCP stream progress: no redundant KV relay on `tools/call` SSE | ✅ |
+| Prod smoke fallback when KV exhausted | ✅ |
+
+### v0.36 Stateless mat_ JWT + verify session
+
+| `mat_` tokens signed as JWT (HS256, no KV put/get) | ✅ |
+| Legacy KV-backed `mat_` still validated | ✅ |
+| `POST /v1/agent/verify` auto-patches run session when `runId` set | ✅ |
+| Optional `MCP_OAUTH_JWT_SECRET` (default `API_KEY`) | ✅ |
 
 ### Deferred (not QA)
 
