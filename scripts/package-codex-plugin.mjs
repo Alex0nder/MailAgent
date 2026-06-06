@@ -26,11 +26,17 @@ if (!launcher.includes(pin)) {
   process.exit(1);
 }
 
-const verify = spawnSync("npm", ["run", "verify:codex"], {
+const verify = spawnSync("npm", ["run", "verify:skills"], {
   cwd: root,
   stdio: "inherit",
 });
 if (verify.status !== 0) process.exit(verify.status ?? 1);
+
+const verifyCodex = spawnSync("npm", ["run", "verify:codex"], {
+  cwd: root,
+  stdio: "inherit",
+});
+if (verifyCodex.status !== 0) process.exit(verifyCodex.status ?? 1);
 
 const outDir = path.join(root, "dist");
 if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });

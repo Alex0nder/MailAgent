@@ -316,6 +316,14 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | `GET /v1/agent/runs/:runId` includes `session` | ✅ |
 | `@mailagent/agent@0.1.11` · API hub `0.8.1` | ✅ |
 
+### v0.39 Agent Skills ecosystem
+
+| Canonical `skills/mailagent/SKILL.md` (Agent Skills spec) | ✅ |
+| `npm run sync:skills` → Cursor + Codex plugin copies | ✅ |
+| `npm run verify:skills` · [AGENT-SKILLS.md](./AGENT-SKILLS.md) | ✅ |
+| Combo flows (verify → Membrane / app skills) documented | ✅ |
+| `npx skills add Alex0nder/MailAgent --skill mailagent` | ✅ |
+
 ### Deferred (not QA)
 
 - ~~Agent session memory / multi-step run state~~ ✅ v0.35

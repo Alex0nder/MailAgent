@@ -58,6 +58,8 @@
     "test:message-search": "npx tsx scripts/test-message-search.ts",
     "test:thread-resolve": "npx tsx scripts/test-thread-resolve.ts",
     "smoke:codex": "node scripts/smoke-codex.mjs",
+    "verify:skills": "node scripts/verify-agent-skill.mjs",
+    "sync:skills": "node scripts/sync-agent-skill.mjs",
     "verify:codex": "node scripts/verify-codex-plugin.mjs",
     "package:codex": "node scripts/package-codex-plugin.mjs",
     "codex:install": "node scripts/codex-install.mjs",

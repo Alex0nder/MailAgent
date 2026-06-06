@@ -22,6 +22,7 @@ npm run doctor:operator
 | npm publish on tag `v*` | Trusted Publishing |
 | MCP OAuth `mat_` JWT | no KV quota needed |
 | Agent run session | verify + MCP + `GET /runs/:id` |
+| Agent Skills (`skills/mailagent/`) | `npx skills add` · `npm run sync:skills` |
 
 ---
 

@@ -62,8 +62,17 @@ Source of truth: `src/mcp/manifest.ts` → `GET /v1/agent`.
 | Remote | `POST https://api.webmailagent.com/mcp` + Bearer |
 
 ```bash
-codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.3 mailagent-mcp
+codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.5 mailagent-mcp
 ```
+
+## Agent Skills
+
+```bash
+npx skills add Alex0nder/MailAgent --skill mailagent
+npm run sync:skills   # after editing skills/mailagent/SKILL.md
+```
+
+Guide: [docs/AGENT-SKILLS.md](docs/AGENT-SKILLS.md) · canonical: [skills/mailagent/SKILL.md](skills/mailagent/SKILL.md)
 
 ## npm packages
 
@@ -87,5 +96,5 @@ On failure: `mailagent_diagnose_inbox` or `POST …/simulate` then retry.
 
 - [docs/agents](https://webmailagent.com/docs/agents.html) · [docs/autotests](https://webmailagent.com/docs/autotests.html) · [docs/qa](https://webmailagent.com/docs/qa.html)
 - [docs/AUTOTESTS.md](docs/AUTOTESTS.md) · [docs/OPERATOR.md](docs/OPERATOR.md) (human: secrets only)
-- [docs/CODEX.md](docs/CODEX.md) · [docs/QA-RELEASE.md](docs/QA-RELEASE.md)
-- Skill (Cursor): `.cursor/skills/mailagent-mcp/SKILL.md`
+- [docs/AGENT-SKILLS.md](docs/AGENT-SKILLS.md) · [docs/CODEX.md](docs/CODEX.md) · [docs/QA-RELEASE.md](docs/QA-RELEASE.md)
+- Skill (canonical): [skills/mailagent/SKILL.md](skills/mailagent/SKILL.md)
