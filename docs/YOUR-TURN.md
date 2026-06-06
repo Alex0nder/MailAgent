@@ -63,29 +63,13 @@ Details: [outbound.html](https://webmailagent.com/docs/outbound.html)
 
 **When:** MCP clients without pasting API key (Auth0 / Google).
 
-1. Auth0 app → callback `https://api.webmailagent.com/v1/oauth/callback`
-2. Secrets (from `.dev.vars`):
-
 ```bash
-npm run setup:oidc-prod
+npm run doctor:oidc          # checklist + prod status
+# fill .dev.vars (see .dev.vars.example)
+npm run setup:oidc-prod      # wrangler secrets + contract test
 ```
 
-Or manually:
-
-```bash
-npx wrangler secret put OIDC_ISSUER      # https://tenant.us.auth0.com
-npx wrangler secret put OIDC_CLIENT_ID
-npx wrangler secret put OIDC_CLIENT_SECRET
-# optional: OIDC_AUDIENCE
-```
-
-3. Check:
-
-```bash
-curl -sS https://api.webmailagent.com/v1/agent \
-  -H "Authorization: Bearer $MAILAGENT_API_KEY" | jq .auth.oidc
-# "enabled"
-```
+Auth0 callback: `https://api.webmailagent.com/v1/oauth/callback`
 
 Guide: [MCP-OAUTH-IDP.md](./MCP-OAUTH-IDP.md)
 

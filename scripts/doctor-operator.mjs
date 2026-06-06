@@ -68,11 +68,10 @@ try {
       id: "oidc",
       title: "Enable OIDC on prod (optional)",
       steps: [
-        "Auth0 → app → callback https://api.webmailagent.com/v1/oauth/callback",
-        "npx wrangler secret put OIDC_ISSUER",
-        "npx wrangler secret put OIDC_CLIENT_ID",
-        "npx wrangler secret put OIDC_CLIENT_SECRET",
-        "npm run db:migrate && git push (or deploy from main)",
+        "npm run doctor:oidc",
+        "Auth0 → Regular Web App → callbacks (see doctor output)",
+        "Add OIDC_* to .dev.vars",
+        "npm run setup:oidc-prod",
       ],
       doc: "docs/MCP-OAUTH-IDP.md",
     });

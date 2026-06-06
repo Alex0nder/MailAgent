@@ -26,7 +26,8 @@
         </p>
 
         <h2>Check if OIDC is live</h2>
-        <pre class="doc-pre"><code>GET /v1/agent → auth.oidc
+        <pre class="doc-pre"><code>npm run doctor:oidc
+GET /v1/agent → auth.oidc
 GET /mcp/auth   → oidc: "enabled" | "disabled"</code></pre>
         <p>When disabled, use API keys or <code>POST /v1/oauth/token</code> with <code>client_credentials</code>.</p>
 

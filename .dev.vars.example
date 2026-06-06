@@ -3,3 +3,9 @@ RESEND_API_KEY=re_xxx
 RESEND_WEBHOOK_SECRET=whsec_xxx
 API_KEY=local-dev-api-key-change-me
 INBOX_DOMAIN=your-id.resend.app
+
+# Optional: MCP browser login (Auth0) — see docs/MCP-OAUTH-IDP.md
+# OIDC_ISSUER=https://YOUR-TENANT.us.auth0.com
+# OIDC_CLIENT_ID=
+# OIDC_CLIENT_SECRET=
+# OIDC_AUDIENCE=
