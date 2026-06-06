@@ -325,6 +325,8 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | `npx skills add Alex0nder/MailAgent --skill mailagent` | ✅ |
 | OIDC contract `test:contract:qa:oidc` (skip if disabled) | ✅ |
 | Catalog submit guide [CATALOG-SUBMIT.md](./CATALOG-SUBMIT.md) | ✅ |
+| `npm run prepare:catalog-pr` staging bundle | ✅ |
+| awesome-codex-plugins PR | [#195](https://github.com/hashgraph-online/awesome-codex-plugins/pull/195) pending |
 | Docs page `/docs/agent-skills.html` | ✅ |
 
 ### Deferred (not QA)

@@ -5,6 +5,7 @@ node_modules/
 .env
 .env.local
 dist/
+dist/catalog-staging/
 *.log
 worker-configuration.d.ts
 examples/playwright/.mailagent-context.json

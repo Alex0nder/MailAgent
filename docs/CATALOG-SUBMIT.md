@@ -20,35 +20,36 @@ Upstream expects a **fork + PR**, not a raw tarball URL.
 
 ### Steps
 
+```bash
+npm run prepare:catalog-pr
+# → dist/catalog-staging/plugins/Alex0nder/mailagent
+# → dist/catalog-staging/MARKETPLACE-ENTRY.json
+```
+
+Then fork + PR to [awesome-codex-plugins](https://github.com/hashgraph-online/awesome-codex-plugins):
+
 1. Fork https://github.com/hashgraph-online/awesome-codex-plugins
-2. Build fresh plugin bundle:
+2. Copy `dist/catalog-staging/plugins/Alex0nder/mailagent` → `plugins/Alex0nder/mailagent`
+3. Merge `MARKETPLACE-ENTRY.json` into `.agents/plugins/marketplace.json`
+4. Add README line under **Development & Workflow**
+5. Open PR — title: `Add MailAgent plugin (email verification for agents)`
 
-   ```bash
-   npm run package:codex
-   tar -xzf dist/mailagent-codex-plugin-0.2.5.tar.gz -C /tmp
-   ```
+5. Open PR — title: `Add MailAgent plugin (email verification for agents)`
 
-3. Copy `/tmp/plugin` → `plugins/Alex0nder/mailagent` in your fork (keep `.codex-plugin/`, `skills/`, `.mcp.json`, `scripts/`)
-4. Add marketplace entry (adjust path to match their convention):
+**Status:** [PR #195](https://github.com/hashgraph-online/awesome-codex-plugins/pull/195) submitted (pending review).
 
-   ```json
-   {
-     "name": "mailagent",
-     "displayName": "MailAgent",
-     "source": {
-       "source": "local",
-       "path": "./plugins/Alex0nder/mailagent"
-     },
-     "policy": {
-       "installation": "AVAILABLE",
-       "authentication": "ON_INSTALL"
-     },
-     "category": "Development & Workflow",
-     "description": "Temporary inboxes for Codex — OTP, magic links, signup QA, simulate-first autotests (23 MCP tools)."
-   }
-   ```
+Marketplace entry shape (for reference):
 
-5. Open PR with title: `Add MailAgent plugin (email verification for agents)`
+```json
+{
+  "name": "mailagent",
+  "displayName": "MailAgent",
+  "source": { "source": "local", "path": "./plugins/Alex0nder/mailagent" },
+  "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+  "category": "Development & Workflow",
+  "description": "Temporary inboxes for Codex — OTP, magic links, signup QA, simulate-first autotests (23 MCP tools)."
+}
+```
 
 ### PR body template
 

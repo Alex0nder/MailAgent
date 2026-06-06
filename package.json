@@ -62,6 +62,7 @@
     "verify:skills": "node scripts/verify-agent-skill.mjs",
     "sync:skills": "node scripts/sync-agent-skill.mjs",
     "verify:codex": "node scripts/verify-codex-plugin.mjs",
+    "prepare:catalog-pr": "node scripts/prepare-catalog-pr.mjs",
     "package:codex": "node scripts/package-codex-plugin.mjs",
     "codex:install": "node scripts/codex-install.mjs",
     "test:pw:setup": "node scripts/playwright-global-setup.mjs",
