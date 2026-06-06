@@ -216,6 +216,31 @@ export class MailAgentClient {
     });
   }
 
+  sendMessage(
+    id: string,
+    body: {
+      to: string | string[];
+      subject: string;
+      text?: string;
+      html?: string;
+      inReplyToMessageId?: string;
+    }
+  ) {
+    return this.request<Record<string, unknown>>(`/v1/inboxes/${id}/send`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  }
+
+  listThreads(id: string, threadId?: string) {
+    if (threadId) {
+      return this.request<Record<string, unknown>>(
+        `/v1/inboxes/${id}/threads/${threadId}/messages`
+      );
+    }
+    return this.request<Record<string, unknown>>(`/v1/inboxes/${id}/threads`);
+  }
+
   listMessages(id: string) {
     return this.request<{ messages: MessageSummary[] }>(
       `/v1/inboxes/${id}/messages`

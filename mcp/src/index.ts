@@ -297,6 +297,40 @@ server.registerTool(
 );
 
 server.registerTool(
+  "mailagent_send_message",
+  {
+    description: "Send outbound email from inbox (two-way agent mail).",
+    inputSchema: {
+      inboxId: z.string(),
+      to: z.union([z.string(), z.array(z.string())]),
+      subject: z.string(),
+      text: z.string().optional(),
+      html: z.string().optional(),
+      inReplyToMessageId: z.string().optional(),
+    },
+  },
+  async (args) => {
+    const client = new MailAgentClient();
+    return toolText(await client.sendMessage(args.inboxId, args));
+  }
+);
+
+server.registerTool(
+  "mailagent_list_threads",
+  {
+    description: "List threads or messages in a thread.",
+    inputSchema: {
+      inboxId: z.string(),
+      threadId: z.string().optional(),
+    },
+  },
+  async ({ inboxId, threadId }) => {
+    const client = new MailAgentClient();
+    return toolText(await client.listThreads(inboxId, threadId));
+  }
+);
+
+server.registerTool(
   "mailagent_diagnose_inbox",
   {
     description:

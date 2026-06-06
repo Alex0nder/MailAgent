@@ -80,6 +80,7 @@ export async function processInboundEmail(
     otp,
     links,
     rawR2Key,
+    threadId: messageId,
   });
 
   if (!row) return;

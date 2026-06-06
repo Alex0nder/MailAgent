@@ -144,6 +144,15 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | OpenAPI `/diagnose` + `/simulate` | ✅ |
 | [QA-SIMULATE.md](./QA-SIMULATE.md) | ✅ |
 
+### v0.17 Outbound + threads (AgentMail parity start)
+
+| `POST /v1/inboxes/:id/send` | ✅ |
+| `POST …/messages/:id/reply` | ✅ |
+| `GET …/threads`, `GET …/threads/:id/messages` | ✅ |
+| MCP `mailagent_send_message`, `mailagent_list_threads` | ✅ |
+| Migration `011_outbound_threads.sql` | ✅ |
+| [V1-PLATFORM.md](./V1-PLATFORM.md) — полный план v1.0 | ✅ |
+
 ### Отложено (не QA)
 
 - Agent session memory / multi-step run state

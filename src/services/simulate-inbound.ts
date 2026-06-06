@@ -53,6 +53,7 @@ export async function simulateInboundMessage(
     htmlPreview: null,
     otp,
     links,
+    threadId: messageId,
   });
   if (!row) return null;
 

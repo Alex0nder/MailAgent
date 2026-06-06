@@ -125,6 +125,35 @@ export const MCP_TOOLS = [
     },
   },
   {
+    name: "mailagent_send_message",
+    description:
+      "Send outbound email from inbox (reply to thread). Requires verified OUTBOUND_FROM in Resend.",
+    inputSchema: {
+      type: "object",
+      required: ["inboxId", "to", "subject"],
+      properties: {
+        inboxId: { type: "string" },
+        to: { oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }] },
+        subject: { type: "string" },
+        text: { type: "string" },
+        html: { type: "string" },
+        inReplyToMessageId: { type: "string" },
+      },
+    },
+  },
+  {
+    name: "mailagent_list_threads",
+    description: "List email threads in an inbox (conversation view).",
+    inputSchema: {
+      type: "object",
+      required: ["inboxId"],
+      properties: {
+        inboxId: { type: "string" },
+        threadId: { type: "string", description: "If set, return messages in thread" },
+      },
+    },
+  },
+  {
     name: "mailagent_diagnose_inbox",
     description:
       "When wait/verify fails: messages, callbacks, wait hints, debugUiUrl, troubleshooting steps.",

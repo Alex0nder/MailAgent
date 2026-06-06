@@ -28,6 +28,11 @@ export interface MessageRow {
   links_json: string[];
   received_at: string;
   raw_r2_key: string | null;
+  direction?: string;
+  thread_id?: string | null;
+  in_reply_to?: string | null;
+  to_addrs?: string[] | unknown;
+  rfc_message_id?: string | null;
 }
 
 export async function createInbox(
@@ -267,7 +272,7 @@ export async function listMessages(
   const rows = (await sql`
     SELECT id, inbox_id, provider_id, from_addr, subject,
            text_preview, html_preview, otp, links_json, received_at,
-           raw_r2_key
+           raw_r2_key, direction, thread_id, in_reply_to, to_addrs, rfc_message_id
     FROM messages
     WHERE inbox_id = ${inboxId}
     ORDER BY received_at DESC
@@ -286,7 +291,7 @@ export async function getMessage(
   const rows = (await sql`
     SELECT id, inbox_id, provider_id, from_addr, subject,
            text_preview, html_preview, otp, links_json, received_at,
-           raw_r2_key
+           raw_r2_key, direction, thread_id, in_reply_to, to_addrs, rfc_message_id
     FROM messages
     WHERE inbox_id = ${inboxId} AND id = ${messageId}
     LIMIT 1
@@ -307,21 +312,32 @@ export async function insertMessage(
     otp: string | null;
     links: string[];
     rawR2Key?: string | null;
+    direction?: "inbound" | "outbound";
+    threadId?: string | null;
+    inReplyTo?: string | null;
+    toAddrs?: string[];
+    rfcMessageId?: string | null;
   }
 ): Promise<MessageRow | null> {
   const sql = getDb(env);
   const id = input.id ?? nanoid(16);
+  const direction = input.direction ?? "inbound";
+  const threadId = input.threadId ?? id;
+  const toAddrs = input.toAddrs ?? [];
 
   try {
     await sql`
       INSERT INTO messages (
         id, inbox_id, provider_id, from_addr, subject,
-        text_preview, html_preview, otp, links_json, raw_r2_key
+        text_preview, html_preview, otp, links_json, raw_r2_key,
+        direction, thread_id, in_reply_to, to_addrs, rfc_message_id
       )
       VALUES (
         ${id}, ${input.inboxId}, ${input.providerId}, ${input.from},
         ${input.subject}, ${input.textPreview}, ${input.htmlPreview},
-        ${input.otp}, ${JSON.stringify(input.links)}, ${input.rawR2Key ?? null}
+        ${input.otp}, ${JSON.stringify(input.links)}, ${input.rawR2Key ?? null},
+        ${direction}, ${threadId}, ${input.inReplyTo ?? null},
+        ${JSON.stringify(toAddrs)}, ${input.rfcMessageId ?? null}
       )
     `;
   } catch {
@@ -331,7 +347,7 @@ export async function insertMessage(
   const rows = (await sql`
     SELECT id, inbox_id, provider_id, from_addr, subject,
            text_preview, html_preview, otp, links_json, received_at,
-           raw_r2_key
+           raw_r2_key, direction, thread_id, in_reply_to, to_addrs, rfc_message_id
     FROM messages
     WHERE id = ${id}
     LIMIT 1

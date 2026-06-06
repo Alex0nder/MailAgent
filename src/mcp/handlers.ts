@@ -30,6 +30,7 @@ import {
 } from "../services/message-attachments";
 import { buildInboxDiagnose } from "../services/inbox-diagnose";
 import { simulateInboundMessage } from "../services/simulate-inbound";
+import { listThreadMessages, listThreads, sendFromInbox } from "../services/outbound-mail";
 import { buildWaitTimeoutDebug, waitForMessage, type WaitProgressEvent } from "../services/wait";
 import type { McpProgressParams, McpToolContext } from "../mcp/progress";
 
@@ -433,6 +434,59 @@ export async function executeMcpTool(
       });
       if (!result) return textResult({ error: "simulate_failed" }, true);
       return textResult(result);
+    }
+
+    case "mailagent_send_message": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr) return textResult(writeErr, true);
+      const inboxId = args.inboxId as string;
+      const inbox = await getInbox(env, inboxId, {
+        apiKeyHint: auth.apiKeyHint,
+      });
+      if (!inbox || !assertInboxAccessible(auth.scope, inbox).ok) {
+        return textResult({ error: "inbox_not_found" }, true);
+      }
+      const toRaw = args.to;
+      const to = Array.isArray(toRaw)
+        ? (toRaw as string[])
+        : typeof toRaw === "string"
+          ? [toRaw]
+          : [];
+      try {
+        const result = await sendFromInbox(env, {
+          inboxId,
+          apiKeyHint: auth.apiKeyHint,
+          to,
+          subject: args.subject as string,
+          text: args.text as string | undefined,
+          html: args.html as string | undefined,
+          inReplyToMessageId: args.inReplyToMessageId as string | undefined,
+        });
+        if (!result) return textResult({ error: "send_failed" }, true);
+        return textResult(result);
+      } catch (e) {
+        return textResult(
+          { error: "send_failed", message: e instanceof Error ? e.message : String(e) },
+          true
+        );
+      }
+    }
+
+    case "mailagent_list_threads": {
+      const inboxId = args.inboxId as string;
+      const inbox = await getInbox(env, inboxId, {
+        apiKeyHint: auth.apiKeyHint,
+      });
+      if (!inbox || !assertInboxAccessible(auth.scope, inbox).ok) {
+        return textResult({ error: "inbox_not_found" }, true);
+      }
+      const threadId = args.threadId as string | undefined;
+      if (threadId) {
+        const messages = await listThreadMessages(env, inboxId, threadId);
+        return textResult({ threadId, messages });
+      }
+      const threads = await listThreads(env, inboxId);
+      return textResult({ threads });
     }
 
     case "mailagent_diagnose_inbox": {

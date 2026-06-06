@@ -34,6 +34,11 @@ import {
 import { primaryLink } from "../services/extract";
 import { formatMessageVerification } from "../services/message-verify";
 import { buildInboxDiagnose } from "../services/inbox-diagnose";
+import {
+  listThreadMessages,
+  listThreads,
+  sendFromInbox,
+} from "../services/outbound-mail";
 import { simulateInboundMessage } from "../services/simulate-inbound";
 import { buildWaitTimeoutDebug, waitForMessage } from "../services/wait";
 import { publicOriginFromUrl } from "../lib/public-origin";
@@ -252,6 +257,143 @@ inboxRoutes.post("/:id/simulate", async (c) => {
   return c.json(result, 201);
 });
 
+/** Outbound: send email from inbox (AgentMail parity) */
+inboxRoutes.post("/:id/send", async (c) => {
+  const writeErr = scopeWriteDenied(c);
+  if (writeErr) return writeErr;
+
+  const inbox = await getInbox(c.env, c.req.param("id"), {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
+  if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const denied = scopeInboxDenied(c, inbox);
+  if (denied) return denied;
+
+  let body: {
+    to?: string | string[];
+    cc?: string[];
+    bcc?: string[];
+    subject?: string;
+    text?: string;
+    html?: string;
+    inReplyToMessageId?: string;
+  } = {};
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: "invalid_json" }, 400);
+  }
+
+  const toRaw = body.to;
+  const to = Array.isArray(toRaw)
+    ? toRaw
+    : typeof toRaw === "string"
+      ? [toRaw]
+      : [];
+  if (!to.length || !body.subject?.trim()) {
+    return c.json({ error: "to_and_subject_required" }, 400);
+  }
+
+  try {
+    const result = await sendFromInbox(c.env, {
+      inboxId: inbox.id,
+      apiKeyHint: c.get("apiKeyHint"),
+      to,
+      cc: body.cc,
+      bcc: body.bcc,
+      subject: body.subject.trim(),
+      text: body.text,
+      html: body.html,
+      inReplyToMessageId: body.inReplyToMessageId,
+    });
+    if (!result) return c.json({ error: "send_failed" }, 500);
+    return c.json(result, 201);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "send_failed";
+    return c.json({ error: "send_failed", message: msg }, 502);
+  }
+});
+
+inboxRoutes.post("/:id/messages/:messageId/reply", async (c) => {
+  const writeErr = scopeWriteDenied(c);
+  if (writeErr) return writeErr;
+
+  const inbox = await getInbox(c.env, c.req.param("id"), {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
+  if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const denied = scopeInboxDenied(c, inbox);
+  if (denied) return denied;
+
+  const parent = await getMessage(c.env, inbox.id, c.req.param("messageId"));
+  if (!parent) return c.json({ error: "message_not_found" }, 404);
+
+  let body: { to?: string | string[]; text?: string; html?: string; subject?: string } =
+    {};
+  try {
+    body = await c.req.json();
+  } catch {
+    body = {};
+  }
+
+  const to = Array.isArray(body.to)
+    ? body.to
+    : typeof body.to === "string"
+      ? [body.to]
+      : [parent.from_addr];
+  const subject =
+    body.subject?.trim() ||
+    (parent.subject.match(/^re:/i) ? parent.subject : `Re: ${parent.subject}`);
+
+  try {
+    const result = await sendFromInbox(c.env, {
+      inboxId: inbox.id,
+      apiKeyHint: c.get("apiKeyHint"),
+      to,
+      subject,
+      text: body.text,
+      html: body.html,
+      inReplyToMessageId: parent.id,
+    });
+    if (!result) return c.json({ error: "send_failed" }, 500);
+    return c.json(result, 201);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "send_failed";
+    return c.json({ error: "send_failed", message: msg }, 502);
+  }
+});
+
+inboxRoutes.get("/:id/threads", async (c) => {
+  const inbox = await getInbox(c.env, c.req.param("id"), {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
+  if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const denied = scopeInboxDenied(c, inbox);
+  if (denied) return denied;
+
+  const threads = await listThreads(c.env, inbox.id);
+  return c.json({ threads });
+});
+
+inboxRoutes.get("/:id/threads/:threadId/messages", async (c) => {
+  const inbox = await getInbox(c.env, c.req.param("id"), {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
+  if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const denied = scopeInboxDenied(c, inbox);
+  if (denied) return denied;
+
+  const messages = await listThreadMessages(
+    c.env,
+    inbox.id,
+    c.req.param("threadId")
+  );
+  return c.json({
+    threadId: c.req.param("threadId"),
+    messages: messages.map(formatThreadMessage),
+  });
+});
+
 inboxRoutes.get("/:id/diagnose", async (c) => {
   const inbox = await getInbox(c.env, c.req.param("id"), {
     apiKeyHint: c.get("apiKeyHint"),
@@ -456,6 +598,33 @@ inboxRoutes.delete("/:id", async (c) => {
   if (!ok) return c.json({ error: "inbox_not_found" }, 404);
   return c.json({ deleted: true });
 });
+
+function formatThreadMessage(m: {
+  id: string;
+  from_addr: string;
+  subject: string;
+  text_preview: string | null;
+  html_preview?: string | null;
+  otp: string | null;
+  links_json: unknown;
+  received_at: string;
+  raw_r2_key?: string | null;
+  direction?: string;
+  thread_id?: string | null;
+  in_reply_to?: string | null;
+  to_addrs?: unknown;
+}) {
+  const base = formatMessage(m);
+  const toAddrs = Array.isArray(m.to_addrs) ? (m.to_addrs as string[]) : [];
+  return {
+    ...base,
+    htmlPreview: m.html_preview,
+    direction: m.direction === "outbound" ? "outbound" : "inbound",
+    threadId: m.thread_id,
+    inReplyTo: m.in_reply_to,
+    to: toAddrs,
+  };
+}
 
 function formatMessage(m: {
   id: string;

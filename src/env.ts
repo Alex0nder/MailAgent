@@ -34,6 +34,8 @@ export interface Env {
   RAW_MIME_AGENT_MAX_BYTES?: string;
   /** Max attachment size to cache in R2 at ingest (default 2MB) */
   ATTACHMENT_MAX_STORE_BYTES?: string;
+  /** Verified From for outbound (Resend). Default: inbox address */
+  OUTBOUND_FROM?: string;
 }
 
 export interface EmailQueueMessage {
