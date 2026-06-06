@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agent Skills — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="doc-page" data-site="docs" data-doc="agent-skills">
+    <div id="site-nav"></div>
+    <div class="doc-layout">
+      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
+      <article class="doc-content">
+        <h1>Agent Skills</h1>
+        <p class="doc-lead">
+          MailAgent ships a canonical skill for Cursor, Codex, Claude Code, and
+          <code>npx skills add</code> — signup OTP and magic links without parsing HTML.
+        </p>
+
+        <h2>Install</h2>
+        <pre class="doc-pre"><code>npx skills add Alex0nder/MailAgent --skill mailagent</code></pre>
+        <p>Source: <a href="https://github.com/Alex0nder/MailAgent/tree/main/skills/mailagent">skills/mailagent/SKILL.md</a></p>
+
+        <h2>After editing the skill</h2>
+        <pre class="doc-pre"><code>npm run sync:skills
+npm run verify:skills</code></pre>
+
+        <h2>Works with integration skills</h2>
+        <p>
+          MailAgent handles <strong>verification email during signup</strong>. After login, use app skills
+          (e.g. <a href="https://github.com/membranedev/application-skills">Membrane application-skills</a>
+          for GitHub, Slack, Jira).
+        </p>
+        <ol class="doc-list">
+          <li><code>mailagent_create_inbox</code> (service: github)</li>
+          <li>Submit address on signup form</li>
+          <li><code>mailagent_verify_signup</code> → OTP or magic link</li>
+          <li>Membrane <code>github</code> skill → issues, PRs, etc.</li>
+        </ol>
+
+        <h2>Distribution</h2>
+        <ul class="doc-list">
+          <li>Repo marketplace: <a href="/docs/codex.html">Codex plugin</a></li>
+          <li>Curated catalogs: <a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/CATALOG-SUBMIT.md">CATALOG-SUBMIT.md</a></li>
+        </ul>
+
+        <h2>More</h2>
+        <ul class="doc-list">
+          <li><a href="/docs/agents.html">AI agents &amp; MCP</a></li>
+          <li><a href="/docs/codex.html">OpenAI Codex</a></li>
+        </ul>
+      </article>
+    </div>
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
+  </body>
+</html>

@@ -62,6 +62,7 @@ After verify, point the agent at the product API or a Membrane skill for the sam
 | `npx skills add` | ✅ document in skill + this page |
 | Official Codex Plugin Directory | coming soon (OpenAI) |
 | Third-party catalogs (awesome-*) | optional PR to list MailAgent |
+| OIDC contract when enabled | `test:contract:qa:oidc` (skip if disabled) |
 
 ## Maintainer checklist
 
@@ -70,4 +71,4 @@ After verify, point the agent at the product API or a Membrane skill for the sam
 3. `npm run verify:skills` (runs in `verify:codex` / `package:codex`)
 4. Bump `metadata.version` in frontmatter when MCP package changes
 
-See also: [AGENTS.md](../AGENTS.md) · [AUTOTESTS.md](./AUTOTESTS.md)
+See also: [CATALOG-SUBMIT.md](./CATALOG-SUBMIT.md) · [AGENTS.md](../AGENTS.md) · [AUTOTESTS.md](./AUTOTESTS.md)

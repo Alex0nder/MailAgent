@@ -323,6 +323,9 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | `npm run verify:skills` · [AGENT-SKILLS.md](./AGENT-SKILLS.md) | ✅ |
 | Combo flows (verify → Membrane / app skills) documented | ✅ |
 | `npx skills add Alex0nder/MailAgent --skill mailagent` | ✅ |
+| OIDC contract `test:contract:qa:oidc` (skip if disabled) | ✅ |
+| Catalog submit guide [CATALOG-SUBMIT.md](./CATALOG-SUBMIT.md) | ✅ |
+| Docs page `/docs/agent-skills.html` | ✅ |
 
 ### Deferred (not QA)
 

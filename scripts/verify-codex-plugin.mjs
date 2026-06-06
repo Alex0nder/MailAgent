@@ -17,6 +17,12 @@ const required = [
   ".env.example",
 ];
 
+const skills = spawnSync("npm", ["run", "verify:skills"], {
+  cwd: root,
+  stdio: "inherit",
+});
+if (skills.status !== 0) process.exit(skills.status ?? 1);
+
 const marketplace = path.join(root, ".agents/plugins/marketplace.json");
 try {
   accessSync(marketplace);

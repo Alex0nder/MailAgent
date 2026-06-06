@@ -126,6 +126,8 @@ npm run package:codex
 
 **Official Plugin Directory:** self-serve publish coming soon — see [CODEX.md](./CODEX.md).
 
+Third-party catalogs: [CATALOG-SUBMIT.md](./CATALOG-SUBMIT.md) (awesome-codex-plugins PR template).
+
 ---
 
 ## On hold

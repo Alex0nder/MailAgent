@@ -18,6 +18,7 @@
       title: "Guides",
       items: [
         { id: "agents", href: "/docs/agents.html", label: "AI agents" },
+        { id: "agent-skills", href: "/docs/agent-skills.html", label: "Agent Skills" },
         { id: "autotests", href: "/docs/autotests.html", label: "Autotests" },
         { id: "codex", href: "/docs/codex.html", label: "OpenAI Codex" },
         { id: "oauth-idp", href: "/docs/oauth-idp.html", label: "MCP OAuth (IdP)" },

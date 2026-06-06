@@ -13,6 +13,10 @@ on:
       - "package.json"
       - "examples/playwright/**"
       - "scripts/contract-qa*.mjs"
+      - "scripts/verify-agent-skill.mjs"
+      - "scripts/sync-agent-skill.mjs"
+      - "skills/**"
+      - ".agents/**"
       - "scripts/test-prod.mjs"
       - "scripts/test-contract-all.mjs"
   workflow_dispatch:
