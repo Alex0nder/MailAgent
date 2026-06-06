@@ -20,6 +20,7 @@
     "team:plan": "node scripts/set-team-plan.mjs",
     "setup:check": "node scripts/setup-check.mjs",
     "doctor": "node scripts/doctor.mjs",
+    "doctor:qa": "node scripts/doctor.mjs --qa",
     "deploy": "wrangler deploy",
     "check": "tsc --noEmit",
     "types": "wrangler types",

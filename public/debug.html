@@ -131,20 +131,33 @@
       async function loadInboxDetail(id, boxMeta) {
         detailEl.hidden = false;
         detailEl.innerHTML = "<p>Loading…</p>";
-        const { base, res: msgRes, data: msgData } = await authFetch(`/v1/inboxes/${id}/messages`);
-        if (!msgRes.ok) {
-          detailEl.innerHTML = `<p class="app-err">${esc(msgData.error || msgRes.statusText)}</p>`;
+        const { base, res: diagRes, data: diag } = await authFetch(`/v1/inboxes/${id}/diagnose`);
+        if (!diagRes.ok) {
+          detailEl.innerHTML = `<p class="app-err">${esc(diag.error || diagRes.statusText)}</p>`;
           return;
         }
-        const { data: cbData } = await authFetch(`/v1/inboxes/${id}/callbacks`);
-        const messages = msgData.messages || [];
-        const deliveries = cbData.deliveries || [];
+        const messages = diag.messages || [];
+        const deliveries = diag.callbacks || [];
 
         let html = `<h2>Inbox ${esc(id)}</h2>`;
-        if (boxMeta?.address) html += `<p class="debug-mono">${esc(boxMeta.address)}</p>`;
+        if (diag.address) html += `<p class="debug-mono">${esc(diag.address)}</p>`;
+        if (diag.label) html += `<p>label: ${esc(diag.label)}</p>`;
+
+        if (Array.isArray(diag.troubleshooting) && diag.troubleshooting.length) {
+          html += `<h3>Troubleshooting</h3><ul class="doc-list">`;
+          for (const step of diag.troubleshooting) {
+            html += `<li>${esc(step)}</li>`;
+          }
+          html += `</ul>`;
+        }
+
         html += `<div class="debug-actions">`;
         html += btn("Copy wait curl", () => copyCurl(base, id, "wait"));
         html += btn("Copy extract curl", () => copyCurl(base, id, "extract"));
+        html += btn("Copy diagnose curl", () => copyCurl(base, id, "diagnose"));
+        if (diag.debugUiUrl) {
+          html += `<a href="${esc(diag.debugUiUrl)}" target="_blank" rel="noopener"><button type="button">Open share link</button></a>`;
+        }
         html += btn("Refresh", () => loadInboxDetail(id, boxMeta));
         html += `</div>`;
 
@@ -187,9 +200,12 @@
 
       function copyCurl(base, inboxId, kind) {
         const key = keyEl.value.trim();
-        const path = kind === "wait"
-          ? `/v1/inboxes/${inboxId}/wait?timeout=120`
-          : `/v1/inboxes/${inboxId}/extract`;
+        const path =
+          kind === "wait"
+            ? `/v1/inboxes/${inboxId}/wait?timeout=120`
+            : kind === "diagnose"
+              ? `/v1/inboxes/${inboxId}/diagnose`
+              : `/v1/inboxes/${inboxId}/extract`;
         const curl = `curl -sS "${base}${path}" -H "Authorization: Bearer ${key}"`;
         navigator.clipboard.writeText(curl).catch(() => {});
       }

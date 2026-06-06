@@ -24,6 +24,10 @@ Use the explicit inbox lifecycle when Codex controls the signup from the beginni
 4. `mailagent_extract_verification` if the message already exists and only parsing is needed
 5. `mailagent_delete_inbox` when the flow is complete or the test fails
 
+When wait/verify fails, call **`mailagent_diagnose_inbox`** with the same
+`subjectContains` / `messageIndex` — it returns messages, callbacks, hints, and
+`debugUiUrl` for humans.
+
 Use `mailagent_create_inbox` instead of `mailagent_verify_signup` when the email address must be
 created before submitting a signup form. Use `wait` before `extract` unless the message is already
 available from a previous tool call.

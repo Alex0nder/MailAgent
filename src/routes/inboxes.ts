@@ -33,7 +33,9 @@ import {
 } from "../services/message-attachments";
 import { primaryLink } from "../services/extract";
 import { formatMessageVerification } from "../services/message-verify";
+import { buildInboxDiagnose } from "../services/inbox-diagnose";
 import { buildWaitTimeoutDebug, waitForMessage } from "../services/wait";
+import { publicOriginFromUrl } from "../lib/public-origin";
 
 export const inboxRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
 
@@ -208,6 +210,32 @@ inboxRoutes.get("/:id", async (c) => {
     id: inbox.id,
     messageCount: messages.length,
   });
+});
+
+/** QA/agents: why wait failed — messages, callbacks, hints */
+inboxRoutes.get("/:id/diagnose", async (c) => {
+  const inbox = await getInbox(c.env, c.req.param("id"), {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
+  if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const denied = scopeInboxDenied(c, inbox);
+  if (denied) return denied;
+
+  const subjectContains = c.req.query("subjectContains") ?? undefined;
+  const messageIndex = Math.max(
+    0,
+    Math.floor(Number(c.req.query("messageIndex") ?? 0))
+  );
+  const apiBase = publicOriginFromUrl(c.req.url);
+
+  const diagnose = await buildInboxDiagnose(c.env, inbox.id, {
+    subjectContains,
+    messageIndex,
+    apiBaseUrl: apiBase,
+  });
+  if (!diagnose) return c.json({ error: "inbox_not_found" }, 404);
+
+  return c.json(diagnose);
 });
 
 inboxRoutes.get("/:id/callbacks", async (c) => {

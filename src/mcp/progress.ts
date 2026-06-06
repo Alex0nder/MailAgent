@@ -10,6 +10,8 @@ export type McpProgressParams = {
 
 export type McpToolContext = {
   onProgress?: (params: McpProgressParams) => void;
+  /** Public API base for debugUiUrl in diagnose */
+  apiBaseUrl?: string;
 };
 
 const WAIT_TOOLS = new Set([

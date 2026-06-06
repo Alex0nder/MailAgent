@@ -187,6 +187,19 @@ export class MailAgentClient {
     return this.request<InboxStatus>(`/v1/inboxes/${id}`);
   }
 
+  diagnoseInbox(
+    id: string,
+    options?: { subjectContains?: string; messageIndex?: number }
+  ) {
+    const q = new URLSearchParams();
+    if (options?.subjectContains) q.set("subjectContains", options.subjectContains);
+    if (options?.messageIndex != null) {
+      q.set("messageIndex", String(options.messageIndex));
+    }
+    const suffix = q.size ? `?${q}` : "";
+    return this.request<Record<string, unknown>>(`/v1/inboxes/${id}/diagnose${suffix}`);
+  }
+
   listMessages(id: string) {
     return this.request<{ messages: MessageSummary[] }>(
       `/v1/inboxes/${id}/messages`

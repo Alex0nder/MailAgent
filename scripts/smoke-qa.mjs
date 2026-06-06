@@ -51,6 +51,7 @@ async function main() {
     "mailagent_verify_signup",
     "mailagent_create_inbox",
     "mailagent_list_messages",
+    "mailagent_diagnose_inbox",
   ]) {
     if (!tools.includes(name)) {
       console.error("missing mcpTool on API:", name);
@@ -108,6 +109,21 @@ async function main() {
   );
   console.log("GET …/wait (expect 408)", wait.res.status);
   if (wait.res.status !== 408) process.exit(1);
+  if (!Array.isArray(wait.json?.troubleshooting) && !wait.json?.hint) {
+    console.error("408 missing hint/troubleshooting");
+    process.exit(1);
+  }
+
+  const diagnose = await req(
+    "GET",
+    `/v1/inboxes/${inboxId}/diagnose?subjectContains=__smoke_none__`
+  );
+  console.log(
+    "GET …/diagnose",
+    diagnose.res.status,
+    `troubleshooting=${diagnose.json?.troubleshooting?.length ?? 0}`
+  );
+  if (!diagnose.res.ok || !diagnose.json?.debugUiUrl) process.exit(1);
 
   const del = await req("DELETE", `/v1/inboxes/${inboxId}`);
   console.log("DELETE inbox", del.res.status);

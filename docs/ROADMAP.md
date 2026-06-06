@@ -26,8 +26,8 @@ P0–P2 закрыты — см. [QA-ROADMAP.md](./QA-ROADMAP.md).
 
 | Пакет | Версия |
 |-------|--------|
-| `@mailagent/mcp` | 0.2.0 |
-| `@mailagent/qa` | 0.1.9 |
+| `@mailagent/mcp` | 0.2.1 |
+| `@mailagent/qa` | 0.1.10 |
 | `@mailagent/agent` | 0.1.5 (npm may lag — `npm run publish:agent`) |
 
 ```bash
@@ -104,6 +104,15 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | Playwright globalSetup | ✅ |
 | Codex CLI manual test | manual |
 | Marketplace publish | planned |
+
+### v0.12 Diagnose (QA + agents)
+
+| `GET /v1/inboxes/:id/diagnose` | ✅ |
+| MCP `mailagent_diagnose_inbox` | ✅ |
+| `@mailagent/qa` getDebugContext → diagnose API | ✅ |
+| Debug UI troubleshooting panel | ✅ |
+| `npm run doctor:qa` | ✅ |
+| Vitest example (`examples/vitest/`) | ✅ |
 
 ### Отложено (не QA)
 

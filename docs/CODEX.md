@@ -84,7 +84,7 @@ export MAILAGENT_API_URL=https://api.webmailagent.com
 
 # Или только MCP без plugin:
 npm run codex:install   # ключ и URL из .dev.vars / .env
-# codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.0 mailagent-mcp
+# codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.1 mailagent-mcp
 ```
 
 ### Remote MCP + OAuth

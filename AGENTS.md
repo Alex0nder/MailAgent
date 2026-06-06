@@ -6,6 +6,7 @@ Temporary inboxes for signup verification (OTP, magic links). Works in **Cursor*
 
 ```bash
 npm run doctor              # local env check
+npm run doctor:qa           # QA consumer: API key + diagnose smoke
 npm run codex:install       # Codex MCP из .dev.vars
 npm run smoke:qa            # prod API lifecycle
 npm run smoke:agent         # MCP + OAuth smoke
@@ -13,9 +14,9 @@ npm run test:contract:qa    # API + DB simulate (needs DATABASE_URL)
 npm run verify:codex        # Codex plugin scaffold
 ```
 
-## MCP tools (12)
+## MCP tools (13)
 
-`mailagent_verify_signup` · `mailagent_create_inbox` · `mailagent_wait_for_message` · `mailagent_wait_and_extract` · `mailagent_extract_verification` · `mailagent_list_messages` · `mailagent_get_raw_message` · `mailagent_list_attachments` · `mailagent_get_attachment` · `mailagent_list_inboxes` · `mailagent_get_inbox` · `mailagent_delete_inbox`
+`mailagent_verify_signup` · `mailagent_create_inbox` · `mailagent_wait_for_message` · `mailagent_wait_and_extract` · `mailagent_extract_verification` · `mailagent_list_messages` · `mailagent_get_raw_message` · `mailagent_list_attachments` · `mailagent_get_attachment` · `mailagent_diagnose_inbox` · `mailagent_list_inboxes` · `mailagent_get_inbox` · `mailagent_delete_inbox`
 
 Source of truth: `src/mcp/manifest.ts` → `GET /v1/agent`.
 
@@ -28,7 +29,7 @@ Source of truth: `src/mcp/manifest.ts` → `GET /v1/agent`.
 | Remote | `POST https://api.webmailagent.com/mcp` + Bearer |
 
 ```bash
-codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.0 mailagent-mcp
+codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.1 mailagent-mcp
 ```
 
 ## npm packages

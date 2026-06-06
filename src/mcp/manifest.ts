@@ -108,6 +108,24 @@ export const MCP_TOOLS = [
     },
   },
   {
+    name: "mailagent_diagnose_inbox",
+    description:
+      "When wait/verify fails: messages, callbacks, wait hints, debugUiUrl, troubleshooting steps.",
+    inputSchema: {
+      type: "object",
+      required: ["inboxId"],
+      properties: {
+        inboxId: { type: "string" },
+        subjectContains: { type: "string" },
+        messageIndex: {
+          type: "integer",
+          minimum: 0,
+          description: "Same index used in wait (0=newest match)",
+        },
+      },
+    },
+  },
+  {
     name: "mailagent_get_inbox",
     description: "Inbox status and message count.",
     inputSchema: {

@@ -278,6 +278,25 @@ server.registerTool(
 );
 
 server.registerTool(
+  "mailagent_diagnose_inbox",
+  {
+    description:
+      "When wait/verify fails: messages, callbacks, hints, debugUiUrl, troubleshooting.",
+    inputSchema: {
+      inboxId: z.string().describe("Inbox id"),
+      subjectContains: z.string().optional(),
+      messageIndex: z.number().int().min(0).optional(),
+    },
+  },
+  async ({ inboxId, subjectContains, messageIndex }) => {
+    const client = new MailAgentClient();
+    return toolText(
+      await client.diagnoseInbox(inboxId, { subjectContains, messageIndex })
+    );
+  }
+);
+
+server.registerTool(
   "mailagent_get_inbox",
   {
     description: "Get inbox status: address, expiry, message count.",

@@ -28,6 +28,7 @@ import {
   countAttachmentsForMessage,
   listAttachments,
 } from "../services/message-attachments";
+import { buildInboxDiagnose } from "../services/inbox-diagnose";
 import { buildWaitTimeoutDebug, waitForMessage, type WaitProgressEvent } from "../services/wait";
 import type { McpProgressParams, McpToolContext } from "../mcp/progress";
 
@@ -408,6 +409,24 @@ export async function executeMcpTool(
           : {}),
         attachmentCount: await countAttachmentsForMessage(env, latest.id),
       });
+    }
+
+    case "mailagent_diagnose_inbox": {
+      const inboxId = args.inboxId as string;
+      const inbox = await getInbox(env, inboxId, {
+        apiKeyHint: auth.apiKeyHint,
+      });
+      if (!inbox || !assertInboxAccessible(auth.scope, inbox).ok) {
+        return textResult({ error: "inbox_not_found" }, true);
+      }
+      const apiBase = ctx?.apiBaseUrl?.replace(/\/$/, "") ?? "https://api.webmailagent.com";
+      const diagnose = await buildInboxDiagnose(env, inboxId, {
+        subjectContains: args.subjectContains as string | undefined,
+        messageIndex: args.messageIndex as number | undefined,
+        apiBaseUrl: apiBase,
+      });
+      if (!diagnose) return textResult({ error: "inbox_not_found" }, true);
+      return textResult(diagnose);
     }
 
     case "mailagent_get_inbox": {

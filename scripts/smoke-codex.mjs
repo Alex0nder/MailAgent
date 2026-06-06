@@ -2,7 +2,7 @@
 /** Smoke: Codex MCP entrypoint resolvable (@mailagent/mcp on npm). */
 import { spawnSync } from "node:child_process";
 
-const pkg = "@mailagent/mcp@0.2.0";
+const pkg = "@mailagent/mcp@0.2.1";
 console.log("smoke-codex → npm pack", pkg);
 
 const view = spawnSync("npm", ["view", pkg, "version"], {

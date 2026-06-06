@@ -78,7 +78,12 @@ try {
 
 ## Debug UI
 
-[webmailagent.com/debug.html?inbox=INBOX_ID](https://webmailagent.com/debug.html) — таблица писем, callbacks, ссылки raw/attachments.
+[webmailagent.com/debug.html?inbox=INBOX_ID](https://webmailagent.com/debug.html) — таблица писем, callbacks, ссылки raw/attachments, **troubleshooting** из `GET …/diagnose`.
+
+```bash
+curl -sS "$MAILAGENT_API_URL/v1/inboxes/INBOX_ID/diagnose" \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" | jq .
+```
 
 ## Smoke после деплоя
 

@@ -180,6 +180,7 @@ export class MailAgentQa {
       const body = wait.json as Record<string, unknown>;
       const ctx = await this.getDebugContext(inboxId, {
         subjectContains: options?.subjectContains,
+        messageIndex: options?.messageIndex,
       }).catch(() => null);
       throw new MailAgentTimeoutError("No email received", {
         inboxId,
@@ -365,31 +366,60 @@ export class MailAgentQa {
     });
   }
 
-  /** Контекст для Allure / ReportPortal / CI log */
+  /** Контекст для Allure / ReportPortal / CI log — предпочитает GET …/diagnose */
   async getDebugContext(
     inboxId: string,
-    options?: { subjectContains?: string; address?: string; label?: string | null }
+    options?: { subjectContains?: string; messageIndex?: number; address?: string; label?: string | null }
   ): Promise<DebugContext> {
-    const [messages, callbacks] = await Promise.all([
-      this.listMessages(inboxId, {
-        subjectContains: options?.subjectContains,
-      }).catch(() => [] as MessageSummary[]),
-      this.listCallbackDeliveries(inboxId).catch(() => [] as CallbackDelivery[]),
-    ]);
-    return {
-      inboxId,
-      address: options?.address,
-      label: options?.label,
-      apiMessagesUrl: `${this.base}/v1/inboxes/${inboxId}/messages`,
-      debugUiUrl: this.debugUiUrl(inboxId),
-      messages,
-      callbacks,
-      troubleshooting: timeoutTroubleshooting({
-        subjectContains: options?.subjectContains,
+    const q = new URLSearchParams();
+    if (options?.subjectContains) q.set("subjectContains", options.subjectContains);
+    if (options?.messageIndex != null) q.set("messageIndex", String(options.messageIndex));
+    const path = `/v1/inboxes/${inboxId}/diagnose${q.size ? `?${q}` : ""}`;
+
+    try {
+      const data = await this.request<{
+        inboxId: string;
+        address: string;
+        label: string | null;
+        messages: MessageSummary[];
+        callbacks: CallbackDelivery[];
+        troubleshooting: string[];
+        debugUiUrl: string;
+        apiMessagesUrl: string;
+      }>(path);
+      return {
+        inboxId: data.inboxId,
+        address: options?.address ?? data.address,
+        label: options?.label ?? data.label,
+        apiMessagesUrl: data.apiMessagesUrl,
+        debugUiUrl: data.debugUiUrl,
+        messages: data.messages,
+        callbacks: data.callbacks,
+        troubleshooting: data.troubleshooting,
+      };
+    } catch {
+      const [messages, callbacks] = await Promise.all([
+        this.listMessages(inboxId, {
+          subjectContains: options?.subjectContains,
+        }).catch(() => [] as MessageSummary[]),
+        this.listCallbackDeliveries(inboxId).catch(() => [] as CallbackDelivery[]),
+      ]);
+      return {
+        inboxId,
+        address: options?.address,
+        label: options?.label,
+        apiMessagesUrl: `${this.base}/v1/inboxes/${inboxId}/messages`,
+        debugUiUrl: this.debugUiUrl(inboxId),
         messages,
         callbacks,
-      }),
-    };
+        troubleshooting: timeoutTroubleshooting({
+          subjectContains: options?.subjectContains,
+          messageIndex: options?.messageIndex,
+          messages,
+          callbacks,
+        }),
+      };
+    }
   }
 
   debugUiUrl(inboxId: string): string {

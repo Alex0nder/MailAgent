@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Диагностика окружения: .dev.vars, DB, prod API, webhook */
+/** Диагностика окружения: .dev.vars, DB, prod API, webhook; --qa для QA-потребителей */
 import "./load-env.mjs";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -29,10 +29,101 @@ function parseDevVars(path) {
   return out;
 }
 
+const qaMode = process.argv.includes("--qa");
+
 const merged = { ...parseDevVars(join(root, ".dev.vars")), ...process.env };
 
 let ok = true;
 const notes = [];
+
+if (qaMode) {
+  console.log("MailAgent doctor (--qa consumer)\n");
+  const apiUrl = (merged.MAILAGENT_API_URL ?? "https://api.webmailagent.com").replace(
+    /\/$/,
+    ""
+  );
+  const apiKey = merged.MAILAGENT_API_KEY ?? merged.API_KEY;
+  if (!apiKey) {
+    console.log("✗ Set MAILAGENT_API_KEY (or API_KEY in .dev.vars)");
+    process.exit(1);
+  }
+  console.log("✓ API key present");
+  console.log(`  URL: ${apiUrl}`);
+
+  try {
+    const health = await fetch(`${apiUrl}/health`);
+    const healthJson = await health.json().catch(() => ({}));
+    console.log(health.ok ? "✓" : "✗", "GET /health", health.status, healthJson.webhook ?? "");
+    if (!health.ok) ok = false;
+
+    const me = await fetch(`${apiUrl}/v1/me`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    const meJson = await me.json().catch(() => ({}));
+    console.log(
+      me.ok ? "✓" : "✗",
+      "GET /v1/me",
+      me.ok
+        ? `plan=${meJson.plan ?? "?"} active=${meJson.usage?.activeInboxes ?? "?"}`
+        : meJson.error
+    );
+    if (!me.ok) ok = false;
+
+    const agent = await fetch(`${apiUrl}/v1/agent`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    const agentJson = await agent.json().catch(() => ({}));
+    const tools = agentJson.mcpTools ?? [];
+    console.log(
+      agent.ok ? "✓" : "✗",
+      "GET /v1/agent",
+      agent.ok ? `mcpTools=${tools.length}` : agentJson.error
+    );
+    if (!agent.ok) ok = false;
+    if (agent.ok && !tools.includes("mailagent_diagnose_inbox")) {
+      console.log("  hint: deploy v0.12+ for mailagent_diagnose_inbox");
+    }
+
+    const created = await fetch(`${apiUrl}/v1/inboxes`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ label: `doctor-qa-${Date.now()}`, ttlMinutes: 15 }),
+    });
+    const box = await created.json().catch(() => ({}));
+    console.log(created.ok ? "✓" : "✗", "POST /v1/inboxes", created.status, box.id ?? box.error);
+    if (!created.ok || !box.id) ok = false;
+    else {
+      const diagnose = await fetch(`${apiUrl}/v1/inboxes/${box.id}/diagnose`, {
+        headers: { Authorization: `Bearer ${apiKey}` },
+      });
+      const diagJson = await diagnose.json().catch(() => ({}));
+      console.log(
+        diagnose.ok ? "✓" : "✗",
+        "GET …/diagnose",
+        diagnose.ok ? `hints=${diagJson.troubleshooting?.length ?? 0}` : diagJson.error
+      );
+      if (!diagnose.ok) ok = false;
+
+      await fetch(`${apiUrl}/v1/inboxes/${box.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${apiKey}` },
+      });
+    }
+  } catch (e) {
+    console.log("✗ API:", e instanceof Error ? e.message : e);
+    ok = false;
+  }
+
+  console.log(
+    ok
+      ? "\nReady: npm run smoke:qa | npx @mailagent/qa in your test repo"
+      : "\nFix issues above — see docs/QA-ONBOARDING.md"
+  );
+  process.exit(ok ? 0 : 1);
+}
 
 console.log("MailAgent doctor\n");
 
