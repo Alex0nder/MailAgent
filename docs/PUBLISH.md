@@ -57,16 +57,28 @@ npm run publish:qa
 npm run publish:agent
 ```
 
-## GitHub Actions (без OTP каждый раз)
+## GitHub Actions (OIDC Trusted Publishing)
 
-Granular Access Token с **Bypass 2FA** (только для CI):
+Без `NPM_TOKEN` и без OTP при каждом релизе:
 
-1. [npmjs.com/settings/tokens](https://www.npmjs.com/settings) → **Generate New Token** → **Granular Access Token**
-2. Permissions: **Read and write** для packages `@mailagent/*`
-3. Organizations: `@mailagent`
-4. Включить **Bypass two-factor authentication** (если доступно)
-5. GitHub repo → Secrets → **`NPM_TOKEN`**
-6. Actions → **Publish npm packages** → Run workflow
+1. npm → каждый пакет → **Settings → Trusted Publisher**
+2. GitHub Actions · org/user `Alex0nder` · repo `MailAgent` · workflow `publish-packages.yml`
+3. Permissions: `npm publish`, `npm stage publish`
+4. Push тег:
+
+```bash
+git tag v0.27.0 && git push origin v0.27.0
+```
+
+Workflow: `.github/workflows/publish-packages.yml` (`id-token: write`, `npm publish --provenance`).
+
+### Ручной publish (fallback)
+
+```bash
+npm run publish:all
+```
+
+Нужны 2FA/passkey OTP или granular token с bypass 2FA.
 
 ## Частые ошибки
 

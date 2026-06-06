@@ -79,3 +79,4 @@ jobs:
           npm run test:contract:qa:console
           npm run test:contract:qa:audit
           npm run test:contract:qa:console-inbox
+          npm run test:contract:qa:team-keys

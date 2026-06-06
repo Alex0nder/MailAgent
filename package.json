@@ -45,6 +45,7 @@
     "test:contract:qa:console": "node scripts/contract-qa-console.mjs",
     "test:contract:qa:audit": "node scripts/contract-qa-audit.mjs",
     "test:contract:qa:console-inbox": "node scripts/contract-qa-console-inbox.mjs",
+    "test:contract:qa:team-keys": "node scripts/contract-qa-team-keys.mjs",
     "test:structured-extract": "npx tsx scripts/test-structured-extract.ts",
     "test:message-search": "npx tsx scripts/test-message-search.ts",
     "test:thread-resolve": "npx tsx scripts/test-thread-resolve.ts",

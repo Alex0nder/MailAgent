@@ -24,17 +24,17 @@ P0–P2 закрыты — см. [QA-ROADMAP.md](./QA-ROADMAP.md).
 
 ## Publish ✅
 
-| Пакет | Версия |
-|-------|--------|
-| `@mailagent/mcp` | 0.2.2 |
-| `@mailagent/qa` | 0.1.12 |
-| `@mailagent/agent` | 0.1.6 (npm may lag — `npm run publish:agent`) |
+| Пакет | Версия (npm) |
+|-------|----------------|
+| `@mailagent/mcp` | 0.2.3 |
+| `@mailagent/qa` | 0.1.13 |
+| `@mailagent/agent` | 0.1.7 |
 
 ```bash
 npm install @mailagent/mcp @mailagent/qa @mailagent/agent
 ```
 
-Повторный release: [PUBLISH.md](./PUBLISH.md) · CI: workflow **Publish npm packages** + `NPM_TOKEN`.
+Повторный release: [PUBLISH.md](./PUBLISH.md) · CI: workflow **Publish npm packages** (OIDC Trusted Publishing, тег `v*`).
 
 ## CI ✅
 
@@ -224,8 +224,18 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | `publish-check` compares local vs npm registry | ✅ |
 | Bump `@mailagent/qa@0.1.13`, `@mailagent/agent@0.1.7` | ✅ |
 
+### v0.28 Team keys UI (без Stripe)
+
+| Dashboard: create key form (label, prefix, read-only) | ✅ |
+| Dashboard: revoke key + show-once banner | ✅ |
+| `team.canManageKeys` in console summary | ✅ |
+| `contract-qa-team-keys` | ✅ |
+| ROADMAP / PUBLISH OIDC sync | ✅ |
+
 ### Отложено (не QA)
 
 - Agent session memory / multi-step run state
 - OIDC on prod (Auth0 secrets)
 - Stripe secrets on prod (manual `wrangler secret put`)
+- `OUTBOUND_FROM` on prod (Resend verified domain)
+- Codex Marketplace submit (manual)

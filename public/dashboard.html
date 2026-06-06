@@ -177,19 +177,54 @@
           html += `</tbody></table>`;
         }
 
-        if (d.team?.keys?.length) {
-          html += `<h2>Team keys</h2><ul class="console-keys">`;
-          for (const k of d.team.keys) {
-            let tag = "";
-            if (k.scope?.labelPrefix || k.scope?.readOnly) {
-              tag = " — ";
-              if (k.scope.labelPrefix) tag += `prefix ${esc(k.scope.labelPrefix)} `;
-              if (k.scope.readOnly) tag += "read-only";
-            }
-            html += `<li><code>${esc(k.hint)}</code> ${esc(k.label || "")}${tag}${k.current ? " <strong>(you)</strong>" : ""}</li>`;
+        if (d.team) {
+          html += `<h2>Team keys</h2>`;
+          if (!d.team.canManageKeys) {
+            html += `<p class="console-empty">Scoped key — create/revoke requires an unrestricted admin key.</p>`;
+          } else if ((d.usage.teamKeysRemaining ?? 0) <= 0) {
+            html += `<p class="console-empty">Team key limit reached (${d.limits.maxTeamKeys}). Revoke an unused key first.</p>`;
+          } else {
+            html += `<form class="console-key-form" id="create-key-form">
+              <label for="key-label">Label</label>
+              <input id="key-label" type="text" maxlength="64" placeholder="ci-bot" />
+              <label for="key-prefix">Label prefix (optional)</label>
+              <input id="key-prefix" type="text" maxlength="64" placeholder="ci-" />
+              <label class="console-check"><input id="key-readonly" type="checkbox" /> Read-only</label>
+              <button type="submit" class="app-btn app-btn--ghost">Create key</button>
+            </form>`;
           }
-          html += `</ul>`;
-          html += `<button type="button" class="app-btn app-btn--ghost" id="invite">Create key</button>`;
+
+          if (!d.team.keys?.length) {
+            html += `<p class="console-empty">No keys listed.</p>`;
+          } else {
+            html += `<table class="console-table"><thead><tr>
+              <th>Hint</th><th>Label</th><th>Scope</th><th>Created</th><th></th>
+            </tr></thead><tbody>`;
+            for (const k of d.team.keys) {
+              let scopeTxt = "full";
+              if (k.scope?.labelPrefix || k.scope?.readOnly) {
+                scopeTxt = "";
+                if (k.scope.labelPrefix) scopeTxt += `prefix ${esc(k.scope.labelPrefix)}`;
+                if (k.scope.readOnly) scopeTxt += `${scopeTxt ? " · " : ""}read-only`;
+              }
+              const you = k.current ? " <strong>(you)</strong>" : "";
+              const revoke =
+                d.team.canManageKeys && !k.current
+                  ? `<button type="button" class="console-revoke-btn" data-revoke-id="${esc(k.id)}" data-revoke-hint="${esc(k.hint)}">Revoke</button>`
+                  : "";
+              html += `<tr>
+                <td><code>${esc(k.hint)}</code>${you}</td>
+                <td>${esc(k.label || "—")}</td>
+                <td>${scopeTxt}</td>
+                <td>${esc(new Date(k.createdAt).toLocaleString())}</td>
+                <td>${revoke}</td>
+              </tr>`;
+            }
+            html += `</tbody></table>`;
+          }
+        } else if (!d.teamId) {
+          html += `<h2>Team keys</h2>
+            <p class="console-empty">Legacy hosted key — run <code>npm run issue:key:db</code> for team invites and scoped keys. See <a href="/docs/scoped-keys.html">Scoped keys</a>.</p>`;
         }
 
         html += `<h2>Audit log</h2>`;
@@ -234,24 +269,44 @@
           else alert(r.json.error || "Portal failed");
         });
 
-        document.getElementById("invite")?.addEventListener("click", async () => {
-          const label = prompt("Label for new key (optional):") || undefined;
-          const prefix = prompt("Label prefix (optional, e.g. ci-):") || undefined;
-          const readOnly = prefix
-            ? confirm("Read-only key? (OK = yes, Cancel = read/write)")
-            : false;
+        document.getElementById("create-key-form")?.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const label = document.getElementById("key-label")?.value.trim() || undefined;
+          const prefix = document.getElementById("key-prefix")?.value.trim() || undefined;
+          const readOnly = Boolean(document.getElementById("key-readonly")?.checked);
           const body = { label };
-          if (prefix) body.scope = { labelPrefix: prefix, readOnly };
+          if (prefix || readOnly) body.scope = { labelPrefix: prefix || undefined, readOnly };
           const r = await api("/v1/team/keys", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
           });
           if (r.json.key) {
-            prompt("Copy this key (shown once):", r.json.key);
+            showKeyOnce(r.json.key, r.json.hint);
             load();
-          } else alert(r.json.error || "Failed");
+          } else alert(r.json.error || r.json.hint || "Failed");
         });
+
+        out.querySelectorAll("[data-revoke-id]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-revoke-id");
+            const hint = btn.getAttribute("data-revoke-hint");
+            if (!id || !confirm(`Revoke key ${hint}? This cannot be undone.`)) return;
+            const r = await api(`/v1/team/keys/${id}`, { method: "DELETE" });
+            if (r.ok) load();
+            else alert(r.json.error || r.json.hint || "Revoke failed");
+          });
+        });
+      }
+
+      function showKeyOnce(key, hint) {
+        const wrap = document.createElement("div");
+        wrap.className = "console-key-once";
+        wrap.innerHTML = `<p><strong>New key ${esc(hint || "")}</strong> — copy now, shown once:</p>
+          <input type="text" readonly value="${esc(key)}" onclick="this.select()" />
+          <button type="button" class="app-btn app-btn--ghost">Dismiss</button>`;
+        wrap.querySelector("button")?.addEventListener("click", () => wrap.remove());
+        out.prepend(wrap);
       }
 
       document.getElementById("load").onclick = load;

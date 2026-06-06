@@ -1,6 +1,7 @@
 /** Hosted console: aggregated summary for dashboard UI */
 import type { Env } from "../env";
 import type { ApiKeyScope } from "../lib/key-scope";
+import { isRestrictedScope } from "../lib/key-scope";
 import type { PlanId } from "../lib/plans";
 import { PLAN_LIMITS } from "../lib/plans";
 import {
@@ -71,10 +72,12 @@ export async function buildConsoleSummary(
     id: string;
     name: string;
     plan: string;
+    canManageKeys: boolean;
     keys: {
       id: string;
       hint: string;
       label: string | null;
+      createdAt: string;
       current: boolean;
       scope: { labelPrefix: string | null; readOnly: boolean };
     }[];
@@ -109,10 +112,12 @@ export async function buildConsoleSummary(
         id: teamRow.id,
         name: teamRow.name,
         plan: teamRow.plan,
+        canManageKeys: !isRestrictedScope(input.scope),
         keys: keys.map((k) => ({
           id: k.id,
           hint: k.key_hint,
           label: k.label,
+          createdAt: k.created_at,
           current: k.id === input.apiKeyId,
           scope: {
             labelPrefix: k.scope_label_prefix,
