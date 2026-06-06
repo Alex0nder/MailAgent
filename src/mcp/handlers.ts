@@ -37,6 +37,12 @@ import {
 } from "../services/message-attachments";
 import { buildInboxDiagnose } from "../services/inbox-diagnose";
 import { simulateInboundMessage } from "../services/simulate-inbound";
+import {
+  getAgentRunSession,
+  patchAgentRunSession,
+  sessionOwnerKey,
+} from "../services/agent-run-session";
+import { validateRunId } from "../lib/validate-run-id";
 import { listThreadMessages, listThreads, sendFromInbox } from "../services/outbound-mail";
 import { searchInboxMessages, type SearchMode } from "../services/message-search";
 import {
@@ -645,6 +651,34 @@ export async function executeMcpTool(
       });
       if (!ok) return textResult({ error: "inbox_not_found" }, true);
       return textResult({ deleted: true });
+    }
+
+    case "mailagent_get_run_session": {
+      const runId = args.runId as string;
+      if (!validateRunId(runId)) {
+        return textResult({ error: "invalid_run_id" }, true);
+      }
+      const owner = sessionOwnerKey(auth.teamId, auth.apiKeyHint);
+      const session = await getAgentRunSession(env, runId, owner);
+      if (!session) return textResult({ error: "session_not_found" }, true);
+      return textResult(session);
+    }
+
+    case "mailagent_patch_run_session": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr) return textResult(writeErr, true);
+      const runId = args.runId as string;
+      if (!validateRunId(runId)) {
+        return textResult({ error: "invalid_run_id" }, true);
+      }
+      const owner = sessionOwnerKey(auth.teamId, auth.apiKeyHint);
+      const result = await patchAgentRunSession(env, runId, owner, {
+        merge: args.merge as Record<string, unknown> | undefined,
+        replaceState: args.replaceState as Record<string, unknown> | undefined,
+        step: args.step as { name: string; data?: Record<string, unknown> } | undefined,
+      });
+      if (!result.ok) return textResult({ error: result.error }, true);
+      return textResult(result.session);
     }
 
     default:

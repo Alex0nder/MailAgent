@@ -9,6 +9,7 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const scripts = [
   "contract-qa.mjs",
   "contract-qa-agent.mjs",
+  "contract-qa-session.mjs",
   "contract-qa-callback.mjs",
   "contract-qa-attachments.mjs",
   "contract-qa-threads.mjs",

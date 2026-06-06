@@ -309,6 +309,40 @@ export const MCP_TOOLS = [
       },
     },
   },
+  {
+    name: "mailagent_get_run_session",
+    description:
+      "Read multi-step agent run state (JSON + step log) keyed by runId.",
+    inputSchema: {
+      type: "object",
+      required: ["runId"],
+      properties: {
+        runId: { type: "string", description: "Agent run id (label agent-{runId})" },
+      },
+    },
+  },
+  {
+    name: "mailagent_patch_run_session",
+    description:
+      "Merge state and/or append a step for multi-step agent flows.",
+    inputSchema: {
+      type: "object",
+      required: ["runId"],
+      properties: {
+        runId: { type: "string" },
+        merge: { type: "object", description: "Shallow merge into session state" },
+        replaceState: { type: "object", description: "Replace entire state object" },
+        step: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            data: { type: "object" },
+          },
+          required: ["name"],
+        },
+      },
+    },
+  },
 ] as const;
 
 /** Tool names for GET /v1/agent and GET /v1 — single source with MCP_TOOLS */

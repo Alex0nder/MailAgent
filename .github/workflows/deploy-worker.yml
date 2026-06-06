@@ -10,6 +10,8 @@ on:
       - "migrations/**"
       - "wrangler.jsonc"
       - "package-lock.json"
+      - "package.json"
+      - "examples/playwright/**"
       - "scripts/contract-qa*.mjs"
       - "scripts/test-prod.mjs"
       - "scripts/test-contract-all.mjs"
@@ -41,6 +43,12 @@ jobs:
             exit 1
           fi
 
+      - name: Database migrate (optional)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -n "$DATABASE_URL" ]; then npm run db:migrate; fi
+
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
@@ -50,7 +58,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Smoke + contract (prod gate)
+      - name: Smoke + contract + Playwright (prod gate)
         env:
           MAILAGENT_API_URL: https://api.webmailagent.com
           MAILAGENT_API_KEY: ${{ secrets.MAILAGENT_API_KEY }}
@@ -60,4 +68,5 @@ jobs:
             echo "::error::Set MAILAGENT_API_KEY in GitHub Actions secrets — see docs/OPERATOR.md"
             exit 1
           fi
+          npx playwright install chromium --with-deps
           npm run test:prod

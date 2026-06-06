@@ -421,6 +421,42 @@ server.registerTool(
   }
 );
 
+server.registerTool(
+  "mailagent_get_run_session",
+  {
+    description: "Read multi-step agent run state (JSON + step log) by runId.",
+    inputSchema: {
+      runId: z.string().describe("Agent run id (label agent-{runId})"),
+    },
+  },
+  async ({ runId }) => {
+    const client = new MailAgentClient();
+    return toolText(await client.getRunSession(runId));
+  }
+);
+
+server.registerTool(
+  "mailagent_patch_run_session",
+  {
+    description: "Merge state and/or append a step for multi-step agent flows.",
+    inputSchema: {
+      runId: z.string(),
+      merge: z.record(z.unknown()).optional(),
+      replaceState: z.record(z.unknown()).optional(),
+      step: z
+        .object({
+          name: z.string(),
+          data: z.record(z.unknown()).optional(),
+        })
+        .optional(),
+    },
+  },
+  async (args) => {
+    const client = new MailAgentClient();
+    return toolText(await client.patchRunSession(args.runId, args));
+  }
+);
+
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);

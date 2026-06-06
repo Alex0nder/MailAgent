@@ -7,22 +7,23 @@ Goal: **full email API for agents** (inbound + outbound + threads) **plus** adva
 | | AgentMail | MailAgent v1.0 |
 |---|-----------|----------------|
 | Inbound | ✅ | ✅ |
-| Outbound / reply | ✅ | 🚧 v0.17 |
-| Threads | ✅ | 🚧 v0.17 |
+| Outbound / reply | ✅ | ✅ |
+| Threads | ✅ | ✅ |
 | Attachments | ✅ | ✅ |
 | Realtime (SSE/webhooks) | ✅ | ✅ + MCP progress |
-| Custom domains | ✅ API | ✅ v0.19 |
-| Semantic search | ✅ | ✅ v0.21 |
-| Document extraction | ✅ | ✅ v0.22 |
-| MCP | ✅ | ✅ OAuth + 15+ tools |
+| Custom domains | ✅ API | ✅ |
+| Semantic search | ✅ | ✅ |
+| Document extraction | ✅ | ✅ |
+| MCP | ✅ | ✅ OAuth + 23 tools |
 | SDK (TS/Python) | ✅ | ✅ TS + MCP |
-| Enterprise / SOC 2 | ✅ | 🚧 v0.24 audit log |
+| Enterprise / SOC 2 | ✅ | ✅ audit log + retention |
 | **Open source** | ❌ | ✅ MIT |
 | **Self-host (Cloudflare)** | ❌ | ✅ |
 | **QA / E2E (`@mailagent/qa`)** | ❌ | ✅ |
 | **Simulate without SMTP** | ❌ | ✅ |
 | **Diagnose on timeout** | ❌ | ✅ |
 | **Agent verify + primaryAction** | partial | ✅ |
+| **Multi-step run memory** | partial | ✅ session API + MCP |
 
 ---
 
@@ -40,7 +41,7 @@ Goal: **full email API for agents** (inbound + outbound + threads) **plus** adva
 
 **Resend:** verified send domain (`OUTBOUND_FROM`), Reply-To = inbox address.
 
-### Phase 2 — v0.19–0.20: Custom domains ✅ (API v0.19)
+### Phase 2 — v0.19–0.20: Custom domains ✅
 
 | Task | |
 |--------|--|
@@ -65,31 +66,32 @@ Goal: **full email API for agents** (inbound + outbound + threads) **plus** adva
 | Presets: invoice, receipt, 2FA | |
 | Keep OTP/links as today | backward compatible |
 
-### Phase 5 — v0.23: Hosted SaaS
+### Phase 5 — v0.23–0.28: Hosted SaaS ✅ (API + console)
 
-| Task | |
-|--------|--|
-| Stripe live, plans, usage meters | |
-| Web console (inboxes, threads, domains) | |
-| API keys UI, team invites | |
-| Codex Marketplace publish | |
+| Task | Status |
+|--------|--------|
+| Stripe checkout + portal (API) | ✅ code; live secrets optional |
+| Web console (inboxes, threads, domains) | ✅ |
+| API keys UI, team invites | ✅ |
+| Codex Marketplace publish | manual |
 
-### Phase 6 — v0.24+: Enterprise
+### Phase 6 — v0.24+: Enterprise ✅ (foundation)
 
-| Task | |
-|--------|--|
-| SOC 2 narrative / audit prep | |
-| Dedicated domains, SLA | |
-| Audit log, retention policies | |
+| Task | Status |
+|--------|--------|
+| Audit log + retention policies | ✅ |
+| SOC 2 narrative / SLA | backlog |
+| Dedicated domains | backlog |
 
 ---
 
 ## Always-on (do not drop)
 
-- `@mailagent/qa`, simulate, diagnose, contract CI
+- `@mailagent/qa`, simulate, diagnose, contract CI, Playwright simulate gate
 - Remote MCP + OAuth + DCR
 - Self-host docs ([INTEGRATE.md](./INTEGRATE.md))
 - Service presets + allowlist
+- Agent run session memory (`GET/PATCH …/runs/:runId/session`)
 
 ---
 
@@ -104,4 +106,4 @@ Goal: **full email API for agents** (inbound + outbound + threads) **plus** adva
 
 ## Next step
 
-v0.33: autotests docs + agent hub discovery. Then — session memory, Playwright CI, npm tag for `@mailagent/agent@0.1.8`. See [ROADMAP.md](./ROADMAP.md) "Deferred".
+See [ROADMAP.md](./ROADMAP.md) **Deferred** — OIDC/Stripe/OUTBOUND_FROM on prod, Codex Marketplace submit.

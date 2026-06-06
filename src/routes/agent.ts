@@ -9,6 +9,12 @@ import { scopeLabelForCreate, scopeWriteDenied } from "../lib/scope-guard";
 import { SERVICE_EXPECT_FROM } from "../lib/service-presets";
 import { runAgentVerify } from "../services/agent-verify";
 import { listAgentRuns } from "../services/agent-runs";
+import {
+  getAgentRunSession,
+  patchAgentRunSession,
+  sessionOwnerKey,
+} from "../services/agent-run-session";
+import { validateRunId } from "../lib/validate-run-id";
 import { MCP_TOOL_NAMES } from "../mcp/manifest";
 import { isOidcEnabled } from "../services/oidc-oauth";
 import {
@@ -60,7 +66,14 @@ agentRoutes.get("/", (c) => {
     mcpTools: MCP_TOOL_NAMES,
     services: Object.keys(SERVICE_EXPECT_FROM),
     recipes: "/v1/agent/recipes",
-    runs: "GET /v1/agent/runs",
+    runs: {
+      list: "GET /v1/agent/runs",
+      detail: "GET /v1/agent/runs/:runId",
+      session: {
+        get: "GET /v1/agent/runs/:runId/session",
+        patch: "PATCH /v1/agent/runs/:runId/session",
+      },
+    },
     remoteMcp: {
       endpoint: "POST /mcp",
       streamableHttp: "Mcp-Session-Id on initialize",
@@ -104,7 +117,52 @@ agentRoutes.get("/runs", async (c) => {
   return c.json({ runs });
 });
 
+agentRoutes.get("/runs/:runId/session", async (c) => {
+  const runId = c.req.param("runId");
+  if (!validateRunId(runId)) {
+    return c.json({ error: "invalid_run_id" }, 400);
+  }
+  const owner = sessionOwnerKey(c.get("teamId"), c.get("apiKeyHint"));
+  const session = await getAgentRunSession(c.env, runId, owner);
+  if (!session) return c.json({ error: "session_not_found" }, 404);
+  return c.json(session);
+});
+
+type SessionPatchBody = {
+  merge?: Record<string, unknown>;
+  replaceState?: Record<string, unknown>;
+  step?: { name: string; data?: Record<string, unknown> };
+};
+
+agentRoutes.patch("/runs/:runId/session", async (c) => {
+  const writeErr = scopeWriteDenied(c);
+  if (writeErr) return writeErr;
+
+  const runId = c.req.param("runId");
+  if (!validateRunId(runId)) {
+    return c.json({ error: "invalid_run_id" }, 400);
+  }
+
+  let body: SessionPatchBody = {};
+  try {
+    body = await c.req.json();
+  } catch {
+    body = {};
+  }
+
+  const owner = sessionOwnerKey(c.get("teamId"), c.get("apiKeyHint"));
+  const result = await patchAgentRunSession(c.env, runId, owner, body);
+  if (!result.ok) {
+    return c.json({ error: result.error }, 400);
+  }
+  return c.json(result.session);
+});
+
 agentRoutes.get("/runs/:runId", async (c) => {
+  const runId = c.req.param("runId");
+  if (!validateRunId(runId)) {
+    return c.json({ error: "invalid_run_id" }, 400);
+  }
   const runs = await listAgentRuns(c.env, c.get("apiKeyHint"), {
     runId: c.req.param("runId"),
     limit: 50,

@@ -23,7 +23,8 @@ Same as the post-deploy gate in GitHub Actions.
 | **Prod gate** | `npm run test:prod` | CI + local | `MAILAGENT_API_KEY` |
 | **Smoke agent** | `npm run smoke:agent` | MCP, OAuth, DCR, Streamable HTTP | yes |
 | **Smoke QA** | `npm run smoke:qa` | inbox lifecycle on prod | yes |
-| **Contract (all)** | `npm run test:contract:all` | 12 scripts via `simulate` | yes |
+| **Contract (all)** | `npm run test:contract:all` | 13 scripts via `simulate` | yes |
+| **Playwright simulate** | `npm run test:pw:simulate` | CI gate, no DATABASE_URL | yes |
 | **Typecheck** | `npm run check` | PR, no prod | no |
 | **Codex scaffold** | `npm run verify:codex` | PR | no |
 | **Unit (local)** | `npm run test:allowlist`, `test:extract`, … | dev, not prod | no |
@@ -48,6 +49,7 @@ Order (see `scripts/test-prod.mjs`):
 1. `smoke:agent` — discovery, OAuth metadata, DCR, MCP session, tool call
 2. `smoke:qa` — create → simulate → wait → extract → delete
 3. `test:contract:all` — all contract-qa scripts
+4. `test:pw:simulate` — Playwright simulate gate
 
 Any failing step exits non-zero.
 
@@ -69,6 +71,7 @@ Run a **narrow** script after changes in a specific area:
 | `contract-qa-audit.mjs` | `test:contract:qa:audit` | audit log (async poll) |
 | `contract-qa-console-inbox.mjs` | `test:contract:qa:console-inbox` | console inbox UI API |
 | `contract-qa-team-keys.mjs` | `test:contract:qa:team-keys` | team keys CRUD |
+| `contract-qa-session.mjs` | `test:contract:qa:session` | run session GET/PATCH |
 
 Example — agent hub only after edits to `src/routes/agent.ts`:
 

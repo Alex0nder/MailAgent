@@ -24,5 +24,6 @@ if (!process.env.MAILAGENT_API_KEY && !process.env.API_KEY) {
 run("smoke:agent");
 run("smoke:qa");
 run("test:contract:all");
+run("test:pw:simulate");
 
 console.log("\ntest:prod OK");

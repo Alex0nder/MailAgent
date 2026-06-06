@@ -200,6 +200,26 @@ export class MailAgentClient {
     return this.request<Record<string, unknown>>(`/v1/inboxes/${id}/diagnose${suffix}`);
   }
 
+  getRunSession(runId: string) {
+    return this.request<Record<string, unknown>>(
+      `/v1/agent/runs/${encodeURIComponent(runId)}/session`
+    );
+  }
+
+  patchRunSession(
+    runId: string,
+    body: {
+      merge?: Record<string, unknown>;
+      replaceState?: Record<string, unknown>;
+      step?: { name: string; data?: Record<string, unknown> };
+    }
+  ) {
+    return this.request<Record<string, unknown>>(
+      `/v1/agent/runs/${encodeURIComponent(runId)}/session`,
+      { method: "PATCH", body: JSON.stringify(body) }
+    );
+  }
+
   simulateMessage(
     id: string,
     options?: {

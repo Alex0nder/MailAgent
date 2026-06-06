@@ -268,6 +268,38 @@ export class MailAgent {
     });
   }
 
+  /** GET /v1/agent/runs/:runId/session — multi-step run memory */
+  getRunSession(runId: string) {
+    return this.request<{
+      runId: string;
+      state: Record<string, unknown>;
+      steps: Array<{ name: string; at: string; data?: Record<string, unknown> }>;
+      createdAt: string;
+      updatedAt: string;
+    }>(`/v1/agent/runs/${encodeURIComponent(runId)}/session`);
+  }
+
+  /** PATCH /v1/agent/runs/:runId/session */
+  patchRunSession(
+    runId: string,
+    patch: {
+      merge?: Record<string, unknown>;
+      replaceState?: Record<string, unknown>;
+      step?: { name: string; data?: Record<string, unknown> };
+    }
+  ) {
+    return this.request<{
+      runId: string;
+      state: Record<string, unknown>;
+      steps: Array<{ name: string; at: string; data?: Record<string, unknown> }>;
+      createdAt: string;
+      updatedAt: string;
+    }>(`/v1/agent/runs/${encodeURIComponent(runId)}/session`, {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    });
+  }
+
   /** GET /v1/agent/runs */
   listRuns(options?: { runId?: string; limit?: number }) {
     const q = new URLSearchParams();
@@ -320,7 +352,7 @@ export class MailAgent {
           capabilities: {},
           clientInfo: {
             name: clientInfo?.name ?? "@mailagent/agent",
-            version: clientInfo?.version ?? "0.1.8",
+            version: clientInfo?.version ?? "0.1.9",
           },
         },
       }),

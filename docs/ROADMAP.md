@@ -26,9 +26,9 @@ P0–P2 done — see [QA-ROADMAP.md](./QA-ROADMAP.md).
 
 | Package | Version (npm) |
 |-------|----------------|
-| `@mailagent/mcp` | 0.2.3 |
+| `@mailagent/mcp` | 0.2.4 |
 | `@mailagent/qa` | 0.1.13 |
-| `@mailagent/agent` | 0.1.7 |
+| `@mailagent/agent` | 0.1.9 |
 
 ```bash
 npm install @mailagent/mcp @mailagent/qa @mailagent/agent
@@ -276,9 +276,20 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | All `docs/*.md`, code comments, workflow messages → English | ✅ |
 | `docs/AUTOTESTS.md`, `OPERATOR.md` | ✅ |
 
+### v0.35 Session memory + Playwright CI + npm
+
+| Migration `015_agent_run_sessions` | ✅ |
+| `GET/PATCH /v1/agent/runs/:runId/session` | ✅ |
+| MCP `mailagent_get_run_session`, `mailagent_patch_run_session` | ✅ |
+| `@mailagent/agent@0.1.9` — getRunSession / patchRunSession | ✅ |
+| `@mailagent/mcp@0.2.4` | ✅ |
+| `contract-qa-session` + Playwright `simulate-gate.spec.ts` in `test:prod` | ✅ |
+| `V1-PLATFORM.md` status sync | ✅ |
+| Optional CI `DATABASE_URL` → `db:migrate` on deploy | ✅ |
+
 ### Deferred (not QA)
 
-- Agent session memory / multi-step run state
+- ~~Agent session memory / multi-step run state~~ ✅ v0.35
 - OIDC on prod (Auth0 secrets)
 - Stripe secrets on prod (manual `wrangler secret put`)
 - `OUTBOUND_FROM` on prod (Resend verified domain)

@@ -47,8 +47,10 @@
     "test:contract:qa:console-inbox": "node scripts/contract-qa-console-inbox.mjs",
     "test:contract:qa:team-keys": "node scripts/contract-qa-team-keys.mjs",
     "test:contract:qa:agent": "node scripts/contract-qa-agent.mjs",
+    "test:contract:qa:session": "node scripts/contract-qa-session.mjs",
     "test:contract:all": "node scripts/test-contract-all.mjs",
     "test:prod": "node scripts/test-prod.mjs",
+    "test:pw:simulate": "playwright test -c examples/playwright/playwright.simulate.config.ts",
     "test:structured-extract": "npx tsx scripts/test-structured-extract.ts",
     "test:message-search": "npx tsx scripts/test-message-search.ts",
     "test:thread-resolve": "npx tsx scripts/test-thread-resolve.ts",
@@ -69,6 +71,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260120.0",
+    "@playwright/test": "^1.51.0",
     "typescript": "^5.9.3",
     "wrangler": "^4.59.0"
   }
