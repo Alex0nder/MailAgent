@@ -13,6 +13,8 @@ Settings → Secrets and variables → Actions:
 | **`MAILAGENT_API_KEY`** | **post-deploy smoke + contract (no DATABASE_URL)** |
 | `DATABASE_URL` | optional | auto `db:migrate` on deploy (session table) |
 
+**Your manual checklist (no Stripe):** [YOUR-TURN.md](./YOUR-TURN.md) · `npm run doctor:operator`
+
 Key: legacy `API_KEY` from wrangler **or** team key (`npm run issue:key:db -- ci-gate`).
 
 Without `MAILAGENT_API_KEY`, deploy **fails** on contract — by design.
@@ -32,8 +34,9 @@ Optional (when needed):
 | Secret | When |
 |--------|------|
 | `OUTBOUND_FROM` | send/reply from console |
-| `STRIPE_*` | billing |
 | `OIDC_*` | browser login for MCP |
+
+**Stripe (`STRIPE_*`) — on hold**, see [YOUR-TURN.md](./YOUR-TURN.md).
 
 ## 3. npm Trusted Publishing
 

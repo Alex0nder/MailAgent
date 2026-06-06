@@ -319,7 +319,7 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 ### Deferred (not QA)
 
 - ~~Agent session memory / multi-step run state~~ ✅ v0.35
-- OIDC on prod (Auth0 secrets)
-- Stripe secrets on prod (manual `wrangler secret put`)
-- `OUTBOUND_FROM` on prod (Resend verified domain)
+- **Stripe on prod** — on hold (skip `STRIPE_*` for now)
+- OIDC on prod (Auth0 secrets) — [YOUR-TURN.md](./YOUR-TURN.md#3-oidc-browser-login-for-mcp)
+- `OUTBOUND_FROM` on prod (Resend verified domain) — [YOUR-TURN.md](./YOUR-TURN.md#2-outbound-send--reply)
 - Codex Marketplace submit (manual)

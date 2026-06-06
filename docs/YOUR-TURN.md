@@ -1,0 +1,135 @@
+# Your turn — manual prod setup (no Stripe)
+
+What **you** enable once; CI and agents handle the rest after that.
+
+**Stripe is on hold** — skip `STRIPE_*` until billing is a priority.
+
+Run anytime:
+
+```bash
+export MAILAGENT_API_KEY="$(grep '^MAILAGENT_API_KEY=' .env | cut -d= -f2- | tr -d '"')"
+npm run doctor:operator
+```
+
+---
+
+## Already automated (nothing to do)
+
+| Item | Status |
+|------|--------|
+| Deploy on push `main` | GitHub Actions |
+| Prod gate `test:prod` | smoke + contract + Playwright |
+| npm publish on tag `v*` | Trusted Publishing |
+| MCP OAuth `mat_` JWT | no KV quota needed |
+| Agent run session | verify + MCP + `GET /runs/:id` |
+
+---
+
+## 1. GitHub Secrets
+
+Repo → **Settings → Secrets and variables → Actions**
+
+| Secret | Required | Notes |
+|--------|----------|--------|
+| `CLOUDFLARE_API_TOKEN` | yes | Worker deploy |
+| `CLOUDFLARE_ACCOUNT_ID` | yes | from `wrangler.jsonc` |
+| `MAILAGENT_API_KEY` | yes | same key as local `.env` |
+| `DATABASE_URL` | optional | auto `db:migrate` on deploy |
+
+Verify: last [Deploy Worker](https://github.com/Alex0nder/MailAgent/actions/workflows/deploy-worker.yml) run is green.
+
+---
+
+## 2. Outbound (send / reply)
+
+**When:** console send/reply, `mailagent_send_message`, threads with outbound.
+
+1. [Resend Domains](https://resend.com/domains) → add domain → verify DNS
+2. Prod secret:
+
+```bash
+npx wrangler secret put OUTBOUND_FROM
+# noreply@yourdomain.com
+```
+
+3. Check:
+
+```bash
+curl -sS https://api.webmailagent.com/v1/me \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" | jq .capabilities.outbound
+# verifiedFrom: true
+```
+
+Details: [outbound.html](https://webmailagent.com/docs/outbound.html)
+
+---
+
+## 3. OIDC (browser login for MCP)
+
+**When:** MCP clients without pasting API key (Auth0 / Google).
+
+1. Auth0 app → callback `https://api.webmailagent.com/v1/oauth/callback`
+2. Secrets:
+
+```bash
+npx wrangler secret put OIDC_ISSUER      # https://tenant.us.auth0.com
+npx wrangler secret put OIDC_CLIENT_ID
+npx wrangler secret put OIDC_CLIENT_SECRET
+# optional: OIDC_AUDIENCE
+```
+
+3. Check:
+
+```bash
+curl -sS https://api.webmailagent.com/v1/agent \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" | jq .auth.oidc
+# "enabled"
+```
+
+Guide: [MCP-OAUTH-IDP.md](./MCP-OAUTH-IDP.md)
+
+---
+
+## 4. Resend domain quota
+
+If `contract-qa-domains` skips with **domain quota exhausted**:
+
+1. Resend dashboard → delete stale test domains
+2. Or upgrade Resend plan
+
+Local check (uses `RESEND_API_KEY` from `.dev.vars`):
+
+```bash
+npm run doctor:operator
+```
+
+---
+
+## 5. Codex Marketplace (optional)
+
+Manual submit when ready:
+
+```bash
+npm run package:codex
+# upload tarball from examples/codex/plugin/
+```
+
+See [CODEX.md](./CODEX.md).
+
+---
+
+## On hold
+
+| Item | Why wait |
+|------|----------|
+| **Stripe** (`STRIPE_SECRET_KEY`, webhook, `STRIPE_PRICE_PRO`) | billing not needed yet |
+| Workers Paid ($5/mo) | only if KV 1000 puts/day is hit again |
+
+---
+
+## Quick verify after any change
+
+```bash
+npm run doctor:operator
+npm run test:prod
+```
