@@ -23,6 +23,56 @@ export type PrimaryAction = {
   instruction: string;
 };
 
+export type OutboundCapabilities = {
+  enabled: boolean;
+  verifiedFrom: boolean;
+  hint: string | null;
+};
+
+export type MeProfile = {
+  plan: string;
+  teamId: string | null;
+  apiKeyId: string | null;
+  scope: { labelPrefix: string | null; readOnly: boolean };
+  limits: {
+    rateLimitPerMinute: number;
+    maxActiveInboxes: number;
+    maxTeamKeys: number;
+    maxCustomDomains: number;
+  };
+  usage: {
+    activeInboxes: number;
+    inboxesRemaining: number;
+    customDomains: number;
+    domainsRemaining: number;
+    teamKeys: number;
+    messagesLast24h: number;
+  };
+  billing: {
+    stripeEnabled: boolean;
+    canUpgrade: boolean;
+    canManagePortal: boolean;
+    checkoutPath: string;
+    portalPath: string;
+    consolePath: string;
+  };
+  capabilities: {
+    outbound: OutboundCapabilities;
+  };
+};
+
+export type McpAuthInfo = {
+  type: "oauth2";
+  oidc: "enabled" | "disabled";
+  flows: Record<string, unknown>;
+  directApiKey: { header: string; format: string; note: string };
+  discovery: {
+    authorizationServer: string;
+    protectedResource: string;
+  };
+  docs: string;
+};
+
 export type VerifySignupResult = {
   status: "verified" | "timeout";
   email?: { inboxId: string; address: string };
@@ -94,15 +144,26 @@ export class MailAgent {
     });
   }
 
-  /** GET /v1/me — plan, scope, usage */
-  getProfile() {
+  /** GET /v1/me — plan, scope, usage, billing, capabilities */
+  getProfile(): Promise<MeProfile> {
+    return this.request<MeProfile>("/v1/me");
+  }
+
+  /** GET /v1/agent — hub discovery (tools, MCP, OAuth) */
+  getAgentHub() {
     return this.request<{
-      plan: string;
-      teamId: string | null;
-      scope: { labelPrefix: string | null; readOnly: boolean };
-      limits: { rateLimitPerMinute: number; maxActiveInboxes: number };
-      usage: { activeInboxes: number; inboxesRemaining: number };
-    }>("/v1/me");
+      name: string;
+      version: string;
+      mcpTools: string[];
+      auth?: { oidc: "enabled" | "disabled"; me: string };
+      remoteMcp: Record<string, unknown>;
+      docs: string;
+    }>("/v1/agent");
+  }
+
+  /** GET /mcp/auth — OAuth flows for remote MCP */
+  getMcpAuth(): Promise<McpAuthInfo> {
+    return this.request<McpAuthInfo>("/mcp/auth");
   }
 
   /** GET /v1/inboxes/:id/messages */
@@ -259,7 +320,7 @@ export class MailAgent {
           capabilities: {},
           clientInfo: {
             name: clientInfo?.name ?? "@mailagent/agent",
-            version: clientInfo?.version ?? "0.1.1",
+            version: clientInfo?.version ?? "0.1.8",
           },
         },
       }),

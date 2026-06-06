@@ -248,6 +248,13 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | `setup-check` hint + `.env.example` | ✅ |
 | agents.html outbound + Codex links | ✅ |
 
+### v0.31 Agent SDK + OIDC docs
+
+| `@mailagent/agent@0.1.8` — full `MeProfile`, `getMcpAuth()`, `getAgentHub()` | ✅ |
+| `GET /v1/agent` → `auth.oidc` + docs links | ✅ |
+| `public/docs/oauth-idp.html` — Auth0/Google setup | ✅ |
+| doctor/smoke — outbound + oidc in output | ✅ |
+
 ### Отложено (не QA)
 
 - Agent session memory / multi-step run state

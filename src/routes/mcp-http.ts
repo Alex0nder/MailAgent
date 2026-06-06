@@ -57,7 +57,7 @@ mcpHttpRoutes.get("/auth", (c) => {
     },
     issue: "npm run issue:key:db or /dashboard.html",
     oidc: oidc ? "enabled" : "disabled",
-    docs: "https://webmailagent.com/docs/agents.html#mcp-oauth",
+    docs: "https://webmailagent.com/docs/oauth-idp.html",
   });
 });
 

@@ -64,7 +64,7 @@ if (qaMode) {
       me.ok ? "✓" : "✗",
       "GET /v1/me",
       me.ok
-        ? `plan=${meJson.plan ?? "?"} active=${meJson.usage?.activeInboxes ?? "?"}`
+        ? `plan=${meJson.plan ?? "?"} active=${meJson.usage?.activeInboxes ?? "?"} outbound=${meJson.capabilities?.outbound?.enabled ?? "?"}`
         : meJson.error
     );
     if (!me.ok) ok = false;
@@ -77,7 +77,7 @@ if (qaMode) {
     console.log(
       agent.ok ? "✓" : "✗",
       "GET /v1/agent",
-      agent.ok ? `mcpTools=${tools.length}` : agentJson.error
+      agent.ok ? `mcpTools=${tools.length} oidc=${agentJson.auth?.oidc ?? "?"}` : agentJson.error
     );
     if (!agent.ok) ok = false;
     if (agent.ok && !tools.includes("mailagent_diagnose_inbox")) {

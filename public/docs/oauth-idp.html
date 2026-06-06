@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MCP OAuth (Auth0 / Google) — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="doc-page" data-site="docs" data-doc="oauth-idp">
+    <div id="site-nav"></div>
+    <div class="doc-layout">
+      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
+      <article class="doc-content">
+        <h1>MCP OAuth via Auth0 / Google</h1>
+        <p class="doc-lead">
+          Browser login for remote MCP — Cursor and Claude Desktop can connect without pasting an API
+          key. Works alongside <code>client_credentials</code> (API key → <code>mat_</code> token).
+        </p>
+
+        <h2>Check if OIDC is live</h2>
+        <pre class="doc-pre"><code>GET /v1/agent → auth.oidc
+GET /mcp/auth   → oidc: "enabled" | "disabled"</code></pre>
+        <p>When disabled, use API keys or <code>POST /v1/oauth/token</code> with <code>client_credentials</code>.</p>
+
+        <h2>1. Auth0 application</h2>
+        <ol class="doc-list">
+          <li>Auth0 Dashboard → Applications → Create → <strong>Regular Web Application</strong></li>
+          <li>Allowed Callback URLs:
+            <pre class="doc-pre"><code>https://api.webmailagent.com/v1/oauth/callback
+http://127.0.0.1:8787/v1/oauth/callback</code></pre>
+          </li>
+          <li>Copy Domain, Client ID, Client Secret</li>
+        </ol>
+
+        <h2>2. Worker secrets</h2>
+        <pre class="doc-pre"><code>npx wrangler secret put OIDC_ISSUER
+# https://YOUR-TENANT.us.auth0.com
+
+npx wrangler secret put OIDC_CLIENT_ID
+npx wrangler secret put OIDC_CLIENT_SECRET
+
+# optional (Auth0 API audience)
+npx wrangler secret put OIDC_AUDIENCE</code></pre>
+        <p>Local: same keys in <code>.dev.vars</code>, then <code>npm run db:migrate</code>.</p>
+
+        <h2>3. Verify discovery</h2>
+        <pre class="doc-pre"><code>curl -sS https://api.webmailagent.com/.well-known/oauth-authorization-server | jq .
+curl -sS -H "Authorization: Bearer $KEY" https://api.webmailagent.com/mcp/auth | jq .</code></pre>
+
+        <h2>Flow (authorization_code + PKCE)</h2>
+        <ol class="doc-list">
+          <li>MCP client → <code>GET /v1/oauth/authorize</code> (PKCE challenge)</li>
+          <li>Redirect to IdP login</li>
+          <li>IdP → <code>GET /v1/oauth/callback</code></li>
+          <li>Client → <code>POST /v1/oauth/token</code> (<code>authorization_code</code>)</li>
+          <li>Use <code>mat_</code> access token on <code>POST /mcp</code></li>
+        </ol>
+
+        <h2>SDK</h2>
+        <pre class="doc-pre"><code>import { MailAgent } from "@mailagent/agent";
+
+const mail = new MailAgent({ baseUrl, apiKey });
+const auth = await mail.getMcpAuth();
+const { access_token } = await mail.fetchMcpAccessToken(); // client_credentials</code></pre>
+
+        <h2>More</h2>
+        <ul class="doc-list">
+          <li><a href="/docs/agents.html#mcp-oauth">Agents — MCP OAuth</a></li>
+          <li><a href="/docs/scoped-keys.html">Scoped keys &amp; DCR</a></li>
+          <li><a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/MCP-OAUTH-IDP.md">Full repo guide</a></li>
+        </ul>
+      </article>
+    </div>
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
+  </body>
+</html>

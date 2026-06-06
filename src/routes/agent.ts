@@ -10,6 +10,7 @@ import { SERVICE_EXPECT_FROM } from "../lib/service-presets";
 import { runAgentVerify } from "../services/agent-verify";
 import { listAgentRuns } from "../services/agent-runs";
 import { MCP_TOOL_NAMES } from "../mcp/manifest";
+import { isOidcEnabled } from "../services/oidc-oauth";
 import {
   countActiveInboxesForHint,
   countActiveInboxesForTeam,
@@ -36,9 +37,18 @@ type VerifyBody = {
 };
 
 agentRoutes.get("/", (c) => {
+  const oidc = isOidcEnabled(c.env);
   return c.json({
     name: "MailAgent Agent API",
     version: "0.7.0",
+    auth: {
+      oidc: oidc ? "enabled" : "disabled",
+      me: "GET /v1/me",
+      mcpAuth: "GET /mcp/auth",
+      oidcDocs: oidc
+        ? "https://webmailagent.com/docs/oauth-idp.html"
+        : "https://webmailagent.com/docs/agents.html#mcp-oauth",
+    },
     recommended: {
       verify: { method: "POST", path: "/v1/agent/verify" },
       oneShot: { method: "POST", path: "/v1/inboxes/open" },

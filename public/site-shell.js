@@ -19,6 +19,7 @@
       items: [
         { id: "agents", href: "/docs/agents.html", label: "AI agents" },
         { id: "codex", href: "/docs/codex.html", label: "OpenAI Codex" },
+        { id: "oauth-idp", href: "/docs/oauth-idp.html", label: "MCP OAuth (IdP)" },
         { id: "teams", href: "/docs/teams.html", label: "Teams & keys" },
         { id: "qa", href: "/docs/qa.html", label: "QA / Playwright" },
         { id: "scoped-keys", href: "/docs/scoped-keys.html", label: "Scoped keys" },

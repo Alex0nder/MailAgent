@@ -23,7 +23,7 @@ async function main() {
 
   const agent = await fetch(`${base}/v1/agent`, { headers: jsonHeaders });
   const agentJson = await agent.json();
-  console.log("GET /v1/agent", agent.status, agentJson.version ?? "");
+  console.log("GET /v1/agent", agent.status, agentJson.version ?? "", agentJson.auth?.oidc ?? "");
   if (!agent.ok) process.exit(1);
 
   const discovery = await fetch(`${base}/.well-known/oauth-protected-resource/mcp`);
