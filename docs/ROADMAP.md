@@ -38,7 +38,7 @@ npm install @mailagent/mcp @mailagent/qa @mailagent/agent
 
 ## CI ✅
 
-Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, опционально `MAILAGENT_API_KEY` для smoke.
+Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, **`MAILAGENT_API_KEY`** (prod gate).
 
 ## v0.6 Agent
 
@@ -262,6 +262,14 @@ Deploy на push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLAR
 | CI: `MAILAGENT_API_KEY` обязателен, fail если нет | ✅ |
 | `contract-qa-agent` — hub / me / mcp/auth | ✅ |
 | AGENTS.md — autonomy + test:prod | ✅ |
+
+### v0.33 Autotests guide for agents
+
+| `docs/AUTOTESTS.md` — полный гайд (RU) | ✅ |
+| `public/docs/autotests.html` + sidebar nav | ✅ |
+| `GET /v1/agent` → `tests`, `autotests` | ✅ |
+| `contract-qa-agent` проверяет autotests discovery | ✅ |
+| AGENTS.md + skills + Codex skill — test:prod workflow | ✅ |
 
 ### Отложено (не QA)
 

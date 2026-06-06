@@ -37,6 +37,8 @@ MAILAGENT_API_KEY=ma_… \
 
 Операторский чеклист: [OPERATOR.md](./OPERATOR.md).
 
+Инструкции для агентов по автотестам: [AUTOTESTS.md](./AUTOTESTS.md).
+
 ### Deploy failed: `CLOUDFLARE_API_TOKEN` / npx exit 1
 
 Типичная причина ([пример run](https://github.com/Alex0nder/MailAgent/actions/runs/27020682647)):

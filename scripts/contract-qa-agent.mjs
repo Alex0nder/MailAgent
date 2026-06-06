@@ -26,6 +26,10 @@ async function main() {
     console.error("agent auth discovery missing", hub.json.auth);
     process.exit(1);
   }
+  if (!hub.json.tests?.prodGate || !hub.json.autotests) {
+    console.error("agent autotests discovery missing", hub.json.tests, hub.json.autotests);
+    process.exit(1);
+  }
   if (!hub.json.mcpTools.includes("mailagent_verify_signup")) {
     console.error("mailagent_verify_signup missing from hub");
     process.exit(1);

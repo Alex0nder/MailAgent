@@ -47,4 +47,14 @@ the API key in chat, command output, screenshots, or error summaries.
 
 ## Docs
 
-https://webmailagent.com/docs/agents.html · Codex: https://webmailagent.com/docs/codex.html · Console: https://webmailagent.com/dashboard.html
+https://webmailagent.com/docs/agents.html · Autotests: https://webmailagent.com/docs/autotests.html · Codex: https://webmailagent.com/docs/codex.html
+
+## Verify prod (after MailAgent changes)
+
+```bash
+MAILAGENT_API_URL=https://api.webmailagent.com \
+MAILAGENT_API_KEY=ma_… \
+  npm run test:prod
+```
+
+Repo guide: `docs/AUTOTESTS.md` · `GET /v1/agent` → `tests`, `autotests`.

@@ -102,6 +102,6 @@
 
 ---
 
-## Следующий коммит
+## Следующий шаг
 
-v0.27: console outbound send/reply + npm publish alignment.
+v0.33: autotests docs + agent hub discovery. Дальше — session memory, Playwright CI, npm tag для `@mailagent/agent@0.1.8`. См. [ROADMAP.md](./ROADMAP.md) «Отложено».

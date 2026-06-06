@@ -4,7 +4,9 @@ Temporary inboxes for signup verification (OTP, magic links). Works in **Cursor*
 
 **Operator (human):** one-time secrets only → [docs/OPERATOR.md](docs/OPERATOR.md)
 
-## Verify prod (same as CI)
+## Autotests (verify prod without human)
+
+Full guide: **[docs/AUTOTESTS.md](docs/AUTOTESTS.md)** · [autotests.html](https://webmailagent.com/docs/autotests.html)
 
 ```bash
 MAILAGENT_API_URL=https://api.webmailagent.com \
@@ -12,7 +14,17 @@ MAILAGENT_API_KEY=ma_… \
   npm run test:prod
 ```
 
-Or step-by-step: `npm run smoke:agent` → `npm run test:contract:all`
+Same as CI post-deploy gate. Step-by-step: `smoke:agent` → `smoke:qa` → `test:contract:all`.
+
+| After changing… | Run |
+|-----------------|-----|
+| `src/routes/agent.ts`, MCP hub | `npm run test:contract:qa:agent` |
+| inbox / simulate / extract | `npm run test:contract:qa` |
+| attachments / raw MIME | `npm run test:contract:qa:attachments` |
+| team keys / dashboard | `npm run test:contract:qa:team-keys` |
+| anything before merge | `npm run test:prod` |
+
+Contract tests use `POST …/simulate` — no real SMTP, no `DATABASE_URL`. On failure: `npm run doctor:qa`.
 
 ## Quick commands
 
@@ -73,6 +85,7 @@ On failure: `mailagent_diagnose_inbox` or `POST …/simulate` then retry.
 
 ## Docs
 
-- [docs/agents](https://webmailagent.com/docs/agents.html) · [docs/qa](https://webmailagent.com/docs/qa.html)
+- [docs/agents](https://webmailagent.com/docs/agents.html) · [docs/autotests](https://webmailagent.com/docs/autotests.html) · [docs/qa](https://webmailagent.com/docs/qa.html)
+- [docs/AUTOTESTS.md](docs/AUTOTESTS.md) · [docs/OPERATOR.md](docs/OPERATOR.md) (human: secrets only)
 - [docs/CODEX.md](docs/CODEX.md) · [docs/QA-RELEASE.md](docs/QA-RELEASE.md)
 - Skill (Cursor): `.cursor/skills/mailagent-mcp/SKILL.md`

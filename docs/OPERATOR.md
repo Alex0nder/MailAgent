@@ -56,10 +56,11 @@ MAILAGENT_API_KEY=ma_… \
 
 ## 5. Что делают агенты (Cursor / Codex)
 
-1. Читают [AGENTS.md](../AGENTS.md) и `GET /v1/agent`
-2. Подключают MCP: `@mailagent/mcp` или remote `/mcp`
-3. Verify flow: `mailagent_verify_signup` / `POST /v1/agent/verify`
-4. При сбое: `mailagent_diagnose_inbox`, `npm run doctor:qa`
+1. Читают [AGENTS.md](../AGENTS.md), [AUTOTESTS.md](./AUTOTESTS.md) и `GET /v1/agent`
+2. Гоняют `npm run test:prod` (или узкий `test:contract:qa:*`) после изменений
+3. Подключают MCP: `@mailagent/mcp` или remote `/mcp`
+4. Verify flow: `mailagent_verify_signup` / `POST /v1/agent/verify`
+5. При сбое: `mailagent_diagnose_inbox`, `npm run doctor:qa`
 
 Тебе не нужно вручную проверять OTP — только следить, что CI зелёный.
 

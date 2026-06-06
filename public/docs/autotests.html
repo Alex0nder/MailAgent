@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Autotests for agents — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="doc-page" data-site="docs" data-doc="autotests">
+    <div id="site-nav"></div>
+    <div class="doc-layout">
+      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
+      <article class="doc-content">
+        <h1>Autotests for agents</h1>
+        <p class="doc-lead">
+          Verify hosted MailAgent on prod <strong>without human OTP checks</strong> and without
+          <code>DATABASE_URL</code>. Contract tests inject mail via
+          <code>POST /v1/inboxes/:id/simulate</code>.
+        </p>
+
+        <h2>Prod gate (same as CI)</h2>
+        <pre class="doc-pre"><code>npm ci
+
+MAILAGENT_API_URL=https://api.webmailagent.com \
+MAILAGENT_API_KEY=ma_… \
+  npm run test:prod</code></pre>
+        <p>Runs <code>smoke:agent</code> → <code>smoke:qa</code> → all 12 <code>contract-qa*</code> scripts.</p>
+
+        <h2>Environment</h2>
+        <table class="doc-table">
+          <thead>
+            <tr><th>Variable</th><th>Required</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>MAILAGENT_API_KEY</code></td><td>yes</td><td>Team or legacy API key</td></tr>
+            <tr><td><code>MAILAGENT_API_URL</code></td><td>no</td><td>Default <code>https://api.webmailagent.com</code></td></tr>
+            <tr><td><code>SMOKE_EXPECT_ATTACHMENTS</code></td><td>CI only</td><td>Set to <code>1</code> in GitHub Actions</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Test layers</h2>
+        <table class="doc-table">
+          <thead>
+            <tr><th>Command</th><th>Scope</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>npm run test:prod</code></td><td>Full prod gate</td></tr>
+            <tr><td><code>npm run smoke:agent</code></td><td>MCP, OAuth, DCR, Streamable HTTP</td></tr>
+            <tr><td><code>npm run smoke:qa</code></td><td>Inbox lifecycle on prod</td></tr>
+            <tr><td><code>npm run test:contract:all</code></td><td>12 API contract scripts</td></tr>
+            <tr><td><code>npm run test:contract:qa:agent</code></td><td><code>GET /v1/agent</code>, <code>/v1/me</code>, <code>/mcp/auth</code></td></tr>
+            <tr><td><code>npm run check</code></td><td>TypeScript (no prod key)</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Agent workflow after a code change</h2>
+        <ol class="doc-list">
+          <li><code>GET /v1/agent</code> — tools and auth discovery</li>
+          <li><code>npm run check</code> if you changed <code>src/</code></li>
+          <li>Run one targeted <code>npm run test:contract:qa:*</code> for your area</li>
+          <li><code>npm run test:prod</code> before merge</li>
+          <li>On failure: <code>npm run doctor:qa</code> or <code>mailagent_diagnose_inbox</code></li>
+        </ol>
+
+        <h2>CI</h2>
+        <p>
+          GitHub Actions secret <code>MAILAGENT_API_KEY</code> is <strong>required</strong>.
+          Without it, deploy and PR checks fail on purpose.
+          Operator setup: <a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/OPERATOR.md">docs/OPERATOR.md</a>.
+        </p>
+
+        <h2>Add a new contract test</h2>
+        <ol class="doc-list">
+          <li>Copy <code>scripts/contract-qa.mjs</code></li>
+          <li>Use <code>scripts/lib/contract-api.mjs</code> (<code>contractSimulate</code>)</li>
+          <li>Register in <code>scripts/test-contract-all.mjs</code> + <code>package.json</code></li>
+          <li>Update <a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/AUTOTESTS.md">docs/AUTOTESTS.md</a></li>
+        </ol>
+
+        <h2>More</h2>
+        <ul class="doc-list">
+          <li><a href="/docs/agents.html">AI agents &amp; MCP</a></li>
+          <li><a href="/docs/qa.html">QA / Playwright</a></li>
+          <li><a href="https://github.com/Alex0nder/MailAgent/blob/main/AGENTS.md">AGENTS.md</a></li>
+          <li><a href="https://github.com/Alex0nder/MailAgent/tree/main/examples/github-actions">GitHub Actions examples</a></li>
+        </ul>
+      </article>
+    </div>
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
+  </body>
+</html>

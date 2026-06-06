@@ -204,6 +204,16 @@ Verify: hasRaw, rawUrl, hasAttachments, attachmentCount</code></pre>
       </p>
       <p><a href="/docs/outbound.html">Outbound setup guide →</a></p>
 
+      <h2 id="autotests">Autotests</h2>
+      <p>
+        Agents and CI verify prod without real SMTP — contract tests use
+        <code>POST …/simulate</code>. Same gate as GitHub Actions:
+      </p>
+      <pre class="doc-pre"><code>MAILAGENT_API_URL=https://api.webmailagent.com \
+MAILAGENT_API_KEY=ma_… \
+  npm run test:prod</code></pre>
+      <p><a href="/docs/autotests.html">Autotests guide →</a> · <code>GET /v1/agent</code> returns <code>tests</code> and <code>autotests</code> URLs.</p>
+
       <h2>Security</h2>
       <ul class="doc-list">
         <li>Always set <code>service</code> or <code>expectFrom</code> (allowlist senders)</li>

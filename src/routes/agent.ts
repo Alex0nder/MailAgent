@@ -72,6 +72,13 @@ agentRoutes.get("/", (c) => {
       auth: "GET /mcp/auth",
     },
     docs: "https://webmailagent.com/docs/agents.html",
+    autotests: "https://webmailagent.com/docs/autotests.html",
+    tests: {
+      prodGate: "npm run test:prod",
+      env: ["MAILAGENT_API_URL", "MAILAGENT_API_KEY"],
+      contractAll: "npm run test:contract:all",
+      repoGuide: "https://github.com/Alex0nder/MailAgent/blob/main/docs/AUTOTESTS.md",
+    },
     cli: "npx @mailagent/mcp mailagent open --service github --json",
   });
 });

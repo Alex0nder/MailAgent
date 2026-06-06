@@ -32,3 +32,4 @@ jobs:
           npm run test:contract:qa
           npm run test:contract:qa:callback
           npm run test:contract:qa:attachments
+          npm run test:contract:all
