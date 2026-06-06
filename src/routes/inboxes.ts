@@ -232,6 +232,7 @@ inboxRoutes.get("/:id/diagnose", async (c) => {
     subjectContains,
     messageIndex,
     apiBaseUrl: apiBase,
+    apiKeyHint: c.get("apiKeyHint"),
   });
   if (!diagnose) return c.json({ error: "inbox_not_found" }, 404);
 

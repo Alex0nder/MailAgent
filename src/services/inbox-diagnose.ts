@@ -9,6 +9,7 @@ export type InboxDiagnoseOptions = {
   subjectContains?: string;
   messageIndex?: number;
   apiBaseUrl: string;
+  apiKeyHint?: string;
 };
 
 export type InboxDiagnoseResult = {
@@ -50,7 +51,9 @@ export async function buildInboxDiagnose(
   inboxId: string,
   options: InboxDiagnoseOptions
 ): Promise<InboxDiagnoseResult | null> {
-  const inbox = await getInbox(env, inboxId);
+  const inbox = await getInbox(env, inboxId, {
+    apiKeyHint: options.apiKeyHint,
+  });
   if (!inbox) return null;
 
   const subjectContains = options.subjectContains?.trim();

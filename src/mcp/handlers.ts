@@ -424,6 +424,7 @@ export async function executeMcpTool(
         subjectContains: args.subjectContains as string | undefined,
         messageIndex: args.messageIndex as number | undefined,
         apiBaseUrl: apiBase,
+        apiKeyHint: auth.apiKeyHint,
       });
       if (!diagnose) return textResult({ error: "inbox_not_found" }, true);
       return textResult(diagnose);
