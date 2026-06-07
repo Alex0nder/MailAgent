@@ -25,6 +25,7 @@
     "doctor:oidc": "node scripts/doctor-oidc.mjs",
     "wizard:auth0": "node scripts/wizard-auth0-oidc.mjs",
     "setup:oidc-prod": "node scripts/setup-oidc-prod.mjs",
+    "rotate:oidc": "node scripts/setup-oidc-prod.mjs",
     "deploy": "wrangler deploy",
     "check": "tsc --noEmit",
     "types": "wrangler types",

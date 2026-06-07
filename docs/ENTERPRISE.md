@@ -19,7 +19,7 @@ Public: [enterprise.html](https://webmailagent.com/docs/enterprise.html)
 
 | Item | Notes |
 |------|--------|
-| SOC 2 Type II narrative | security whitepaper + control mapping |
+| SOC 2 Type II narrative | draft [SOC2.md](./SOC2.md) — not certified |
 | Dedicated domains | isolated Resend/infra per enterprise tenant |
 | SLA / support tier | post-Stripe billing |
 | Stripe on prod | on hold — see [YOUR-TURN.md](./YOUR-TURN.md) |

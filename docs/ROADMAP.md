@@ -356,6 +356,13 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | Verify DNS / delete domain buttons | ✅ |
 | `enterprise.html` + sidebar link | ✅ |
 
+### v0.43 Landing + SOC2 draft
+
+| Landing: OIDC + console feature cards, CTA dashboard link | ✅ |
+| `GET /v1/agent` → `console`, `enterprise` URLs | ✅ |
+| `docs/SOC2.md` control mapping draft | ✅ |
+| `npm run rotate:oidc` alias | ✅ |
+
 ### Deferred (not QA)
 
 - ~~Agent session memory / multi-step run state~~ ✅ v0.35

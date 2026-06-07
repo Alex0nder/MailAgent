@@ -64,7 +64,7 @@ Details: [outbound.html](https://webmailagent.com/docs/outbound.html)
 
 Auth0 tenant `webmailagent.us.auth0.com` · app **MailAgent MCP** · `auth.oidc: enabled`.
 
-Rotate Client Secret if it was shared in chat → `npm run setup:oidc-prod`.
+Rotate Client Secret if it was shared in chat → update `.dev.vars` → `npm run rotate:oidc`.
 
 Guide: [MCP-OAUTH-IDP.md](./MCP-OAUTH-IDP.md)
 

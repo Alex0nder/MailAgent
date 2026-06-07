@@ -89,6 +89,8 @@ agentRoutes.get("/", (c) => {
       auth: "GET /mcp/auth",
     },
     docs: "https://webmailagent.com/docs/agents.html",
+    console: "https://webmailagent.com/dashboard.html",
+    enterprise: "https://webmailagent.com/docs/enterprise.html",
     autotests: "https://webmailagent.com/docs/autotests.html",
     tests: {
       prodGateCi: "npm run test:prod:gate",
