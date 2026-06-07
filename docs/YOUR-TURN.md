@@ -18,7 +18,8 @@ npm run doctor:operator
 | Item | Status |
 |------|--------|
 | Deploy on push `main` | GitHub Actions |
-| Prod gate `test:prod` | smoke + contract + Playwright |
+| Prod gate `test:prod:gate` on deploy; full `test:prod` on tag `v*` |
+| OIDC browser login (Auth0) | ✅ enabled on prod |
 | npm publish on tag `v*` | Trusted Publishing |
 | MCP OAuth `mat_` JWT | no KV quota needed |
 | Agent run session | verify + MCP + `GET /runs/:id` |

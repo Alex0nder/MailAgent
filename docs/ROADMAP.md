@@ -40,7 +40,7 @@ Re-release: [PUBLISH.md](./PUBLISH.md) · CI: workflow **Publish npm packages** 
 
 Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, **`MAILAGENT_API_KEY`** (prod gate).
 
-**KV free tier:** rate limit uses sampled writes (`RATE_LIMIT_KV_WRITE_EVERY=10`). CI `test:prod` can consume hundreds of API calls/day; if you hit 1000 KV puts/day, deploy the latest Worker or upgrade Cloudflare to Paid ($5/mo).
+**KV free tier:** rate limit uses sampled writes (`RATE_LIMIT_KV_WRITE_EVERY=10`). CI deploy uses `test:prod:gate` (smoke only); full `test:prod` on tag `v*` or manual. OIDC browser login uses stateless JWT (no KV puts).
 
 ## v0.6 Agent
 

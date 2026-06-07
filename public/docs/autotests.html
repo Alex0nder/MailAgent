@@ -26,13 +26,15 @@
           <code>POST /v1/inboxes/:id/simulate</code>.
         </p>
 
-        <h2>Prod gate (same as CI)</h2>
+        <h2>Prod gate</h2>
         <pre class="doc-pre"><code>npm ci
 
 MAILAGENT_API_URL=https://api.webmailagent.com \
 MAILAGENT_API_KEY=ma_… \
-  npm run test:prod</code></pre>
-        <p>Runs <code>smoke:agent</code> → <code>smoke:qa</code> → all 12 <code>contract-qa*</code> scripts.</p>
+  npm run test:prod:gate   # CI after deploy
+
+  npm run test:prod        # full — before merge / tag v*</code></pre>
+        <p>CI runs <code>test:prod:gate</code> (<code>smoke:agent</code> → <code>smoke:qa</code>). Full suite adds all <code>contract-qa*</code> + Playwright.</p>
 
         <h2>Environment</h2>
         <table class="doc-table">
@@ -52,6 +54,7 @@ MAILAGENT_API_KEY=ma_… \
             <tr><th>Command</th><th>Scope</th></tr>
           </thead>
           <tbody>
+            <tr><td><code>npm run test:prod:gate</code></td><td>CI smoke gate</td></tr>
             <tr><td><code>npm run test:prod</code></td><td>Full prod gate</td></tr>
             <tr><td><code>npm run smoke:agent</code></td><td>MCP, OAuth, DCR, Streamable HTTP</td></tr>
             <tr><td><code>npm run smoke:qa</code></td><td>Inbox lifecycle on prod</td></tr>

@@ -11,16 +11,20 @@ npm ci
 
 MAILAGENT_API_URL=https://api.webmailagent.com \
 MAILAGENT_API_KEY=ma_… \
-  npm run test:prod
+  npm run test:prod:gate   # CI after deploy (smoke only)
+
+# Before merge or release:
+  npm run test:prod        # full contracts + Playwright
 ```
 
-Same as the post-deploy gate in GitHub Actions.
+CI after deploy runs **`test:prod:gate`** (smoke only — saves KV quota). Full suite: manual or tag `v*` publish workflow.
 
 ## Test layers
 
 | Layer | Command | Where | API key |
 |-------|---------|-------|---------|
-| **Prod gate** | `npm run test:prod` | CI + local | `MAILAGENT_API_KEY` |
+| **Prod gate (CI)** | `npm run test:prod:gate` | deploy / PR | `MAILAGENT_API_KEY` |
+| **Prod gate (full)** | `npm run test:prod` | pre-merge, tag `v*` | `MAILAGENT_API_KEY` |
 | **Smoke agent** | `npm run smoke:agent` | MCP, OAuth, DCR, Streamable HTTP | yes |
 | **Smoke QA** | `npm run smoke:qa` | inbox lifecycle on prod | yes |
 | **Contract (all)** | `npm run test:contract:all` | 13 scripts via `simulate` | yes |
@@ -42,9 +46,13 @@ Contract tests **do not send real mail**: messages are injected via `POST /v1/in
 
 Local key can live in `.env` — loaded by `scripts/load-env.mjs`.
 
-## Prod gate (`test:prod`)
+## Prod gate
 
-Order (see `scripts/test-prod.mjs`):
+**CI (`test:prod:gate`)** — `scripts/test-prod-gate.mjs`: `smoke:agent` → `smoke:qa`.
+
+**Full (`test:prod`)** — `scripts/test-prod.mjs`:
+
+Order:
 
 1. `smoke:agent` — discovery, OAuth metadata, DCR, MCP session, tool call
 2. `smoke:qa` — create → simulate → wait → extract → delete
@@ -72,6 +80,7 @@ Run a **narrow** script after changes in a specific area:
 | `contract-qa-console-inbox.mjs` | `test:contract:qa:console-inbox` | console inbox UI API |
 | `contract-qa-team-keys.mjs` | `test:contract:qa:team-keys` | team keys CRUD |
 | `contract-qa-session.mjs` | `test:contract:qa:session` | run session GET/PATCH |
+| `contract-qa-oidc.mjs` | `test:contract:qa:oidc` | OIDC authorize redirect (skip if disabled) |
 
 Example — agent hub only after edits to `src/routes/agent.ts`:
 
@@ -83,9 +92,9 @@ MAILAGENT_API_KEY=ma_… npm run test:contract:qa:agent
 
 | Workflow | Trigger | Tests |
 |----------|---------|-------|
-| [deploy-worker.yml](../.github/workflows/deploy-worker.yml) | push `main` (Worker paths) | deploy → `test:prod` |
-| [qa-smoke.yml](../.github/workflows/qa-smoke.yml) | PR / `qa/**` | `check` + `verify:codex` + `test:prod` |
-| [publish-packages.yml](../.github/workflows/publish-packages.yml) | tag `v*` | npm publish (OIDC) |
+| [deploy-worker.yml](../.github/workflows/deploy-worker.yml) | push `main` (Worker paths) | deploy → `test:prod:gate` |
+| [qa-smoke.yml](../.github/workflows/qa-smoke.yml) | PR / `qa/**` | `check` + `verify:codex` + `test:prod:gate` |
+| [publish-packages.yml](../.github/workflows/publish-packages.yml) | tag `v*` | `test:prod` → npm publish |
 
 Without `MAILAGENT_API_KEY` in GitHub Secrets, deploy **fails** — by design.
 
