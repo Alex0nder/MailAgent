@@ -22,19 +22,19 @@ Upstream expects a **fork + PR**, not a raw tarball URL.
 
 ```bash
 npm run prepare:catalog-pr
-# → dist/catalog-staging/plugins/Alex0nder/mailagent
+# → dist/catalog-staging/plugins/Alex0nder/mailagent  (includes assets/icon.svg + composerIcon)
 # → dist/catalog-staging/MARKETPLACE-ENTRY.json
+# → dist/catalog-staging/PLUGINS-ENTRY.json
 ```
 
 Then fork + PR to [awesome-codex-plugins](https://github.com/hashgraph-online/awesome-codex-plugins):
 
 1. Fork https://github.com/hashgraph-online/awesome-codex-plugins
 2. Copy `dist/catalog-staging/plugins/Alex0nder/mailagent` → `plugins/Alex0nder/mailagent`
-3. Merge `MARKETPLACE-ENTRY.json` into `.agents/plugins/marketplace.json`
-4. Add README line under **Development & Workflow**
-5. Open PR — title: `Add MailAgent plugin (email verification for agents)`
-
-5. Open PR — title: `Add MailAgent plugin (email verification for agents)`
+3. Merge `MARKETPLACE-ENTRY.json` into `.agents/plugins/marketplace.json` (add `icon` if present)
+4. Add `README-ENTRY.md` line under **Development & Workflow** (alphabetical)
+5. Run `python3 scripts/generate_plugins_json.py` in the fork and commit `plugins.json` sync
+6. Open PR — title: `Add MailAgent plugin (email verification for agents)`
 
 **Status:** [PR #195](https://github.com/hashgraph-online/awesome-codex-plugins/pull/195) submitted (pending review).
 

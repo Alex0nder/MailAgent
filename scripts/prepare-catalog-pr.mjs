@@ -69,11 +69,38 @@ writeFileSync(
   "utf8"
 );
 
+const pluginsEntry = {
+  name: "MailAgent",
+  url: "https://github.com/Alex0nder/MailAgent",
+  owner: "Alex0nder",
+  repo: "MailAgent",
+  description: entry.description,
+  category: entry.category,
+  source: "awesome-codex-plugins",
+  install_url:
+    "https://raw.githubusercontent.com/Alex0nder/MailAgent/HEAD/examples/codex/plugin/.codex-plugin/plugin.json",
+};
+
+writeFileSync(
+  join(outRoot, "PLUGINS-ENTRY.json"),
+  JSON.stringify(pluginsEntry, null, 2) + "\n",
+  "utf8"
+);
+
+writeFileSync(
+  join(outRoot, "README-ENTRY.md"),
+  `- [MailAgent](https://github.com/Alex0nder/MailAgent) - ${entry.description}\n`,
+  "utf8"
+);
+
 console.log("\nprepare-catalog-pr OK");
 console.log("Plugin bundle:", pluginDest.replace(root + "/", ""));
 console.log("Merge entry from:", "dist/catalog-staging/MARKETPLACE-ENTRY.json");
+console.log("plugins.json entry:", "dist/catalog-staging/PLUGINS-ENTRY.json");
+console.log("Or run upstream:", "python3 scripts/generate_plugins_json.py");
 console.log("\nNext:");
 console.log("  1. Fork https://github.com/hashgraph-online/awesome-codex-plugins");
 console.log("  2. Copy dist/catalog-staging/plugins/Alex0nder/mailagent → plugins/Alex0nder/mailagent");
 console.log("  3. Add MARKETPLACE-ENTRY.json fields to .agents/plugins/marketplace.json");
-console.log("  4. Open PR — see docs/CATALOG-SUBMIT.md");
+console.log("  4. Regenerate plugins.json (generate_plugins_json.py) or merge PLUGINS-ENTRY.json");
+console.log("  5. Open PR — see docs/CATALOG-SUBMIT.md");
