@@ -2,6 +2,8 @@
 
 MailAgent v1 enterprise surface — what exists today vs backlog.
 
+Public: [enterprise.html](https://webmailagent.com/docs/enterprise.html)
+
 ## Available now
 
 | Capability | API / UI |

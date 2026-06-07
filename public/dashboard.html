@@ -172,12 +172,30 @@
         }
 
         html += `<h2>Custom domains</h2>`;
+        const canWriteDomains = !scope?.readOnly;
+        if (canWriteDomains && (u.domainsRemaining ?? 0) > 0) {
+          html += `<form class="console-key-form" id="add-domain-form">
+            <label for="domain-name">Domain name</label>
+            <input id="domain-name" type="text" placeholder="inbox.yourcompany.com" />
+            <button type="submit" class="app-btn app-btn--ghost">Add domain</button>
+          </form>`;
+        } else if (scope?.readOnly) {
+          html += `<p class="console-empty">Read-only key — add domains via an unrestricted key.</p>`;
+        }
         if (!d.domains?.length) {
-          html += `<p class="console-empty">No domains. <code>POST /v1/domains</code> to add one.</p>`;
+          html += `<p class="console-empty">No domains yet. <a href="/docs/custom-domain.html">Setup guide</a></p>`;
         } else {
-          html += `<table class="console-table"><thead><tr><th>Domain</th><th>Status</th></tr></thead><tbody>`;
+          html += `<table class="console-table"><thead><tr><th>Domain</th><th>Status</th><th></th></tr></thead><tbody>`;
           for (const dom of d.domains) {
-            html += `<tr><td>${esc(dom.name)}</td><td>${esc(dom.status)}</td></tr>`;
+            const verify =
+              canWriteDomains && dom.status !== "verified"
+                ? `<button type="button" class="console-revoke-btn" data-verify-id="${esc(dom.id)}">Verify DNS</button>`
+                : "";
+            const del =
+              canWriteDomains
+                ? ` <button type="button" class="console-revoke-btn" data-delete-domain="${esc(dom.id)}" data-domain-name="${esc(dom.name)}">Delete</button>`
+                : "";
+            html += `<tr><td>${esc(dom.name)}</td><td>${esc(dom.status)}</td><td>${verify}${del}</td></tr>`;
           }
           html += `</tbody></table>`;
         }
@@ -302,6 +320,60 @@
             else alert(r.json.error || r.json.hint || "Revoke failed");
           });
         });
+
+        document.getElementById("add-domain-form")?.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const name = document.getElementById("domain-name")?.value.trim();
+          if (!name) return;
+          const r = await api("/v1/domains", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name }),
+          });
+          if (r.ok && r.json.dnsRecords) {
+            showDnsRecords(r.json.name, r.json.dnsRecords);
+            load();
+          } else alert(r.json.error || r.json.hint || "Add domain failed");
+        });
+
+        out.querySelectorAll("[data-verify-id]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-verify-id");
+            if (!id) return;
+            btn.disabled = true;
+            const r = await api(`/v1/domains/${id}/verify`, { method: "POST" });
+            if (r.ok) load();
+            else alert(r.json.error || r.json.hint || "Verify failed");
+            btn.disabled = false;
+          });
+        });
+
+        out.querySelectorAll("[data-delete-domain]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-delete-domain");
+            const name = btn.getAttribute("data-domain-name");
+            if (!id || !confirm(`Delete domain ${name}?`)) return;
+            const r = await api(`/v1/domains/${id}`, { method: "DELETE" });
+            if (r.ok) load();
+            else alert(r.json.error || r.json.hint || "Delete failed");
+          });
+        });
+      }
+
+      function showDnsRecords(name, records) {
+        const rows = (records || [])
+          .map(
+            (rec) =>
+              `<tr><td><code>${esc(rec.type)}</code></td><td>${esc(rec.name)}</td><td><code>${esc(rec.value)}</code></td></tr>`
+          )
+          .join("");
+        const wrap = document.createElement("div");
+        wrap.className = "console-key-once";
+        wrap.innerHTML = `<p><strong>DNS for ${esc(name)}</strong> — add these records, then click Verify DNS:</p>
+          <table class="console-table"><thead><tr><th>Type</th><th>Name</th><th>Value</th></tr></thead><tbody>${rows}</tbody></table>
+          <button type="button" class="app-btn app-btn--ghost">Dismiss</button>`;
+        wrap.querySelector("button")?.addEventListener("click", () => wrap.remove());
+        out.prepend(wrap);
       }
 
       function showKeyOnce(key, hint) {

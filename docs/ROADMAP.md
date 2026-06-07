@@ -350,6 +350,12 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | `custom-domain.html` — SaaS API + self-host INBOX_DOMAIN | ✅ |
 | Resend quota note in domains guide | ✅ |
 
+### v0.42 Console domains UI
+
+| Dashboard: add domain form + DNS banner | ✅ |
+| Verify DNS / delete domain buttons | ✅ |
+| `enterprise.html` + sidebar link | ✅ |
+
 ### Deferred (not QA)
 
 - ~~Agent session memory / multi-step run state~~ ✅ v0.35

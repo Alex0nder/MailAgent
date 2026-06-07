@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Enterprise — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="doc-page" data-site="docs" data-doc="enterprise">
+    <div id="site-nav"></div>
+    <div class="doc-layout">
+      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
+      <article class="doc-content">
+        <h1>Enterprise readiness</h1>
+        <p class="doc-lead">
+          Foundation for teams that need audit trails, scoped keys, custom domains, and OIDC — without vendor lock-in.
+        </p>
+
+        <h2>Available today</h2>
+        <table class="doc-table">
+          <thead><tr><th>Capability</th><th>Where</th></tr></thead>
+          <tbody>
+            <tr><td>Audit log + retention</td><td><code>GET /v1/audit</code> · <a href="/dashboard.html">Dashboard</a></td></tr>
+            <tr><td>Team API keys</td><td><a href="/docs/teams.html">Teams &amp; keys</a></td></tr>
+            <tr><td>Custom domains</td><td><a href="/docs/custom-domain.html">Domains guide</a> · MCP</td></tr>
+            <tr><td>OIDC browser login</td><td><a href="/docs/oauth-idp.html">MCP OAuth</a></td></tr>
+            <tr><td>Self-host (MIT)</td><td><a href="/docs/integrate.html">Integrate</a></td></tr>
+          </tbody>
+        </table>
+
+        <h2>Backlog</h2>
+        <ul class="doc-list">
+          <li>SOC 2 Type II narrative</li>
+          <li>Dedicated domains (isolated infra per tenant)</li>
+          <li>SLA / support tiers (with Stripe billing)</li>
+        </ul>
+
+        <p>Contact: <a href="mailto:hello@webmailagent.com">hello@webmailagent.com</a></p>
+      </article>
+    </div>
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
+  </body>
+</html>

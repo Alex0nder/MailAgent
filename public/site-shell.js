@@ -29,6 +29,7 @@
         { id: "attachments", href: "/docs/attachments.html", label: "Attachments" },
         { id: "custom-domain", href: "/docs/custom-domain.html", label: "Custom domain" },
         { id: "outbound", href: "/docs/outbound.html", label: "Outbound send" },
+        { id: "enterprise", href: "/docs/enterprise.html", label: "Enterprise" },
       ],
     },
     {
