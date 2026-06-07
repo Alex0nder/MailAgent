@@ -1,14 +1,29 @@
-<!-- Apple touch icon — same mark, 180×180 safe area -->
+<!-- Apple touch icon — envelope + agent robot badge -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="MailAgent">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="180" y2="180" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#d8d8d8" />
-      <stop offset="100%" stop-color="#a0a0a0" />
+      <stop offset="100%" stop-color="#9d9d9d" />
     </linearGradient>
   </defs>
   <rect width="180" height="180" rx="39" fill="url(#bg)" />
-  <g fill="none" stroke="#0a0a0a" stroke-width="15.5" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="44" y="53" width="92" height="74" rx="13" />
-    <path d="M51 59l39 39 39-39" />
+  <g fill="none" stroke="#0a0a0a" stroke-width="14.8" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="31" y="44" width="116" height="91" rx="13" />
+    <path d="M38 49l58 33 58-33" />
+  </g>
+  <g fill="#0a0a0a">
+    <rect x="99" y="102" width="62" height="51" rx="11" />
+    <rect x="125" y="96" width="6" height="8" rx="3" />
+    <circle cx="128" cy="92" r="5" />
+    <circle cx="95" cy="125" r="4" />
+    <circle cx="165" cy="125" r="4" />
+    <circle cx="114" cy="119" r="4.5" fill="#fff" />
+    <circle cx="145" cy="119" r="4.5" fill="#fff" />
+    <g stroke="#fff" stroke-width="2.5" stroke-linecap="round">
+      <line x1="117" y1="136" x2="117" y2="148" />
+      <line x1="124" y1="136" x2="124" y2="148" />
+      <line x1="132" y1="136" x2="132" y2="148" />
+      <line x1="139" y1="136" x2="139" y2="148" />
+    </g>
   </g>
 </svg>
