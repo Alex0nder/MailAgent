@@ -91,6 +91,7 @@ agentRoutes.get("/", (c) => {
     docs: "https://webmailagent.com/docs/agents.html",
     autotests: "https://webmailagent.com/docs/autotests.html",
     tests: {
+      prodGateCi: "npm run test:prod:gate",
       prodGate: "npm run test:prod",
       env: ["MAILAGENT_API_URL", "MAILAGENT_API_KEY"],
       contractAll: "npm run test:contract:all",

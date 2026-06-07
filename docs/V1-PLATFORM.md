@@ -106,4 +106,5 @@ Goal: **full email API for agents** (inbound + outbound + threads) **plus** adva
 
 ## Next step
 
-See [ROADMAP.md](./ROADMAP.md) **Deferred** — OIDC/Stripe/OUTBOUND_FROM on prod, Codex Marketplace submit.
+See [ROADMAP.md](./ROADMAP.md) **Deferred** — Stripe on hold, Codex Plugin Directory (OpenAI), awesome-codex PR #195.  
+OIDC + outbound on prod ✅ · CI uses `test:prod:gate` (KV-friendly).

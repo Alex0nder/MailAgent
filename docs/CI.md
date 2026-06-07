@@ -38,6 +38,8 @@ MAILAGENT_API_KEY=ma_… \
   npm run test:prod:gate     # smoke only (same as CI)
 ```
 
+**Full gate on demand:** Actions → **Full prod gate** → Run workflow (`test:prod`).
+
 Operator checklist: [OPERATOR.md](./OPERATOR.md).
 
 Agent autotest instructions: [AUTOTESTS.md](./AUTOTESTS.md).

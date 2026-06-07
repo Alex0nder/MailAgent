@@ -76,7 +76,8 @@ try {
       doc: "docs/MCP-OAUTH-IDP.md",
     });
   } else {
-    console.log("  ✓ OIDC enabled\n");
+    console.log("  ✓ OIDC enabled");
+    console.log("  rotate secret: Auth0 → Settings → Rotate → npm run setup:oidc-prod\n");
   }
 
   console.log(`Agent API: v${agent.version ?? "?"} · MCP tools: ${agent.mcpTools?.length ?? "?"}\n`);
@@ -117,7 +118,7 @@ tasks.push({
   title: "GitHub Actions secrets (verify in repo Settings)",
   steps: [
     "CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID — deploy",
-    "MAILAGENT_API_KEY — prod gate (same key as .env)",
+    "MAILAGENT_API_KEY — test:prod:gate on deploy (same key as .env)",
     "DATABASE_URL — optional auto-migrate on deploy",
   ],
   doc: "docs/OPERATOR.md",

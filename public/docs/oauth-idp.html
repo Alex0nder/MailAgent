@@ -41,16 +41,14 @@ http://127.0.0.1:8787/v1/oauth/callback</code></pre>
           <li>Copy Domain, Client ID, Client Secret</li>
         </ol>
 
-        <h2>2. Worker secrets</h2>
-        <pre class="doc-pre"><code>npx wrangler secret put OIDC_ISSUER
-# https://YOUR-TENANT.us.auth0.com
+        <h2>2. Deploy secrets (wizard)</h2>
+        <pre class="doc-pre"><code>npm run wizard:auth0         # paste creds → .dev.vars
+npm run wizard:auth0 -- --deploy   # + wrangler secrets + contract test
 
-npx wrangler secret put OIDC_CLIENT_ID
-npx wrangler secret put OIDC_CLIENT_SECRET
-
-# optional (Auth0 API audience)
-npx wrangler secret put OIDC_AUDIENCE</code></pre>
-        <p>Local: same keys in <code>.dev.vars</code>, then <code>npm run db:migrate</code>.</p>
+# OIDC_ISSUER example (prod tenant):
+# https://webmailagent.us.auth0.com</code></pre>
+        <p>Browser login uses <strong>stateless JWT</strong> for authorize state — no Cloudflare KV puts.</p>
+        <p>After rotating Client Secret in Auth0: update <code>.dev.vars</code> → <code>npm run setup:oidc-prod</code>.</p>
 
         <h2>3. Verify discovery</h2>
         <pre class="doc-pre"><code>curl -sS https://api.webmailagent.com/.well-known/oauth-authorization-server | jq .
