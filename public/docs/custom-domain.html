@@ -21,42 +21,57 @@
       <article class="doc-content">
         <h1>Custom inbox domain</h1>
         <p class="doc-lead">
-          By default MailAgent creates addresses on your Resend receiving domain
-          (<code>INBOX_DOMAIN</code>, e.g. <code>abc123.resend.app</code>). To use
-          your own subdomain (e.g. <code>inbox.yourcompany.com</code>), configure
-          Resend receiving + DNS.
+          Use your own domain for disposable inboxes (e.g.
+          <code>qa@inbox.yourcompany.com</code>) instead of the shared
+          <code>INBOX_DOMAIN</code> hostname.
         </p>
 
-        <h2>1. Resend receiving domain</h2>
-        <ol class="doc-list">
-          <li>Resend Dashboard → <strong>Domains</strong> → add domain or use existing.</li>
-          <li>Enable <strong>Receiving</strong> and add MX records Resend shows.</li>
-          <li>Copy the receiving hostname (e.g. <code>your-id.resend.app</code>).</li>
-        </ol>
+        <h2>Hosted SaaS (API)</h2>
+        <p>Team-scoped domains via Resend DNS. Limits: free <strong>1</strong>, pro <strong>10</strong>, legacy <strong>3</strong>.</p>
 
-        <h2>2. MailAgent Worker</h2>
-        <pre class="doc-pre"><code>npx wrangler secret put INBOX_DOMAIN
-# paste: your-id.resend.app</code></pre>
-
-        <h2>3. Webhook</h2>
-        <p>Point Resend inbound webhook to:</p>
-        <pre class="doc-pre"><code>https://api.webmailagent.com/webhooks/resend</code></pre>
-
-        <h2>4. Verify</h2>
-        <pre class="doc-pre"><code>curl -s -X POST "$MAILAGENT_API_URL/v1/inboxes" \
+        <h3>1. Add domain</h3>
+        <pre class="doc-pre"><code>curl -sS -X POST "$MAILAGENT_API_URL/v1/domains" \
   -H "Authorization: Bearer $MAILAGENT_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"ttlMinutes":5}' | jq .address</code></pre>
-        <p>Send a test email to that address from an allowed sender.</p>
+  -d '{"name":"inbox.yourcompany.com"}' | jq .</code></pre>
+        <p>Response includes <code>dnsRecords</code> — add MX/TXT in your DNS provider.</p>
 
-        <h2>Branded subdomain (advanced)</h2>
+        <h3>2. Verify</h3>
+        <pre class="doc-pre"><code>curl -sS -X POST "$MAILAGENT_API_URL/v1/domains/DOMAIN_ID/verify" \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" | jq .status</code></pre>
+        <p>Poll until <code>status</code> is <code>verified</code>. Console: <a href="/dashboard.html">Dashboard</a> → Domains.</p>
+
+        <h3>3. Create inbox on domain</h3>
+        <pre class="doc-pre"><code>curl -sS -X POST "$MAILAGENT_API_URL/v1/inboxes" \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"qa-run-42","domainId":"DOMAIN_ID","ttlMinutes":60}' | jq .address</code></pre>
+
+        <h3>MCP</h3>
+        <pre class="doc-pre"><code>mailagent_add_domain
+mailagent_list_domains
+mailagent_verify_domain</code></pre>
+
+        <h3>Resend quota</h3>
+        <p>Free Resend plans often allow ≤2 domains. Delete stale test domains in Resend dashboard if <code>domain_limit_reached</code> or contract tests skip.</p>
+
+        <h2>Self-host (single INBOX_DOMAIN)</h2>
         <p>
-          Resend may offer custom receiving on your apex/subdomain per their docs.
-          MailAgent does not proxy SMTP — all mail flows through Resend inbound → webhook.
+          For a single Worker without per-team domain API — set one receiving hostname for all inboxes:
         </p>
-        <p class="doc-note">
-          Questions: <a href="mailto:hello@webmailagent.com">hello@webmailagent.com</a>
-        </p>
+        <ol class="doc-list">
+          <li>Resend Dashboard → <strong>Domains</strong> → enable <strong>Receiving</strong> + MX.</li>
+          <li>Copy hostname (e.g. <code>abc123.resend.app</code>).</li>
+          <li><code>npx wrangler secret put INBOX_DOMAIN</code></li>
+          <li>Webhook: <code>https://api.webmailagent.com/webhooks/resend</code></li>
+        </ol>
+
+        <h2>More</h2>
+        <ul class="doc-list">
+          <li><a href="/docs/outbound.html">Outbound send</a> — separate verified send domain</li>
+          <li><a href="/docs/integrate.html">Self-host guide</a></li>
+          <li><a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/ROADMAP.md#v019-custom-domains-agentmail-parity">ROADMAP v0.19</a></li>
+        </ul>
       </article>
     </div>
     <div id="site-footer"></div>

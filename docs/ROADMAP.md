@@ -342,6 +342,13 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 
 | `test:prod:gate` — smoke only on deploy/PR (not full contract suite) | ✅ |
 | OIDC flow JWT (no KV on browser login) | ✅ |
+| `test-prod-full.yml` workflow_dispatch | ✅ |
+| `GET /v1/agent` → `tests.prodGateCi` | ✅ |
+
+### v0.41 Domains docs
+
+| `custom-domain.html` — SaaS API + self-host INBOX_DOMAIN | ✅ |
+| Resend quota note in domains guide | ✅ |
 
 ### Deferred (not QA)
 

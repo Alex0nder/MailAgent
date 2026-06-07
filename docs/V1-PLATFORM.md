@@ -80,8 +80,8 @@ Goal: **full email API for agents** (inbound + outbound + threads) **plus** adva
 | Task | Status |
 |--------|--------|
 | Audit log + retention policies | ✅ |
-| SOC 2 narrative / SLA | backlog |
-| Dedicated domains | backlog |
+| SOC 2 narrative / SLA | backlog — see [ENTERPRISE.md](./ENTERPRISE.md) |
+| Dedicated domains (isolated infra) | backlog — custom domains API ✅ |
 
 ---
 
