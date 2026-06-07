@@ -1,14 +1,20 @@
-<!-- Apple touch icon — silver gradient tile + black envelope -->
+<!-- Apple touch icon — silver gradient tile + @ symbol -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="MailAgent">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="180" y2="180" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#d5d5d5" />
-      <stop offset="100%" stop-color="#8b8b8b" />
+      <stop offset="0%" stop-color="#d9d9d9" />
+      <stop offset="100%" stop-color="#888888" />
     </linearGradient>
   </defs>
   <rect width="180" height="180" rx="39" fill="url(#bg)" />
-  <g fill="none" stroke="#0a0a0a" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="28" y="39" width="123" height="100" rx="17" />
-    <path d="M35 44l55 50 55-50" />
-  </g>
+  <text
+    x="90"
+    y="92"
+    text-anchor="middle"
+    dominant-baseline="middle"
+    fill="#0a0a0a"
+    font-family="Georgia, 'Times New Roman', Times, serif"
+    font-size="87"
+    font-weight="500"
+  >@</text>
 </svg>

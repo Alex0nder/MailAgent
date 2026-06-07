@@ -4,7 +4,7 @@
 (function () {
   const GITHUB = "https://github.com/Alex0nder/MailAgent";
   const PORTFOLIO = "https://alexyoung33rd.com/";
-  const LOGO_SVG = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><g stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="13" rx="2.2"/><path d="M4.5 6l7.5 7 7.5-7"/></g></svg>`;
+  const LOGO_SVG = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><text x="12" y="12.5" text-anchor="middle" dominant-baseline="middle" fill="#0a0a0a" font-family="Georgia, 'Times New Roman', Times, serif" font-size="14" font-weight="500">@</text></svg>`;
 
   const DOC_SECTIONS = [
     {

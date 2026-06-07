@@ -172,7 +172,7 @@ main.landing > .cta-block {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #d5d5d5 0%, #8b8b8b 100%);
+  background: linear-gradient(135deg, #d9d9d9 0%, #888888 100%);
   display: grid;
   place-items: center;
 }
