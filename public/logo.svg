@@ -1,18 +1,14 @@
-<!-- MailAgent logo mark — 512×512, dark gradient tile + embossed envelope -->
+<!-- MailAgent logo mark — 512×512, silver gradient tile + black envelope -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="MailAgent">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="512" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#6b6b6b" />
-      <stop offset="100%" stop-color="#141414" />
-    </linearGradient>
-    <linearGradient id="mark" x1="0" y1="0" x2="512" y2="0" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#121212" />
-      <stop offset="100%" stop-color="#383838" />
+    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#d8d8d8" />
+      <stop offset="100%" stop-color="#a0a0a0" />
     </linearGradient>
   </defs>
   <rect width="512" height="512" rx="112" fill="url(#bg)" />
-  <g fill="none" stroke="url(#mark)" stroke-width="48" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="112" y="144" width="288" height="224" rx="40" />
-    <path d="M132 160l128 112 128-112" />
+  <g fill="none" stroke="#0a0a0a" stroke-width="44" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="125" y="151" width="262" height="210" rx="36" />
+    <path d="M145 167l111 112 111-112" />
   </g>
 </svg>
