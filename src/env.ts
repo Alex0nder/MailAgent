@@ -57,6 +57,8 @@ export interface EmailQueueMessage {
   to: string[];
   subject: string;
   receivedAt: string;
+  /** Enterprise: fetch email body from team's Resend account */
+  resendTeamId?: string;
 }
 
 export interface MessageNotifyPayload {

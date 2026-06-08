@@ -59,7 +59,9 @@ domainRoutes.post("/", async (c) => {
         ? 429
         : result.error === "domain_already_registered"
           ? 409
-          : 502;
+          : result.error === "dedicated_resend_required"
+            ? 403
+            : 502;
     return c.json(
       { error: result.error, ...(result.hint ? { hint: result.hint } : {}) },
       status

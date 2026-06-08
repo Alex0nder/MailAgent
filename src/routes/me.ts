@@ -9,6 +9,7 @@ import { stripeConfigured } from "../services/billing";
 import { getTeamBilling } from "../services/api-key-store";
 import { getScopedUsage } from "../services/console-stats";
 import { outboundCapabilities } from "../lib/outbound-capabilities";
+import { getDedicatedResendStatus } from "../services/team-resend";
 
 export const meRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
 
@@ -31,6 +32,11 @@ meRoutes.get("/", async (c) => {
     const bill = await getTeamBilling(c.env, teamId);
     canManagePortal = Boolean(bill?.stripe_customer_id);
   }
+
+  const dedicatedResend =
+    teamId && limits.dedicatedResend
+      ? await getDedicatedResendStatus(c.env, teamId)
+      : null;
 
   return c.json({
     plan,
@@ -67,6 +73,7 @@ meRoutes.get("/", async (c) => {
     },
     capabilities: {
       outbound: outboundCapabilities(c.env),
+      dedicatedResend,
     },
   });
 });

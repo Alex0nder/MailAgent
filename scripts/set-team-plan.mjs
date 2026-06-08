@@ -6,8 +6,8 @@ import { neon } from "@neondatabase/serverless";
 const teamId = process.argv[2];
 const plan = process.argv[3];
 
-if (!teamId || !["free", "pro"].includes(plan)) {
-  console.error("Usage: npm run team:plan -- <team_id> free|pro");
+if (!teamId || !["free", "pro", "enterprise"].includes(plan)) {
+  console.error("Usage: npm run team:plan -- <team_id> free|pro|enterprise");
   process.exit(1);
 }
 

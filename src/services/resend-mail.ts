@@ -27,8 +27,8 @@ import {
 import type { EmailQueueMessage, MessageNotifyPayload } from "../env";
 import { nanoid } from "nanoid";
 
-export function createResendClient(env: Env) {
-  return new Resend(env.RESEND_API_KEY);
+export function createResendClient(env: Env, apiKey?: string) {
+  return new Resend(apiKey ?? env.RESEND_API_KEY);
 }
 
 /** Process queued message: fetch body, extract, save, notify DO */
@@ -40,7 +40,11 @@ export async function processInboundEmail(
     payload: MessageNotifyPayload
   ) => Promise<void>
 ): Promise<void> {
-  const resend = createResendClient(env);
+  const resend = job.resendTeamId
+    ? await (
+        await import("./team-resend")
+      ).createResendClientForTeam(env, job.resendTeamId)
+    : createResendClient(env);
 
   let inbox = null;
   for (const rawTo of job.to) {

@@ -2,7 +2,7 @@
 import { nanoid } from "nanoid";
 import type { Env } from "../env";
 import { getDb } from "../db/client";
-import { createResendClient } from "./resend-mail";
+import { resolveResendTeamForDomain } from "./team-resend";
 import { PLAN_LIMITS, type PlanId } from "../lib/plans";
 
 export type DomainRow = {
@@ -202,8 +202,17 @@ export async function createDomain(
     return { ok: false, error: "domain_already_registered" };
   }
 
-  const resend = createResendClient(env);
-  const { data, error } = await resend.domains.create({ name: normalized });
+  const resendResolved = await resolveResendTeamForDomain(env, scope);
+  if (!resendResolved.ok) {
+    return {
+      ok: false,
+      error: resendResolved.error,
+      hint: resendResolved.hint,
+    };
+  }
+  const { data, error } = await resendResolved.client.domains.create({
+    name: normalized,
+  });
   if (error || !data?.id) {
     return {
       ok: false,
@@ -245,7 +254,15 @@ export async function verifyDomain(
   const row = await getDomain(env, domainId, scope);
   if (!row) return { ok: false, error: "domain_not_found" };
 
-  const resend = createResendClient(env);
+  const resendResolved = await resolveResendTeamForDomain(env, scope);
+  if (!resendResolved.ok) {
+    return {
+      ok: false,
+      error: resendResolved.error,
+      hint: resendResolved.hint,
+    };
+  }
+  const resend = resendResolved.client;
   const verifyResult = await resend.domains.verify(row.resend_domain_id);
   if (verifyResult.error) {
     return {
@@ -293,8 +310,11 @@ export async function deleteDomain(
   const row = await getDomain(env, domainId, scope);
   if (!row) return false;
 
-  const resend = createResendClient(env);
-  await resend.domains.remove(row.resend_domain_id);
+  const resendResolved = await resolveResendTeamForDomain(env, scope);
+  if (!resendResolved.ok) {
+    return false;
+  }
+  await resendResolved.client.domains.remove(row.resend_domain_id);
 
   const sql = getDb(env);
   await sql`DELETE FROM domains WHERE id = ${row.id}`;

@@ -17,6 +17,12 @@ import {
 } from "../services/api-key-store";
 import { countActiveInboxesForTeam } from "../services/inbox";
 import { auditRoute } from "../services/audit-log";
+import {
+  clearTeamDedicatedResend,
+  getDedicatedResendStatus,
+  isEnterprisePlan,
+  setTeamDedicatedResend,
+} from "../services/team-resend";
 
 export const teamRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
 
@@ -48,6 +54,7 @@ teamRoutes.get("/", async (c) => {
   const plan = c.get("apiPlan");
   const limits = PLAN_LIMITS[plan];
   const activeInboxes = await countActiveInboxesForTeam(c.env, teamId);
+  const dedicatedResend = await getDedicatedResendStatus(c.env, teamId);
 
   return c.json({
     id: team.id,
@@ -58,7 +65,9 @@ teamRoutes.get("/", async (c) => {
       maxTeamKeys: limits.maxTeamKeys,
       maxActiveInboxes: limits.maxActiveInboxes,
       maxCustomDomains: limits.maxCustomDomains,
+      dedicatedResend: limits.dedicatedResend,
     },
+    dedicatedResend,
     usage: {
       keys: keys.length,
       activeInboxes,
@@ -166,4 +175,82 @@ teamRoutes.delete("/keys/:id", async (c) => {
       resourceId: keyId,
     });
   return c.json({ revoked: true, id: keyId });
+});
+
+teamRoutes.get("/dedicated-resend", async (c) => {
+  const teamId = requireTeam(c);
+  if (!teamId) return c.json({ error: "team_required" }, 403);
+  const status = await getDedicatedResendStatus(c.env, teamId);
+  return c.json({
+    ...status,
+    plan: c.get("apiPlan"),
+    enterpriseRequired: isEnterprisePlan(c.get("apiPlan")),
+  });
+});
+
+teamRoutes.put("/dedicated-resend", async (c) => {
+  const adminErr = scopeAdminDenied(c);
+  if (adminErr) return adminErr;
+
+  const teamId = requireTeam(c);
+  if (!teamId) return c.json({ error: "team_required" }, 403);
+
+  if (!isEnterprisePlan(c.get("apiPlan"))) {
+    return c.json(
+      {
+        error: "enterprise_plan_required",
+        hint: "Contact hello@webmailagent.com or npm run team:plan -- TEAM_ID enterprise",
+      },
+      403
+    );
+  }
+
+  let body: { resendApiKey?: string; webhookSecret?: string } = {};
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: "invalid_json" }, 400);
+  }
+
+  const resendApiKey = body.resendApiKey?.trim();
+  const webhookSecret = body.webhookSecret?.trim();
+  if (!resendApiKey || !webhookSecret) {
+    return c.json({ error: "resend_api_key_and_webhook_secret_required" }, 400);
+  }
+
+  const result = await setTeamDedicatedResend(c.env, teamId, {
+    resendApiKey,
+    webhookSecret,
+  });
+  if (!result.ok) {
+    return c.json({ error: result.error }, 400);
+  }
+
+  auditRoute(c, {
+    action: "team.dedicated_resend.configured",
+    resourceType: "team",
+    resourceId: teamId,
+  });
+
+  const status = await getDedicatedResendStatus(c.env, teamId);
+  return c.json(status);
+});
+
+teamRoutes.delete("/dedicated-resend", async (c) => {
+  const adminErr = scopeAdminDenied(c);
+  if (adminErr) return adminErr;
+
+  const teamId = requireTeam(c);
+  if (!teamId) return c.json({ error: "team_required" }, 403);
+
+  const ok = await clearTeamDedicatedResend(c.env, teamId);
+  if (!ok) return c.json({ error: "team_not_found" }, 404);
+
+  auditRoute(c, {
+    action: "team.dedicated_resend.cleared",
+    resourceType: "team",
+    resourceId: teamId,
+  });
+
+  return c.json({ cleared: true });
 });

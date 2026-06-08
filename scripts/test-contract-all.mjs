@@ -28,6 +28,7 @@ const scripts = [
   "contract-qa-audit.mjs",
   "contract-qa-console-inbox.mjs",
   "contract-qa-team-keys.mjs",
+  "contract-qa-dedicated-resend.mjs",
 ];
 
 for (const name of scripts) {

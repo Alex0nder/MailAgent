@@ -14,15 +14,17 @@ Public: [enterprise.html](https://webmailagent.com/docs/enterprise.html)
 | Custom domains | `POST /v1/domains` · MCP · console |
 | OIDC browser login | Auth0 · `auth.oidc: enabled` |
 | Plan limits | `GET /v1/me` → `limits`, `usage` |
+| Dedicated Resend (enterprise) | `PUT /v1/team/dedicated-resend` · [DEDICATED-DOMAINS.md](./DEDICATED-DOMAINS.md) |
+| Per-team inbound webhook | `POST /webhooks/resend/team/:teamId` |
 
 ## Backlog
 
 | Item | Notes |
 |------|--------|
 | SOC 2 Type II narrative | draft [SOC2.md](./SOC2.md) — not certified |
-| Dedicated domains | isolated Resend/infra per enterprise tenant |
 | SLA / support tier | post-Stripe billing |
 | Stripe on prod | on hold — see [YOUR-TURN.md](./YOUR-TURN.md) |
+| Outbound on dedicated Resend | inbound + domains today; send/reply uses shared `OUTBOUND_FROM` |
 
 ## Self-host TCO
 

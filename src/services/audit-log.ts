@@ -12,7 +12,9 @@ export type AuditAction =
   | "domain.deleted"
   | "billing.checkout"
   | "inbox.sent"
-  | "inbox.replied";
+  | "inbox.replied"
+  | "team.dedicated_resend.configured"
+  | "team.dedicated_resend.cleared";
 
 export type AuditContext = {
   teamId: string | null;

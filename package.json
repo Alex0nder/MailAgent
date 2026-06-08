@@ -45,6 +45,7 @@
     "test:contract:qa:attachments": "node scripts/contract-qa-attachments.mjs",
     "test:contract:qa:threads": "node scripts/contract-qa-threads.mjs",
     "test:contract:qa:domains": "node scripts/contract-qa-domains.mjs",
+    "test:contract:qa:dedicated-resend": "node scripts/contract-qa-dedicated-resend.mjs",
     "test:contract:qa:search": "node scripts/contract-qa-search.mjs",
     "test:contract:qa:extract": "node scripts/contract-qa-extract.mjs",
     "test:contract:qa:console": "node scripts/contract-qa-console.mjs",

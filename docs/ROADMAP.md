@@ -378,9 +378,21 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | SKILL — console key + `test:prod` from MailAgent repo only | ✅ |
 | awesome-codex-plugins PR [#195](https://github.com/hashgraph-online/awesome-codex-plugins/pull/195) refresh | ✅ pushed |
 
-### v0.46 Enterprise (next code track)
+### v0.46 Enterprise — dedicated Resend
 
-| Dedicated domains (isolated Resend per tenant) | planned |
+| `enterprise` plan + limits in `plans.ts` | ✅ |
+| Migration `016_team_dedicated_resend` | ✅ |
+| `PUT/GET/DELETE /v1/team/dedicated-resend` | ✅ |
+| Encrypted team Resend key + webhook secret | ✅ |
+| `POST /webhooks/resend/team/:teamId` | ✅ |
+| Custom domains use team Resend when configured | ✅ |
+| Enterprise requires dedicated Resend before domains | ✅ |
+| `npm run team:plan -- TEAM_ID enterprise` | ✅ |
+| [DEDICATED-DOMAINS.md](./DEDICATED-DOMAINS.md) | ✅ |
+
+### v0.47 Enterprise (next)
+
+| Outbound send via team Resend | planned |
 | Stripe live on prod (`STRIPE_*`) | on hold |
 | SOC 2 Type II (beyond draft) | planned |
 | SLA / support tier | post-Stripe |
