@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Audit log — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="doc-page" data-site="docs" data-doc="audit">
+    <div id="site-nav"></div>
+
+    <div class="doc-layout">
+      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
+      <article class="doc-content doc-content--wide">
+        <h1>Audit log</h1>
+        <p class="doc-lead">
+          Team and key-scoped events — inbox, domain, billing, and key lifecycle.
+          <a href="/docs/enterprise.html">Enterprise →</a>
+        </p>
+
+        <form class="app-form" id="form" onsubmit="return false">
+          <label for="base">API base</label>
+          <input id="base" type="url" value="https://api.webmailagent.com" />
+          <label for="key">API key</label>
+          <input id="key" type="password" autocomplete="off" placeholder="ma_…" />
+          <button type="button" id="load">Refresh</button>
+        </form>
+
+        <div id="meta" class="console-meta"></div>
+        <div id="list"></div>
+        <div class="console-actions" id="pager" hidden>
+          <button type="button" class="app-btn app-btn--ghost" id="more">Load older</button>
+        </div>
+      </article>
+    </div>
+
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
+    <script>
+      const KEY = "mailagent_dashboard_key";
+      const baseEl = document.getElementById("base");
+      const keyEl = document.getElementById("key");
+      const metaEl = document.getElementById("meta");
+      const listEl = document.getElementById("list");
+      const pagerEl = document.getElementById("pager");
+      const moreBtn = document.getElementById("more");
+      if (localStorage.getItem(KEY)) keyEl.value = localStorage.getItem(KEY);
+
+      let nextBefore = null;
+      let rows = [];
+
+      function esc(s) {
+        return String(s ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      async function api(path) {
+        const base = baseEl.value.replace(/\/$/, "");
+        const key = keyEl.value.trim();
+        const r = await fetch(`${base}${path}`, {
+          headers: { Authorization: `Bearer ${key}` },
+        });
+        const json = await r.json().catch(() => ({}));
+        return { ok: r.ok, status: r.status, json };
+      }
+
+      function renderTable() {
+        if (!rows.length) {
+          listEl.innerHTML = `<p class="console-empty">No audit events yet.</p>`;
+          return;
+        }
+        let html = `<table class="console-table"><thead><tr>
+          <th>Time</th><th>Action</th><th>Resource</th><th>Key</th><th>Meta</th>
+        </tr></thead><tbody>`;
+        for (const ev of rows) {
+          const res = ev.resourceId
+            ? `${esc(ev.resourceType || "")} <code>${esc(ev.resourceId)}</code>`
+            : "—";
+          const meta =
+            ev.meta && typeof ev.meta === "object" && Object.keys(ev.meta).length
+              ? `<code>${esc(JSON.stringify(ev.meta))}</code>`
+              : "—";
+          html += `<tr>
+            <td>${esc(new Date(ev.createdAt).toLocaleString())}</td>
+            <td><code>${esc(ev.action)}</code></td>
+            <td>${res}</td>
+            <td><code>${esc(ev.apiKeyHint || "—")}</code></td>
+            <td>${meta}</td>
+          </tr>`;
+        }
+        html += `</tbody></table>`;
+        listEl.innerHTML = html;
+      }
+
+      async function fetchPage(before, append) {
+        const key = keyEl.value.trim();
+        if (!key) return;
+        localStorage.setItem(KEY, key);
+        if (!append) {
+          listEl.textContent = "Loading…";
+          rows = [];
+          nextBefore = null;
+        } else {
+          moreBtn.disabled = true;
+        }
+
+        const q = new URLSearchParams({ limit: "50" });
+        if (before) q.set("before", before);
+        const res = await api(`/v1/audit?${q}`);
+        if (!res.ok) {
+          listEl.innerHTML = `<p class="app-err">${esc(res.json.error || res.status)}</p>`;
+          pagerEl.hidden = true;
+          return;
+        }
+
+        const events = res.json.events || [];
+        rows = append ? rows.concat(events) : events;
+        nextBefore = res.json.nextBefore || null;
+        const days = res.json.policies?.auditRetentionDays ?? 90;
+        metaEl.textContent = `${rows.length} event(s) loaded · retention ${days} days`;
+        renderTable();
+        pagerEl.hidden = !nextBefore;
+        moreBtn.disabled = false;
+      }
+
+      document.getElementById("load").onclick = () => fetchPage(null, false);
+      moreBtn.onclick = () => {
+        if (nextBefore) fetchPage(nextBefore, true);
+      };
+    </script>
+  </body>
+</html>

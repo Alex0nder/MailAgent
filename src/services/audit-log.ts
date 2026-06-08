@@ -106,28 +106,53 @@ export type AuditEventRow = {
 export async function listAuditEvents(
   env: Env,
   scope: { teamId: string | null; apiKeyHint: string },
-  options?: { limit?: number }
+  options?: { limit?: number; before?: string }
 ): Promise<ReturnType<typeof formatAuditEvent>[]> {
   const sql = getDb(env);
   const limit = Math.min(options?.limit ?? 50, 100);
+  const before = options?.before?.trim() || null;
 
   const rows = scope.teamId
-    ? ((await sql`
-        SELECT id, team_id, api_key_hint, api_key_id, action,
-               resource_type, resource_id, meta, created_at
-        FROM audit_events
-        WHERE team_id = ${scope.teamId}
-        ORDER BY created_at DESC
-        LIMIT ${limit}
-      `) as AuditEventRow[])
-    : ((await sql`
-        SELECT id, team_id, api_key_hint, api_key_id, action,
-               resource_type, resource_id, meta, created_at
-        FROM audit_events
-        WHERE team_id IS NULL AND api_key_hint = ${scope.apiKeyHint}
-        ORDER BY created_at DESC
-        LIMIT ${limit}
-      `) as AuditEventRow[]);
+    ? before
+      ? ((await sql`
+          SELECT e.id, e.team_id, e.api_key_hint, e.api_key_id, e.action,
+                 e.resource_type, e.resource_id, e.meta, e.created_at
+          FROM audit_events e
+          WHERE e.team_id = ${scope.teamId}
+            AND (e.created_at, e.id) < (
+              SELECT created_at, id FROM audit_events WHERE id = ${before} LIMIT 1
+            )
+          ORDER BY e.created_at DESC, e.id DESC
+          LIMIT ${limit}
+        `) as AuditEventRow[])
+      : ((await sql`
+          SELECT id, team_id, api_key_hint, api_key_id, action,
+                 resource_type, resource_id, meta, created_at
+          FROM audit_events
+          WHERE team_id = ${scope.teamId}
+          ORDER BY created_at DESC, id DESC
+          LIMIT ${limit}
+        `) as AuditEventRow[])
+    : before
+      ? ((await sql`
+          SELECT e.id, e.team_id, e.api_key_hint, e.api_key_id, e.action,
+                 e.resource_type, e.resource_id, e.meta, e.created_at
+          FROM audit_events e
+          WHERE e.team_id IS NULL AND e.api_key_hint = ${scope.apiKeyHint}
+            AND (e.created_at, e.id) < (
+              SELECT created_at, id FROM audit_events WHERE id = ${before} LIMIT 1
+            )
+          ORDER BY e.created_at DESC, e.id DESC
+          LIMIT ${limit}
+        `) as AuditEventRow[])
+      : ((await sql`
+          SELECT id, team_id, api_key_hint, api_key_id, action,
+                 resource_type, resource_id, meta, created_at
+          FROM audit_events
+          WHERE team_id IS NULL AND api_key_hint = ${scope.apiKeyHint}
+          ORDER BY created_at DESC, id DESC
+          LIMIT ${limit}
+        `) as AuditEventRow[]);
 
   return rows.map(formatAuditEvent);
 }

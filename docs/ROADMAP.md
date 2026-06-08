@@ -363,6 +363,13 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | `docs/SOC2.md` control mapping draft | ✅ |
 | `npm run rotate:oidc` alias | ✅ |
 
+### v0.44 Console self-serve + audit UI
+
+| Dashboard: create inbox form (label + service preset) | ✅ |
+| `audit.html` — paginated `GET /v1/audit` (`before` cursor) | ✅ |
+| Audit API `hasMore` + `nextBefore` | ✅ |
+| Sidebar + console summary `links.audit` | ✅ |
+
 ### Deferred (not QA)
 
 - ~~Agent session memory / multi-step run state~~ ✅ v0.35

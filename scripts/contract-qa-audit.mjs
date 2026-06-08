@@ -61,6 +61,30 @@ async function main() {
     process.exit(1);
   }
 
+  const page1 = await contractApi(base, headers, "/v1/audit?limit=5");
+  if (!page1.ok || typeof page1.json.hasMore !== "boolean") {
+    console.error("audit pagination fields missing", page1.json);
+    process.exit(1);
+  }
+  if (page1.json.events?.length === 5 && page1.json.nextBefore) {
+    const page2 = await contractApi(
+      base,
+      headers,
+      `/v1/audit?limit=5&before=${encodeURIComponent(page1.json.nextBefore)}`
+    );
+    if (!page2.ok || !Array.isArray(page2.json?.events)) {
+      console.error("audit page2 failed", page2.status, page2.json);
+      process.exit(1);
+    }
+    const overlap = page2.json.events.some((e) =>
+      page1.json.events.some((a) => a.id === e.id)
+    );
+    if (overlap) {
+      console.error("audit cursor returned duplicate events");
+      process.exit(1);
+    }
+  }
+
   console.log("contract-qa-audit OK", { inboxId, auditId: hit.id });
 }
 

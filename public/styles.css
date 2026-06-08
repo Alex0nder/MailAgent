@@ -1972,7 +1972,8 @@ h1 {
   color: var(--text-muted);
 }
 
-.console-key-form input[type="text"] {
+.console-key-form input[type="text"],
+.console-key-form select {
   width: 100%;
   padding: 8px 10px;
   font: inherit;

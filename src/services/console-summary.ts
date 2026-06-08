@@ -169,6 +169,7 @@ export async function buildConsoleSummary(
     links: {
       debug: "/debug.html",
       agentRuns: "/agent-runs.html",
+      audit: "/audit.html",
       docsBilling: "/docs/BILLING.html",
     },
   };

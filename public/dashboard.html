@@ -156,8 +156,28 @@
         }
 
         html += `<h2>Recent inboxes</h2>`;
+        const canCreateInbox = !scope?.readOnly && (u.inboxesRemaining ?? 0) > 0;
+        if (canCreateInbox) {
+          html += `<form class="console-key-form" id="create-inbox-form">
+            <label for="inbox-label">Label</label>
+            <input id="inbox-label" type="text" maxlength="64" placeholder="manual-test" />
+            <label for="inbox-service">Service preset (optional)</label>
+            <select id="inbox-service">
+              <option value="">— any sender —</option>
+              <option value="github">github</option>
+              <option value="google">google</option>
+              <option value="auth0">auth0</option>
+              <option value="stripe">stripe</option>
+              <option value="vercel">vercel</option>
+              <option value="supabase">supabase</option>
+            </select>
+            <button type="submit" class="app-btn app-btn--ghost">Create inbox</button>
+          </form>`;
+        } else if (scope?.readOnly) {
+          html += `<p class="console-empty">Read-only key — create inboxes via API with a write key.</p>`;
+        }
         if (!d.recentInboxes?.length) {
-          html += `<p class="console-empty">No active inboxes. Create one via API or MCP.</p>`;
+          html += `<p class="console-empty">No active inboxes yet.</p>`;
         } else {
           html += `<table class="console-table"><thead><tr><th>Address</th><th>Label</th><th>Expires</th><th></th></tr></thead><tbody>`;
           for (const i of d.recentInboxes) {
@@ -250,7 +270,7 @@
             <p class="console-empty">Legacy hosted key — run <code>npm run issue:key:db</code> for team invites and scoped keys. See <a href="/docs/teams.html">Teams &amp; keys</a>.</p>`;
         }
 
-        html += `<h2>Audit log</h2>`;
+        html += `<h2>Audit log</h2><p><a href="/audit.html">Full audit log →</a></p>`;
         if (!d.recentAudit?.length) {
           html += `<p class="console-empty">No events yet.</p>`;
         } else {
@@ -290,6 +310,22 @@
           });
           if (r.json.url) location.href = r.json.url;
           else alert(r.json.error || "Portal failed");
+        });
+
+        document.getElementById("create-inbox-form")?.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const label = document.getElementById("inbox-label")?.value.trim() || undefined;
+          const service = document.getElementById("inbox-service")?.value.trim() || undefined;
+          const body = { label, ttlMinutes: 60 };
+          if (service) body.service = service;
+          const r = await api("/v1/inboxes", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+          if (r.ok && r.json.id) {
+            location.href = `/console-inbox.html?inbox=${encodeURIComponent(r.json.id)}`;
+          } else alert(r.json.error || r.json.hint || "Create failed");
         });
 
         document.getElementById("create-key-form")?.addEventListener("submit", async (e) => {
