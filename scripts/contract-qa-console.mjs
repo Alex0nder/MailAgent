@@ -41,6 +41,10 @@ async function main() {
     console.error("console capabilities.outbound missing", s0.capabilities);
     process.exit(1);
   }
+  if (s0.teamId && s0.dedicatedResend?.webhookUrl == null) {
+    console.error("dedicatedResend missing for team key", s0.dedicatedResend);
+    process.exit(1);
+  }
   console.log("console summary OK", {
     plan: s0.plan,
     messagesLast24h: s0.usage.messagesLast24h,

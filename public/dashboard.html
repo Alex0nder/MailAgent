@@ -113,8 +113,15 @@
         html += `</div></div>`;
 
         const ob = d.capabilities?.outbound;
-        if (ob?.enabled && !ob.verifiedFrom) {
+        if (ob?.enabled && !ob.verifiedFrom && !ob.dedicatedResend) {
           html += `<div class="console-banner">Outbound send works, but <code>OUTBOUND_FROM</code> is not set — deliverability may suffer. <a href="/docs/outbound.html">Setup guide</a></div>`;
+        }
+        if (
+          d.plan === "enterprise" &&
+          d.dedicatedResend &&
+          !d.dedicatedResend.configured
+        ) {
+          html += `<div class="console-banner">Enterprise: configure <strong>Dedicated Resend</strong> below before adding custom domains. <a href="/docs/enterprise.html">Guide</a></div>`;
         }
 
         const scope = d.scope;
@@ -189,6 +196,39 @@
             </tr>`;
           }
           html += `</tbody></table>`;
+        }
+
+        if (d.teamId && (d.plan === "enterprise" || d.dedicatedResend?.configured)) {
+          const dr = d.dedicatedResend;
+          const canManageDr = d.team?.canManageKeys;
+          html += `<h2>Dedicated Resend</h2>`;
+          if (d.plan !== "enterprise") {
+            html += `<p class="console-empty">Enterprise plan required. Contact <a href="mailto:hello@webmailagent.com">hello@webmailagent.com</a>.</p>`;
+          } else if (dr?.configured) {
+            const at = dr.configuredAt
+              ? new Date(dr.configuredAt).toLocaleString()
+              : "—";
+            html += `<p class="console-meta">Configured ${esc(at)} · inbound webhook + custom domains use your Resend account.</p>`;
+            html += `<div class="console-key-form">
+              <label for="dr-webhook-url">Webhook URL (Resend dashboard)</label>
+              <input id="dr-webhook-url" type="text" readonly value="${esc(dr.webhookUrl)}" onclick="this.select()" />
+              <p class="console-meta">Event: <code>email.received</code> · Outbound send requires inboxes on a verified custom domain.</p>`;
+            if (canManageDr) {
+              html += `<button type="button" class="console-revoke-btn" id="clear-dedicated-resend">Clear configuration</button>`;
+            }
+            html += `</div>`;
+          } else if (canManageDr) {
+            html += `<p class="console-empty">Isolated Resend for domains, inbound, and outbound. <a href="/docs/enterprise.html">Setup guide</a></p>`;
+            html += `<form class="console-key-form" id="dedicated-resend-form">
+              <label for="dr-api-key">Resend API key</label>
+              <input id="dr-api-key" type="password" autocomplete="off" placeholder="re_…" />
+              <label for="dr-webhook-secret">Webhook signing secret</label>
+              <input id="dr-webhook-secret" type="password" autocomplete="off" placeholder="whsec_…" />
+              <button type="submit" class="app-btn app-btn--ghost">Save</button>
+            </form>`;
+          } else {
+            html += `<p class="console-empty">Not configured — use an admin team key to set up dedicated Resend.</p>`;
+          }
         }
 
         html += `<h2>Custom domains</h2>`;
@@ -393,6 +433,33 @@
             if (r.ok) load();
             else alert(r.json.error || r.json.hint || "Delete failed");
           });
+        });
+
+        document.getElementById("dedicated-resend-form")?.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const resendApiKey = document.getElementById("dr-api-key")?.value.trim();
+          const webhookSecret = document.getElementById("dr-webhook-secret")?.value.trim();
+          if (!resendApiKey || !webhookSecret) {
+            alert("Resend API key and webhook secret are required");
+            return;
+          }
+          const r = await api("/v1/team/dedicated-resend", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ resendApiKey, webhookSecret }),
+          });
+          if (r.ok) {
+            document.getElementById("dr-api-key").value = "";
+            document.getElementById("dr-webhook-secret").value = "";
+            load();
+          } else alert(r.json.error || r.json.hint || "Save failed");
+        });
+
+        document.getElementById("clear-dedicated-resend")?.addEventListener("click", async () => {
+          if (!confirm("Clear dedicated Resend? Custom domains on your account will stop working until reconfigured.")) return;
+          const r = await api("/v1/team/dedicated-resend", { method: "DELETE" });
+          if (r.ok) load();
+          else alert(r.json.error || r.json.hint || "Clear failed");
         });
       }
 

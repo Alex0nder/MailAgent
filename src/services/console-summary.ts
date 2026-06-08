@@ -16,6 +16,7 @@ import { listAuditEvents, auditRetentionDays } from "./audit-log";
 import { listRecentThreadsForScope } from "./console-threads";
 import { outboundCapabilities } from "../lib/outbound-capabilities";
 import { stripeConfigured } from "./billing";
+import { getDedicatedResendStatus } from "./team-resend";
 
 export async function buildConsoleSummary(
   env: Env,
@@ -139,7 +140,11 @@ export async function buildConsoleSummary(
       maxActiveInboxes: limits.maxActiveInboxes,
       maxTeamKeys: limits.maxTeamKeys,
       maxCustomDomains: limits.maxCustomDomains,
+      dedicatedResend: limits.dedicatedResend,
     },
+    dedicatedResend: input.teamId
+      ? await getDedicatedResendStatus(env, input.teamId)
+      : null,
     usage,
     billing,
     recentInboxes: recentInboxes.map((i) => ({
@@ -174,6 +179,7 @@ export async function buildConsoleSummary(
       agentRuns: "/agent-runs.html",
       audit: "/audit.html",
       docsBilling: "/docs/BILLING.html",
+      docsEnterprise: "/docs/enterprise.html",
     },
   };
 }

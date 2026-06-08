@@ -59,6 +59,8 @@ curl -sS "$MAILAGENT_API_URL/v1/team/dedicated-resend" \
 
 `GET /v1/me` → `capabilities.dedicatedResend` when on enterprise plan.
 
+Console: [dashboard.html](https://webmailagent.com/dashboard.html) → **Dedicated Resend** section.
+
 ## Security
 
 - Resend API key and webhook secret stored **encrypted** in Postgres (AES-GCM, key derived from `MCP_OAUTH_JWT_SECRET` / `API_KEY`)

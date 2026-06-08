@@ -397,9 +397,16 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | `capabilities.outbound.dedicatedResend` in `/v1/me` + console | ✅ |
 | MCP `mailagent_send_message` passes `teamId` | ✅ |
 
-### v0.48 Enterprise (next)
+### v0.48 Enterprise — console dedicated Resend UI
 
-| Console UI for dedicated Resend setup | planned |
+| Dashboard section: configure / status / webhook URL | ✅ |
+| `dedicatedResend` in `GET /v1/console/summary` | ✅ |
+| Enterprise banner before domains when not configured | ✅ |
+| `contract-qa-console` checks `dedicatedResend` shape | ✅ |
+
+### v0.49 Enterprise (next)
+
+| Public `docs/dedicated-domains.html` page | planned |
 | Stripe live on prod (`STRIPE_*`) | on hold |
 | SOC 2 Type II (beyond draft) | planned |
 | SLA / support tier | post-Stripe |
