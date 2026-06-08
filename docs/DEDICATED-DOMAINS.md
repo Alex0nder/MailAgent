@@ -65,6 +65,26 @@ curl -sS "$MAILAGENT_API_URL/v1/team/dedicated-resend" \
 - Team admin key required (`scope_admin_required` for read-only scoped keys)
 - Audit: `team.dedicated_resend.configured` / `team.dedicated_resend.cleared`
 
+## Outbound send / reply
+
+With dedicated Resend configured, `POST /v1/inboxes/:id/send` and `…/reply` use the **team's** Resend API key.
+
+- **From:** `MailAgent <inbox@your-verified-domain.com>`
+- Inbox must be on a **custom domain** (`domainId` at create) — shared `INBOX_DOMAIN` addresses return `403 dedicated_outbound_requires_custom_domain_inbox`
+- `GET /v1/me` → `capabilities.outbound.dedicatedResend: true` when team Resend is configured
+
+```bash
+curl -sS -X POST "$MAILAGENT_API_URL/v1/inboxes" \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" \
+  -d '{"label":"outbound","domainId":"DOMAIN_ID","username":"qa"}' | jq .address
+
+curl -sS -X POST "$MAILAGENT_API_URL/v1/inboxes/INBOX_ID/send" \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" \
+  -d '{"to":["user@example.com"],"subject":"Hello","text":"from dedicated Resend"}' | jq .
+```
+
+MCP: `mailagent_send_message` — same rules.
+
 ## Limits (enterprise plan)
 
 | Limit | Value |

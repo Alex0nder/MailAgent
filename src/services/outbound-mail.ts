@@ -1,6 +1,6 @@
-/** Outbound mail from inbox via Resend (threads + reply) */
+/** Outbound mail from inbox via Resend (threads + reply; shared or team dedicated) */
 import { nanoid } from "nanoid";
-import { Resend } from "resend";
+import type { Resend } from "resend";
 import type { Env } from "../env";
 import { getDb } from "../db/client";
 import {
@@ -12,10 +12,16 @@ import {
 } from "./inbox";
 import { extractLinks, extractOtp } from "./extract";
 import { indexMessageSearch } from "./message-search";
+import { createResendClient } from "./resend-mail";
+import {
+  createResendClientForTeam,
+  teamHasDedicatedResend,
+} from "./team-resend";
 
 export type SendMailInput = {
   inboxId: string;
   apiKeyHint?: string;
+  teamId?: string | null;
   to: string[];
   cc?: string[];
   bcc?: string[];
@@ -43,14 +49,35 @@ export type ThreadSummary = {
   participants: string[];
 };
 
-function createResend(env: Env): Resend {
-  return new Resend(env.RESEND_API_KEY);
-}
-
-function outboundFrom(env: Env, inbox: InboxRow): string {
+function sharedOutboundFrom(env: Env, inbox: InboxRow): string {
   const custom = env.OUTBOUND_FROM?.trim();
   if (custom) return custom;
   return `MailAgent <${inbox.address}>`;
+}
+
+async function resolveOutboundSend(
+  env: Env,
+  inbox: InboxRow,
+  teamId: string | null | undefined
+): Promise<{ resend: Resend; from: string; dedicatedResend: boolean }> {
+  if (teamId && (await teamHasDedicatedResend(env, teamId))) {
+    if (!inbox.domain_id) {
+      throw new Error(
+        "dedicated_outbound_requires_custom_domain_inbox: create inbox with domainId on a verified custom domain"
+      );
+    }
+    return {
+      resend: await createResendClientForTeam(env, teamId),
+      from: `MailAgent <${inbox.address}>`,
+      dedicatedResend: true,
+    };
+  }
+
+  return {
+    resend: createResendClient(env),
+    from: sharedOutboundFrom(env, inbox),
+    dedicatedResend: false,
+  };
 }
 
 export async function sendFromInbox(
@@ -87,7 +114,11 @@ export async function sendFromInbox(
     }
   }
 
-  const from = outboundFrom(env, inbox);
+  const { resend, from } = await resolveOutboundSend(
+    env,
+    inbox,
+    input.teamId
+  );
   const headers: Record<string, string> = {
     "Reply-To": inbox.address,
   };
@@ -96,7 +127,6 @@ export async function sendFromInbox(
     headers.References = references.length ? references.join(" ") : inReplyTo;
   }
 
-  const resend = createResend(env);
   const { data, error } = await resend.emails.send({
     from,
     to,

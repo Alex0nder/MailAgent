@@ -163,7 +163,10 @@ export async function buildConsoleSummary(
       auditRetentionDays: auditRetentionDays(env),
     },
     capabilities: {
-      outbound: outboundCapabilities(env),
+      outbound: await outboundCapabilities(env, {
+        teamId: input.teamId,
+        plan: input.plan,
+      }),
     },
     team,
     links: {

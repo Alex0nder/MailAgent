@@ -72,7 +72,10 @@ meRoutes.get("/", async (c) => {
       consolePath: "/v1/console/summary",
     },
     capabilities: {
-      outbound: outboundCapabilities(c.env),
+      outbound: await outboundCapabilities(c.env, {
+        teamId,
+        plan,
+      }),
       dedicatedResend,
     },
   });

@@ -390,9 +390,16 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | `npm run team:plan -- TEAM_ID enterprise` | ✅ |
 | [DEDICATED-DOMAINS.md](./DEDICATED-DOMAINS.md) | ✅ |
 
-### v0.47 Enterprise (next)
+### v0.47 Enterprise — outbound on dedicated Resend
 
-| Outbound send via team Resend | planned |
+| `send` / `reply` use team Resend when configured | ✅ |
+| From address = custom-domain inbox (`domainId` required) | ✅ |
+| `capabilities.outbound.dedicatedResend` in `/v1/me` + console | ✅ |
+| MCP `mailagent_send_message` passes `teamId` | ✅ |
+
+### v0.48 Enterprise (next)
+
+| Console UI for dedicated Resend setup | planned |
 | Stripe live on prod (`STRIPE_*`) | on hold |
 | SOC 2 Type II (beyond draft) | planned |
 | SLA / support tier | post-Stripe |

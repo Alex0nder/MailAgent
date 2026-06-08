@@ -136,7 +136,7 @@ export const MCP_TOOLS = [
   {
     name: "mailagent_send_message",
     description:
-      "Send outbound email from inbox (reply to thread). Requires verified OUTBOUND_FROM in Resend.",
+      "Send outbound email from inbox (reply to thread). Shared: OUTBOUND_FROM on Worker. Enterprise dedicated Resend: custom-domain inbox only.",
     inputSchema: {
       type: "object",
       required: ["inboxId", "to", "subject"],

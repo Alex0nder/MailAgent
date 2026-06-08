@@ -499,6 +499,7 @@ export async function executeMcpTool(
         const result = await sendFromInbox(env, {
           inboxId,
           apiKeyHint: auth.apiKeyHint,
+          teamId: auth.teamId,
           to,
           subject: args.subject as string,
           text: args.text as string | undefined,

@@ -54,6 +54,8 @@ consoleRoutes.get("/inboxes/:id", async (c) => {
   const detail = await buildConsoleInboxDetail(c.env, inboxId, {
     apiKeyHint: c.get("apiKeyHint"),
     apiBaseUrl: publicOriginFromUrl(c.req.url),
+    teamId: c.get("teamId"),
+    plan: c.get("apiPlan"),
   });
   if (!detail) return c.json({ error: "inbox_not_found" }, 404);
   return c.json(detail);

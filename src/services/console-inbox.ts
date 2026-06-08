@@ -4,11 +4,17 @@ import { getInbox } from "./inbox";
 import { buildInboxDiagnose } from "./inbox-diagnose";
 import { listThreads } from "./outbound-mail";
 import { outboundCapabilities } from "../lib/outbound-capabilities";
+import type { PlanId } from "../lib/plans";
 
 export async function buildConsoleInboxDetail(
   env: Env,
   inboxId: string,
-  ctx: { apiKeyHint: string; apiBaseUrl: string }
+  ctx: {
+    apiKeyHint: string;
+    apiBaseUrl: string;
+    teamId: string | null;
+    plan: PlanId;
+  }
 ) {
   const inbox = await getInbox(env, inboxId, { apiKeyHint: ctx.apiKeyHint });
   if (!inbox) return null;
@@ -21,7 +27,10 @@ export async function buildConsoleInboxDetail(
     }),
   ]);
 
-  const outbound = outboundCapabilities(env);
+  const outbound = await outboundCapabilities(env, {
+    teamId: ctx.teamId,
+    plan: ctx.plan,
+  });
 
   return {
     id: inbox.id,

@@ -341,6 +341,7 @@ inboxRoutes.post("/:id/send", async (c) => {
     const result = await sendFromInbox(c.env, {
       inboxId: inbox.id,
       apiKeyHint: c.get("apiKeyHint"),
+      teamId: c.get("teamId"),
       to,
       cc: body.cc,
       bcc: body.bcc,
@@ -359,7 +360,10 @@ inboxRoutes.post("/:id/send", async (c) => {
     return c.json(result, 201);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "send_failed";
-    return c.json({ error: "send_failed", message: msg }, 502);
+    const status = msg.startsWith("dedicated_outbound_requires_custom_domain_inbox")
+      ? 403
+      : 502;
+    return c.json({ error: "send_failed", message: msg }, status);
   }
 });
 
@@ -398,6 +402,7 @@ inboxRoutes.post("/:id/messages/:messageId/reply", async (c) => {
     const result = await sendFromInbox(c.env, {
       inboxId: inbox.id,
       apiKeyHint: c.get("apiKeyHint"),
+      teamId: c.get("teamId"),
       to,
       subject,
       text: body.text,
@@ -419,7 +424,10 @@ inboxRoutes.post("/:id/messages/:messageId/reply", async (c) => {
     return c.json(result, 201);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "send_failed";
-    return c.json({ error: "send_failed", message: msg }, 502);
+    const status = msg.startsWith("dedicated_outbound_requires_custom_domain_inbox")
+      ? 403
+      : 502;
+    return c.json({ error: "send_failed", message: msg }, status);
   }
 });
 

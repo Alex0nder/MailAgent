@@ -24,7 +24,6 @@ Public: [enterprise.html](https://webmailagent.com/docs/enterprise.html)
 | SOC 2 Type II narrative | draft [SOC2.md](./SOC2.md) — not certified |
 | SLA / support tier | post-Stripe billing |
 | Stripe on prod | on hold — see [YOUR-TURN.md](./YOUR-TURN.md) |
-| Outbound on dedicated Resend | inbound + domains today; send/reply uses shared `OUTBOUND_FROM` |
 
 ## Self-host TCO
 
