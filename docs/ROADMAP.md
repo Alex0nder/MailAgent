@@ -370,6 +370,21 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | Audit API `hasMore` + `nextBefore` | ✅ |
 | Sidebar + console summary `links.audit` | ✅ |
 
+### v0.45 Distribution (catalog + review fixes)
+
+| `run-mailagent-mcp.sh` — generic plugin-root `.env` hint | ✅ |
+| `README.catalog.md` for awesome-codex-plugins paths | ✅ |
+| `prepare:catalog-pr` copies catalog README into staging | ✅ |
+| SKILL — console key + `test:prod` from MailAgent repo only | ✅ |
+| awesome-codex-plugins PR [#195](https://github.com/hashgraph-online/awesome-codex-plugins/pull/195) refresh | ✅ pushed |
+
+### v0.46 Enterprise (next code track)
+
+| Dedicated domains (isolated Resend per tenant) | planned |
+| Stripe live on prod (`STRIPE_*`) | on hold |
+| SOC 2 Type II (beyond draft) | planned |
+| SLA / support tier | post-Stripe |
+
 ### Deferred (not QA)
 
 - ~~Agent session memory / multi-step run state~~ ✅ v0.35

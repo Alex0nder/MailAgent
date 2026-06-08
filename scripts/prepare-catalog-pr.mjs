@@ -38,6 +38,14 @@ if (existsSync(extracted)) {
   rmSync(extracted, { recursive: true, force: true });
 }
 
+// Catalog-specific README (paths for awesome-codex-plugins layout)
+const catalogReadme = join(root, "examples/codex/plugin/README.catalog.md");
+if (existsSync(catalogReadme)) {
+  cpSync(catalogReadme, join(pluginDest, "README.md"));
+}
+const strayCatalogReadme = join(pluginDest, "README.catalog.md");
+if (existsSync(strayCatalogReadme)) rmSync(strayCatalogReadme);
+
 const entry = {
   name: "mailagent",
   displayName: "MailAgent",

@@ -49,6 +49,8 @@ const tar = spawnSync(
     archive,
     "--exclude",
     ".env",
+    "--exclude",
+    "README.catalog.md",
     "-C",
     path.join(root, "examples/codex"),
     "plugin",
