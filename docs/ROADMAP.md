@@ -446,10 +446,18 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | `canUpgradeViaStripe` (free only) | ✅ |
 | Stripe live on prod (`wizard:stripe --deploy`) | operator when ready |
 
-### v0.54 Enterprise (next)
+### v0.54 Distribution — Agent Skills release
 
+| `gh skill publish --tag skills-0.2.5` | ✅ |
+| `npm run prepare:skills-pr` staging entry | ✅ |
+| awesome-agent-skills PR (Alex0nder fork) | submitted |
+| awesome-codex-plugins PR #195 maintainer merge | pending |
+
+### v0.55 Enterprise (next)
+
+| `public/docs/sla.html` draft | ✅ |
 | SOC 2 Type II audit (formal) | planned |
-| SLA / support tier | with Stripe live |
+| SLA / support tier live | with Stripe |
 
 ### Deferred (not QA)
 

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SLA (draft) — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="doc-page" data-site="docs" data-doc="sla">
+    <div id="site-nav"></div>
+    <div class="doc-layout">
+      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
+      <article class="doc-content">
+        <h1>Service level agreement (draft)</h1>
+        <p class="doc-lead">
+          Target commitments for hosted MailAgent once billing and support tiers are live.
+          <strong>Not in effect today</strong> — placeholder for enterprise sales.
+        </p>
+
+        <h2>Current state</h2>
+        <ul class="doc-list">
+          <li><strong>Self-host (MIT)</strong> — no hosted SLA; you operate your own deployment.</li>
+          <li><strong>Hosted free / legacy</strong> — best-effort; no uptime guarantee.</li>
+          <li><strong>Pro / Enterprise</strong> — custom SLA after Stripe + support tier launch.</li>
+        </ul>
+
+        <h2>Planned tiers (draft)</h2>
+        <table class="doc-table">
+          <thead>
+            <tr><th>Tier</th><th>API uptime target</th><th>Support</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Pro (self-serve)</td><td>99.5% monthly</td><td>Email · next business day</td><td>post-Stripe</td></tr>
+            <tr><td>Enterprise</td><td>99.9% monthly</td><td>Priority · dedicated channel</td><td>sales + contract</td></tr>
+          </tbody>
+        </table>
+        <p>
+          Uptime measured on <code>api.webmailagent.com</code> health and authenticated API success rate,
+          excluding scheduled maintenance announced 48h ahead.
+        </p>
+
+        <h2>Exclusions (draft)</h2>
+        <ul class="doc-list">
+          <li>Third-party outages (Resend, Cloudflare, Neon, Auth0, Stripe)</li>
+          <li>Customer misconfiguration (expired keys, DNS, dedicated Resend quota)</li>
+          <li>Abuse suspension per <a href="/terms.html">Terms</a></li>
+        </ul>
+
+        <h2>Credits (draft)</h2>
+        <p>
+          Enterprise contracts may include service credits for sustained breaches below the monthly target.
+          Pro self-serve credits TBD when Stripe billing launches.
+        </p>
+
+        <h2>Related</h2>
+        <ul class="doc-list">
+          <li><a href="/docs/security.html">Security &amp; compliance</a></li>
+          <li><a href="/docs/enterprise.html">Enterprise overview</a></li>
+          <li><a href="/docs/billing.html">Billing</a></li>
+        </ul>
+
+        <p>Enterprise SLA questions: <a href="mailto:hello@webmailagent.com">hello@webmailagent.com</a></p>
+      </article>
+    </div>
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
+  </body>
+</html>

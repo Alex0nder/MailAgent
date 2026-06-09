@@ -32,6 +32,7 @@
         { id: "outbound", href: "/docs/outbound.html", label: "Outbound send" },
         { id: "billing", href: "/docs/billing.html", label: "Billing" },
         { id: "enterprise", href: "/docs/enterprise.html", label: "Enterprise" },
+        { id: "sla", href: "/docs/sla.html", label: "SLA (draft)" },
         { id: "security", href: "/docs/security.html", label: "Security" },
       ],
     },

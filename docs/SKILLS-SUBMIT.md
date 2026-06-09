@@ -17,7 +17,15 @@ Validation uses the same layout as install (`skills/mailagent/SKILL.md`).
 
 ```bash
 gh skill publish --dry-run   # validate only
-gh skill publish --tag v0.2.5-skills   # create release (interactive or --tag)
+gh skill publish --tag skills-0.2.5   # release tag (published on MailAgent repo)
+gh skill install Alex0nder/MailAgent mailagent --pin skills-0.2.5
+```
+
+Staging entry for awesome-agent-skills PR:
+
+```bash
+npm run prepare:skills-pr
+# → dist/skills-staging/README-ENTRY.md
 ```
 
 Optional hardening (warnings from `gh skill publish`):

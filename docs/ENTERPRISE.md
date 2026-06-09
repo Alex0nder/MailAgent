@@ -22,7 +22,7 @@ Public: [enterprise.html](https://webmailagent.com/docs/enterprise.html) · [sec
 | Item | Notes |
 |------|--------|
 | SOC 2 Type II narrative | draft [SOC2.md](./SOC2.md) — not certified |
-| SLA / support tier | post-Stripe billing |
+| SLA / support tier | draft [sla.html](https://webmailagent.com/docs/sla.html) · post-Stripe |
 | Stripe on prod | on hold — see [YOUR-TURN.md](./YOUR-TURN.md) |
 
 ## Self-host TCO
