@@ -90,6 +90,7 @@ agentRoutes.get("/", (c) => {
     },
     docs: "https://webmailagent.com/docs/agents.html",
     console: "https://webmailagent.com/dashboard.html",
+    billing: "https://webmailagent.com/docs/billing.html",
     enterprise: "https://webmailagent.com/docs/enterprise.html",
     security: "https://webmailagent.com/docs/security.html",
     privacy: "https://webmailagent.com/privacy.html",

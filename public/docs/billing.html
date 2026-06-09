@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Billing — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="doc-page" data-site="docs" data-doc="billing">
+    <div id="site-nav"></div>
+    <div class="doc-layout">
+      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
+      <article class="doc-content">
+        <h1>Billing</h1>
+        <p class="doc-lead">
+          Stripe is <strong>optional</strong>. Without it, teams stay on the free plan or operator-assigned tiers.
+        </p>
+
+        <h2>Plans</h2>
+        <table class="doc-table">
+          <thead><tr><th>Plan</th><th>Rate limit</th><th>Active inboxes</th><th>How</th></tr></thead>
+          <tbody>
+            <tr><td>free</td><td>60/min</td><td>10</td><td>Default (<code>issue:key:db</code>)</td></tr>
+            <tr><td>pro</td><td>300/min</td><td>100</td><td>Stripe Checkout or operator</td></tr>
+            <tr><td>enterprise</td><td>600/min</td><td>500</td><td>Operator · <a href="/docs/dedicated-domains.html">Dedicated Resend</a></td></tr>
+            <tr><td>legacy</td><td>120/min</td><td>500</td><td>Single wrangler <code>API_KEY</code></td></tr>
+          </tbody>
+        </table>
+
+        <h2>Without Stripe (today)</h2>
+        <pre class="doc-pre"><code>npm run issue:key:db -- pilot-name
+# free plan · dashboard works · no Upgrade button</code></pre>
+        <p>Manual pro: operator runs <code>npm run team:plan -- TEAM_ID pro</code>.</p>
+
+        <h2>With Stripe (Pro self-serve)</h2>
+        <ol class="doc-list">
+          <li>Stripe product + recurring price → <code>STRIPE_PRICE_PRO</code></li>
+          <li>Webhook <code>POST /webhooks/stripe</code> (see events below)</li>
+          <li>Worker secrets: <code>STRIPE_SECRET_KEY</code>, <code>STRIPE_WEBHOOK_SECRET</code>, <code>STRIPE_PRICE_PRO</code></li>
+        </ol>
+        <pre class="doc-pre"><code>npm run wizard:stripe
+npm run wizard:stripe -- --deploy
+npm run doctor:billing</code></pre>
+        <p>
+          Operator guide:
+          <a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/STRIPE-SETUP.md">STRIPE-SETUP.md</a>
+        </p>
+
+        <h2>API</h2>
+        <pre class="doc-pre"><code>GET  /v1/me                    → billing.stripeEnabled, canUpgrade
+POST /v1/billing/checkout      → { url }  (admin scope, free plan)
+POST /v1/billing/portal        → { url }  (existing Stripe customer)</code></pre>
+        <p><a href="/dashboard.html">Dashboard</a> — Upgrade / Manage billing when Stripe is enabled.</p>
+
+        <h2>Webhook events</h2>
+        <ul class="doc-list">
+          <li><code>checkout.session.completed</code> → <code>teams.plan = pro</code></li>
+          <li><code>customer.subscription.updated</code> / <code>deleted</code> → downgrade when canceled</li>
+        </ul>
+
+        <h2>Enterprise</h2>
+        <p>
+          Not sold via Stripe checkout yet — contact
+          <a href="mailto:hello@webmailagent.com">hello@webmailagent.com</a> or operator
+          <code>npm run team:plan -- TEAM_ID enterprise</code>.
+        </p>
+      </article>
+    </div>
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
+  </body>
+</html>

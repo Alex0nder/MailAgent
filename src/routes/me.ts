@@ -5,7 +5,7 @@ import type { ApiVariables } from "../lib/api-context";
 import { requireApiKey } from "../lib/auth";
 import { rateLimit } from "../lib/rate-limit";
 import { PLAN_LIMITS } from "../lib/plans";
-import { stripeConfigured } from "../services/billing";
+import { canUpgradeViaStripe, stripeConfigured } from "../services/billing";
 import { getTeamBilling } from "../services/api-key-store";
 import { getScopedUsage } from "../services/console-stats";
 import { outboundCapabilities } from "../lib/outbound-capabilities";
@@ -65,7 +65,8 @@ meRoutes.get("/", async (c) => {
     },
     billing: {
       stripeEnabled: stripeConfigured(c.env) && Boolean(teamId),
-      canUpgrade: stripeConfigured(c.env) && Boolean(teamId) && plan !== "pro",
+      canUpgrade:
+        stripeConfigured(c.env) && Boolean(teamId) && canUpgradeViaStripe(plan),
       canManagePortal,
       checkoutPath: "/v1/billing/checkout",
       portalPath: "/v1/billing/portal",

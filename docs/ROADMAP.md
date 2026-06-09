@@ -437,17 +437,25 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | Official Codex Plugin Directory submit | when OpenAI opens |
 | awesome-codex-plugins PR #195 maintainer merge | pending |
 
-### v0.53 Enterprise (next)
+### v0.53 Billing — Stripe prep (no account required)
 
-| Stripe live on prod (`STRIPE_*`) | on hold |
+| `docs/STRIPE-SETUP.md` + `public/docs/billing.html` | ✅ |
+| `npm run wizard:stripe` · `setup:stripe-prod` · `doctor:billing` | ✅ |
+| Webhook `subscription.updated` downgrade | ✅ |
+| `test:contract:qa:billing` (503 when disabled) | ✅ |
+| `canUpgradeViaStripe` (free only) | ✅ |
+| Stripe live on prod (`wizard:stripe --deploy`) | operator when ready |
+
+### v0.54 Enterprise (next)
+
 | SOC 2 Type II audit (formal) | planned |
-| SLA / support tier | post-Stripe |
+| SLA / support tier | with Stripe live |
 
 ### Deferred (not QA)
 
 - ~~Agent session memory / multi-step run state~~ ✅ v0.35
 - ~~OIDC on prod~~ ✅ v0.40
-- **Stripe on prod** — on hold (skip `STRIPE_*` for now)
+- **Stripe on prod** — prep ✅ · enable via `npm run wizard:stripe --deploy`
 - ~~`OUTBOUND_FROM` on prod~~ ✅
 - ~~Codex repo marketplace~~ ✅ `.agents/plugins/marketplace.json`
 - Codex official Plugin Directory submit — coming soon (OpenAI)

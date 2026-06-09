@@ -109,11 +109,25 @@ Third-party catalogs: [CATALOG-SUBMIT.md](./CATALOG-SUBMIT.md) — PR [awesome-c
 
 ---
 
+## 6. Stripe Pro (when you have an account)
+
+Код и UI уже готовы — секреты не ставим, пока не нужен биллинг.
+
+```bash
+npm run wizard:stripe              # чеклист Dashboard + .dev.vars
+npm run wizard:stripe -- --deploy  # wrangler secret put на prod
+npm run doctor:billing
+```
+
+Guide: [STRIPE-SETUP.md](./STRIPE-SETUP.md) · [billing.html](https://webmailagent.com/docs/billing.html)
+
+---
+
 ## On hold
 
 | Item | Why wait |
 |------|----------|
-| **Stripe** (`STRIPE_SECRET_KEY`, webhook, `STRIPE_PRICE_PRO`) | billing not needed yet |
+| **Stripe live keys on prod** | until you run `wizard:stripe --deploy` |
 | Workers Paid ($5/mo) | only if KV 1000 puts/day is hit again |
 
 ---

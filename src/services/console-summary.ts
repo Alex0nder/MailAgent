@@ -15,7 +15,7 @@ import { getScopedUsage } from "./console-stats";
 import { listAuditEvents, auditRetentionDays } from "./audit-log";
 import { listRecentThreadsForScope } from "./console-threads";
 import { outboundCapabilities } from "../lib/outbound-capabilities";
-import { stripeConfigured } from "./billing";
+import { canUpgradeViaStripe, stripeConfigured } from "./billing";
 import { getDedicatedResendStatus } from "./team-resend";
 
 export async function buildConsoleSummary(
@@ -102,7 +102,7 @@ export async function buildConsoleSummary(
 
     billing = {
       stripeEnabled: stripeOn,
-      canUpgrade: stripeOn && input.plan !== "pro",
+      canUpgrade: stripeOn && canUpgradeViaStripe(input.plan),
       canManagePortal: stripeOn && Boolean(bill?.stripe_customer_id),
       checkoutPath: "/v1/billing/checkout",
       portalPath: "/v1/billing/portal",

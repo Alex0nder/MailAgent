@@ -125,7 +125,7 @@ tasks.push({
 });
 
 console.log("On hold (skip for now):");
-console.log("  • Stripe (STRIPE_*) — billing later\n");
+console.log("  • Stripe — npm run wizard:stripe (when account ready)\n");
 
 if (tasks.length === 0) {
   console.log("All operator items look done.");

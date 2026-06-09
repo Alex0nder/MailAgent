@@ -22,6 +22,7 @@ CI post-deploy: `test:prod:gate` (smoke only). Before merge: `test:prod` (full c
 | inbox / simulate / extract | `npm run test:contract:qa` |
 | attachments / raw MIME | `npm run test:contract:qa:attachments` |
 | team keys / dashboard | `npm run test:contract:qa:team-keys` |
+| billing / Stripe routes | `npm run test:contract:qa:billing` |
 | anything before merge | `npm run test:prod` (full; CI uses `test:prod:gate`) |
 
 Contract tests use `POST …/simulate` — no real SMTP, no `DATABASE_URL`. On failure: `npm run doctor:qa`.
@@ -31,6 +32,7 @@ Contract tests use `POST …/simulate` — no real SMTP, no `DATABASE_URL`. On f
 ```bash
 npm run doctor              # local env check
 npm run doctor:qa           # QA consumer: API key + diagnose smoke
+npm run doctor:billing      # Stripe readiness (local + prod /v1/me)
 npm run codex:install       # Codex MCP from .dev.vars
 npm run smoke:qa            # prod API lifecycle
 npm run smoke:agent         # MCP + OAuth smoke

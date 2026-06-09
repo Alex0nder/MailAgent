@@ -36,7 +36,7 @@ Optional (when needed):
 | `OUTBOUND_FROM` | send/reply from console |
 | `OIDC_*` | browser login for MCP ✅ prod |
 
-**Stripe (`STRIPE_*`) — on hold**, see [YOUR-TURN.md](./YOUR-TURN.md).
+**Stripe (`STRIPE_*`)** — optional; prep done → [STRIPE-SETUP.md](./STRIPE-SETUP.md) · `npm run wizard:stripe`
 
 ## 3. npm Trusted Publishing
 

@@ -6,6 +6,7 @@ import { requireApiKey } from "../lib/auth";
 import { scopeAdminDenied } from "../lib/scope-guard";
 import { rateLimit } from "../lib/rate-limit";
 import {
+  canUpgradeViaStripe,
   createBillingPortalSession,
   createCheckoutSession,
   stripeConfigured,
@@ -37,7 +38,8 @@ billingRoutes.post("/checkout", async (c) => {
     );
   }
 
-  if (c.get("apiPlan") === "pro") {
+  const plan = c.get("apiPlan");
+  if (!canUpgradeViaStripe(plan)) {
     return c.json({ error: "already_pro" }, 400);
   }
 

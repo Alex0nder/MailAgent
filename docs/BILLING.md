@@ -1,5 +1,7 @@
 # Billing
 
+Full Stripe go-live: **[STRIPE-SETUP.md](./STRIPE-SETUP.md)** · `npm run wizard:stripe`
+
 ## Without Stripe (current)
 
 Stripe **not required**. Do not set `STRIPE_*` secrets — billing stays disabled.
@@ -52,15 +54,8 @@ Key stored in `teams` + `api_keys`. Do not duplicate in `API_KEYS`.
 ## Stripe (hosted)
 
 1. Stripe Dashboard → Product → Price (subscription) → copy `price_…`
-2. Webhook endpoint: `https://api.webmailagent.com/webhooks/stripe`  
-   Events: `checkout.session.completed`, `customer.subscription.deleted`
-3. Secrets:
-
-```bash
-npx wrangler secret put STRIPE_SECRET_KEY
-npx wrangler secret put STRIPE_WEBHOOK_SECRET
-npx wrangler secret put STRIPE_PRICE_PRO
-```
-
-4. Client: `GET /v1/me` → `POST /v1/billing/checkout` → redirect to Stripe  
-   Or UI: [dashboard.html](https://webmailagent.com/dashboard.html)
+2. Webhook: `https://api.webmailagent.com/webhooks/stripe`  
+   Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
+3. Secrets: `npm run wizard:stripe` → `npm run setup:stripe-prod`
+4. Verify: `npm run doctor:billing` · `npm run test:contract:qa:billing`
+5. UI: [dashboard.html](https://webmailagent.com/dashboard.html) · [billing.html](https://webmailagent.com/docs/billing.html)

@@ -1,9 +1,15 @@
 /** Stripe Checkout + webhook (optional) */
 import type { Env } from "../env";
+import type { PlanId } from "../lib/plans";
 import { findTeamByStripeSubscription, setTeamPlan } from "./api-key-store";
 
 export function stripeConfigured(env: Env): boolean {
   return Boolean(env.STRIPE_SECRET_KEY?.trim() && env.STRIPE_PRICE_PRO?.trim());
+}
+
+/** Self-serve Stripe checkout: free → pro only */
+export function canUpgradeViaStripe(plan: PlanId): boolean {
+  return plan === "free";
 }
 
 export async function createCheckoutSession(
@@ -102,10 +108,15 @@ export async function handleStripeWebhook(
       }
       break;
     }
-    case "customer.subscription.deleted": {
-      const subId = event.data.object.id as string;
+    case "customer.subscription.deleted":
+    case "customer.subscription.updated": {
+      const sub = event.data.object;
+      const subId = sub.id as string;
+      const status = sub.status as string;
       const team = await findTeamByStripeSubscription(env, subId);
-      if (team) {
+      if (!team) break;
+      const inactive = status === "canceled" || status === "unpaid" || status === "incomplete_expired";
+      if (event.type === "customer.subscription.deleted" || inactive) {
         await setTeamPlan(env, team.id, "free", { subscriptionId: null });
       }
       break;
