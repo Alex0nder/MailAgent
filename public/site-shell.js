@@ -28,6 +28,7 @@
         { id: "raw-mime", href: "/docs/raw-mime.html", label: "Raw MIME" },
         { id: "attachments", href: "/docs/attachments.html", label: "Attachments" },
         { id: "custom-domain", href: "/docs/custom-domain.html", label: "Custom domain" },
+        { id: "dedicated-domains", href: "/docs/dedicated-domains.html", label: "Dedicated Resend" },
         { id: "outbound", href: "/docs/outbound.html", label: "Outbound send" },
         { id: "enterprise", href: "/docs/enterprise.html", label: "Enterprise" },
       ],
@@ -149,6 +150,8 @@
             <li><a href="/docs/raw-mime.html">Raw MIME</a></li>
             <li><a href="/docs/attachments.html">Attachments</a></li>
             <li><a href="/docs/custom-domain.html">Custom domain</a></li>
+            <li><a href="/docs/dedicated-domains.html">Dedicated Resend</a></li>
+            <li><a href="/docs/enterprise.html">Enterprise</a></li>
             <li><a href="https://api.webmailagent.com/v1/openapi.json" rel="noopener noreferrer">OpenAPI</a></li>
             <li>
               <a

@@ -121,7 +121,7 @@
           d.dedicatedResend &&
           !d.dedicatedResend.configured
         ) {
-          html += `<div class="console-banner">Enterprise: configure <strong>Dedicated Resend</strong> below before adding custom domains. <a href="/docs/enterprise.html">Guide</a></div>`;
+          html += `<div class="console-banner">Enterprise: configure <strong>Dedicated Resend</strong> below before adding custom domains. <a href="/docs/dedicated-domains.html">Setup guide</a></div>`;
         }
 
         const scope = d.scope;
@@ -218,7 +218,7 @@
             }
             html += `</div>`;
           } else if (canManageDr) {
-            html += `<p class="console-empty">Isolated Resend for domains, inbound, and outbound. <a href="/docs/enterprise.html">Setup guide</a></p>`;
+            html += `<p class="console-empty">Isolated Resend for domains, inbound, and outbound. <a href="/docs/dedicated-domains.html">Setup guide</a></p>`;
             html += `<form class="console-key-form" id="dedicated-resend-form">
               <label for="dr-api-key">Resend API key</label>
               <input id="dr-api-key" type="password" autocomplete="off" placeholder="re_…" />

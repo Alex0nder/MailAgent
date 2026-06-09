@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dedicated Resend (enterprise) — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="doc-page" data-site="docs" data-doc="dedicated-domains">
+    <div id="site-nav"></div>
+    <div class="doc-layout">
+      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
+      <article class="doc-content">
+        <h1>Dedicated Resend (enterprise)</h1>
+        <p class="doc-lead">
+          Enterprise teams use <strong>their own Resend account</strong> for custom domains,
+          inbound webhooks, and outbound send — isolated from the shared MailAgent Resend quota.
+        </p>
+
+        <h2>When to use</h2>
+        <ul class="doc-list">
+          <li>Enterprise plan (<code>teams.plan = enterprise</code>)</li>
+          <li>Isolated domain quota and webhook traffic per tenant</li>
+          <li>Compliance: tenant-owned email infrastructure</li>
+        </ul>
+        <p>
+          Free and Pro teams keep using the shared Resend account on the Worker.
+          See <a href="/docs/custom-domain.html">Custom domain</a> for standard hosted domains.
+        </p>
+
+        <h2>Plan limits</h2>
+        <table class="doc-table">
+          <thead><tr><th>Limit</th><th>Enterprise</th></tr></thead>
+          <tbody>
+            <tr><td>Custom domains</td><td>25</td></tr>
+            <tr><td>Active inboxes</td><td>500</td></tr>
+            <tr><td>Team keys</td><td>50</td></tr>
+            <tr><td>Rate limit</td><td>600 req/min</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Setup</h2>
+
+        <h3>0. Enable enterprise plan (operator)</h3>
+        <pre class="doc-pre"><code>npm run team:plan -- TEAM_ID enterprise</code></pre>
+
+        <h3>1. Configure dedicated Resend</h3>
+        <p>
+          Console (recommended): <a href="/dashboard.html">Dashboard</a> →
+          <strong>Dedicated Resend</strong> — paste Resend API key and webhook signing secret.
+        </p>
+        <pre class="doc-pre"><code>curl -sS -X PUT "$MAILAGENT_API_URL/v1/team/dedicated-resend" \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resendApiKey": "re_…",
+    "webhookSecret": "whsec_…"
+  }' | jq .</code></pre>
+        <p>
+          Response includes <code>webhookUrl</code>. In the <strong>team's</strong> Resend dashboard,
+          add a webhook:
+        </p>
+        <ul class="doc-list">
+          <li>URL: <code>https://api.webmailagent.com/webhooks/resend/team/TEAM_ID</code></li>
+          <li>Event: <code>email.received</code></li>
+        </ul>
+        <p>Requires an unrestricted admin team key (scoped read-only keys get <code>403 scope_admin_required</code>).</p>
+
+        <h3>2. Add custom domain</h3>
+        <p>Domains are created in the <strong>team's</strong> Resend account (not MailAgent's shared account).</p>
+        <pre class="doc-pre"><code>curl -sS -X POST "$MAILAGENT_API_URL/v1/domains" \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"inbox.yourcompany.com"}' | jq .</code></pre>
+        <p>
+          Without step 1, enterprise teams get <code>403 dedicated_resend_required</code>.
+          Full DNS flow: <a href="/docs/custom-domain.html">Custom domain guide</a>.
+        </p>
+
+        <h3>3. Create inbox and send (optional outbound)</h3>
+        <pre class="doc-pre"><code>curl -sS -X POST "$MAILAGENT_API_URL/v1/inboxes" \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"label":"outbound","domainId":"DOMAIN_ID","username":"qa"}' | jq .address
+
+curl -sS -X POST "$MAILAGENT_API_URL/v1/inboxes/INBOX_ID/send" \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"to":["user@example.com"],"subject":"Hello","text":"from dedicated Resend"}' | jq .</code></pre>
+        <p>
+          Outbound uses the team Resend key. Inbox must be on a verified custom domain
+          (<code>domainId</code>) — shared <code>INBOX_DOMAIN</code> addresses return
+          <code>403 dedicated_outbound_requires_custom_domain_inbox</code>.
+        </p>
+
+        <h2>Status &amp; discovery</h2>
+        <pre class="doc-pre"><code>curl -sS "$MAILAGENT_API_URL/v1/team/dedicated-resend" \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" | jq .
+
+curl -sS "$MAILAGENT_API_URL/v1/me" \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" | jq .capabilities</code></pre>
+        <p>
+          <code>capabilities.outbound.dedicatedResend: true</code> when team Resend is configured.
+          Clear config: <code>DELETE /v1/team/dedicated-resend</code> (admin key).
+        </p>
+
+        <h2>Security</h2>
+        <ul class="doc-list">
+          <li>Resend API key and webhook secret stored encrypted in Postgres (AES-GCM)</li>
+          <li>Audit events: <code>team.dedicated_resend.configured</code>, <code>team.dedicated_resend.cleared</code></li>
+          <li>Full audit log: <a href="/audit.html">Console audit</a></li>
+        </ul>
+
+        <h2>MCP</h2>
+        <p>Same REST rules — domain and send tools use team Resend when configured:</p>
+        <pre class="doc-pre"><code>mailagent_add_domain
+mailagent_list_domains
+mailagent_verify_domain
+mailagent_send_message</code></pre>
+
+        <h2>More</h2>
+        <ul class="doc-list">
+          <li><a href="/docs/enterprise.html">Enterprise overview</a></li>
+          <li><a href="/docs/custom-domain.html">Custom domain (all plans)</a></li>
+          <li><a href="/docs/outbound.html">Outbound send (shared Resend)</a></li>
+          <li><a href="/docs/teams.html">Teams &amp; keys</a></li>
+          <li><a href="mailto:hello@webmailagent.com">hello@webmailagent.com</a> — enterprise onboarding</li>
+        </ul>
+      </article>
+    </div>
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
+  </body>
+</html>

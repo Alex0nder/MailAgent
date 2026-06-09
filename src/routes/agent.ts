@@ -91,6 +91,7 @@ agentRoutes.get("/", (c) => {
     docs: "https://webmailagent.com/docs/agents.html",
     console: "https://webmailagent.com/dashboard.html",
     enterprise: "https://webmailagent.com/docs/enterprise.html",
+    dedicatedDomains: "https://webmailagent.com/docs/dedicated-domains.html",
     autotests: "https://webmailagent.com/docs/autotests.html",
     tests: {
       prodGateCi: "npm run test:prod:gate",

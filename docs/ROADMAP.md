@@ -404,12 +404,18 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | Enterprise banner before domains when not configured | ✅ |
 | `contract-qa-console` checks `dedicatedResend` shape | ✅ |
 
-### v0.49 Enterprise (next)
+### v0.49 Enterprise docs page
 
-| Public `docs/dedicated-domains.html` page | planned |
+| `public/docs/dedicated-domains.html` | ✅ |
+| Sidebar + footer nav link | ✅ |
+| Cross-links from enterprise, custom-domain, dashboard | ✅ |
+
+### v0.50 Enterprise (next)
+
 | Stripe live on prod (`STRIPE_*`) | on hold |
 | SOC 2 Type II (beyond draft) | planned |
 | SLA / support tier | post-Stripe |
+| awesome-codex-plugins PR #195 merge | pending |
 
 ### Deferred (not QA)
 

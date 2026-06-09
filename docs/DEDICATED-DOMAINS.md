@@ -2,7 +2,7 @@
 
 Enterprise teams use **their own Resend account** for custom domains and inbound mail — isolated from the shared MailAgent Resend quota.
 
-Public: [enterprise.html](https://webmailagent.com/docs/enterprise.html)
+Public: [dedicated-domains.html](https://webmailagent.com/docs/dedicated-domains.html) · [enterprise.html](https://webmailagent.com/docs/enterprise.html)
 
 ## When to use
 
@@ -59,7 +59,7 @@ curl -sS "$MAILAGENT_API_URL/v1/team/dedicated-resend" \
 
 `GET /v1/me` → `capabilities.dedicatedResend` when on enterprise plan.
 
-Console: [dashboard.html](https://webmailagent.com/dashboard.html) → **Dedicated Resend** section.
+Console: [dashboard.html](https://webmailagent.com/dashboard.html) → **Dedicated Resend** section · [docs/dedicated-domains.html](https://webmailagent.com/docs/dedicated-domains.html)
 
 ## Security
 
