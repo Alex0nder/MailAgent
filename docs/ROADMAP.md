@@ -481,6 +481,14 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | Penetration test (third party) | planned |
 | SOC 2 Type II audit (formal) | planned |
 
+### v0.59 Enterprise — pentest prep
+
+| `docs/PENTEST-PREP.md` vendor scope | ✅ |
+| `npm run doctor:security` baseline | ✅ |
+| `public/docs/security.html` links | ✅ |
+| Independent pentest report (third party) | planned |
+| awesome-codex-plugins PR #195 · awesome-agent-skills PR #659 | pending merge |
+
 ### Deferred (not QA)
 
 - ~~Agent session memory / multi-step run state~~ ✅ v0.35

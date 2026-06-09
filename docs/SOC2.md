@@ -40,7 +40,7 @@ Public summary: [security.html](https://webmailagent.com/docs/security.html) · 
 
 ## Gaps (before Type II)
 
-- Formal penetration test report
+- Formal penetration test report — vendor scope: [PENTEST-PREP.md](./PENTEST-PREP.md) · baseline: `npm run doctor:security`
 - Operator access policy — draft: [OPERATOR-ACCESS.md](./OPERATOR-ACCESS.md)
 - ~~Dedicated tenant email infra~~ ✅ dedicated Resend per team ([DEDICATED-DOMAINS.md](./DEDICATED-DOMAINS.md))
 - Stripe billing + SLA (on hold)

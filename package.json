@@ -24,6 +24,7 @@
     "doctor:operator": "node scripts/doctor-operator.mjs",
     "doctor:oidc": "node scripts/doctor-oidc.mjs",
     "doctor:billing": "node scripts/doctor-billing.mjs",
+    "doctor:security": "node scripts/doctor-security.mjs",
     "wizard:auth0": "node scripts/wizard-auth0-oidc.mjs",
     "wizard:stripe": "node scripts/wizard-stripe.mjs",
     "setup:stripe-prod": "node scripts/setup-stripe-prod.mjs",

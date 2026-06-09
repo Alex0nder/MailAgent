@@ -33,6 +33,7 @@ Contract tests use `POST …/simulate` — no real SMTP, no `DATABASE_URL`. On f
 npm run doctor              # local env check
 npm run doctor:qa           # QA consumer: API key + diagnose smoke
 npm run doctor:billing      # Stripe readiness (local + prod /v1/me)
+npm run doctor:security     # trust docs, npm audit, secret scanning
 npm run codex:install       # Codex MCP from .dev.vars
 npm run smoke:qa            # prod API lifecycle
 npm run smoke:agent         # MCP + OAuth smoke
