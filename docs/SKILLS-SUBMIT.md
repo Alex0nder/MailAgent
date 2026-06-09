@@ -38,11 +38,16 @@ gh repo edit --enable-secret-scanning-push-protection
 
 ## Agent Skill Hub (agentskillhub.dev)
 
-1. Push public repo with `skills/mailagent/SKILL.md`
-2. Import at [agentskillhub.dev](https://agentskillhub.dev) → paste `https://github.com/Alex0nder/MailAgent`
-3. Re-import after skill updates
+```bash
+npm run import:skill-hub
+# With API token (after `skhub login`):
+export SKILLHUB_TOKEN=sk_live_…
+npm run import:skill-hub
+```
 
-API: `POST /api/v1/repos/analyze` then `POST /api/v1/repos/import` — see their docs.
+Manual: [agentskillhub.dev](https://agentskillhub.dev) → import `https://github.com/Alex0nder/MailAgent` → select `skills/mailagent`.
+
+API: [doc.agentskillhub.dev/guide/api.html](https://doc.agentskillhub.dev/guide/api.html)
 
 ## Curated awesome lists (optional PR)
 

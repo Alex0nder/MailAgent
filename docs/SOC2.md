@@ -41,6 +41,6 @@ Public summary: [security.html](https://webmailagent.com/docs/security.html) · 
 ## Gaps (before Type II)
 
 - Formal penetration test report
-- Employee access policy (operator-only secrets today)
+- Operator access policy — draft: [OPERATOR-ACCESS.md](./OPERATOR-ACCESS.md)
 - ~~Dedicated tenant email infra~~ ✅ dedicated Resend per team ([DEDICATED-DOMAINS.md](./DEDICATED-DOMAINS.md))
 - Stripe billing + SLA (on hold)

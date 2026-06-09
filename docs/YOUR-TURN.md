@@ -103,13 +103,35 @@ npm run package:codex
 # → dist/mailagent-codex-plugin-0.2.5.tar.gz
 ```
 
-**Official Plugin Directory:** self-serve publish coming soon — see [CODEX.md](./CODEX.md).
+**Official Plugin Directory:** self-serve publish coming soon — [CODEX-DIRECTORY-SUBMIT.md](./CODEX-DIRECTORY-SUBMIT.md).
 
-Third-party catalogs: [CATALOG-SUBMIT.md](./CATALOG-SUBMIT.md) — PR [awesome-codex-plugins #195](https://github.com/hashgraph-online/awesome-codex-plugins/pull/195) mergeable (maintainer merge).
+Third-party catalogs: [CATALOG-SUBMIT.md](./CATALOG-SUBMIT.md) — PR [#195](https://github.com/hashgraph-online/awesome-codex-plugins/pull/195) mergeable.
+
+**Agent Skills catalog:** PR [#659](https://github.com/VoltAgent/awesome-agent-skills/pull/659) submitted.
 
 ---
 
-## 6. Stripe Pro (when you have an account)
+## 6. Agent Skill Hub (one-time)
+
+Skill not indexed yet — import once:
+
+```bash
+npm run import:skill-hub
+```
+
+If analyze needs auth: `skhub login` → `export SKILLHUB_TOKEN=…` → rerun. Or import via [agentskillhub.dev](https://agentskillhub.dev) UI.
+
+Guide: [SKILLS-SUBMIT.md](./SKILLS-SUBMIT.md)
+
+**Repo hardening (optional):**
+
+```bash
+npm run harden:repo
+```
+
+---
+
+## 7. Stripe Pro (when you have an account)
 
 Код и UI уже готовы — секреты не ставим, пока не нужен биллинг.
 

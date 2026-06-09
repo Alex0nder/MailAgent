@@ -73,6 +73,8 @@
     "verify:codex": "node scripts/verify-codex-plugin.mjs",
     "prepare:catalog-pr": "node scripts/prepare-catalog-pr.mjs",
     "prepare:skills-pr": "node scripts/prepare-skills-pr.mjs",
+    "import:skill-hub": "node scripts/import-skill-hub.mjs",
+    "harden:repo": "gh repo edit Alex0nder/MailAgent --enable-secret-scanning --enable-secret-scanning-push-protection",
     "package:codex": "node scripts/package-codex-plugin.mjs",
     "codex:install": "node scripts/codex-install.mjs",
     "test:pw:setup": "node scripts/playwright-global-setup.mjs",

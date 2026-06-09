@@ -468,6 +468,19 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | awesome-agent-skills PR #659 maintainer merge | pending |
 | Codex official Plugin Directory submit | when OpenAI opens |
 
+### v0.57 Distribution — Skill Hub + repo hardening
+
+| `npm run import:skill-hub` (analyze / import) | ✅ |
+| `npm run harden:repo` (secret scanning + push protection) | ✅ |
+| Agent Skill Hub live listing | operator: `YOUR-TURN.md` §6 |
+| awesome-agent-skills PR #659 maintainer merge | pending |
+
+### v0.58 Enterprise — SOC 2 gap docs
+
+| `docs/OPERATOR-ACCESS.md` draft | ✅ |
+| Penetration test (third party) | planned |
+| SOC 2 Type II audit (formal) | planned |
+
 ### Deferred (not QA)
 
 - ~~Agent session memory / multi-step run state~~ ✅ v0.35
