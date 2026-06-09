@@ -453,11 +453,20 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | awesome-agent-skills [PR #659](https://github.com/VoltAgent/awesome-agent-skills/pull/659) | submitted |
 | awesome-codex-plugins PR #195 maintainer merge | pending |
 
-### v0.55 Enterprise (next)
+### v0.55 Enterprise
 
 | `public/docs/sla.html` draft | ✅ |
 | SOC 2 Type II audit (formal) | planned |
 | SLA / support tier live | with Stripe |
+
+### v0.56 Distribution — directory readiness
+
+| `docs/CODEX-DIRECTORY-SUBMIT.md` checklist | ✅ |
+| PR #195 fork: `privacyPolicyURL` / `termsOfServiceURL` in bundle | ✅ |
+| `public/docs/agent-skills.html` — gh skill pin + PR #659 | ✅ |
+| awesome-codex-plugins PR #195 maintainer merge | pending |
+| awesome-agent-skills PR #659 maintainer merge | pending |
+| Codex official Plugin Directory submit | when OpenAI opens |
 
 ### Deferred (not QA)
 

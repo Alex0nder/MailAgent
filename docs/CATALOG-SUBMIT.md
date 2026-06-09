@@ -78,13 +78,9 @@ For [Agent Skills](https://agentskills.io/) catalogs, point maintainers at:
 
 ## Official OpenAI Plugin Directory
 
-Self-serve publish is **coming soon** (OpenAI). Watch [Build plugins](https://developers.openai.com/codex/plugins/build) and [CODEX.md](./CODEX.md).
+Self-serve publish is **coming soon** (OpenAI). Full checklist: [CODEX-DIRECTORY-SUBMIT.md](./CODEX-DIRECTORY-SUBMIT.md).
 
-When available: use `npm run package:codex` tarball + dashboard submission.
-
-Required URLs (already live):
+Required URLs (already live in `plugin.json` and synced to PR #195):
 
 - Privacy: https://webmailagent.com/privacy.html
 - Terms: https://webmailagent.com/terms.html
-
-Set in `examples/codex/plugin/.codex-plugin/plugin.json` → `interface.privacyPolicyURL` / `termsOfServiceURL`.

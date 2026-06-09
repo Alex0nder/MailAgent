@@ -72,7 +72,7 @@ Repo structure: [examples/codex/plugin/](../examples/codex/plugin/)
 | 10 | Publish `@mailagent/agent@0.1.5` | manual (`npm run publish:agent`) |
 | 11 | Repo marketplace (`.agents/plugins/marketplace.json`) | ✅ |
 | 12 | `privacyPolicyURL` + `termsOfServiceURL` in plugin.json | ✅ |
-| 13 | Official Plugin Directory submit | coming soon (OpenAI) |
+| 13 | Official Plugin Directory submit | checklist: [CODEX-DIRECTORY-SUBMIT.md](./CODEX-DIRECTORY-SUBMIT.md) |
 
 ### Install from GitHub (repo marketplace)
 
