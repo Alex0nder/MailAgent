@@ -39,7 +39,7 @@ export default defineConfig({
 
 Spec: [examples/cypress/signup-email.cy.example.ts](../../examples/cypress/signup-email.cy.example.ts).
 
-Tasks: `mailagentRunLabel`, `mailagentCreateInbox`, `mailagentWaitVerification`, `mailagentOpen`, `mailagentDeleteInbox`, `mailagentCleanupRun`.
+Tasks: `mailagentRunLabel`, `mailagentCreateInbox`, `mailagentWaitVerification`, `mailagentSimulateAndVerify`, `mailagentOpen`, `mailagentDeleteInbox`, `mailagentCleanupRun`.
 
 ## Docs
 

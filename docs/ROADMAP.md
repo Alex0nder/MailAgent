@@ -27,7 +27,7 @@ P0–P2 done — see [QA-ROADMAP.md](./QA-ROADMAP.md).
 | Package | Version (npm) |
 |-------|----------------|
 | `@mailagent/mcp` | 0.2.5 |
-| `@mailagent/qa` | 0.1.13 |
+| `@mailagent/qa` | 0.1.14 |
 | `@mailagent/agent` | 0.1.11 |
 
 ```bash
@@ -536,6 +536,12 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | `@mailagent/qa/cypress` → `mailagentSimulateAndVerify` task | ✅ |
 | `npm run test:qa-pilot-cypress-starter` CI guard | ✅ |
 | `GET /v1/agent` → `tests.qaPilotCypressStarter` | ✅ |
+
+### v0.66 Publish — `@mailagent/qa@0.1.14`
+
+| Cypress `mailagentSimulateAndVerify` task | ✅ |
+| Starters on `^0.1.14` | ✅ |
+| npm publish via tag `v0.39.0` | CI |
 
 ### Product (active track)
 

@@ -9,7 +9,7 @@
     "test:staging": "cypress run --spec cypress/e2e/signup-staging.cy.ts"
   },
   "devDependencies": {
-    "@mailagent/qa": "^0.1.13",
+    "@mailagent/qa": "^0.1.14",
     "cypress": "^14.3.0",
     "typescript": "^5.8.2"
   }
