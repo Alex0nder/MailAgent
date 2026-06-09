@@ -450,7 +450,7 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 
 | `gh skill publish --tag skills-0.2.5` | ✅ |
 | `npm run prepare:skills-pr` staging entry | ✅ |
-| awesome-agent-skills PR (Alex0nder fork) | submitted |
+| awesome-agent-skills [PR #659](https://github.com/VoltAgent/awesome-agent-skills/pull/659) | submitted |
 | awesome-codex-plugins PR #195 maintainer merge | pending |
 
 ### v0.55 Enterprise (next)
