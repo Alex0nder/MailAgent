@@ -2,7 +2,7 @@
 
 What exists, what is critical to add, and in what order.
 
-**Product status for QA:** v0.3 — ready for CI pilot, SDK and debug UI available.
+**Product status for QA:** v1.0 pilot-ready — `@mailagent/qa` on npm, `wizard:qa-pilot`, simulate CI examples.
 
 ---
 
@@ -160,14 +160,16 @@ sequenceDiagram
 
 ## Pilot checklist
 
-- [ ] `MAILAGENT_API_URL` + `MAILAGENT_API_KEY` in CI secrets
-- [ ] Staging sends mail from `service` preset domain
-- [ ] Resend webhook → `/webhooks/resend` alive (health + test message)
-- [ ] `label` unique per job (`GITHUB_RUN_ID`, worker index)
-- [ ] `deleteAfter: false` for debug, `true` in prod CI
-- [ ] On failure — `/debug.html` or `GET /v1/inboxes?label=`
-- [ ] `npm run smoke:qa` green after deploy
-- [ ] `npm run smoke:agent` green after deploy
+Guide: [QA-PILOT.md](./QA-PILOT.md) · `npm run wizard:qa-pilot`
+
+| Step | MailAgent repo | Your test repo |
+|------|----------------|----------------|
+| API key + smoke | `wizard:qa-pilot` / CI `MAILAGENT_API_KEY` | set secrets |
+| Webhook alive | ✅ prod `/webhooks/resend` | staging sends mail |
+| `smoke:qa` after deploy | ✅ CI `test:prod:gate` | — |
+| `label` per job | documented | `ci-$GITHUB_RUN_ID` |
+| Debug on failure | `/debug.html` | copy inbox id |
+| Examples | `examples/github-actions/`, `examples/playwright/` | copy workflow |
 
 ---
 

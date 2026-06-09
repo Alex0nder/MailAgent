@@ -48,6 +48,13 @@
         </tbody>
       </table>
 
+      <h2>30-minute pilot</h2>
+      <p>
+        New test repo:
+        <a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/QA-PILOT.md">QA-PILOT.md</a>
+        · validate with <code>npm run wizard:qa-pilot</code> (needs <code>MAILAGENT_API_KEY</code>).
+      </p>
+
       <h2>CI quick start</h2>
       <pre class="doc-pre"><code>export MAILAGENT_API_URL=https://api.webmailagent.com
 export MAILAGENT_API_KEY=your_key
@@ -71,7 +78,7 @@ curl -sS -X POST "$MAILAGENT_API_URL/v1/inboxes/open" \
       </ol>
 
       <h2>Playwright / <code>@mailagent/qa</code></h2>
-      <pre class="doc-pre"><code>npm install @mailagent/qa@0.1.9</code></pre>
+      <pre class="doc-pre"><code>npm install @mailagent/qa@latest</code></pre>
       <pre class="doc-pre"><code>import { createMailAgentQa, MailAgentQa } from "@mailagent/qa";
 
 const mail = createMailAgentQa(); // MAILAGENT_API_URL + MAILAGENT_API_KEY

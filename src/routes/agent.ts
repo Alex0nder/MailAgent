@@ -118,6 +118,9 @@ agentRoutes.get("/", (c) => {
       env: ["MAILAGENT_API_URL", "MAILAGENT_API_KEY"],
       contractAll: "npm run test:contract:all",
       repoGuide: "https://github.com/Alex0nder/MailAgent/blob/main/docs/AUTOTESTS.md",
+      qaPilot: "https://github.com/Alex0nder/MailAgent/blob/main/docs/QA-PILOT.md",
+      qaWizard: "npm run wizard:qa-pilot",
+      smokeQa: "npm run smoke:qa",
     },
     cli: "npx @mailagent/mcp mailagent open --service github --json",
   });

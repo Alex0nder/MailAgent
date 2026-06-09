@@ -27,6 +27,7 @@
     "doctor:security": "node scripts/doctor-security.mjs",
     "wizard:auth0": "node scripts/wizard-auth0-oidc.mjs",
     "wizard:stripe": "node scripts/wizard-stripe.mjs",
+    "wizard:qa-pilot": "node scripts/wizard-qa-pilot.mjs",
     "setup:stripe-prod": "node scripts/setup-stripe-prod.mjs",
     "setup:oidc-prod": "node scripts/setup-oidc-prod.mjs",
     "rotate:oidc": "node scripts/setup-oidc-prod.mjs",

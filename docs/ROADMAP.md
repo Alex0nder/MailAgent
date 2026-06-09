@@ -510,11 +510,18 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | Stripe live · SLA tiers | operator when ready |
 | Pentest report · SOC 2 Type II | third party |
 
+### v0.62 Product — QA pilot kit
+
+| `docs/QA-PILOT.md` 30-min guide | ✅ |
+| `npm run wizard:qa-pilot` | ✅ |
+| `GET /v1/agent` → `tests.qaPilot` / `qaWizard` | ✅ |
+| `public/docs/qa.html` pilot section | ✅ |
+
 ### Product (active track)
 
 | v1.0 API (inbound, outbound, threads, search, MCP) | ✅ |
-| QA adoption pilots | [QA-ROADMAP.md](./QA-ROADMAP.md) pilot checklist |
-| npm / MCP / skill install paths | ✅ — see DISTRIBUTION-STATUS.md |
+| QA adoption in external test repos | [QA-PILOT.md](./QA-PILOT.md) |
+| npm / MCP / skill install paths | ✅ — [DISTRIBUTION-STATUS.md](./DISTRIBUTION-STATUS.md) |
 
 ### Deferred (not QA)
 
