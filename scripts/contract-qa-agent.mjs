@@ -30,7 +30,7 @@ async function main() {
     console.error("agent autotests discovery missing", hub.json.tests, hub.json.autotests);
     process.exit(1);
   }
-  if (!hub.json.tests?.qaPilot || !hub.json.tests?.qaWizard) {
+  if (!hub.json.tests?.qaPilot || !hub.json.tests?.qaWizard || !hub.json.tests?.qaPilotStarter) {
     console.error("qa pilot discovery missing", hub.json.tests);
     process.exit(1);
   }

@@ -34,3 +34,4 @@ jobs:
             exit 1
           fi
           npm run test:prod:gate
+          npm run test:qa-pilot-starter

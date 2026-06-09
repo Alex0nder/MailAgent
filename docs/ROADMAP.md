@@ -517,6 +517,13 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | `GET /v1/agent` → `tests.qaPilot` / `qaWizard` | ✅ |
 | `public/docs/qa.html` pilot section | ✅ |
 
+### v0.63 Product — QA pilot starter (highest adoption impact)
+
+| `examples/qa-pilot-starter/` copy-paste repo | ✅ |
+| `npm run test:qa-pilot-starter` CI guard | ✅ |
+| `GET /v1/agent` → `tests.qaPilotStarter` | ✅ |
+| PR workflow `qa-smoke.yml` validates starter | ✅ |
+
 ### Product (active track)
 
 | v1.0 API (inbound, outbound, threads, search, MCP) | ✅ |

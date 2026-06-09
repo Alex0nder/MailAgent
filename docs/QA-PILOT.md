@@ -4,6 +4,19 @@ Connect a test repo (Playwright, Cypress, or curl) to hosted MailAgent in ~30 mi
 
 **Prerequisite:** API key — [dashboard](https://webmailagent.com/dashboard.html) or `npm run issue:key:db` (MailAgent operators).
 
+## 0. Fastest path — copy starter (10 min)
+
+```bash
+cp -R examples/qa-pilot-starter /path/to/your-test-repo/mailagent-qa
+cd /path/to/your-test-repo/mailagent-qa
+cp .env.example .env   # MAILAGENT_API_KEY
+npm install && npm test
+```
+
+Or open: [examples/qa-pilot-starter](../examples/qa-pilot-starter) · includes `.github/workflows/mailagent.yml`.
+
+MailAgent CI keeps it green: `npm run test:qa-pilot-starter`.
+
 ## 1. Validate (5 min)
 
 ```bash
@@ -24,16 +37,14 @@ In your **test repo** → Settings → Secrets:
 | `MAILAGENT_API_URL` | `https://api.webmailagent.com` |
 | `MAILAGENT_API_KEY` | scoped key, `labelPrefix: ci-` recommended |
 
-Copy workflow: [examples/github-actions/qa-email.yml](../examples/github-actions/qa-email.yml)  
-Simulate-only (no staging mail): [qa-simulate-only.yml](../examples/github-actions/qa-simulate-only.yml)
+Starter already includes workflow. Alternatives:
 
-## 3. First test (15 min)
+- [qa-email.yml](../examples/github-actions/qa-email.yml) — full E2E
+- [qa-simulate-only.yml](../examples/github-actions/qa-simulate-only.yml) — inline node script
 
-**Playwright** — copy [examples/playwright/mailagent.fixture.ts](../examples/playwright/mailagent.fixture.ts) and [signup-simulate.spec.example.ts](../examples/playwright/signup-simulate.spec.example.ts).
+## 3. Real signup E2E (after simulate works)
 
-```bash
-npm install @mailagent/qa@latest
-```
+Extend starter or copy [mailagent.fixture.ts](../examples/playwright/mailagent.fixture.ts).
 
 **curl one-shot** (after staging sends mail):
 

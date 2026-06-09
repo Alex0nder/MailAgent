@@ -40,8 +40,7 @@ run("smoke:qa", "npm", ["run", "smoke:qa"]);
 
 console.log("QA pilot baseline OK\n");
 console.log("Next steps:");
-console.log("  1. Copy examples/github-actions/qa-email.yml → your test repo");
-console.log("  2. npm install @mailagent/qa — see examples/playwright/");
+console.log("  1. Copy examples/qa-pilot-starter/ → your test repo (Playwright + GH Actions)");
+console.log("  2. Set MAILAGENT_API_KEY secret · npm test");
 console.log("  3. Label convention: ci-$GITHUB_RUN_ID");
 console.log("  4. Full guide: docs/QA-PILOT.md · https://webmailagent.com/docs/qa.html");
-console.log("\nSimulate-only CI (no staging mail): examples/github-actions/qa-simulate-only.yml");

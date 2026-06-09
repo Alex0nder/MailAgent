@@ -66,6 +66,7 @@
     "test:prod": "node scripts/test-prod.mjs",
     "test:prod:gate": "node scripts/test-prod-gate.mjs",
     "test:pw:simulate": "playwright test -c examples/playwright/playwright.simulate.config.ts",
+    "test:qa-pilot-starter": "node scripts/test-qa-pilot-starter.mjs",
     "test:structured-extract": "npx tsx scripts/test-structured-extract.ts",
     "test:message-search": "npx tsx scripts/test-message-search.ts",
     "test:thread-resolve": "npx tsx scripts/test-thread-resolve.ts",

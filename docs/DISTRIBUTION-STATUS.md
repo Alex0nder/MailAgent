@@ -4,6 +4,14 @@ Single source of truth for catalogs and install paths. **Install works today** �
 
 Last automated check: CI `check:catalog-prs` (weekly) · discovery: `GET /v1/agent` → `distribution`
 
+## Adoption (QA pilots)
+
+| Asset | Path |
+|-------|------|
+| Copy-paste starter | [examples/qa-pilot-starter](../examples/qa-pilot-starter) |
+| 30-min guide | [QA-PILOT.md](./QA-PILOT.md) |
+| Validate key | `npm run wizard:qa-pilot` |
+
 ## Install (live)
 
 | Channel | Command |
