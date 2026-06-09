@@ -1,8 +1,31 @@
 # Your turn — manual prod setup (no Stripe)
 
-What **you** enable once; CI and agents handle the rest after that.
+What **only a human** can enable. Everything else runs without you.
 
 **Stripe is on hold** — skip `STRIPE_*` until billing is a priority.
+
+## Works without you (agents can use prod today)
+
+| Path | Command / URL |
+|------|----------------|
+| MCP + REST verify | `MAILAGENT_API_KEY` in CI · `npm run smoke:agent` |
+| Agent skill from GitHub | `npx skills add Alex0nder/MailAgent --skill mailagent` |
+| Pinned skill release | `gh skill install Alex0nder/MailAgent mailagent --pin skills-0.2.5` |
+| Codex plugin (repo marketplace) | `codex plugin marketplace add Alex0nder/MailAgent` |
+| npm packages | `@mailagent/mcp` · `@mailagent/agent` · `@mailagent/qa` |
+| Docs / privacy / terms / SLA draft | hosted on webmailagent.com |
+
+**Catalog PRs** ([#195](https://github.com/hashgraph-online/awesome-codex-plugins/pull/195), [#659](https://github.com/VoltAgent/awesome-agent-skills/pull/659)) — submitted; merge is maintainer-only, not blocking install.
+
+## Blocked without a human (optional visibility)
+
+| Item | Why agents can't do it |
+|------|------------------------|
+| Agent Skill Hub listing | Hub API needs `skhub login` / browser OAuth or their GitHub token is down |
+| Codex Plugin Directory | OpenAI self-serve not open yet |
+| Stripe live | No Stripe account / `wizard:stripe --deploy` |
+| SOC 2 Type II | Paid audit + legal sign-off |
+| awesome-* PR merge | External repo maintainers |
 
 Run anytime:
 
@@ -111,23 +134,15 @@ Third-party catalogs: [CATALOG-SUBMIT.md](./CATALOG-SUBMIT.md) — PR [#195](htt
 
 ---
 
-## 6. Agent Skill Hub (one-time)
+## 6. Optional — Agent Skill Hub (visibility only)
 
-Skill not indexed yet — import once:
-
-```bash
-npm run import:skill-hub
-```
-
-If analyze needs auth: `skhub login` → `export SKILLHUB_TOKEN=…` → rerun. Or import via [agentskillhub.dev](https://agentskillhub.dev) UI.
-
-Guide: [SKILLS-SUBMIT.md](./SKILLS-SUBMIT.md)
-
-**Repo hardening (optional):**
+**Not required for install** — skill ships from this repo. Hub import only adds search on [agentskillhub.dev](https://agentskillhub.dev); needs your browser login (`skhub login`) because the public analyze API returns GitHub 401.
 
 ```bash
-npm run harden:repo
+skhub login && export SKILLHUB_TOKEN=… && npm run import:skill-hub
 ```
+
+Skip until you care about Hub SEO. Guide: [SKILLS-SUBMIT.md](./SKILLS-SUBMIT.md)
 
 ---
 

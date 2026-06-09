@@ -472,7 +472,7 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 
 | `npm run import:skill-hub` (analyze / import) | ✅ |
 | `npm run harden:repo` (secret scanning + push protection) | ✅ |
-| Agent Skill Hub live listing | operator: `YOUR-TURN.md` §6 |
+| Agent Skill Hub live listing | optional · blocked on Hub OAuth / their GitHub API |
 | awesome-agent-skills PR #659 maintainer merge | pending |
 
 ### v0.58 Enterprise — SOC 2 gap docs
