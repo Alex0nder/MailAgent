@@ -63,25 +63,33 @@ if (bad === 0 && audit.status === 0) ok("no critical/high npm vulnerabilities");
 else if (bad === 0) ok("npm audit exit non-zero but no critical/high");
 else fail(`${bad} critical/high npm vulnerabilities — run npm audit`);
 
-console.log("\nGitHub (optional — needs gh auth):");
+const inCi = process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true";
+
+console.log("\nGitHub repo settings (gh):");
 const gh = spawnSync(
   "gh",
   ["api", "repos/Alex0nder/MailAgent", "--jq", ".security_and_analysis"],
-  { encoding: "utf8" }
+  { encoding: "utf8", env: { ...process.env, GH_TOKEN: process.env.GH_TOKEN ?? process.env.GITHUB_TOKEN } }
 );
 if (gh.status !== 0) {
-  console.log("ℹ gh skipped — install GitHub CLI and auth for repo settings check");
+  if (inCi) console.log("ℹ skipped in CI — GITHUB_TOKEN cannot read security_and_analysis");
+  else console.log("ℹ gh skipped — install GitHub CLI and auth locally");
 } else {
   try {
     const sa = JSON.parse(gh.stdout.trim() || "{}");
     const ss = sa.secret_scanning?.status === "enabled";
     const pp = sa.secret_scanning_push_protection?.status === "enabled";
-    if (ss) ok("secret scanning enabled");
-    else fail("secret scanning disabled — npm run harden:repo");
-    if (pp) ok("secret scanning push protection enabled");
-    else fail("push protection disabled — npm run harden:repo");
+    if (inCi && !ss && !pp) {
+      console.log("ℹ skipped in CI — run `npm run harden:repo` locally to verify secret scanning");
+    } else {
+      if (ss) ok("secret scanning enabled");
+      else fail("secret scanning disabled — npm run harden:repo");
+      if (pp) ok("secret scanning push protection enabled");
+      else fail("push protection disabled — npm run harden:repo");
+    }
   } catch {
-    fail("could not parse gh security_and_analysis");
+    if (inCi) console.log("ℹ skipped in CI — could not read security_and_analysis");
+    else fail("could not parse gh security_and_analysis");
   }
 }
 

@@ -67,7 +67,7 @@ Workflow: [`.github/workflows/security-baseline.yml`](../.github/workflows/secur
 
 Trigger: every push/PR to `main`, weekly (Monday 06:00 UTC), or **Run workflow**.
 
-Runs `npm run doctor:security` — trust docs, `verify:codex`, `npm audit` (high+), GitHub secret scanning. **No** `MAILAGENT_API_KEY` required.
+Runs `npm run doctor:security` — trust docs, `verify:codex`, `npm audit` (high+). GitHub secret-scanning settings are verified locally (`npm run harden:repo`); `GITHUB_TOKEN` in Actions cannot read them. **No** `MAILAGENT_API_KEY` required.
 
 ## HOL plugin scanner
 
