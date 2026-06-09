@@ -489,6 +489,20 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | Independent pentest report (third party) | planned |
 | awesome-codex-plugins PR #195 · awesome-agent-skills PR #659 | pending merge |
 
+### v0.60 CI — security baseline gate
+
+| `.github/workflows/security-baseline.yml` | ✅ |
+| PR + push `main` + weekly schedule | ✅ |
+| `doctor:security` in CI (no prod secrets) | ✅ |
+| Documented in `docs/CI.md` | ✅ |
+
+### Distribution / enterprise — frozen until external
+
+| awesome-codex-plugins PR #195 · awesome-agent-skills PR #659 | maintainer merge |
+| Codex Plugin Directory | OpenAI self-serve |
+| Stripe live · SLA tiers | operator when ready |
+| Pentest report · SOC 2 Type II | third party |
+
 ### Deferred (not QA)
 
 - ~~Agent session memory / multi-step run state~~ ✅ v0.35

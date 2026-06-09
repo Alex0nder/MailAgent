@@ -61,6 +61,18 @@ In a non-interactive environment, it's necessary to set a CLOUDFLARE_API_TOKEN
 
 Local deploy without CI: `npm run deploy` (after `wrangler login`).
 
+## Security baseline
+
+Workflow: [`.github/workflows/security-baseline.yml`](../.github/workflows/security-baseline.yml)
+
+Trigger: every push/PR to `main`, weekly (Monday 06:00 UTC), or **Run workflow**.
+
+Runs `npm run doctor:security` — trust docs, `verify:codex`, `npm audit` (high+), GitHub secret scanning. **No** `MAILAGENT_API_KEY` required.
+
+## HOL plugin scanner
+
+Workflow: [`.github/workflows/hol-plugin-scanner.yml`](../.github/workflows/hol-plugin-scanner.yml) — Codex catalog score ≥80 (PR #195).
+
 ## Publish npm packages
 
 Workflow: [`.github/workflows/publish-packages.yml`](../.github/workflows/publish-packages.yml)
