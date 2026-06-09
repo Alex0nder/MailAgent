@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "playwright test",
+    "test:staging": "playwright test tests/signup-staging.spec.ts",
     "test:ui": "playwright test --ui"
   },
   "devDependencies": {

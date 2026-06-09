@@ -44,7 +44,15 @@ Starter already includes workflow. Alternatives:
 
 ## 3. Real signup E2E (after simulate works)
 
-Extend starter or copy [mailagent.fixture.ts](../examples/playwright/mailagent.fixture.ts).
+Starter includes `tests/signup-staging.spec.ts` + `mailagent.fixture.ts`:
+
+```bash
+# .env
+APP_SIGNUP_URL=https://your-staging.app/signup
+npm run test:staging
+```
+
+Skipped in CI until you add `APP_SIGNUP_URL` as a secret. Match `service` preset to your mail sender — [QA-PRESETS.md](./QA-PRESETS.md).
 
 **curl one-shot** (after staging sends mail):
 

@@ -22,15 +22,17 @@ npm run wizard:qa-pilot
 2. GitHub → Settings → Secrets → `MAILAGENT_API_KEY`.
 3. Push — `.github/workflows/mailagent.yml` runs on PR.
 
-## Real signup E2E
+## Real signup E2E (phase 2)
 
-Replace `tests/signup-simulate.spec.ts` with a flow that:
+1. Set `APP_SIGNUP_URL` in `.env` (staging signup page).
+2. Match `service` in `mailagent.fixture.ts` to your sender (`auth0`, `github`, …).
+3. Run:
 
-1. `mail.createInbox({ label, service: "auth0" })`
-2. Fill staging signup form with `inbox.address`
-3. `mail.waitForVerification(inbox.id, { subjectContains: "verify" })`
+```bash
+npm run test:staging
+```
 
-See [mailagent.fixture.ts](../playwright/mailagent.fixture.ts) in the parent repo.
+`tests/signup-staging.spec.ts` is **skipped** in default `npm test` / CI until `APP_SIGNUP_URL` is set.
 
 ## Docs
 

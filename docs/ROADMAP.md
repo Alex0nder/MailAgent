@@ -524,6 +524,12 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | `GET /v1/agent` → `tests.qaPilotStarter` | ✅ |
 | PR workflow `qa-smoke.yml` validates starter | ✅ |
 
+### v0.64 Product — staging E2E in starter
+
+| `signup-staging.spec.ts` (skip without `APP_SIGNUP_URL`) | ✅ |
+| `mailagent.fixture.ts` auto cleanup | ✅ |
+| `npm run test:staging` in starter | ✅ |
+
 ### Product (active track)
 
 | v1.0 API (inbound, outbound, threads, search, MCP) | ✅ |
