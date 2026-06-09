@@ -37,6 +37,7 @@ npm run doctor:security     # trust docs, npm audit, secret scanning (CI: securi
 npm run check:catalog-prs   # awesome-codex #195 + awesome-agent-skills #659 status
 npm run wizard:qa-pilot     # QA consumer: doctor:qa + smoke:qa + next steps
 npm run test:qa-pilot-starter  # guard examples/qa-pilot-starter
+npm run test:qa-pilot-cypress-starter  # guard examples/qa-pilot-cypress-starter
 npm run codex:install       # Codex MCP from .dev.vars
 npm run smoke:qa            # prod API lifecycle
 npm run smoke:agent         # MCP + OAuth smoke

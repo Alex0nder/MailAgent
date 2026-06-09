@@ -530,6 +530,13 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | `mailagent.fixture.ts` auto cleanup | ✅ |
 | `npm run test:staging` in starter | ✅ |
 
+### v0.65 Product — Cypress pilot starter
+
+| `examples/qa-pilot-cypress-starter/` | ✅ |
+| `@mailagent/qa/cypress` → `mailagentSimulateAndVerify` task | ✅ |
+| `npm run test:qa-pilot-cypress-starter` CI guard | ✅ |
+| `GET /v1/agent` → `tests.qaPilotCypressStarter` | ✅ |
+
 ### Product (active track)
 
 | v1.0 API (inbound, outbound, threads, search, MCP) | ✅ |

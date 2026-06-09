@@ -120,6 +120,8 @@ agentRoutes.get("/", (c) => {
       repoGuide: "https://github.com/Alex0nder/MailAgent/blob/main/docs/AUTOTESTS.md",
       qaPilot: "https://github.com/Alex0nder/MailAgent/blob/main/docs/QA-PILOT.md",
       qaPilotStarter: "https://github.com/Alex0nder/MailAgent/tree/main/examples/qa-pilot-starter",
+      qaPilotCypressStarter:
+        "https://github.com/Alex0nder/MailAgent/tree/main/examples/qa-pilot-cypress-starter",
       qaWizard: "npm run wizard:qa-pilot",
       smokeQa: "npm run smoke:qa",
     },

@@ -8,7 +8,8 @@ Last automated check: CI `check:catalog-prs` (weekly) · discovery: `GET /v1/age
 
 | Asset | Path |
 |-------|------|
-| Copy-paste starter | [examples/qa-pilot-starter](../examples/qa-pilot-starter) |
+| Playwright starter | [examples/qa-pilot-starter](../examples/qa-pilot-starter) |
+| Cypress starter | [examples/qa-pilot-cypress-starter](../examples/qa-pilot-cypress-starter) |
 | 30-min guide | [QA-PILOT.md](./QA-PILOT.md) |
 | Validate key | `npm run wizard:qa-pilot` |
 

@@ -38,6 +38,16 @@ export type MailAgentCypressTasks = {
     callbackIndex?: number;
   }) => Promise<{ delivery: CallbackDelivery; verification: Verification }>;
   mailagentDeleteInbox: (inboxId: string) => Promise<null>;
+  mailagentSimulateAndVerify: (args: {
+    inboxId: string;
+    options?: {
+      otp?: string;
+      from?: string;
+      subject?: string;
+      subjectContains?: string;
+      timeoutSeconds?: number;
+    };
+  }) => Promise<Verification>;
   mailagentCleanupRun: (runId: string) => Promise<{ deleted: number; ids: string[] }>;
 };
 
@@ -92,6 +102,10 @@ export function createMailAgentCypressTasks(
     async mailagentDeleteInbox(inboxId) {
       await mail.deleteInbox(inboxId);
       return null;
+    },
+
+    async mailagentSimulateAndVerify({ inboxId, options }) {
+      return mail.simulateAndVerify(inboxId, options);
     },
 
     async mailagentCleanupRun(runId) {

@@ -35,3 +35,4 @@ jobs:
           fi
           npm run test:prod:gate
           npm run test:qa-pilot-starter
+          npm run test:qa-pilot-cypress-starter

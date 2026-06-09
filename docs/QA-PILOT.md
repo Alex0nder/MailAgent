@@ -13,9 +13,12 @@ cp .env.example .env   # MAILAGENT_API_KEY
 npm install && npm test
 ```
 
-Or open: [examples/qa-pilot-starter](../examples/qa-pilot-starter) · includes `.github/workflows/mailagent.yml`.
+Or open:
 
-MailAgent CI keeps it green: `npm run test:qa-pilot-starter`.
+- Playwright: [examples/qa-pilot-starter](../examples/qa-pilot-starter)
+- Cypress: [examples/qa-pilot-cypress-starter](../examples/qa-pilot-cypress-starter)
+
+MailAgent CI: `npm run test:qa-pilot-starter` · `npm run test:qa-pilot-cypress-starter`.
 
 ## 1. Validate (5 min)
 
