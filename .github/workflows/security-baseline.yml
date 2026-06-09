@@ -30,3 +30,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run doctor:security
+
+      - name: Catalog PR status (weekly)
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run check:catalog-prs

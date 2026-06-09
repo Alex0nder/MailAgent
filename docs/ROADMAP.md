@@ -496,12 +496,25 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | `doctor:security` in CI (no prod secrets) | ✅ |
 | Documented in `docs/CI.md` | ✅ |
 
+### v0.61 Distribution — status board + agent discovery
+
+| `docs/DISTRIBUTION-STATUS.md` | ✅ |
+| `GET /v1/agent` → `distribution` | ✅ |
+| `npm run check:catalog-prs` + weekly CI | ✅ |
+| `contract-qa-agent` asserts distribution + trust URLs | ✅ |
+
 ### Distribution / enterprise — frozen until external
 
 | awesome-codex-plugins PR #195 · awesome-agent-skills PR #659 | maintainer merge |
 | Codex Plugin Directory | OpenAI self-serve |
 | Stripe live · SLA tiers | operator when ready |
 | Pentest report · SOC 2 Type II | third party |
+
+### Product (active track)
+
+| v1.0 API (inbound, outbound, threads, search, MCP) | ✅ |
+| QA adoption pilots | [QA-ROADMAP.md](./QA-ROADMAP.md) pilot checklist |
+| npm / MCP / skill install paths | ✅ — see DISTRIBUTION-STATUS.md |
 
 ### Deferred (not QA)
 

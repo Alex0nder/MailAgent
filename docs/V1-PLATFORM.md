@@ -106,5 +106,6 @@ Goal: **full email API for agents** (inbound + outbound + threads) **plus** adva
 
 ## Next step
 
-See [ROADMAP.md](./ROADMAP.md) **v0.51** — Stripe on hold; awesome-codex PR #195 mergeable; Codex Plugin Directory (OpenAI) when open.  
-OIDC + outbound on prod ✅ · CI uses `test:prod:gate` (KV-friendly).
+**Product:** v1.0 API surface complete — focus on adoption (QA pilots, npm, MCP).  
+**Distribution:** frozen until external merge — [DISTRIBUTION-STATUS.md](./DISTRIBUTION-STATUS.md) · `GET /v1/agent` → `distribution`.  
+Stripe on hold · OIDC + outbound on prod ✅ · CI: `test:prod:gate` + `doctor:security`.

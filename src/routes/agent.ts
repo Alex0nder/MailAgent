@@ -89,6 +89,21 @@ agentRoutes.get("/", (c) => {
       auth: "GET /mcp/auth",
     },
     docs: "https://webmailagent.com/docs/agents.html",
+    distribution: {
+      status: "https://github.com/Alex0nder/MailAgent/blob/main/docs/DISTRIBUTION-STATUS.md",
+      skill: {
+        path: "skills/mailagent/SKILL.md",
+        install: "npx skills add Alex0nder/MailAgent --skill mailagent",
+        ghPin: "gh skill install Alex0nder/MailAgent mailagent --pin skills-0.2.5",
+      },
+      codex: {
+        marketplace: "Alex0nder/MailAgent",
+        plugin: "mailagent",
+        catalogPr: "https://github.com/hashgraph-online/awesome-codex-plugins/pull/195",
+      },
+      skillsCatalogPr: "https://github.com/VoltAgent/awesome-agent-skills/pull/659",
+      npm: ["@mailagent/mcp", "@mailagent/agent", "@mailagent/qa"],
+    },
     console: "https://webmailagent.com/dashboard.html",
     billing: "https://webmailagent.com/docs/billing.html",
     enterprise: "https://webmailagent.com/docs/enterprise.html",

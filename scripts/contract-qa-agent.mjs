@@ -42,6 +42,19 @@ async function main() {
     console.error("runs.session discovery missing", hub.json.runs);
     process.exit(1);
   }
+  if (!hub.json.security || !hub.json.privacy || !hub.json.terms) {
+    console.error("trust URLs missing", {
+      security: hub.json.security,
+      privacy: hub.json.privacy,
+      terms: hub.json.terms,
+    });
+    process.exit(1);
+  }
+  const d = hub.json.distribution;
+  if (!d?.skill?.install || !d?.codex?.marketplace || !d?.npm?.length) {
+    console.error("distribution discovery missing", d);
+    process.exit(1);
+  }
   console.log("agent hub OK", {
     tools: hub.json.mcpTools.length,
     oidc: hub.json.auth.oidc,
