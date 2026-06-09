@@ -327,7 +327,7 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | `npm run doctor:oidc` + setup:oidc-prod verify hook | ✅ |
 | Catalog submit guide [CATALOG-SUBMIT.md](./CATALOG-SUBMIT.md) | ✅ |
 | `npm run prepare:catalog-pr` staging bundle | ✅ |
-| awesome-codex-plugins PR | [#195](https://github.com/hashgraph-online/awesome-codex-plugins/pull/195) pending |
+| awesome-codex-plugins PR | [#195](https://github.com/hashgraph-online/awesome-codex-plugins/pull/195) mergeable, maintainer merge |
 | Docs page `/docs/agent-skills.html` | ✅ |
 
 ### v0.40 OIDC prod + KV relief
@@ -410,12 +410,20 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | Sidebar + footer nav link | ✅ |
 | Cross-links from enterprise, custom-domain, dashboard | ✅ |
 
-### v0.50 Enterprise (next)
+### v0.50 Distribution (catalog PR follow-up)
+
+| Merge `upstream/main` into PR [#195](https://github.com/hashgraph-online/awesome-codex-plugins/pull/195) (llm-transpile + mailagent) | ✅ |
+| `plugins.json` entry (106 plugins) | ✅ |
+| Catalog bundle + `LICENSE` in `plugins/Alex0nder/mailagent` | ✅ |
+| HOL plugin scanner CI on MailAgent `main` | ✅ [workflow](https://github.com/Alex0nder/MailAgent/actions/workflows/hol-plugin-scanner.yml) |
+| `SECURITY.md` + scanner score 88/100 (0 critical/high) | ✅ |
+| awesome-codex-plugins PR #195 maintainer merge | pending |
+
+### v0.51 Enterprise (next)
 
 | Stripe live on prod (`STRIPE_*`) | on hold |
 | SOC 2 Type II (beyond draft) | planned |
 | SLA / support tier | post-Stripe |
-| awesome-codex-plugins PR #195 merge | pending |
 
 ### Deferred (not QA)
 

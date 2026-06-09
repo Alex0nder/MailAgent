@@ -105,7 +105,7 @@ npm run package:codex
 
 **Official Plugin Directory:** self-serve publish coming soon — see [CODEX.md](./CODEX.md).
 
-Third-party catalogs: [CATALOG-SUBMIT.md](./CATALOG-SUBMIT.md) — PR [awesome-codex-plugins #195](https://github.com/hashgraph-online/awesome-codex-plugins/pull/195) pending.
+Third-party catalogs: [CATALOG-SUBMIT.md](./CATALOG-SUBMIT.md) — PR [awesome-codex-plugins #195](https://github.com/hashgraph-online/awesome-codex-plugins/pull/195) mergeable (maintainer merge).
 
 ---
 
