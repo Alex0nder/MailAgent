@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Terms of Service — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="doc-page" data-site="marketing">
+    <div id="site-nav"></div>
+    <main class="site-container" style="max-width: 42rem; padding: 3rem 1.5rem 4rem">
+      <h1>Terms of Service</h1>
+      <p class="doc-lead">Last updated: June 2026</p>
+      <p>
+        These terms govern use of the hosted MailAgent service at
+        <code>api.webmailagent.com</code> and related web properties. By using the hosted API or console,
+        you agree to these terms. The open-source project remains available under the
+        <a href="https://github.com/Alex0nder/MailAgent/blob/main/LICENSE">MIT license</a> for self-hosting.
+      </p>
+
+      <h2>Service</h2>
+      <p>
+        MailAgent provides programmatic temporary inboxes for agent signup QA, OTP and magic-link extraction,
+        and related MCP/API tools. Features and limits depend on your plan (<code>GET /v1/me</code>).
+      </p>
+
+      <h2>Acceptable use</h2>
+      <p>You agree not to:</p>
+      <ul class="doc-list">
+        <li>Send spam, phishing, or unsolicited bulk mail through outbound features.</li>
+        <li>Circumvent rate limits, abuse disposable addresses for fraud, or attack third-party sites.</li>
+        <li>Store highly sensitive personal data in temporary inboxes beyond what signup QA requires.</li>
+        <li>Share API keys publicly or commit them to repositories.</li>
+      </ul>
+      <p>
+        MailAgent is for <strong>automated testing and agent workflows</strong>, not consumer disposable-email privacy products.
+      </p>
+
+      <h2>API keys &amp; accounts</h2>
+      <ul class="doc-list">
+        <li>You are responsible for keys created under your team and for actions taken with them.</li>
+        <li>We may suspend keys or teams that violate acceptable use or threaten service stability.</li>
+        <li>Enterprise dedicated Resend credentials you upload remain your responsibility under your Resend account terms.</li>
+      </ul>
+
+      <h2>Availability &amp; changes</h2>
+      <p>
+        The hosted service is provided on a commercially reasonable efforts basis. We may change features,
+        limits, or pricing (when billing launches) with notice where practical. See
+        <a href="/docs/security.html">security</a> for operational practices.
+      </p>
+
+      <h2>Disclaimer</h2>
+      <p>
+        THE HOSTED SERVICE IS PROVIDED “AS IS” WITHOUT WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+        OR NON-INFRINGEMENT. To the maximum extent permitted by law, we are not liable for indirect or consequential damages
+        arising from use of the hosted API.
+      </p>
+
+      <h2>Self-host</h2>
+      <p>
+        If you deploy MailAgent yourself, you operate the deployment and your own terms with end users.
+        MIT license terms apply to the software.
+      </p>
+
+      <h2>Privacy</h2>
+      <p>Data handling is described in the <a href="/privacy.html">Privacy Policy</a>.</p>
+
+      <h2>Contact</h2>
+      <p>Questions: <a href="mailto:hello@webmailagent.com">hello@webmailagent.com</a></p>
+    </main>
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
+  </body>
+</html>

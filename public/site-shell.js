@@ -186,6 +186,8 @@
         <p class="footer-legal-copy">
           © MailAgent. Open-source email verification for agents and QA.
           <a href="${GITHUB}" rel="noopener noreferrer">Source</a>
+          · <a href="/privacy.html">Privacy</a>
+          · <a href="/terms.html">Terms</a>
         </p>
         <p class="footer-legal-copy">
           Made with love for agents &amp; QA —

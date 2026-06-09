@@ -71,4 +71,4 @@ After verify, point the agent at the product API or a Membrane skill for the sam
 3. `npm run verify:skills` (runs in `verify:codex` / `package:codex`)
 4. Bump `metadata.version` in frontmatter when MCP package changes
 
-See also: [CATALOG-SUBMIT.md](./CATALOG-SUBMIT.md) · [AGENTS.md](../AGENTS.md) · [AUTOTESTS.md](./AUTOTESTS.md)
+Catalog submission: [SKILLS-SUBMIT.md](./SKILLS-SUBMIT.md) · Codex plugin: [CATALOG-SUBMIT.md](./CATALOG-SUBMIT.md) · [AGENTS.md](../AGENTS.md) · [AUTOTESTS.md](./AUTOTESTS.md)

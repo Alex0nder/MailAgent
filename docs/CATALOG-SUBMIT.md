@@ -80,4 +80,11 @@ For [Agent Skills](https://agentskills.io/) catalogs, point maintainers at:
 
 Self-serve publish is **coming soon** (OpenAI). Watch [Build plugins](https://developers.openai.com/codex/plugins/build) and [CODEX.md](./CODEX.md).
 
-When available: use `npm run package:codex` tarball + dashboard submission (privacy/terms URLs on webmailagent.com may be required).
+When available: use `npm run package:codex` tarball + dashboard submission.
+
+Required URLs (already live):
+
+- Privacy: https://webmailagent.com/privacy.html
+- Terms: https://webmailagent.com/terms.html
+
+Set in `examples/codex/plugin/.codex-plugin/plugin.json` → `interface.privacyPolicyURL` / `termsOfServiceURL`.

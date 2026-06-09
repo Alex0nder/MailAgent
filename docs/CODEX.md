@@ -71,7 +71,8 @@ Repo structure: [examples/codex/plugin/](../examples/codex/plugin/)
 | 9 | Local plugin test in Codex CLI | manual (Codex not in CI) |
 | 10 | Publish `@mailagent/agent@0.1.5` | manual (`npm run publish:agent`) |
 | 11 | Repo marketplace (`.agents/plugins/marketplace.json`) | ✅ |
-| 12 | Official Plugin Directory submit | coming soon (OpenAI) |
+| 12 | `privacyPolicyURL` + `termsOfServiceURL` in plugin.json | ✅ |
+| 13 | Official Plugin Directory submit | coming soon (OpenAI) |
 
 ### Install from GitHub (repo marketplace)
 

@@ -42,7 +42,17 @@ for (const rel of required) {
   }
 }
 
-JSON.parse(readFileSync(path.join(pluginRoot, ".codex-plugin/plugin.json"), "utf8"));
+const manifest = JSON.parse(
+  readFileSync(path.join(pluginRoot, ".codex-plugin/plugin.json"), "utf8")
+);
+const iface = manifest.interface ?? {};
+for (const field of ["websiteURL", "privacyPolicyURL", "termsOfServiceURL"]) {
+  const url = iface[field];
+  if (typeof url !== "string" || !url.startsWith("https://webmailagent.com/")) {
+    console.error(`plugin.json interface.${field} must be https://webmailagent.com/…`);
+    process.exit(1);
+  }
+}
 JSON.parse(readFileSync(path.join(pluginRoot, ".mcp.json"), "utf8"));
 
 const bash = spawnSync("bash", ["-n", path.join(pluginRoot, "scripts/run-mailagent-mcp.sh")]);

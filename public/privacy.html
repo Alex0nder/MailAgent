@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy Policy — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="doc-page" data-site="marketing">
+    <div id="site-nav"></div>
+    <main class="site-container" style="max-width: 42rem; padding: 3rem 1.5rem 4rem">
+      <h1>Privacy Policy</h1>
+      <p class="doc-lead">Last updated: June 2026</p>
+      <p>
+        This policy describes how MailAgent (“we”) handles information when you use
+        <a href="https://webmailagent.com">webmailagent.com</a>, the hosted API at
+        <code>api.webmailagent.com</code>, or related console pages. Self-hosted deployments
+        under the MIT license are operated by you — this policy applies to the hosted service we run.
+      </p>
+
+      <h2>What we collect</h2>
+      <ul class="doc-list">
+        <li><strong>Account &amp; API data</strong> — team name, API key hashes, scoped key metadata, plan tier, usage counters.</li>
+        <li><strong>Temporary inbox content</strong> — email messages delivered to disposable addresses you create (subject, body, headers, attachments within plan limits) until deleted or expired.</li>
+        <li><strong>Audit &amp; operations</strong> — API actions your keys perform (timestamps, resource ids, IP-derived rate-limit keys) per <a href="/docs/security.html">audit retention</a>.</li>
+        <li><strong>Enterprise secrets</strong> — Resend API keys you provide are encrypted at rest; we do not log plaintext keys.</li>
+        <li><strong>Website analytics</strong> — Google Analytics on the marketing site (page views, coarse device/browser data). Docs and console pages may load the same tag when embedded from the landing setup.</li>
+      </ul>
+
+      <h2>Why we use it</h2>
+      <ul class="doc-list">
+        <li>Provide temporary inboxes, OTP/magic-link extraction, MCP tools, and console features.</li>
+        <li>Enforce plan limits, rate limits, and abuse prevention.</li>
+        <li>Operate enterprise features (custom domains, dedicated Resend, outbound send).</li>
+        <li>Improve reliability and understand aggregate product usage.</li>
+      </ul>
+
+      <h2>Who receives data</h2>
+      <p>We use infrastructure providers that process data on our behalf:</p>
+      <ul class="doc-list">
+        <li><strong>Cloudflare</strong> — Workers, R2 (raw MIME / attachments), KV (rate limits).</li>
+        <li><strong>Neon</strong> — Postgres (teams, inboxes, audit, domains metadata).</li>
+        <li><strong>Resend</strong> — inbound/outbound email for hosted and per-team enterprise mail.</li>
+        <li><strong>Auth0</strong> — optional OIDC browser login for MCP (identity tokens only; no mailbox content).</li>
+        <li><strong>Google Analytics</strong> — marketing analytics as described above.</li>
+      </ul>
+      <p>We do not sell personal data.</p>
+
+      <h2>Retention</h2>
+      <ul class="doc-list">
+        <li><strong>Inboxes &amp; messages</strong> — until you delete the inbox or messages age out per plan/TTL.</li>
+        <li><strong>Audit events</strong> — configurable retention (default 90 days); see <code>AUDIT_RETENTION_DAYS</code> in self-host docs.</li>
+        <li><strong>API keys</strong> — until revoked.</li>
+      </ul>
+
+      <h2>Your choices</h2>
+      <ul class="doc-list">
+        <li>Delete inboxes and team keys via API or <a href="/dashboard.html">dashboard</a>.</li>
+        <li>Self-host with no hosted data transfer: <a href="/docs/integrate.html">Integrate guide</a>.</li>
+        <li>Request access, correction, or deletion of hosted account data:
+          <a href="mailto:hello@webmailagent.com">hello@webmailagent.com</a>.</li>
+      </ul>
+
+      <h2>Security</h2>
+      <p>See <a href="/docs/security.html">Security &amp; compliance</a> and
+        <a href="https://github.com/Alex0nder/MailAgent/blob/main/SECURITY.md">SECURITY.md</a> for vulnerability reporting.</p>
+
+      <h2>Changes</h2>
+      <p>We may update this page; material changes will be reflected in the “Last updated” date.</p>
+
+      <p>Contact: <a href="mailto:hello@webmailagent.com">hello@webmailagent.com</a></p>
+    </main>
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
+  </body>
+</html>

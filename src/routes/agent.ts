@@ -92,6 +92,8 @@ agentRoutes.get("/", (c) => {
     console: "https://webmailagent.com/dashboard.html",
     enterprise: "https://webmailagent.com/docs/enterprise.html",
     security: "https://webmailagent.com/docs/security.html",
+    privacy: "https://webmailagent.com/privacy.html",
+    terms: "https://webmailagent.com/terms.html",
     dedicatedDomains: "https://webmailagent.com/docs/dedicated-domains.html",
     autotests: "https://webmailagent.com/docs/autotests.html",
     tests: {

@@ -426,12 +426,22 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | `SOC2.md` — dedicated Resend tenant isolation | ✅ |
 | Cross-links from enterprise + dedicated-domains | ✅ |
 
-### v0.52 Enterprise (next)
+### v0.52 Distribution — Codex Directory prep
+
+| `privacy.html` + `terms.html` (hosted SaaS) | ✅ |
+| `plugin.json` → `privacyPolicyURL` / `termsOfServiceURL` | ✅ |
+| `verify:codex` asserts publisher URLs | ✅ |
+| Footer legal links · `GET /v1/agent` → `privacy`, `terms` | ✅ |
+| [SKILLS-SUBMIT.md](./SKILLS-SUBMIT.md) — `gh skill publish`, Skill Hub | ✅ |
+| Repo topic `agent-skills` | ✅ |
+| Official Codex Plugin Directory submit | when OpenAI opens |
+| awesome-codex-plugins PR #195 maintainer merge | pending |
+
+### v0.53 Enterprise (next)
 
 | Stripe live on prod (`STRIPE_*`) | on hold |
 | SOC 2 Type II audit (formal) | planned |
 | SLA / support tier | post-Stripe |
-| awesome-codex-plugins PR #195 maintainer merge | pending |
 
 ### Deferred (not QA)
 
