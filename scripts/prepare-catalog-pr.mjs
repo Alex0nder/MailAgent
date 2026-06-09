@@ -46,6 +46,9 @@ if (existsSync(catalogReadme)) {
 const strayCatalogReadme = join(pluginDest, "README.catalog.md");
 if (existsSync(strayCatalogReadme)) rmSync(strayCatalogReadme);
 
+// Catalog bundle should ship LICENSE (awesome-codex-plugins CONTRIBUTING)
+cpSync(join(root, "LICENSE"), join(pluginDest, "LICENSE"));
+
 const entry = {
   name: "mailagent",
   displayName: "MailAgent",

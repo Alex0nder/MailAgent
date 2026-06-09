@@ -36,7 +36,7 @@ Then fork + PR to [awesome-codex-plugins](https://github.com/hashgraph-online/aw
 5. Run `python3 scripts/generate_plugins_json.py` in the fork and commit `plugins.json` sync
 6. Open PR — title: `Add MailAgent plugin (email verification for agents)`
 
-**Status:** [PR #195](https://github.com/hashgraph-online/awesome-codex-plugins/pull/195) submitted (pending review).
+**Status:** [PR #195](https://github.com/hashgraph-online/awesome-codex-plugins/pull/195) — conflicts resolved, mergeable; HOL scanner CI on MailAgent `main` (score 88/100).
 
 Marketplace entry shape (for reference):
 
