@@ -31,6 +31,7 @@
         { id: "dedicated-domains", href: "/docs/dedicated-domains.html", label: "Dedicated Resend" },
         { id: "outbound", href: "/docs/outbound.html", label: "Outbound send" },
         { id: "enterprise", href: "/docs/enterprise.html", label: "Enterprise" },
+        { id: "security", href: "/docs/security.html", label: "Security" },
       ],
     },
     {

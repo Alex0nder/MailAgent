@@ -80,8 +80,8 @@ Goal: **full email API for agents** (inbound + outbound + threads) **plus** adva
 | Task | Status |
 |--------|--------|
 | Audit log + retention policies | ✅ |
-| SOC 2 narrative / SLA | backlog — see [ENTERPRISE.md](./ENTERPRISE.md) |
-| Dedicated domains (isolated infra) | backlog — custom domains API ✅ |
+| SOC 2 narrative / SLA | draft — [security.html](https://webmailagent.com/docs/security.html) · [SOC2.md](./SOC2.md) |
+| Dedicated Resend (tenant isolation) | ✅ — [DEDICATED-DOMAINS.md](./DEDICATED-DOMAINS.md) |
 
 ---
 
@@ -106,5 +106,5 @@ Goal: **full email API for agents** (inbound + outbound + threads) **plus** adva
 
 ## Next step
 
-See [ROADMAP.md](./ROADMAP.md) **Deferred** — Stripe on hold, Codex Plugin Directory (OpenAI), awesome-codex PR #195.  
+See [ROADMAP.md](./ROADMAP.md) **v0.51** — Stripe on hold; awesome-codex PR #195 mergeable; Codex Plugin Directory (OpenAI) when open.  
 OIDC + outbound on prod ✅ · CI uses `test:prod:gate` (KV-friendly).

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Security &amp; compliance — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="doc-page" data-site="docs" data-doc="security">
+    <div id="site-nav"></div>
+    <div class="doc-layout">
+      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
+      <article class="doc-content">
+        <h1>Security &amp; compliance</h1>
+        <p class="doc-lead">
+          How MailAgent handles access control, tenant isolation, secrets, and operational change management.
+          This is an engineering summary — <strong>not a SOC 2 certificate</strong>.
+        </p>
+
+        <h2>Report a vulnerability</h2>
+        <p>
+          Do not file public GitHub issues for security-sensitive reports. Use
+          <a href="https://github.com/Alex0nder/MailAgent/security/advisories/new" rel="noopener noreferrer">private vulnerability reporting</a>
+          or email <a href="mailto:hello@webmailagent.com">hello@webmailagent.com</a>.
+          Full policy: <a href="https://github.com/Alex0nder/MailAgent/blob/main/SECURITY.md" rel="noopener noreferrer">SECURITY.md</a>.
+        </p>
+
+        <h2>Access control (CC6)</h2>
+        <table class="doc-table">
+          <thead><tr><th>Control</th><th>Implementation</th></tr></thead>
+          <tbody>
+            <tr><td>API authentication</td><td>Bearer API keys; scoped keys (<code>labelPrefix</code>, <code>readOnly</code>)</td></tr>
+            <tr><td>MCP OAuth</td><td><code>client_credentials</code> JWT (<code>mat_</code>) + optional Auth0 OIDC</td></tr>
+            <tr><td>Team isolation</td><td>Team-scoped keys, domains, inboxes, audit events</td></tr>
+            <tr><td>Secrets in clients</td><td>No API keys in static bundles; env / Worker secrets only</td></tr>
+          </tbody>
+        </table>
+        <p><a href="/docs/scoped-keys.html">Scoped keys guide →</a> · <a href="/docs/oauth-idp.html">MCP OAuth →</a></p>
+
+        <h2>Operations (CC7)</h2>
+        <table class="doc-table">
+          <thead><tr><th>Control</th><th>Implementation</th></tr></thead>
+          <tbody>
+            <tr><td>Deploy gate</td><td><code>test:prod:gate</code> on push; full <code>test:prod</code> on tag <code>v*</code></td></tr>
+            <tr><td>Audit log</td><td><code>GET /v1/audit</code> · retention cron (<code>AUDIT_RETENTION_DAYS</code>)</td></tr>
+            <tr><td>Rate limits</td><td>Per-key KV-sampled limits; plan tiers in <code>GET /v1/me</code></td></tr>
+          </tbody>
+        </table>
+        <p><a href="/audit.html">Audit log console →</a></p>
+
+        <h2>Change management (CC8)</h2>
+        <ul class="doc-list">
+          <li>MIT source on GitHub — PR + CI required</li>
+          <li>SQL migrations in <code>migrations/</code>; optional <code>db:migrate</code> on deploy</li>
+          <li>Versioned npm packages <code>@mailagent/*</code> and API hub <code>GET /v1/agent</code></li>
+        </ul>
+
+        <h2>Enterprise tenant isolation</h2>
+        <p>
+          Enterprise teams can attach a <strong>dedicated Resend account</strong> for custom domains,
+          per-team inbound webhooks, and outbound send — isolated from the shared hosted Resend quota.
+        </p>
+        <ul class="doc-list">
+          <li>Resend API keys encrypted at rest (AES-256-GCM, PBKDF2-derived key from Worker secret)</li>
+          <li>Per-team webhook path: <code>POST /webhooks/resend/team/:teamId</code></li>
+          <li>Configure in <a href="/dashboard.html">Dashboard</a> or <code>PUT /v1/team/dedicated-resend</code></li>
+        </ul>
+        <p><a href="/docs/dedicated-domains.html">Dedicated Resend setup →</a> · <a href="/docs/enterprise.html">Enterprise overview →</a></p>
+
+        <h2>Availability (A1)</h2>
+        <ul class="doc-list">
+          <li>Cloudflare Workers edge deployment</li>
+          <li>Email queue DLQ: <code>mailagent-email-dlq</code></li>
+          <li>Self-host option — no vendor lock-in (<a href="/docs/integrate.html">Integrate</a>)</li>
+        </ul>
+
+        <h2>Before SOC 2 Type II</h2>
+        <p>Outstanding for a formal audit (not blockers for self-host or enterprise pilot):</p>
+        <ul class="doc-list">
+          <li>Independent penetration test report</li>
+          <li>Formal employee / operator access policy</li>
+          <li>SLA and support tiers (planned with Stripe billing — currently on hold)</li>
+        </ul>
+        <p>
+          Internal control mapping:
+          <a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/SOC2.md" rel="noopener noreferrer">docs/SOC2.md</a>
+        </p>
+
+        <p>Enterprise contact: <a href="mailto:hello@webmailagent.com">hello@webmailagent.com</a></p>
+      </article>
+    </div>
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
+  </body>
+</html>

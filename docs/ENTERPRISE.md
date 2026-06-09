@@ -2,7 +2,7 @@
 
 MailAgent v1 enterprise surface — what exists today vs backlog.
 
-Public: [enterprise.html](https://webmailagent.com/docs/enterprise.html)
+Public: [enterprise.html](https://webmailagent.com/docs/enterprise.html) · [security.html](https://webmailagent.com/docs/security.html)
 
 ## Available now
 

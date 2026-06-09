@@ -419,11 +419,19 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | `SECURITY.md` + scanner score 88/100 (0 critical/high) | ✅ |
 | awesome-codex-plugins PR #195 maintainer merge | pending |
 
-### v0.51 Enterprise (next)
+### v0.51 Enterprise — trust & compliance (public)
+
+| `public/docs/security.html` — CC6/CC7/CC8/A1 summary | ✅ |
+| Nav + `GET /v1/agent` → `security` URL | ✅ |
+| `SOC2.md` — dedicated Resend tenant isolation | ✅ |
+| Cross-links from enterprise + dedicated-domains | ✅ |
+
+### v0.52 Enterprise (next)
 
 | Stripe live on prod (`STRIPE_*`) | on hold |
-| SOC 2 Type II (beyond draft) | planned |
+| SOC 2 Type II audit (formal) | planned |
 | SLA / support tier | post-Stripe |
+| awesome-codex-plugins PR #195 maintainer merge | pending |
 
 ### Deferred (not QA)
 

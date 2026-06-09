@@ -2,7 +2,7 @@
 
 Control mapping for MailAgent hosted SaaS. **Not a certification** — engineering checklist for enterprise sales.
 
-Public summary: [enterprise.html](https://webmailagent.com/docs/enterprise.html)
+Public summary: [security.html](https://webmailagent.com/docs/security.html) · [enterprise.html](https://webmailagent.com/docs/enterprise.html)
 
 ## CC6 — Logical access
 
@@ -12,6 +12,7 @@ Public summary: [enterprise.html](https://webmailagent.com/docs/enterprise.html)
 | MCP OAuth | `client_credentials` JWT (`mat_`) + optional Auth0 OIDC |
 | Team isolation | Team-scoped keys, domains, audit, inboxes |
 | Secrets | Cloudflare Worker secrets, no keys in client bundles |
+| Tenant Resend keys | AES-256-GCM at rest (`team-secrets.ts`); per-team webhooks |
 
 ## CC7 — System operations
 
@@ -41,5 +42,5 @@ Public summary: [enterprise.html](https://webmailagent.com/docs/enterprise.html)
 
 - Formal penetration test report
 - Employee access policy (operator-only secrets today)
-- Dedicated tenant infra (dedicated domains backlog)
+- ~~Dedicated tenant email infra~~ ✅ dedicated Resend per team ([DEDICATED-DOMAINS.md](./DEDICATED-DOMAINS.md))
 - Stripe billing + SLA (on hold)
