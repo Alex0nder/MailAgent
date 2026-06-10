@@ -14,7 +14,9 @@ export type AuditAction =
   | "inbox.sent"
   | "inbox.replied"
   | "team.dedicated_resend.configured"
-  | "team.dedicated_resend.cleared";
+  | "team.dedicated_resend.cleared"
+  | "team.webhook.configured"
+  | "team.webhook.cleared";
 
 export type AuditContext = {
   teamId: string | null;

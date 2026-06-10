@@ -145,9 +145,11 @@ agentRoutes.get("/recipes/:service", (c) => {
 agentRoutes.get("/runs", async (c) => {
   const limit = Number(c.req.query("limit") ?? "30");
   const runId = c.req.query("runId") ?? undefined;
+  const label = c.req.query("label") ?? undefined;
   const runs = await listAgentRuns(c.env, c.get("apiKeyHint"), {
     limit,
     runId,
+    label,
   });
   return c.json({ runs });
 });

@@ -604,6 +604,16 @@ Backlog: [PRODUCT-NEXT.md](./PRODUCT-NEXT.md)
 | 4 | Service presets (GitLab, Bitbucket, …) | ✅ `service-presets.ts` + recipes |
 | 5 | `verify_signup` subject hints per service | ✅ `SERVICE_SUBJECT_HINTS` + MCP manifest |
 
+### v0.72 — Platform & observability (P1)
+
+| P1 | Task | Status |
+|----|------|--------|
+| 6 | Team event webhook (`PUT /v1/team/webhooks`) | ✅ |
+| 7 | Delivery log in console | ✅ `console-inbox.html` |
+| 8 | Usage dashboard (rate-limit headroom) | ✅ dashboard + `/v1/me` |
+| 9 | Public status | ✅ `GET /v1/status` + `status.html` |
+| 10 | Run explorer (label filter + inbox links) | ✅ `agent-runs.html` |
+
 ### Deferred (not QA)
 
 - ~~Agent session memory / multi-step run state~~ ✅ v0.35

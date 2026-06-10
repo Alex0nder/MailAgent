@@ -33,6 +33,8 @@
         <input id="key" type="password" autocomplete="off" placeholder="ma_…" />
         <label for="filter">Filter runId (optional)</label>
         <input id="filter" type="text" placeholder="cursor-session-42" />
+        <label for="label-filter">Filter label prefix (optional)</label>
+        <input id="label-filter" type="text" placeholder="ci-" />
         <button type="button" id="load">Load runs</button>
       </form>
 
@@ -47,6 +49,7 @@
       const baseEl = document.getElementById("base");
       const keyEl = document.getElementById("key");
       const filterEl = document.getElementById("filter");
+      const labelFilterEl = document.getElementById("label-filter");
       const listEl = document.getElementById("list");
       if (localStorage.getItem(KEY)) keyEl.value = localStorage.getItem(KEY);
 
@@ -58,8 +61,12 @@
         listEl.innerHTML = '<p class="app-lead" style="margin-top:24px">Loading…</p>';
         const q = new URLSearchParams();
         const runId = filterEl.value.trim();
+        const label = labelFilterEl.value.trim();
         if (runId) q.set("runId", runId);
-        const path = runId ? `/v1/agent/runs/${encodeURIComponent(runId)}` : `/v1/agent/runs?${q}`;
+        if (label) q.set("label", label);
+        const path = runId && !label
+          ? `/v1/agent/runs/${encodeURIComponent(runId)}`
+          : `/v1/agent/runs?${q}`;
         const res = await fetch(`${base}${path}`, {
           headers: { Authorization: `Bearer ${key}` },
         });
@@ -82,7 +89,9 @@
               <ul>${r.inboxes
                 .map(
                   (i) =>
-                    `<li><code>${i.id}</code> ${i.address} — <a href="/debug.html">debug</a></li>`
+                    `<li><code>${i.id}</code> ${i.address}${i.label ? ` <span class="meta">(${i.label})</span>` : ""}
+                      — <a href="/console-inbox.html?inbox=${encodeURIComponent(i.id)}">console</a>
+                      · <a href="/debug.html?inbox=${encodeURIComponent(i.id)}">debug</a></li>`
                 )
                 .join("")}</ul>
             </div>`

@@ -4,6 +4,7 @@ import type { Env, MessageNotifyPayload } from "../env";
 import { primaryLink } from "./extract";
 import { getInbox, getMessage, insertMessage, type MessageRow } from "./inbox";
 import { fireInboxCallback } from "./callback";
+import { fireTeamEventForMessage } from "./team-event-webhook";
 import { formatMessageVerification } from "./message-verify";
 import { getDb } from "../db/client";
 import {
@@ -139,6 +140,12 @@ export async function simulateInboundMessage(
       },
     });
   }
+
+  await fireTeamEventForMessage(env, {
+    inbox,
+    messageId: row.id,
+    payload,
+  });
 
   return {
     inboxId: inbox.id,

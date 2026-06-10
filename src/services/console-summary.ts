@@ -17,6 +17,8 @@ import { listRecentThreadsForScope } from "./console-threads";
 import { outboundCapabilities } from "../lib/outbound-capabilities";
 import { canUpgradeViaStripe, stripeConfigured } from "./billing";
 import { getDedicatedResendStatus } from "./team-resend";
+import { getRateLimitUsage } from "../lib/rate-limit-usage";
+import { getTeamEventWebhook } from "./team-event-webhook";
 
 export async function buildConsoleSummary(
   env: Env,
@@ -130,11 +132,22 @@ export async function buildConsoleSummary(
     }
   }
 
+  const rateLimit = await getRateLimitUsage(
+    env,
+    input.apiKeyHint,
+    limits.rateLimitPerMinute
+  );
+
+  const teamWebhook =
+    input.teamId ? await getTeamEventWebhook(env, input.teamId) : null;
+
   return {
     plan: input.plan,
     teamId: input.teamId,
     apiKeyId: input.apiKeyId,
     scope: input.scope,
+    rateLimit,
+    teamWebhook,
     limits: {
       rateLimitPerMinute: limits.rateLimitPerMinute,
       maxActiveInboxes: limits.maxActiveInboxes,

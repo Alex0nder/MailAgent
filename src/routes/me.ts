@@ -10,6 +10,7 @@ import { getTeamBilling } from "../services/api-key-store";
 import { getScopedUsage } from "../services/console-stats";
 import { outboundCapabilities } from "../lib/outbound-capabilities";
 import { getDedicatedResendStatus } from "../services/team-resend";
+import { getRateLimitUsage } from "../lib/rate-limit-usage";
 
 export const meRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
 
@@ -37,6 +38,8 @@ meRoutes.get("/", async (c) => {
     teamId && limits.dedicatedResend
       ? await getDedicatedResendStatus(c.env, teamId)
       : null;
+
+  const rateLimit = await getRateLimitUsage(c.env, hint, limits.rateLimitPerMinute);
 
   return c.json({
     plan,
@@ -72,6 +75,7 @@ meRoutes.get("/", async (c) => {
       portalPath: "/v1/billing/portal",
       consolePath: "/v1/console/summary",
     },
+    rateLimit,
     capabilities: {
       outbound: await outboundCapabilities(c.env, {
         teamId,

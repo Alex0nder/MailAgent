@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import type { Env } from "../env";
 import { getDb } from "../db/client";
+import { MCP_SERVER_INFO } from "../mcp/manifest";
 
 export const healthRoutes = new Hono<{ Bindings: Env }>();
 
@@ -11,7 +12,7 @@ healthRoutes.get("/health", async (c) => {
     return c.json({
       status: "ok",
       db: true,
-      version: "0.2.0",
+      version: MCP_SERVER_INFO.version,
       webhook: "/webhooks/resend",
     });
   } catch (e) {

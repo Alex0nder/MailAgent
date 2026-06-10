@@ -8,7 +8,12 @@ export async function fireInboxCallback(
     inboxId: string;
     messageId: string;
     callbackUrl: string;
-    payload: MessageNotifyPayload & { address?: string; label?: string | null };
+    payload: MessageNotifyPayload & {
+      address?: string;
+      label?: string | null;
+      teamId?: string;
+      source?: string;
+    };
   }
 ): Promise<{ ok: boolean; statusCode: number | null }> {
   const started = Date.now();

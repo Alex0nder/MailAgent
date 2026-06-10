@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Status — MailAgent</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="doc-page" data-site="docs">
+    <div id="site-nav"></div>
+    <article class="doc-content" style="max-width: 640px; margin: 48px auto; padding: 0 24px">
+      <h1>MailAgent status</h1>
+      <p class="doc-lead">Public API health — no API key required.</p>
+      <div class="app-card" id="out">Checking…</div>
+      <p class="console-meta" style="margin-top: 16px">
+        API: <code id="api-base">https://api.webmailagent.com</code> ·
+        <a href="/dashboard.html">Console</a>
+      </p>
+    </article>
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
+    <script>
+      const out = document.getElementById("out");
+      const base =
+        new URLSearchParams(location.search).get("api") ||
+        "https://api.webmailagent.com";
+      document.getElementById("api-base").textContent = base.replace(/\/$/, "");
+
+      function esc(s) {
+        return String(s ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;");
+      }
+
+      async function poll() {
+        const url = `${base.replace(/\/$/, "")}/v1/status`;
+        try {
+          const r = await fetch(url);
+          const d = await r.json();
+          const ok = d.status === "ok";
+          out.innerHTML = `<p><span class="console-plan">${ok ? "Operational" : "Degraded"}</span></p>
+            <ul class="console-keys">
+              <li>Service: <code>${esc(d.service)}</code> v${esc(d.version)}</li>
+              <li>Database: ${d.db ? "connected" : "unavailable"}</li>
+              <li>Checked: ${esc(d.checkedAt)}</li>
+            </ul>`;
+          out.classList.toggle("app-err", !ok);
+        } catch (e) {
+          out.innerHTML = `<p class="app-err">Cannot reach API: ${esc(e.message)}</p>`;
+        }
+      }
+
+      poll();
+      setInterval(poll, 60_000);
+    </script>
+  </body>
+</html>

@@ -8,6 +8,7 @@ import {
   primaryLink,
 } from "./extract";
 import { fireInboxCallback } from "./callback";
+import { fireTeamEventForMessage } from "./team-event-webhook";
 import {
   findInboxByAddress,
   insertMessage,
@@ -146,6 +147,12 @@ export async function processInboundEmail(
       },
     });
   }
+
+  await fireTeamEventForMessage(env, {
+    inbox,
+    messageId: row.id,
+    payload,
+  });
 }
 
 function toNotifyPayload(row: MessageRow, inboxId: string): MessageNotifyPayload {

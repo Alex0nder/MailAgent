@@ -80,6 +80,14 @@ async function main() {
       process.exit(1);
     }
   }
+  const status = await fetch(`${base}/v1/status`);
+  const statusJson = await status.json();
+  if (!status.ok || statusJson.status !== "ok" || !statusJson.db) {
+    console.error("GET /v1/status failed", status.status, statusJson);
+    process.exit(1);
+  }
+  console.log("public status OK", statusJson.version);
+
   console.log("agent hub OK", {
     tools: hub.json.mcpTools.length,
     services: services.length,

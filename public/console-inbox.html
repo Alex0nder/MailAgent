@@ -141,6 +141,37 @@
         });
       }
 
+      function renderCallbackRows(rows) {
+        if (!rows?.length) {
+          return `<p class="console-empty">No webhook deliveries yet.</p>`;
+        }
+        let t = `<table class="console-table"><thead><tr><th>Status</th><th>Code</th><th>URL</th><th>Msg</th><th>When</th></tr></thead><tbody>`;
+        for (const cb of rows) {
+          t += `<tr>
+            <td>${cb.ok ? "OK" : "fail"}</td>
+            <td>${cb.statusCode ?? "—"}</td>
+            <td class="debug-mono">${esc(cb.callbackUrl)}</td>
+            <td><code>${esc(cb.messageId || "—")}</code></td>
+            <td>${esc(new Date(cb.createdAt).toLocaleString())}</td>
+          </tr>`;
+        }
+        return `${t}</tbody></table>`;
+      }
+
+      async function reloadCallbacks() {
+        const box = document.getElementById("callback-log");
+        if (!box) return;
+        box.textContent = "Loading…";
+        const r = await api(
+          `/v1/inboxes/${encodeURIComponent(inboxId)}/callbacks?limit=50`
+        );
+        if (!r.ok) {
+          box.innerHTML = `<p class="app-err">${esc(r.json.error || r.status)}</p>`;
+          return;
+        }
+        box.innerHTML = renderCallbackRows(r.json.deliveries);
+      }
+
       function renderDetail(d) {
         titleEl.textContent = d.address || "Inbox";
         leadEl.textContent = d.label
@@ -214,17 +245,10 @@
           html += `</tbody></table>`;
         }
 
-        if (d.callbacks?.length) {
-          html += `<h2>Callbacks</h2><table class="console-table"><thead><tr><th>Status</th><th>URL</th><th>When</th></tr></thead><tbody>`;
-          for (const cb of d.callbacks) {
-            html += `<tr>
-              <td>${cb.ok ? "OK" : esc(cb.error || cb.statusCode || "fail")}</td>
-              <td class="debug-mono">${esc(cb.callbackUrl)}</td>
-              <td>${esc(new Date(cb.createdAt).toLocaleString())}</td>
-            </tr>`;
-          }
-          html += `</tbody></table>`;
-        }
+        html += `<h2>Callback deliveries</h2>
+          <p class="console-meta">Per-inbox <code>callbackUrl</code> and team webhook deliveries. API: <code>GET …/callbacks</code></p>
+          <button type="button" class="app-btn app-btn--ghost" id="reload-callbacks">Refresh log</button>
+          <div id="callback-log">${renderCallbackRows(d.callbacks)}</div>`;
 
         html += `<p class="console-links">
           <a href="${esc(debugHref)}">Full debug UI</a>
@@ -233,6 +257,8 @@
         out.innerHTML = html;
         bindCompose(d);
         bindSearch();
+        document.getElementById("reload-callbacks")?.addEventListener("click", reloadCallbacks);
+        reloadCallbacks();
       }
 
       function bindSearch() {

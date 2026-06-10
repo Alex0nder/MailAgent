@@ -6,6 +6,7 @@ import { handleQueueBatch } from "./queue/consumer";
 import { apiMetaRoutes } from "./routes/api-meta";
 import { openapiRoutes } from "./routes/openapi";
 import { healthRoutes } from "./routes/health";
+import { statusRoutes } from "./routes/status";
 import { inboxRoutes } from "./routes/inboxes";
 import { statsRoutes } from "./routes/stats";
 import { meRoutes } from "./routes/me";
@@ -29,6 +30,7 @@ app.use("*", cors());
 
 app.route("/", healthRoutes);
 app.route("/webhooks", webhookRoutes);
+app.route("/v1", statusRoutes);
 app.route("/v1", apiMetaRoutes);
 app.route("/v1", openapiRoutes);
 app.route("/v1/inboxes", inboxRoutes);

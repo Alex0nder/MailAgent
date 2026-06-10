@@ -22,15 +22,15 @@ Pick the next sprint from **P0 → P2**. Re-prioritize when pilot feedback arriv
 
 ---
 
-## P1 — platform & observability
+## P1 — platform & observability ✅
 
-| # | Feature | Why | Surface |
-|---|---------|-----|---------|
-| 6 | **Team event webhook** | `callbackUrl` is per-inbox; teams want one URL for all messages | `POST /v1/team/webhooks` (new) |
-| 7 | **Delivery log in console** | `GET …/callbacks` exists; not visible in UI | `console-inbox.html` |
-| 8 | **Usage dashboard** | `GET /v1/me` + console summary — surface rate-limit headroom | dashboard meters |
-| 9 | **Public status** | Tenants ask “is MailAgent up?” | `GET /v1/status` or status.html |
-| 10 | **Run explorer** | `GET /v1/agent/runs` — filter by label, link to inbox | dashboard page |
+| # | Feature | Status |
+|---|---------|--------|
+| 6 | **Team event webhook** | ✅ `GET/PUT/DELETE /v1/team/webhooks` |
+| 7 | **Delivery log in console** | ✅ callback log + refresh |
+| 8 | **Usage dashboard** | ✅ rate-limit meter on dashboard |
+| 9 | **Public status** | ✅ `/v1/status` + `status.html` |
+| 10 | **Run explorer** | ✅ label filter + console/debug links |
 
 **Done when:** team lead debugs a failed CI run without curl.
 

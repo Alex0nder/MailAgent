@@ -20,13 +20,18 @@ export interface AgentRunSummary {
 export async function listAgentRuns(
   env: Env,
   apiKeyHint: string,
-  options?: { limit?: number; runId?: string }
+  options?: { limit?: number; runId?: string; label?: string }
 ): Promise<AgentRunSummary[]> {
   const sql = getDb(env);
   const limit = Math.min(options?.limit ?? 30, 100);
   const runFilter = options?.runId?.trim();
+  const labelFilter = options?.label?.trim();
 
-  const labelPattern = runFilter ? `agent-${runFilter}%` : "agent-%";
+  const labelPattern = labelFilter
+    ? `${labelFilter}%`
+    : runFilter
+      ? `agent-${runFilter}%`
+      : "agent-%";
 
   const rows = (await sql`
     SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, api_key_hint
@@ -41,7 +46,9 @@ export async function listAgentRuns(
   const grouped = new Map<string, AgentRunSummary>();
 
   for (const row of rows) {
-    const runId = parseRunIdFromLabel(row.label);
+    const runId = labelFilter
+      ? row.label ?? row.id
+      : parseRunIdFromLabel(row.label);
     if (!runId) continue;
     if (runFilter && runId !== runFilter) continue;
 

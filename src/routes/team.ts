@@ -23,6 +23,11 @@ import {
   isEnterprisePlan,
   setTeamDedicatedResend,
 } from "../services/team-resend";
+import {
+  clearTeamEventWebhook,
+  getTeamEventWebhook,
+  setTeamEventWebhook,
+} from "../services/team-event-webhook";
 
 export const teamRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
 
@@ -186,6 +191,93 @@ teamRoutes.get("/dedicated-resend", async (c) => {
     plan: c.get("apiPlan"),
     enterpriseRequired: isEnterprisePlan(c.get("apiPlan")),
   });
+});
+
+teamRoutes.get("/webhooks", async (c) => {
+  const teamId = requireTeam(c);
+  if (!teamId) {
+    return c.json({ error: "team_required" }, 403);
+  }
+  return c.json(await getTeamEventWebhook(c.env, teamId));
+});
+
+teamRoutes.put("/webhooks", async (c) => {
+  const adminErr = scopeAdminDenied(c);
+  if (adminErr) return adminErr;
+
+  const teamId = requireTeam(c);
+  if (!teamId) return c.json({ error: "team_required" }, 403);
+
+  let body: { url?: string } = {};
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: "invalid_json" }, 400);
+  }
+
+  const url = body.url?.trim();
+  if (!url) return c.json({ error: "url_required" }, 400);
+
+  const result = await setTeamEventWebhook(c.env, teamId, url);
+  if (!result.ok) {
+    return c.json({ error: result.error }, 400);
+  }
+
+  auditRoute(c, {
+    action: "team.webhook.configured",
+    resourceType: "team",
+    resourceId: teamId,
+  });
+
+  return c.json(await getTeamEventWebhook(c.env, teamId));
+});
+
+teamRoutes.post("/webhooks", async (c) => {
+  const adminErr = scopeAdminDenied(c);
+  if (adminErr) return adminErr;
+
+  const teamId = requireTeam(c);
+  if (!teamId) return c.json({ error: "team_required" }, 403);
+
+  let body: { url?: string } = {};
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: "invalid_json" }, 400);
+  }
+
+  const url = body.url?.trim();
+  if (!url) return c.json({ error: "url_required" }, 400);
+
+  const result = await setTeamEventWebhook(c.env, teamId, url);
+  if (!result.ok) {
+    return c.json({ error: result.error }, 400);
+  }
+
+  auditRoute(c, {
+    action: "team.webhook.configured",
+    resourceType: "team",
+    resourceId: teamId,
+  });
+
+  return c.json(await getTeamEventWebhook(c.env, teamId), 201);
+});
+
+teamRoutes.delete("/webhooks", async (c) => {
+  const adminErr = scopeAdminDenied(c);
+  if (adminErr) return adminErr;
+
+  const teamId = requireTeam(c);
+  if (!teamId) return c.json({ error: "team_required" }, 403);
+
+  await clearTeamEventWebhook(c.env, teamId);
+  auditRoute(c, {
+    action: "team.webhook.cleared",
+    resourceType: "team",
+    resourceId: teamId,
+  });
+
+  return c.json({ ok: true });
 });
 
 teamRoutes.put("/dedicated-resend", async (c) => {

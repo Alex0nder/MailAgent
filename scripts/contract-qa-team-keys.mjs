@@ -55,6 +55,13 @@ async function main() {
   }
   console.log("new key works");
 
+  const webhooks = await contractApi(base, headers, "/v1/team/webhooks");
+  if (!webhooks.ok || webhooks.json?.configured !== false) {
+    console.error("GET /v1/team/webhooks failed", webhooks.status, webhooks.json);
+    process.exit(1);
+  }
+  console.log("team webhooks discovery OK");
+
   const revoked = await contractApi(base, headers, `/v1/team/keys/${keyId}`, {
     method: "DELETE",
   });
