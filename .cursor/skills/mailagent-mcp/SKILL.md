@@ -87,7 +87,7 @@ REST equivalent: `POST /v1/agent/verify`
 | `mailagent_wait_and_extract` | Raw verification object (no primaryAction) |
 | `mailagent_wait_for_message` | Need full message before extract |
 | `mailagent_extract_verification` | Message already in inbox |
-| `mailagent_simulate_message` | CI / staging without SMTP |
+| `mailagent_simulate_message` | CI / staging — use `scenario` (`otp`, `magic_link`, `attachment`, `invite`) |
 | `mailagent_diagnose_inbox` | Timeout — hints, messages, debug URL |
 | `mailagent_send_message` | Outbound from verified domain |
 | `mailagent_list_threads` | Conversation view after reply |

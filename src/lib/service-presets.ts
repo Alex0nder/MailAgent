@@ -29,6 +29,26 @@ export const SERVICE_SUBJECT_HINTS: Record<string, string> = {
   resend: "verify",
 };
 
+/** Default inbox TTL (minutes) when create/verify omits ttlMinutes. */
+export const SERVICE_TTL_MINUTES: Partial<Record<string, number>> = {
+  github: 60,
+  gitlab: 60,
+  bitbucket: 60,
+  google: 60,
+  auth0: 45,
+  stripe: 45,
+  vercel: 60,
+  supabase: 60,
+  clerk: 45,
+  discord: 60,
+  openai: 60,
+  microsoft: 60,
+  apple: 60,
+  shopify: 90,
+  atlassian: 60,
+  slack: 60,
+};
+
 export const SERVICE_EXPECT_FROM: Record<string, string[]> = {
   dribbble: ["dribbble.com", "m.dribbble.com"],
   github: ["github.com", "noreply@github.com"],
@@ -67,6 +87,17 @@ export function formatSubjectHintsForDocs(max = 12): string {
     .slice(0, max)
     .map(([s, h]) => `${s}="${h}"`)
     .join(", ");
+}
+
+export function resolveTtlMinutes(
+  service?: string,
+  explicit?: number
+): number | undefined {
+  if (explicit != null && Number.isFinite(explicit) && explicit > 0) {
+    return Math.floor(explicit);
+  }
+  const key = service?.trim().toLowerCase();
+  return key ? SERVICE_TTL_MINUTES[key] : undefined;
 }
 
 export function resolveExpectFrom(

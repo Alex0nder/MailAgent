@@ -88,6 +88,20 @@ async function main() {
   }
   console.log("public status OK", statusJson.version);
 
+  const scenarios = await contractApi(base, headers, "/v1/inboxes/simulate/scenarios");
+  if (!scenarios.ok || !scenarios.json?.scenarios?.length) {
+    console.error("simulate scenarios missing", scenarios.status, scenarios.json);
+    process.exit(1);
+  }
+  const scenarioIds = scenarios.json.scenarios.map((s) => s.id);
+  for (const id of ["otp", "magic_link", "attachment"]) {
+    if (!scenarioIds.includes(id)) {
+      console.error(`simulate scenario missing: ${id}`);
+      process.exit(1);
+    }
+  }
+  console.log("simulate scenarios OK", scenarioIds.length);
+
   console.log("agent hub OK", {
     tools: hub.json.mcpTools.length,
     services: services.length,

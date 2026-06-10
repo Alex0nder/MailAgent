@@ -3,7 +3,11 @@ import type { Env } from "../env";
 import { parseCallbackUrl } from "../lib/callback-url";
 import { buildPrimaryAction, resolveAgentLabel } from "../lib/agent-recipes";
 import { debugUiUrl } from "./inbox-diagnose";
-import { resolveExpectFrom, resolveSubjectHint } from "../lib/service-presets";
+import {
+  resolveExpectFrom,
+  resolveSubjectHint,
+  resolveTtlMinutes,
+} from "../lib/service-presets";
 import { countAttachmentsForMessage } from "./message-attachments";
 import {
   createInbox,
@@ -83,7 +87,7 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
     inbox = existing;
   } else {
     const created = await createInbox(env, {
-      ttlMinutes: input.ttlMinutes,
+      ttlMinutes: resolveTtlMinutes(input.service, input.ttlMinutes),
       expectFrom,
       allowedSenders: input.allowedSenders,
       label,

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Playwright email verification — MailAgent</title>
+    <meta
+      name="description"
+      content="Automate signup email verification in Playwright with MailAgent disposable inboxes, OTP extraction, and @mailagent/qa helpers."
+    />
+    <link rel="canonical" href="https://webmailagent.com/playwright-email-verification.html" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body data-site="marketing">
+    <div id="site-nav"></div>
+    <main class="landing site-container" style="padding: 48px 24px 80px">
+      <p class="pill pill-oss"><span class="pill-dot"></span> QA track</p>
+      <h1>Playwright email verification</h1>
+      <p class="hero-lead" style="max-width: 640px">
+        MailAgent gives Playwright tests a disposable inbox API: create an address,
+        fill the signup form, wait for the verification mail, read OTP or magic link —
+        no Mailpit wiring in CI when you use <code>POST …/simulate</code> or hosted API.
+      </p>
+
+      <h2>Quick start</h2>
+      <pre class="code-panel" style="padding: 16px; overflow: auto"><code>npm install @mailagent/qa@latest
+
+import { createMailAgentQa } from "@mailagent/qa";
+
+const qa = createMailAgentQa({ apiKey: process.env.MAILAGENT_API_KEY });
+const inbox = await qa.createInbox({ service: "github", label: "pw-signup" });
+// page.fill('[name=email]', inbox.address)
+const v = await qa.waitForVerification(inbox.id, { subjectContains: "verify" });
+// v.otp or v.primaryLink</code></pre>
+
+      <h2>Why MailAgent</h2>
+      <ul class="console-keys">
+        <li>REST + MCP — same flow for Cursor agents and Playwright</li>
+        <li><code>mailagent_simulate_message</code> / <code>scenario=magic_link</code> in CI without SMTP</li>
+        <li>Scoped team keys with <code>labelPrefix=ci-</code> for parallel runs</li>
+      </ul>
+
+      <p class="hero-ctas" style="margin-top: 32px">
+        <a class="btn btn-primary" href="/docs/qa.html">QA docs</a>
+        <a class="btn btn-outline" href="/dashboard.html">Console</a>
+        <a class="btn btn-outline" href="/mcp-signup-qa.html">MCP signup QA</a>
+      </p>
+    </main>
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
+  </body>
+</html>

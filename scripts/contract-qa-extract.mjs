@@ -97,6 +97,48 @@ async function main() {
     extractor: extInv.json.extractor,
   });
 
+  const ids = (presets.json.presets ?? []).map((p) => p.id);
+  for (const id of ["magic_link", "invite"]) {
+    if (!ids.includes(id)) {
+      console.error(`extract preset missing: ${id}`, ids);
+      process.exit(1);
+    }
+  }
+
+  const simMl = await contractSimulate(base, headers, inboxId, {
+    scenario: "magic_link",
+  });
+  if (!simMl.ok) {
+    console.error("simulate magic_link failed", simMl.status);
+    process.exit(1);
+  }
+  const extMl = await contractApi(
+    base,
+    headers,
+    `/v1/inboxes/${inboxId}/messages/${simMl.json.messageId}/extract`,
+    { method: "POST", body: JSON.stringify({ preset: "magic_link" }) }
+  );
+  if (!extMl.ok || !extMl.json?.data?.primaryLink) {
+    console.error("magic_link extract failed", extMl.status, extMl.json);
+    process.exit(1);
+  }
+  console.log("magic_link preset OK");
+
+  const simInv2 = await contractSimulate(base, headers, inboxId, {
+    scenario: "invite",
+  });
+  const extInvite = await contractApi(
+    base,
+    headers,
+    `/v1/inboxes/${inboxId}/messages/${simInv2.json.messageId}/extract`,
+    { method: "POST", body: JSON.stringify({ preset: "invite" }) }
+  );
+  if (!extInvite.ok || !extInvite.json?.data?.inviteUrl) {
+    console.error("invite extract failed", extInvite.status, extInvite.json);
+    process.exit(1);
+  }
+  console.log("invite preset OK");
+
   await contractApi(base, headers, `/v1/inboxes/${inboxId}`, { method: "DELETE" });
   console.log("contract-qa-extract OK");
 }

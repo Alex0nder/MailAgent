@@ -122,12 +122,16 @@ export const MCP_TOOLS = [
   {
     name: "mailagent_simulate_message",
     description:
-      "QA/dev: inject a test OTP email into an inbox without real SMTP (provider id sim_*).",
+      "QA/dev: inject test mail without SMTP. Use scenario preset (otp, magic_link, attachment, invite, invoice_fixture) or override fields. List: GET /v1/inboxes/simulate/scenarios.",
     inputSchema: {
       type: "object",
       required: ["inboxId"],
       properties: {
         inboxId: { type: "string" },
+        scenario: {
+          type: "string",
+          enum: ["otp", "magic_link", "attachment", "invite", "invoice_fixture"],
+        },
         otp: { type: "string" },
         from: { type: "string" },
         subject: { type: "string" },
@@ -198,14 +202,17 @@ export const MCP_TOOLS = [
   {
     name: "mailagent_extract_structured",
     description:
-      "Extract structured JSON from a message using preset (2fa, invoice, receipt) or custom schema (requires Workers AI).",
+      "Extract structured JSON from a message using preset (2fa, magic_link, invite, invoice, receipt) or custom schema (requires Workers AI).",
     inputSchema: {
       type: "object",
       required: ["inboxId", "messageId"],
       properties: {
         inboxId: { type: "string" },
         messageId: { type: "string" },
-        preset: { type: "string", enum: ["2fa", "invoice", "receipt"] },
+        preset: {
+          type: "string",
+          enum: ["2fa", "magic_link", "invite", "invoice", "receipt"],
+        },
         schema: { type: "object", description: "Custom JSON schema properties (AI)" },
       },
     },

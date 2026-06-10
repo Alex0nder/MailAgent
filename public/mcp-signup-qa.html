@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MCP signup QA — MailAgent</title>
+    <meta
+      name="description"
+      content="Verify signups from Cursor, Codex, or any MCP client with mailagent_verify_signup — disposable inboxes, service presets, and debug UI."
+    />
+    <link rel="canonical" href="https://webmailagent.com/mcp-signup-qa.html" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body data-site="marketing">
+    <div id="site-nav"></div>
+    <main class="landing site-container" style="padding: 48px 24px 80px">
+      <p class="pill pill-oss"><span class="pill-dot"></span> Agent track</p>
+      <h1>MCP signup QA</h1>
+      <p class="hero-lead" style="max-width: 640px">
+        Connect the MailAgent MCP server and call <code>mailagent_verify_signup</code>
+        with a <code>service</code> preset (GitHub, GitLab, Google, …). The tool returns
+        <code>agent.primaryAction</code> — OTP or magic link — without parsing HTML manually.
+      </p>
+
+      <h2>Recommended flow</h2>
+      <ol class="console-keys">
+        <li><code>mailagent_create_inbox</code> with <code>service=github</code></li>
+        <li>Submit <code>address</code> on the signup form (browser automation)</li>
+        <li><code>mailagent_verify_signup</code> with <code>inboxId</code></li>
+        <li>On timeout: response includes <code>debugUiUrl</code> or <code>mailagent_diagnose_inbox</code></li>
+      </ol>
+
+      <h2>Install</h2>
+      <pre class="code-panel" style="padding: 16px; overflow: auto"><code>npx -y -p @mailagent/mcp@latest mailagent-mcp
+# or remote: POST https://api.webmailagent.com/mcp + Bearer
+
+npx skills add Alex0nder/MailAgent --skill mailagent</code></pre>
+
+      <p class="hero-ctas" style="margin-top: 32px">
+        <a class="btn btn-primary" href="/docs/agents.html">Agent docs</a>
+        <a class="btn btn-outline" href="/docs/codex.html">Codex</a>
+        <a class="btn btn-outline" href="/playwright-email-verification.html">Playwright QA</a>
+      </p>
+    </main>
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
+  </body>
+</html>

@@ -8,7 +8,12 @@ import {
 } from "./extract";
 import { formatMessageVerification } from "./message-verify";
 
-export type ExtractPreset = "2fa" | "invoice" | "receipt";
+export type ExtractPreset =
+  | "2fa"
+  | "magic_link"
+  | "invite"
+  | "invoice"
+  | "receipt";
 
 export type StructuredExtractInput = {
   preset?: ExtractPreset;
@@ -30,6 +35,21 @@ const PRESET_SCHEMAS: Record<ExtractPreset, Record<string, string>> = {
     from: "string",
     subject: "string",
     messageId: "string",
+  },
+  magic_link: {
+    primaryLink: "string|null",
+    links: "string[]",
+    from: "string",
+    subject: "string",
+    messageId: "string",
+  },
+  invite: {
+    inviteUrl: "string|null",
+    inviter: "string|null",
+    workspace: "string|null",
+    role: "string|null",
+    from: "string",
+    subject: "string",
   },
   invoice: {
     invoiceNumber: "string|null",
@@ -61,6 +81,16 @@ export function listExtractPresets(): {
       id: "2fa",
       description: "OTP codes and verification links (backward compatible)",
       fields: Object.keys(PRESET_SCHEMAS["2fa"]),
+    },
+    {
+      id: "magic_link",
+      description: "Primary verification / magic link (no OTP focus)",
+      fields: Object.keys(PRESET_SCHEMAS.magic_link),
+    },
+    {
+      id: "invite",
+      description: "Team/workspace invite link and inviter",
+      fields: Object.keys(PRESET_SCHEMAS.invite),
     },
     {
       id: "invoice",
@@ -159,10 +189,18 @@ function extractByPreset(
   switch (preset) {
     case "2fa":
       return extract2fa(row);
+    case "magic_link":
+      return extractMagicLink(row);
+    case "invite":
+      return extractInvite(row, text);
     case "invoice":
       return extractInvoice(row, text);
     case "receipt":
       return extractReceipt(row, text);
+    default: {
+      const _exhaustive: never = preset;
+      return _exhaustive;
+    }
   }
 }
 
@@ -176,6 +214,45 @@ function extract2fa(row: MessageRow): Record<string, unknown> {
     subject: v.subject,
     messageId: v.messageId,
     ...(v.hasRaw ? { hasRaw: true, rawUrl: v.rawUrl } : {}),
+  };
+}
+
+function extractMagicLink(row: MessageRow): Record<string, unknown> {
+  const v = formatMessageVerification(row);
+  return {
+    primaryLink: v.primaryLink,
+    links: v.links,
+    from: v.from,
+    subject: v.subject,
+    messageId: v.messageId,
+  };
+}
+
+function extractInvite(row: MessageRow, text: string): Record<string, unknown> {
+  const v = formatMessageVerification(row);
+  const inviter =
+    matchFirst(text, [
+      /([A-Za-z][\w.-]*)\s+invited you/i,
+      /invitation from\s+([A-Za-z][\w.-]*)/i,
+    ]) ?? null;
+
+  const workspace =
+    matchFirst(text, [
+      /invited you to\s+([A-Za-z0-9][\w\s.-]{1,48})/i,
+      /join\s+([A-Za-z0-9][\w\s.-]{1,48})\s+on/i,
+    ]) ?? null;
+
+  const role =
+    matchFirst(text, [/as\s+(?:an?\s+)?([a-z]+)/i, /role[:\s]+([a-z]+)/i]) ??
+    null;
+
+  return {
+    inviteUrl: v.primaryLink,
+    inviter,
+    workspace,
+    role,
+    from: v.from,
+    subject: v.subject,
   };
 }
 

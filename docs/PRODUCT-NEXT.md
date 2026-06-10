@@ -36,15 +36,15 @@ Pick the next sprint from **P0 → P2**. Re-prioritize when pilot feedback arriv
 
 ---
 
-## P2 — differentiation vs AgentMail
+## P2 — differentiation vs AgentMail ✅
 
-| # | Feature | Why | Surface |
-|---|---------|-----|---------|
-| 11 | **Simulate scenario library** | One-click OTP/magic-link/attachment fixtures | `POST …/simulate` presets + docs |
-| 12 | **Extract presets expansion** | `invoice`/`receipt` exist; add `magic_link`, `invite` | extract presets + MCP |
-| 13 | **Python SDK** (`@mailagent/agent` parity) | AgentMail ships Python; gap in positioning | new package |
-| 14 | **Landing use-case pages** | SEO: “Playwright email verification”, “MCP signup QA” | `public/` |
-| 15 | **Inbox TTL presets** | `ttlMinutes` per `service` default in preset | `service-presets.ts` |
+| # | Feature | Status |
+|---|---------|--------|
+| 11 | **Simulate scenario library** | ✅ `scenario` + `GET …/simulate/scenarios` |
+| 12 | **Extract presets expansion** | ✅ `magic_link`, `invite` |
+| 13 | **Python SDK** | ✅ `packages/mailagent-agent-py` |
+| 14 | **Landing use-case pages** | ✅ `playwright-email-verification.html`, `mcp-signup-qa.html` |
+| 15 | **Inbox TTL presets** | ✅ `resolveTtlMinutes(service)` |
 
 ---
 

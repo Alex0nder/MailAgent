@@ -42,6 +42,35 @@ async function main() {
   if ("error" in tfa) throw new Error(String(tfa.error));
   assert(tfa.data.otp === "554433", "2fa otp");
 
+  const ml = await extractStructuredFromMessage(
+    env,
+    {
+      ...row,
+      subject: "Verify your email",
+      links_json: ["https://app.example.com/verify?token=abc"],
+    },
+    { preset: "magic_link" }
+  );
+  assert(!("error" in ml), "magic_link extract");
+  if ("error" in ml) throw new Error(String(ml.error));
+  assert(
+    String(ml.data.primaryLink).includes("verify"),
+    "magic_link primaryLink"
+  );
+
+  const inviteRes = await extractStructuredFromMessage(
+    env,
+    {
+      ...row,
+      subject: "Alex invited you to Acme Workspace",
+      links_json: ["https://join.example.com/invite/x"],
+    },
+    { preset: "invite" }
+  );
+  assert(!("error" in inviteRes), "invite extract");
+  if ("error" in inviteRes) throw new Error(String(inviteRes.error));
+  assert(inviteRes.data.inviteUrl, "invite url");
+
   console.log("test-structured-extract OK");
 }
 

@@ -12,10 +12,13 @@ import {
   resolveInboundThread,
 } from "./thread-resolve";
 import { indexMessageSearch } from "./message-search";
+import { resolveSimulateScenario } from "../lib/simulate-scenarios";
 
 export type SimulateInboundInput = {
   inboxId: string;
   apiKeyHint?: string;
+  /** Named fixture: otp | magic_link | attachment | invite | invoice_fixture */
+  scenario?: string;
   otp?: string;
   from?: string;
   subject?: string;
@@ -35,8 +38,9 @@ export type SimulateInboundResult = {
   messageId: string;
   threadId: string;
   address: string;
-  otp: string;
+  otp: string | null;
   subject: string;
+  scenario?: string;
   attachmentId?: string;
   callback?: { ok: boolean; statusCode: number | null };
 };
@@ -50,10 +54,24 @@ export async function simulateInboundMessage(
   });
   if (!inbox) return null;
 
-  const otp = input.otp?.trim() || "482910";
-  const from = input.from?.trim() || "qa-simulate@mailagent.test";
-  const subject = input.subject?.trim() || "MailAgent simulated OTP";
-  const links = ["https://example.com/verify?token=simulated"];
+  const fixture = resolveSimulateScenario(input.scenario);
+  const otp =
+    input.otp?.trim() ??
+    (fixture?.otp !== undefined ? fixture.otp : undefined) ??
+    "482910";
+  const from =
+    input.from?.trim() || fixture?.from || "qa-simulate@mailagent.test";
+  const subject =
+    input.subject?.trim() || fixture?.subject || "MailAgent simulated OTP";
+  const links =
+    fixture?.links?.length ? [...fixture.links] : ["https://example.com/verify?token=simulated"];
+  const textPreview =
+    fixture?.textPreview ?? `Your verification code is ${otp || "(link only)"}`;
+  const htmlPreview = fixture?.htmlPreview ?? null;
+  const attachmentFilename =
+    input.attachmentFilename?.trim() || fixture?.attachmentFilename;
+  const fireCallback =
+    input.fireCallback === true || fixture?.fireCallback === true;
   const messageId = nanoid(16);
   const providerId = `sim_${nanoid(12)}`;
 
@@ -103,9 +121,9 @@ export async function simulateInboundMessage(
     providerId,
     from,
     subject,
-    textPreview: `Your verification code is ${otp}`,
-    htmlPreview: null,
-    otp,
+    textPreview,
+    htmlPreview,
+    otp: otp || null,
     links,
     threadId: resolved.threadId,
     inReplyTo: resolved.inReplyToMessageId,
@@ -116,11 +134,11 @@ export async function simulateInboundMessage(
   await indexMessageSearch(env, row);
 
   let attachmentId: string | undefined;
-  if (input.attachmentFilename?.trim()) {
+  if (attachmentFilename) {
     attachmentId = await insertSimulatedAttachment(
       env,
       row.id,
-      input.attachmentFilename.trim()
+      attachmentFilename
     );
   }
 
@@ -128,7 +146,7 @@ export async function simulateInboundMessage(
   await notifyInboxWaiters(env, inbox.id, payload);
 
   let callback: SimulateInboundResult["callback"];
-  if (input.fireCallback && inbox.callback_url) {
+  if (fireCallback && inbox.callback_url) {
     callback = await fireInboxCallback(env, {
       inboxId: inbox.id,
       messageId: row.id,
@@ -152,8 +170,9 @@ export async function simulateInboundMessage(
     messageId: row.id,
     threadId: resolved.threadId,
     address: inbox.address,
-    otp,
+    otp: otp || null,
     subject,
+    ...(input.scenario ? { scenario: input.scenario } : {}),
     ...(attachmentId ? { attachmentId } : {}),
     ...(callback ? { callback } : {}),
   };

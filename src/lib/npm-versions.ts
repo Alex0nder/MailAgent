@@ -15,4 +15,10 @@ export const NPM_PACKAGES = {
     version: "0.1.11",
     install: "npm install @mailagent/agent@0.1.11",
   },
+  agentPy: {
+    name: "mailagent-agent",
+    version: "0.1.0",
+    install: "pip install mailagent-agent",
+    path: "packages/mailagent-agent-py",
+  },
 } as const;

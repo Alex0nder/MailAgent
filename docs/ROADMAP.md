@@ -614,6 +614,16 @@ Backlog: [PRODUCT-NEXT.md](./PRODUCT-NEXT.md)
 | 9 | Public status | ✅ `GET /v1/status` + `status.html` |
 | 10 | Run explorer (label filter + inbox links) | ✅ `agent-runs.html` |
 
+### v0.73 — Differentiation (P2)
+
+| P2 | Task | Status |
+|----|------|--------|
+| 11 | Simulate scenario library | ✅ `GET …/simulate/scenarios` + `scenario` param |
+| 12 | Extract presets `magic_link`, `invite` | ✅ rules + MCP |
+| 13 | Python SDK | ✅ `packages/mailagent-agent-py` |
+| 14 | Landing use-case pages | ✅ Playwright + MCP SEO pages |
+| 15 | Inbox TTL per service preset | ✅ `SERVICE_TTL_MINUTES` |
+
 ### Deferred (not QA)
 
 - ~~Agent session memory / multi-step run state~~ ✅ v0.35

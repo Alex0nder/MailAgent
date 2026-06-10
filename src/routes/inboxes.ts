@@ -4,7 +4,8 @@ import type { ApiVariables } from "../lib/api-context";
 import { requireApiKey } from "../lib/auth";
 import { rateLimit } from "../lib/rate-limit";
 import { parseCallbackUrl } from "../lib/callback-url";
-import { resolveExpectFrom } from "../lib/service-presets";
+import { listSimulateScenarios } from "../lib/simulate-scenarios";
+import { resolveExpectFrom, resolveTtlMinutes } from "../lib/service-presets";
 import {
   scopeInboxDenied,
   scopeLabelForCreate,
@@ -236,6 +237,11 @@ inboxRoutes.delete("/", async (c) => {
   return c.json({ deleted: ids.length, ids });
 });
 
+/** QA: list simulate scenario fixtures */
+inboxRoutes.get("/simulate/scenarios", (c) => {
+  return c.json({ scenarios: listSimulateScenarios() });
+});
+
 inboxRoutes.get("/:id", async (c) => {
   const inbox = await getInbox(c.env, c.req.param("id"), {
     apiKeyHint: c.get("apiKeyHint"),
@@ -264,6 +270,7 @@ inboxRoutes.post("/:id/simulate", async (c) => {
   if (denied) return denied;
 
   let body: {
+    scenario?: string;
     otp?: string;
     from?: string;
     subject?: string;
@@ -284,6 +291,7 @@ inboxRoutes.post("/:id/simulate", async (c) => {
   const result = await simulateInboundMessage(c.env, {
     inboxId: inbox.id,
     apiKeyHint: c.get("apiKeyHint"),
+    scenario: body.scenario,
     otp: body.otp,
     from: body.from,
     subject: body.subject,
@@ -799,7 +807,7 @@ function inboxOptionsFromBody(body: CreateBody) {
   const expectFrom = resolveExpectFrom(body.service, body.expectFrom);
   const callbackUrl = parseCallbackUrl(body.callbackUrl);
   return {
-    ttlMinutes: body.ttlMinutes,
+    ttlMinutes: resolveTtlMinutes(body.service, body.ttlMinutes),
     expectFrom,
     allowedSenders: body.allowedSenders,
     label: body.label,

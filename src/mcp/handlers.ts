@@ -9,7 +9,7 @@ import {
   effectiveLabelPrefix,
 } from "../lib/key-scope";
 import { parseCallbackUrl } from "../lib/callback-url";
-import { resolveExpectFrom } from "../lib/service-presets";
+import { resolveExpectFrom, resolveTtlMinutes } from "../lib/service-presets";
 import { resolveAgentLabel } from "../lib/agent-recipes";
 import { runAgentVerify } from "../services/agent-verify";
 import {
@@ -167,7 +167,10 @@ export async function executeMcpTool(
         args.expectFrom as string | string[] | undefined
       );
       const inbox = await createInbox(env, {
-        ttlMinutes: args.ttlMinutes as number | undefined,
+        ttlMinutes: resolveTtlMinutes(
+          args.service as string | undefined,
+          args.ttlMinutes as number | undefined
+        ),
         expectFrom,
         label: labelCheck.label ?? undefined,
         callbackUrl,
@@ -466,6 +469,7 @@ export async function executeMcpTool(
       const result = await simulateInboundMessage(env, {
         inboxId,
         apiKeyHint: auth.apiKeyHint,
+        scenario: args.scenario as string | undefined,
         otp: args.otp as string | undefined,
         from: args.from as string | undefined,
         subject: args.subject as string | undefined,
