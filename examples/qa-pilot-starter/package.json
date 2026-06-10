@@ -9,7 +9,7 @@
     "test:ui": "playwright test --ui"
   },
   "devDependencies": {
-    "@mailagent/qa": "^0.1.14",
+    "@mailagent/qa": "file:../../packages/mailagent-qa",
     "@playwright/test": "^1.51.0"
   }
 }
