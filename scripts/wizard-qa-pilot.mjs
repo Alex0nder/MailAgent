@@ -44,3 +44,4 @@ console.log("  1. Copy examples/qa-pilot-starter/ → your test repo (Playwright
 console.log("  2. Set MAILAGENT_API_KEY secret · npm test");
 console.log("  3. Label convention: ci-$GITHUB_RUN_ID");
 console.log("  4. Full guide: docs/QA-PILOT.md · https://webmailagent.com/docs/qa.html");
+console.log("  5. Onboard external team: npm run wizard:qa-pilot:onboard · docs/PILOT-ONBOARD.md");

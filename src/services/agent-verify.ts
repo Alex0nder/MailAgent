@@ -2,7 +2,8 @@
 import type { Env } from "../env";
 import { parseCallbackUrl } from "../lib/callback-url";
 import { buildPrimaryAction, resolveAgentLabel } from "../lib/agent-recipes";
-import { resolveExpectFrom } from "../lib/service-presets";
+import { debugUiUrl } from "./inbox-diagnose";
+import { resolveExpectFrom, resolveSubjectHint } from "../lib/service-presets";
 import { countAttachmentsForMessage } from "./message-attachments";
 import {
   createInbox,
@@ -42,6 +43,7 @@ export type VerifyInput = {
   username?: string;
   domainId?: string;
   onProgress?: (event: WaitProgressEvent) => void;
+  apiBaseUrl?: string;
 };
 
 async function attachRunSession<T extends Record<string, unknown>>(
@@ -99,8 +101,10 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
 
   const timeoutSec = Math.min(Number(input.timeoutSeconds ?? 90), 120);
   const messageIndex = Math.max(0, Math.floor(Number(input.messageIndex ?? 0)));
+  const subjectContains =
+    input.subjectContains?.trim() || resolveSubjectHint(input.service);
   const waitOpts = {
-    subjectContains: input.subjectContains,
+    subjectContains,
     messageIndex,
     onProgress: input.onProgress,
   };
@@ -112,11 +116,14 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
       await deleteInbox(env, inbox.id, { apiKeyHint: input.apiKeyHint });
     }
     const debug = await buildWaitTimeoutDebug(env, inbox.id, waitOpts);
+    const apiBase = input.apiBaseUrl ?? "https://api.webmailagent.com";
     const timeoutResult = {
       status: "timeout" as const,
       statusCode: 408 as const,
       email: formatEmail(inbox),
       ...debug,
+      debugUiUrl: debugUiUrl(apiBase, inbox.id),
+      suggestedSubjectContains: resolveSubjectHint(input.service) ?? null,
       inboxKept: !deleteAfter,
     };
     await recordVerifyRunSession(

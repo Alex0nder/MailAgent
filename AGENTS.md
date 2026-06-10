@@ -36,6 +36,8 @@ npm run doctor:billing      # Stripe readiness (local + prod /v1/me)
 npm run doctor:security     # trust docs, npm audit, secret scanning (CI: security-baseline.yml)
 npm run check:catalog-prs   # awesome-codex #195 + awesome-agent-skills #659 status
 npm run wizard:qa-pilot     # QA consumer: doctor:qa + smoke:qa + next steps
+npm run wizard:qa-pilot:onboard  # operator: smoke + starter guard + pilot package
+npm run issue:pilot-key -- <slug>  # scoped ci- key (DATABASE_URL)
 npm run test:qa-pilot-starter  # guard examples/qa-pilot-starter
 npm run test:qa-pilot-cypress-starter  # guard examples/qa-pilot-cypress-starter
 npm run codex:install       # Codex MCP from .dev.vars

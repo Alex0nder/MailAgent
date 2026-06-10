@@ -146,7 +146,39 @@ Cleanup:
   DELETE /v1/inboxes?labelPrefix=ci-$RUN_ID
 ```
 
-Presets: `dribbble`, `github`, `google`, `auth0`, `stripe`, `vercel`, `supabase`, `clerk`, `discord`, `openai`, `resend`, `firebase` (src/lib/service-presets.ts).
+<!-- sync:service-presets:start -->
+Presets (25): `dribbble`, `github`, `gitlab`, `bitbucket`, `google`, `auth0`, `stripe`, `vercel`, `supabase`, `clerk`, `discord`, `openai`, `resend`, `firebase`, `figma`, `notion`, `linear`, `slack`, `shopify`, `atlassian`, `aws`, `microsoft`, `apple`, `twilio`, `posthog` — source: `src/lib/service-presets.ts`.
+<!-- sync:service-presets:end -->
+
+### MCP tools (from src/mcp/manifest.ts)
+
+<!-- sync:mcp-tools:start -->
+23 tools (MCP server `0.8.1`):
+
+- `mailagent_verify_signup`
+- `mailagent_create_inbox`
+- `mailagent_wait_and_extract`
+- `mailagent_list_inboxes`
+- `mailagent_wait_for_message`
+- `mailagent_extract_verification`
+- `mailagent_simulate_message`
+- `mailagent_send_message`
+- `mailagent_list_threads`
+- `mailagent_add_domain`
+- `mailagent_list_domains`
+- `mailagent_verify_domain`
+- `mailagent_extract_structured`
+- `mailagent_search_messages`
+- `mailagent_diagnose_inbox`
+- `mailagent_get_inbox`
+- `mailagent_delete_inbox`
+- `mailagent_list_messages`
+- `mailagent_get_raw_message`
+- `mailagent_list_attachments`
+- `mailagent_get_attachment`
+- `mailagent_get_run_session`
+- `mailagent_patch_run_session`
+<!-- sync:mcp-tools:end -->
 
 ---
 

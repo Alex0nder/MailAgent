@@ -4,7 +4,7 @@ import "../../scripts/load-env.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { routeQuestion } from "./lib/router.mjs";
+import { routeQuestion, routingScores } from "./lib/router.mjs";
 import { loadBaselineContext, loadCoreContext } from "./lib/context-loader.mjs";
 import { loadGraphContext } from "./lib/graph-loader.mjs";
 import { answerQuestion } from "./lib/llm.mjs";
@@ -150,11 +150,22 @@ async function main() {
         ? ["A", "B", "C"]
         : [condArg.toUpperCase()];
 
+  const routingLog = [];
+
   for (const q of questions) {
-    const coreIds =
-      q.expected_cores?.length > 0 ? q.expected_cores : routeQuestion(q.question);
-    const coreCtx = loadCoreContext(coreIds);
+    const routedIds = routeQuestion(q.question);
+    const coreCtx = loadCoreContext(routedIds);
     const graphCtx = loadGraphContext(q.question);
+
+    if (q.expected_cores?.length) {
+      const rs = routingScores(q.expected_cores, routedIds);
+      routingLog.push({
+        question_id: q.id,
+        expected: q.expected_cores,
+        routed: routedIds,
+        f1: Number(rs.f1.toFixed(3)),
+      });
+    }
 
     for (const cond of conditions) {
       const ctx =
@@ -162,6 +173,9 @@ async function main() {
       console.log(`[${q.id}] condition ${cond} …`);
       try {
         const row = await runOne(q, cond, ctx, opts);
+        if (cond === "B") {
+          row.routed_cores = routedIds.join(";");
+        }
         rows.push(row);
         merged[`${q.id}:${cond}`] = row;
         fs.writeFileSync(
@@ -195,6 +209,11 @@ async function main() {
   writeCsv(path.join(outDir, "results.csv"), finalRows);
   fs.writeFileSync(path.join(outDir, "results.json"), JSON.stringify(finalRows, null, 2));
 
+  const routingF1 =
+    routingLog.length > 0
+      ? routingLog.reduce((s, r) => s + r.f1, 0) / routingLog.length
+      : null;
+
   const meta = {
     run_at: new Date().toISOString(),
     questions: questions.length,
@@ -203,6 +222,9 @@ async function main() {
     skip_judge: opts.skipJudge,
     baseline_chars: baselineCtx.chars,
     model: process.env.EVAL_MODEL ?? "gpt-4o-mini",
+    router_mode: "keyword",
+    router_mean_f1: routingF1 != null ? Number(routingF1.toFixed(3)) : null,
+    routing: routingLog,
   };
   fs.writeFileSync(path.join(outDir, "run-meta.json"), JSON.stringify(meta, null, 2));
 

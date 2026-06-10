@@ -151,6 +151,26 @@
         if (d.callbackUrl) html += ` · callback configured`;
         html += `</p>`;
 
+        const debugHref = d.debugUiUrl || d.links?.debug || `/debug.html?inbox=${esc(d.id)}`;
+        html += `<div class="console-banner">Timeout or wrong mail?
+          <a href="${esc(debugHref)}"><strong>Debug UI</strong></a>
+          · <a href="${esc(d.links?.diagnose || "#")}" target="_blank" rel="noopener">Diagnose JSON</a>
+        </div>`;
+
+        html += `<div class="console-key-form" id="search-box">
+          <h2>Search messages</h2>
+          <label for="search-q">Query</label>
+          <input id="search-q" type="text" placeholder="verification code" />
+          <label for="search-mode">Mode</label>
+          <select id="search-mode">
+            <option value="auto">auto</option>
+            <option value="keyword">keyword</option>
+            <option value="semantic">semantic</option>
+          </select>
+          <button type="button" class="app-btn app-btn--ghost" id="search-btn">Search</button>
+          <div id="search-results" class="console-meta"></div>
+        </div>`;
+
         html += renderCompose(d);
 
         if (d.troubleshooting?.length) {
@@ -206,9 +226,47 @@
           html += `</tbody></table>`;
         }
 
-        html += `<p class="console-links"><a href="${esc(d.links?.debug)}">Full debug UI</a></p>`;
+        html += `<p class="console-links">
+          <a href="${esc(debugHref)}">Full debug UI</a>
+          · <a href="${esc(d.links?.diagnose || "#")}" target="_blank" rel="noopener">GET diagnose</a>
+        </p>`;
         out.innerHTML = html;
         bindCompose(d);
+        bindSearch();
+      }
+
+      function bindSearch() {
+        document.getElementById("search-btn")?.addEventListener("click", async () => {
+          const q = document.getElementById("search-q")?.value.trim();
+          const mode = document.getElementById("search-mode")?.value || "auto";
+          const box = document.getElementById("search-results");
+          if (!q) {
+            if (box) box.textContent = "Enter a query.";
+            return;
+          }
+          if (box) box.textContent = "Searching…";
+          const r = await api(
+            `/v1/inboxes/${encodeURIComponent(inboxId)}/search?q=${encodeURIComponent(q)}&mode=${encodeURIComponent(mode)}&limit=20`
+          );
+          if (!r.ok) {
+            if (box) box.innerHTML = `<span class="app-err">${esc(r.json.error || r.status)}</span>`;
+            return;
+          }
+          const hits = r.json.results || r.json.matches || [];
+          if (!hits.length) {
+            if (box) box.textContent = "No matches.";
+            return;
+          }
+          let rows = hits
+            .map(
+              (h) =>
+                `<tr><td>${esc(h.from || h.from_addr)}</td><td>${esc(h.subject)}</td><td>${esc(h.snippet || h.preview || "—")}</td></tr>`
+            )
+            .join("");
+          if (box) {
+            box.innerHTML = `<table class="console-table"><thead><tr><th>From</th><th>Subject</th><th>Snippet</th></tr></thead><tbody>${rows}</tbody></table>`;
+          }
+        });
       }
 
       async function load() {

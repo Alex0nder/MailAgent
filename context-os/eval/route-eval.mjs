@@ -1,24 +1,31 @@
 #!/usr/bin/env node
-/** Stage 0: router-only evaluation (no LLM) */
+/** Stage 0: router-only evaluation (keyword or semantic embeddings) */
+import "../../scripts/load-env.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { routeQuestion, routingScores } from "./lib/router.mjs";
+import { routeQuestion, routeQuestionSemantic, routingScores } from "./lib/router.mjs";
 import { writeCsv } from "./lib/csv.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function parseArgs(argv) {
-  const opts = { questions: path.join(__dirname, "questions.json"), out: null, pilot: false };
+  const opts = {
+    questions: path.join(__dirname, "questions.json"),
+    out: null,
+    pilot: false,
+    semantic: false,
+  };
   for (let i = 2; i < argv.length; i++) {
     if (argv[i] === "--questions" && argv[i + 1]) opts.questions = argv[++i];
     else if (argv[i] === "--out" && argv[i + 1]) opts.out = argv[++i];
     else if (argv[i] === "--pilot") opts.pilot = true;
+    else if (argv[i] === "--semantic") opts.semantic = true;
   }
   return opts;
 }
 
-function main() {
+async function main() {
   const opts = parseArgs(process.argv);
   const bank = JSON.parse(fs.readFileSync(opts.questions, "utf8"));
   let questions = bank.questions;
@@ -33,7 +40,9 @@ function main() {
   let f1Sum = 0;
 
   for (const q of questions) {
-    const routed = routeQuestion(q.question);
+    const routed = opts.semantic
+      ? await routeQuestionSemantic(q.question)
+      : routeQuestion(q.question);
     const expected = q.expected_cores ?? [];
     const scores = routingScores(expected, routed);
     precSum += scores.precision;
@@ -55,6 +64,7 @@ function main() {
   const n = questions.length;
   const summary = {
     questions: n,
+    mode: opts.semantic ? "semantic" : "keyword",
     mean_precision: (precSum / n).toFixed(3),
     mean_recall: (recSum / n).toFixed(3),
     mean_f1: (f1Sum / n).toFixed(3),
@@ -71,4 +81,7 @@ function main() {
   console.log(`Wrote ${outDir}/routing.csv`);
 }
 
-main();
+main().catch((err) => {
+  console.error(err.message ?? err);
+  process.exit(1);
+});

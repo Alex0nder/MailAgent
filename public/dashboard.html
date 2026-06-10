@@ -88,12 +88,19 @@
         localStorage.setItem(KEY, key);
         out.textContent = "Loading…";
 
-        const res = await api("/v1/console/summary");
+        const [res, agentRes] = await Promise.all([
+          api("/v1/console/summary"),
+          api("/v1/agent"),
+        ]);
         if (!res.ok) {
           out.innerHTML = `<p class="app-err">${esc(res.json.error || res.status)}</p>`;
           return;
         }
         const d = res.json;
+        const services =
+          agentRes.ok && Array.isArray(agentRes.json?.services)
+            ? agentRes.json.services
+            : [];
         const u = d.usage;
         const l = d.limits;
 
@@ -171,12 +178,9 @@
             <label for="inbox-service">Service preset (optional)</label>
             <select id="inbox-service">
               <option value="">— any sender —</option>
-              <option value="github">github</option>
-              <option value="google">google</option>
-              <option value="auth0">auth0</option>
-              <option value="stripe">stripe</option>
-              <option value="vercel">vercel</option>
-              <option value="supabase">supabase</option>
+              ${services
+                .map((s) => `<option value="${esc(s)}">${esc(s)}</option>`)
+                .join("")}
             </select>
             <button type="submit" class="app-btn app-btn--ghost">Create inbox</button>
           </form>`;
@@ -196,6 +200,16 @@
             </tr>`;
           }
           html += `</tbody></table>`;
+        }
+
+        if (!scope?.readOnly) {
+          html += `<h2>Bulk cleanup</h2>
+            <form class="console-key-form" id="bulk-delete-form">
+              <label for="bulk-prefix">Label prefix (min 3 chars)</label>
+              <input id="bulk-prefix" type="text" maxlength="64" placeholder="ci-" />
+              <button type="submit" class="console-revoke-btn">Delete matching inboxes</button>
+            </form>
+            <p class="console-meta">API: <code>DELETE /v1/inboxes?labelPrefix=…</code> — respects scoped key prefix.</p>`;
         }
 
         if (d.teamId && (d.plan === "enterprise" || d.dedicatedResend?.configured)) {
@@ -350,6 +364,24 @@
           });
           if (r.json.url) location.href = r.json.url;
           else alert(r.json.error || "Portal failed");
+        });
+
+        document.getElementById("bulk-delete-form")?.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const labelPrefix = document.getElementById("bulk-prefix")?.value.trim();
+          if (!labelPrefix || labelPrefix.length < 3) {
+            alert("labelPrefix must be at least 3 characters");
+            return;
+          }
+          if (!confirm(`Delete all inboxes with label starting with "${labelPrefix}"?`)) return;
+          const r = await api(
+            `/v1/inboxes?labelPrefix=${encodeURIComponent(labelPrefix)}`,
+            { method: "DELETE" }
+          );
+          if (r.ok) {
+            alert(`Deleted ${r.json.deleted ?? 0} inbox(es)`);
+            load();
+          } else alert(r.json.error || r.json.hint || "Delete failed");
         });
 
         document.getElementById("create-inbox-form")?.addEventListener("submit", async (e) => {

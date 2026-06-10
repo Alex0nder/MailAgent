@@ -9,33 +9,97 @@
     {
       "id": "business",
       "file": "cores/business-core.md",
-      "topics": ["purpose", "users", "scenarios", "metrics", "positioning"]
+      "topics": [
+        "purpose",
+        "users",
+        "scenarios",
+        "metrics",
+        "positioning"
+      ]
     },
     {
       "id": "product",
       "file": "cores/product-core.md",
-      "topics": ["inbox-flow", "email-flow", "otp-flow", "qa-flow", "agent-flow", "mcp-tools"]
+      "topics": [
+        "inbox-flow",
+        "email-flow",
+        "otp-flow",
+        "qa-flow",
+        "agent-flow",
+        "mcp-tools"
+      ]
     },
     {
       "id": "technical",
       "file": "cores/technical-core.md",
-      "topics": ["worker", "api", "neon", "resend", "queues", "durable-objects", "sse", "mcp", "r2", "workers-ai"]
+      "topics": [
+        "worker",
+        "api",
+        "neon",
+        "resend",
+        "queues",
+        "durable-objects",
+        "sse",
+        "mcp",
+        "r2",
+        "workers-ai"
+      ]
     },
     {
       "id": "operational",
       "file": "cores/operational-core.md",
-      "topics": ["deploy", "ci", "env", "secrets", "testing", "monitoring", "operator"]
+      "topics": [
+        "deploy",
+        "ci",
+        "env",
+        "secrets",
+        "testing",
+        "monitoring",
+        "operator"
+      ]
     }
   ],
   "subcores": [
-    { "id": "inbox", "file": "subcores/inbox-core.md", "parent": "product" },
-    { "id": "email", "file": "subcores/email-core.md", "parent": "technical" },
-    { "id": "otp", "file": "subcores/otp-core.md", "parent": "product" },
-    { "id": "api", "file": "subcores/api-core.md", "parent": "technical" },
-    { "id": "worker", "file": "subcores/worker-core.md", "parent": "technical" },
-    { "id": "database", "file": "subcores/database-core.md", "parent": "technical" },
-    { "id": "deployment", "file": "subcores/deployment-core.md", "parent": "operational" },
-    { "id": "security", "file": "subcores/security-core.md", "parent": "operational" }
+    {
+      "id": "inbox",
+      "file": "subcores/inbox-core.md",
+      "parent": "product"
+    },
+    {
+      "id": "email",
+      "file": "subcores/email-core.md",
+      "parent": "technical"
+    },
+    {
+      "id": "otp",
+      "file": "subcores/otp-core.md",
+      "parent": "product"
+    },
+    {
+      "id": "api",
+      "file": "subcores/api-core.md",
+      "parent": "technical"
+    },
+    {
+      "id": "worker",
+      "file": "subcores/worker-core.md",
+      "parent": "technical"
+    },
+    {
+      "id": "database",
+      "file": "subcores/database-core.md",
+      "parent": "technical"
+    },
+    {
+      "id": "deployment",
+      "file": "subcores/deployment-core.md",
+      "parent": "operational"
+    },
+    {
+      "id": "security",
+      "file": "subcores/security-core.md",
+      "parent": "operational"
+    }
   ],
   "router": {
     "rules": "router/question-router.md",
@@ -50,10 +114,20 @@
   "stats": {
     "mcpTools": 23,
     "dbMigrations": 16,
-    "docsMd": 42,
-    "srcTsFiles": 70,
+    "docsMd": 44,
+    "srcTsFiles": 81,
     "npmPackages": 3,
     "githubWorkflows": 6,
-    "servicePresets": 12
-  }
+    "servicePresets": 25
+  },
+  "sourceCommit": "190fb5bdea244ae86c2588b3198f8960ee29a5d6",
+  "sourceCommitShort": "190fb5b",
+  "syncedAt": "2026-06-10T09:36:02.165Z",
+  "syncSources": [
+    "src/mcp/manifest.ts",
+    "src/lib/service-presets.ts",
+    "package.json",
+    "migrations/",
+    ".github/workflows/"
+  ]
 }

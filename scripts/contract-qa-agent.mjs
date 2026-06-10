@@ -69,8 +69,20 @@ async function main() {
     console.error("packages discovery missing", pkgs);
     process.exit(1);
   }
+  const services = hub.json.services;
+  if (!Array.isArray(services) || services.length < 20) {
+    console.error("agent services discovery missing or too short", services?.length);
+    process.exit(1);
+  }
+  for (const name of ["gitlab", "bitbucket", "github"]) {
+    if (!services.includes(name)) {
+      console.error(`service preset missing from hub: ${name}`);
+      process.exit(1);
+    }
+  }
   console.log("agent hub OK", {
     tools: hub.json.mcpTools.length,
+    services: services.length,
     oidc: hub.json.auth.oidc,
   });
 

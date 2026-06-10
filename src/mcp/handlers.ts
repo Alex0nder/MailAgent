@@ -122,6 +122,7 @@ export async function executeMcpTool(
       if (!labelCheck.ok) {
         return textResult({ error: labelCheck.error, hint: labelCheck.hint }, true);
       }
+      const apiBase = ctx?.apiBaseUrl?.replace(/\/$/, "") ?? "https://api.webmailagent.com";
       const result = await runAgentVerify(env, {
         inboxId: args.inboxId as string | undefined,
         service: args.service as string | undefined,
@@ -135,6 +136,7 @@ export async function executeMcpTool(
         apiKeyHint: auth.apiKeyHint,
         teamId: auth.teamId,
         onProgress: bindWaitProgress(ctx),
+        apiBaseUrl: apiBase,
       });
       if ("error" in result) {
         return textResult(result, true);
@@ -203,6 +205,7 @@ export async function executeMcpTool(
         if (!labelCheck.ok) {
           return textResult({ error: labelCheck.error, hint: labelCheck.hint }, true);
         }
+        const apiBase = ctx?.apiBaseUrl?.replace(/\/$/, "") ?? "https://api.webmailagent.com";
         const v = await runAgentVerify(env, {
           service: args.service as string | undefined,
           label: labelCheck.label ?? undefined,
@@ -214,6 +217,7 @@ export async function executeMcpTool(
           apiKeyHint: auth.apiKeyHint,
           teamId: auth.teamId,
           onProgress: bindWaitProgress(ctx),
+          apiBaseUrl: apiBase,
         });
         if (v.status === "timeout" || "error" in v) {
           return textResult(v, true);

@@ -1,8 +1,39 @@
 /** expectFrom presets for popular services (agent / MCP / API) */
 
+/** Suggested subjectContains when waiting for verification mail (MCP / verify). */
+export const SERVICE_SUBJECT_HINTS: Record<string, string> = {
+  github: "verify",
+  gitlab: "Confirm",
+  bitbucket: "verify",
+  google: "verification",
+  auth0: "verify",
+  stripe: "verification",
+  vercel: "verify",
+  supabase: "confirm",
+  clerk: "verification",
+  discord: "verify",
+  openai: "verify",
+  figma: "Figma",
+  notion: "Notion",
+  linear: "Linear",
+  slack: "confirm",
+  shopify: "verify",
+  atlassian: "verify",
+  microsoft: "verify",
+  apple: "verify",
+  firebase: "verify",
+  dribbble: "confirm",
+  posthog: "verify",
+  twilio: "verify",
+  aws: "verify",
+  resend: "verify",
+};
+
 export const SERVICE_EXPECT_FROM: Record<string, string[]> = {
   dribbble: ["dribbble.com", "m.dribbble.com"],
   github: ["github.com", "noreply@github.com"],
+  gitlab: ["gitlab.com", "about.gitlab.com", "noreply@gitlab.com"],
+  bitbucket: ["bitbucket.org", "messaging.atlassian.com"],
   google: ["google.com", "accounts.google.com"],
   auth0: ["auth0.com"],
   stripe: ["stripe.com"],
@@ -25,6 +56,18 @@ export const SERVICE_EXPECT_FROM: Record<string, string[]> = {
   twilio: ["twilio.com"],
   posthog: ["posthog.com"],
 };
+
+export function resolveSubjectHint(service?: string): string | undefined {
+  const key = service?.trim().toLowerCase();
+  return key ? SERVICE_SUBJECT_HINTS[key] : undefined;
+}
+
+export function formatSubjectHintsForDocs(max = 12): string {
+  return Object.entries(SERVICE_SUBJECT_HINTS)
+    .slice(0, max)
+    .map(([s, h]) => `${s}="${h}"`)
+    .join(", ");
+}
 
 export function resolveExpectFrom(
   service?: string,

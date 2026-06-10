@@ -17,7 +17,25 @@ const RECIPE_META: Record<string, Omit<AgentRecipe, "service" | "allowedSenders"
       "Submit returned address on github.com signup",
       "Use agent.primaryAction — OTP or magic link",
     ],
-    tips: ["Emails from noreply@github.com or github.com"],
+    tips: ["Emails from noreply@github.com or github.com", "subjectContains=verify"],
+  },
+  gitlab: {
+    summary: "GitLab signup or email confirmation",
+    steps: [
+      "service=gitlab → allowed gitlab.com senders",
+      "subjectContains=Confirm (or omit if only one mail)",
+      "Follow primaryAction OTP or confirmation link",
+    ],
+    tips: ["From gitlab.com or noreply@gitlab.com"],
+  },
+  bitbucket: {
+    summary: "Bitbucket / Atlassian account verify",
+    steps: [
+      "service=bitbucket",
+      "subjectContains=verify if multiple mails in inbox",
+      "Complete signup via primaryAction",
+    ],
+    tips: ["bitbucket.org or messaging.atlassian.com"],
   },
   google: {
     summary: "Google account verification code",

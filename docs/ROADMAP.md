@@ -565,11 +565,50 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | QA adoption toolkit | [QA-PILOT.md](./QA-PILOT.md) |
 | npm / MCP / skill install paths | ✅ |
 
+### v0.69 — QA pilot rollout (active, Stripe on hold)
+
+| Step | Task | Status |
+|------|------|--------|
+| 1 | Baseline green: `wizard:qa-pilot`, `test:qa-pilot-starter`, `test:qa-pilot-cypress-starter` | ✅ |
+| 1b | Operator kit: `issue:pilot-key`, `wizard:qa-pilot:onboard`, [PILOT-ONBOARD.md](./PILOT-ONBOARD.md) | ✅ |
+| 2 | Pilot #1: external test repo copies starter → CI secrets → green `npm test` | pending |
+| 3 | Pilot #1: staging E2E (`APP_SIGNUP_URL` + `service` preset) | pending |
+| 4 | Collect feedback (setup time, flaky, missing API/docs) → backlog v0.70 | pending |
+| 5 | Pilot #2 (Cypress track or second team) | pending |
+| 6 | Metrics vs targets ([QA-ROADMAP.md](./QA-ROADMAP.md): flaky <2%, setup <30 min) | pending |
+
+Guide: [QA-PILOT.md](./QA-PILOT.md) · operators: [YOUR-TURN.md](./YOUR-TURN.md) (Stripe skipped).
+
+### v0.70 — Context OS Phase 2 (active — parallel to pilot hold)
+
+| Task | Status |
+|------|--------|
+| `npm run sync:context-os` — manifest stats, `sourceCommit`, MCP tools, presets | ✅ |
+| `manifest.json` → `sourceCommit` / `syncedAt` pin | ✅ |
+| Keyword router F1 on 35 Q (`routing-map.json` v1.1 + word boundaries) | ✅ **1.000** |
+| Eval condition B uses live `routeQuestion` (not gold cores) | ✅ |
+| Semantic router: `eval:context-os:router-build` + `route-semantic` | ✅ (keyword wins; semantic optional) |
+| Product: Context OS in skill/docs | ✅ [skills/mailagent/SKILL.md](../skills/mailagent/SKILL.md) |
+| `npm run check:context-os-router` (F1 gate) | ✅ |
+| Eval baseline: B wins accuracy/tokens (`run-1781075014160`) | see [AI-Context-OS](https://github.com/Alex0nder/AI-Context-OS) |
+
+### v0.71 — Product (active; Stripe & pilot on hold)
+
+Backlog: [PRODUCT-NEXT.md](./PRODUCT-NEXT.md)
+
+| P0 | Task | Status |
+|----|------|--------|
+| 1 | Console search UI (`GET …/search`) | ✅ `console-inbox.html` |
+| 2 | Bulk inbox cleanup UI (`labelPrefix`) | ✅ `dashboard.html` |
+| 3 | Diagnose deep-link in MCP + console | ✅ `debugUiUrl` on timeout + console banner |
+| 4 | Service presets (GitLab, Bitbucket, …) | ✅ `service-presets.ts` + recipes |
+| 5 | `verify_signup` subject hints per service | ✅ `SERVICE_SUBJECT_HINTS` + MCP manifest |
+
 ### Deferred (not QA)
 
 - ~~Agent session memory / multi-step run state~~ ✅ v0.35
 - ~~OIDC on prod~~ ✅ v0.40
-- **Stripe on prod** — prep ✅ · enable via `npm run wizard:stripe --deploy`
+- **Stripe on prod** — **on hold** · prep ✅ · `wizard:stripe --deploy` when ready
 - ~~`OUTBOUND_FROM` on prod~~ ✅
 - ~~Codex repo marketplace~~ ✅ `.agents/plugins/marketplace.json`
 - Codex official Plugin Directory submit — coming soon (OpenAI)

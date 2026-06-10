@@ -6,6 +6,7 @@ import { requireApiKey } from "../lib/auth";
 import { rateLimit } from "../lib/rate-limit";
 import { resolveAgentLabel, getAgentRecipe, listAgentRecipes } from "../lib/agent-recipes";
 import { scopeLabelForCreate, scopeWriteDenied } from "../lib/scope-guard";
+import { publicOriginFromUrl } from "../lib/public-origin";
 import { SERVICE_EXPECT_FROM } from "../lib/service-presets";
 import { runAgentVerify } from "../services/agent-verify";
 import { listAgentRuns } from "../services/agent-runs";
@@ -251,6 +252,7 @@ agentRoutes.post("/verify", async (c) => {
     ...body,
     apiKeyHint: c.get("apiKeyHint"),
     teamId: c.get("teamId"),
+    apiBaseUrl: publicOriginFromUrl(c.req.url),
   });
 
   if ("error" in result && result.error === "invalid_callback_url") {

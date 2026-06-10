@@ -98,7 +98,9 @@ Full list: `GET https://api.webmailagent.com/v1/agent` → `mcpTools` (23 tools)
 
 ## Service presets
 
-`github`, `google`, `auth0`, `stripe`, `vercel`, `supabase`, `clerk`, `discord`, `openai`, `resend`, `firebase`, `figma`, `notion`, `linear`, `slack`, `shopify`, `atlassian`, `aws`, `microsoft`, `apple`, `twilio`, `posthog`, `dribbble`
+`github`, `gitlab`, `bitbucket`, `google`, `auth0`, `stripe`, `vercel`, `supabase`, `clerk`, `discord`, `openai`, `resend`, `firebase`, `figma`, `notion`, `linear`, `slack`, `shopify`, `atlassian`, `aws`, `microsoft`, `apple`, `twilio`, `posthog`, `dribbble`
+
+`mailagent_verify_signup` applies default `subjectContains` per service when omitted (e.g. `github` → `verify`, `gitlab` → `Confirm`). On timeout the response includes `debugUiUrl`.
 
 Recipes: `GET /v1/agent/recipes/github`
 
@@ -122,6 +124,24 @@ Do not use Gmail skills as a substitute for MailAgent — Gmail is the user's re
 - On timeout: **`mailagent_diagnose_inbox`** before retrying
 - Default **`deleteAfter: true`** — delete inbox when flow ends
 - Never log or paste `MAILAGENT_API_KEY`
+
+## MailAgent repo / self-host (Context OS)
+
+Use when the task is **this codebase** (debug Worker, deploy, contribute) — not when you only need a temp inbox on prod.
+
+**Do not** load the full repository. Route the question, then read only matched cores:
+
+| Step | Action |
+|------|--------|
+| 1 | Match question → cores via `context-os/router/routing-map.json` (or `npm run check:context-os-router` in repo) |
+| 2 | Read files under `context-os/` listed in the route (subcores + `audit/project-map.md` for navigation) |
+| 3 | Open `src/` only for files named in those cores |
+
+Quick map: `context-os/router/question-router.md` · manifest: `context-os/manifest.json`
+
+Operators: `npm run sync:context-os` after `src/mcp/manifest.ts`, service presets, or route changes.
+
+Eval (B beats full repo on accuracy/tokens): `context-os/eval/` · published runs in [AI-Context-OS](https://github.com/Alex0nder/AI-Context-OS).
 
 ## Verify prod (after API/MCP changes)
 

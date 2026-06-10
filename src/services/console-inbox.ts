@@ -49,11 +49,13 @@ export async function buildConsoleInboxDetail(
       sendPath: `/v1/inboxes/${inbox.id}/send`,
       replyPathTemplate: `/v1/inboxes/${inbox.id}/messages/{messageId}/reply`,
     },
+    debugUiUrl: diagnose?.debugUiUrl ?? null,
     links: {
-      debug: `/debug.html?inbox=${inbox.id}`,
+      debug: diagnose?.debugUiUrl ?? `/debug.html?inbox=${inbox.id}`,
       diagnose: `/v1/inboxes/${inbox.id}/diagnose`,
       messages: `/v1/inboxes/${inbox.id}/messages`,
       threads: `/v1/inboxes/${inbox.id}/threads`,
+      search: `/v1/inboxes/${inbox.id}/search?q=`,
     },
   };
 }

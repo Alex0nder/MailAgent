@@ -2,7 +2,7 @@
 
 Connect a test repo (Playwright, Cypress, or curl) to hosted MailAgent in ~30 minutes.
 
-**Prerequisite:** API key — [dashboard](https://webmailagent.com/dashboard.html) or `npm run issue:key:db` (MailAgent operators).
+**Prerequisite:** API key — [dashboard](https://webmailagent.com/dashboard.html) or `npm run issue:pilot-key -- <slug>` (operators — [PILOT-ONBOARD.md](./PILOT-ONBOARD.md)).
 
 ## 0. Fastest path — copy starter (10 min)
 

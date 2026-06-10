@@ -28,10 +28,14 @@ context-os/
 | C | Hermes-style graph (`graph/graph-index.json`) |
 
 ```bash
+npm run sync:context-os              # manifest + cores из src/mcp, presets, stats
 npm run eval:context-os:graph-build  # индекс для C
+npm run eval:context-os:router-build # embeddings для semantic router (OPENAI_API_KEY)
+npm run eval:context-os:route        # keyword router F1
+npm run eval:context-os:route-semantic
 npm run eval:context-os:dry-abc      # размеры A/B/C без API
 npm run eval:context-os:pilot        # 10 вопросов A/B/C
-npm run eval:context-os:aggregate      # SUMMARY.md
+npm run eval:context-os:aggregate    # SUMMARY.md
 npm run eval:context-os:tokens       # TOKENS.md
 ```
 
@@ -41,7 +45,7 @@ npm run eval:context-os:tokens       # TOKENS.md
 
 1. Получить вопрос от пользователя или агента.
 2. Открыть `router/question-router.md` или `router/routing-map.json`.
-3. Загрузить **только** указанные ядра (core + subcore).
+3. Загрузить **только** указанные ядра (core + subcore). Router: `routeQuestion()` в `eval/lib/router.mjs` (F1 **1.0** на 35 eval-вопросах).
 4. При необходимости добавить `audit/project-map.md` для навигации по файлам.
 
 ## Четыре главных ядра

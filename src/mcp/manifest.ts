@@ -1,9 +1,17 @@
 /** MCP tool definitions for remote HTTP + docs */
-import { SERVICE_EXPECT_FROM } from "../lib/service-presets";
+import {
+  SERVICE_EXPECT_FROM,
+  formatSubjectHintsForDocs,
+} from "../lib/service-presets";
 
 export const SERVICE_NAMES = Object.keys(SERVICE_EXPECT_FROM);
 
 const servicesEnum = SERVICE_NAMES;
+const subjectContainsDesc = `Filter by subject substring. Per service: ${formatSubjectHintsForDocs()}.`;
+const verifySignupDesc =
+  "Preferred: wait for verification email and return agent.primaryAction (OTP or magic link). " +
+  `Set service for allowlist. subjectContains hints: ${formatSubjectHintsForDocs(10)}. ` +
+  "On timeout response includes debugUiUrl — open or call mailagent_diagnose_inbox.";
 
 export const MCP_SERVER_INFO = {
   name: "mailagent",
@@ -13,8 +21,7 @@ export const MCP_SERVER_INFO = {
 export const MCP_TOOLS = [
   {
     name: "mailagent_verify_signup",
-    description:
-      "Preferred: wait for verification email and return agent.primaryAction (OTP or magic link + instruction).",
+    description: verifySignupDesc,
     inputSchema: {
       type: "object",
       properties: {
@@ -22,7 +29,7 @@ export const MCP_TOOLS = [
         service: { type: "string", enum: servicesEnum },
         runId: { type: "string", description: "Agent run id (stored as label for tracing)" },
         label: { type: "string" },
-        subjectContains: { type: "string" },
+        subjectContains: { type: "string", description: subjectContainsDesc },
         messageIndex: {
           type: "integer",
           minimum: 0,
@@ -62,7 +69,7 @@ export const MCP_TOOLS = [
         inboxId: { type: "string" },
         service: { type: "string", enum: servicesEnum },
         runId: { type: "string" },
-        subjectContains: { type: "string" },
+        subjectContains: { type: "string", description: subjectContainsDesc },
         messageIndex: {
           type: "integer",
           minimum: 0,
@@ -94,7 +101,7 @@ export const MCP_TOOLS = [
       properties: {
         inboxId: { type: "string" },
         timeoutSeconds: { type: "integer" },
-        subjectContains: { type: "string" },
+        subjectContains: { type: "string", description: subjectContainsDesc },
         messageIndex: {
           type: "integer",
           minimum: 0,
@@ -227,7 +234,7 @@ export const MCP_TOOLS = [
       required: ["inboxId"],
       properties: {
         inboxId: { type: "string" },
-        subjectContains: { type: "string" },
+        subjectContains: { type: "string", description: subjectContainsDesc },
         messageIndex: {
           type: "integer",
           minimum: 0,
@@ -262,7 +269,7 @@ export const MCP_TOOLS = [
       required: ["inboxId"],
       properties: {
         inboxId: { type: "string" },
-        subjectContains: { type: "string" },
+        subjectContains: { type: "string", description: subjectContainsDesc },
       },
     },
   },
