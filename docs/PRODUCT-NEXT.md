@@ -56,7 +56,9 @@ P0–P2 **done**. Next: **P3** (distribution) or human-blocked items below.
 | 17 | **SEO / nav links** | ✅ footer + landing cross-links |
 | 18 | **QA SDK `scenario`** | ✅ `@mailagent/qa` + pilot starter test |
 | 19 | **Pilot starter ↔ monorepo** | ✅ CI installs local `@mailagent/qa` |
-| 20 | **Run first external pilot** | ⏳ `wizard:qa-pilot:onboard` + `issue:pilot-key` |
+| 20 | **Run first external pilot** | ⏳ baseline ✅ · `print:pilot-invite` + `issue:pilot-key` |
+| 21 | **Team webhook docs** | ✅ `teams.html#event-webhook` |
+| 22 | **QA troubleshooting URL** | ✅ `/docs/qa-troubleshooting.html` |
 
 **Done when:** `pip install mailagent-agent` works; pilot repo forks starter and passes CI.
 
@@ -75,8 +77,8 @@ P0–P2 **done**. Next: **P3** (distribution) or human-blocked items below.
 
 ## Suggested next sprint
 
-1. P3 #20 — onboard first QA pilot (needs `DATABASE_URL` + staging URL)  
-2. Publish tag `v*` — npm `@mailagent/qa@0.1.15` + PyPI `mailagent-agent@0.1.0`  
-3. Team webhook docs page (when pilot asks for event delivery)
+1. P3 #20 — `npm run print:pilot-invite -- <slug>` → send invite + `issue:pilot-key` (local `DATABASE_URL`)  
+2. PyPI — GitHub secret `PYPI_API_TOKEN` → re-run **Publish npm packages** on `v0.74.0`  
+3. Pilot staging E2E — their `APP_SIGNUP_URL` + `service` preset
 
-Track in [ROADMAP.md](./ROADMAP.md) § v0.74.
+Track in [ROADMAP.md](./ROADMAP.md) § v0.75.

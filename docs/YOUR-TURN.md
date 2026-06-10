@@ -59,9 +59,12 @@ Repo → **Settings → Secrets and variables → Actions**
 | `CLOUDFLARE_API_TOKEN` | yes | Worker deploy |
 | `CLOUDFLARE_ACCOUNT_ID` | yes | from `wrangler.jsonc` |
 | `MAILAGENT_API_KEY` | yes | same key as local `.env` |
-| `DATABASE_URL` | optional | auto `db:migrate` on deploy |
+| `DATABASE_URL` | optional | auto `db:migrate` on deploy; copy to `.env` for `issue:pilot-key` |
+| `PYPI_API_TOKEN` | optional | `mailagent-agent` on tag `v*` — re-run publish workflow after add |
 
 Verify: last [Deploy Worker](https://github.com/Alex0nder/MailAgent/actions/workflows/deploy-worker.yml) run is green.
+
+**QA pilot #1:** baseline green (`wizard:qa-pilot:onboard`). Send invite: `npm run print:pilot-invite -- <slug>`. Issue key locally: [PILOT-ONBOARD.md](./PILOT-ONBOARD.md).
 
 ---
 

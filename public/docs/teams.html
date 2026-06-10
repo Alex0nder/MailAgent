@@ -72,11 +72,35 @@ DELETE /v1/team/keys/KEY_ID</code></pre>
           <code>issue:key:db</code> when you need invites or scoped keys.
         </p>
 
+        <h2 id="event-webhook">Team event webhook</h2>
+        <p>
+          One HTTPS URL for <strong>every</strong> inbound message on all team inboxes — Slack,
+          PagerDuty, or your own fan-out. Per-inbox <code>callbackUrl</code> still works; team
+          webhook fires in addition when the inbox was created with a registered team key.
+        </p>
+        <pre class="doc-pre"><code>GET /v1/team/webhooks
+PUT /v1/team/webhooks
+POST /v1/team/webhooks
+DELETE /v1/team/webhooks
+
+Authorization: Bearer &lt;ADMIN_TEAM_KEY&gt;
+Content-Type: application/json
+
+{ "url": "https://hooks.example.com/mailagent" }</code></pre>
+        <p><code>GET</code> returns <code>configured</code>, masked <code>urlMasked</code>, and
+          <code>events: ["message.received"]</code>. Admin scope required for write.</p>
+        <p>Payload (POST to your URL): same shape as per-inbox callback, plus
+          <code>teamId</code> and <code>source: "team_webhook"</code> — see
+          <a href="/docs/qa.html#callbacks">QA callbacks</a>.</p>
+        <pre class="doc-pre"><code>curl -sS https://api.webmailagent.com/v1/team/webhooks \
+  -H "Authorization: Bearer $MAILAGENT_API_KEY" | jq .</code></pre>
+
         <h2>More</h2>
         <ul class="doc-list">
           <li><a href="/docs/scoped-keys.html">Scoped keys</a></li>
           <li><a href="/docs/agents.html">AI agents &amp; MCP</a></li>
           <li><a href="/docs/qa.html">QA guide</a></li>
+          <li><a href="/docs/qa-troubleshooting.html">QA troubleshooting</a></li>
         </ul>
       </article>
     </div>

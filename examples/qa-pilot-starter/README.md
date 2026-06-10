@@ -7,7 +7,7 @@ Minimal **Playwright + `@mailagent/qa`** project — simulate OTP without stagin
 ```bash
 cp .env.example .env   # set MAILAGENT_API_KEY
 npm install
-npm test
+npm test               # simulate OTP + magic_link scenario (no staging mail)
 ```
 
 From MailAgent repo root (operators):

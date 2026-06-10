@@ -11,7 +11,8 @@ Settings → Secrets and variables → Actions:
 | `CLOUDFLARE_API_TOKEN` | deploy Worker |
 | `CLOUDFLARE_ACCOUNT_ID` | deploy Worker |
 | **`MAILAGENT_API_KEY`** | **post-deploy smoke + contract (no DATABASE_URL)** |
-| `DATABASE_URL` | optional | auto `db:migrate` on deploy (session table) |
+| `DATABASE_URL` | optional | auto `db:migrate` on deploy; local `issue:pilot-key` |
+| `PYPI_API_TOKEN` | optional | `mailagent-agent` on tag `v*` (skipped if unset) |
 
 **Your manual checklist (no Stripe):** [YOUR-TURN.md](./YOUR-TURN.md) · `npm run doctor:operator`
 

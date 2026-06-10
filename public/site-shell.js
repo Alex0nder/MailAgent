@@ -42,7 +42,7 @@
         { id: "dashboard", href: "/dashboard.html", label: "Dashboard" },
         { id: "audit", href: "/audit.html", label: "Audit log" },
         { id: "debug", href: "/debug.html", label: "Debug inboxes" },
-        { id: "qa-troubleshoot", href: "/docs/qa.html#troubleshooting", label: "Troubleshooting" },
+        { id: "qa-troubleshoot", href: "/docs/qa-troubleshooting.html", label: "Troubleshooting" },
         { id: "agent-runs", href: "/agent-runs.html", label: "Agent runs" },
       ],
     },

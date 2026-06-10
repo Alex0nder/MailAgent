@@ -25,13 +25,23 @@ npm run wizard:qa-pilot:onboard -- --issue-key acme-pilot   # also mint key
 Scoped to `labelPrefix=ci-` (recommended for CI isolation):
 
 ```bash
-# requires DATABASE_URL in .env
+# requires DATABASE_URL in .env (copy from Neon console or GitHub secret — never commit)
 npm run issue:pilot-key -- acme-pilot
 ```
+
+Public repo: issue keys **locally only** — do not print `ma_…` in GitHub Actions logs.
 
 Save the `ma_…` token once. Optional plan bump: `npm run team:plan -- TEAM_ID pro`.
 
 Dashboard alternative: [dashboard.html](https://webmailagent.com/dashboard.html) → team keys.
+
+## Pilot invite (copy to external team)
+
+```bash
+npm run print:pilot-invite -- acme-pilot
+```
+
+Full template: [PILOT-INVITE.md](./PILOT-INVITE.md).
 
 ## Pilot package (copy to external team)
 
