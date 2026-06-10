@@ -624,6 +624,16 @@ Backlog: [PRODUCT-NEXT.md](./PRODUCT-NEXT.md)
 | 14 | Landing use-case pages | ✅ Playwright + MCP SEO pages |
 | 15 | Inbox TTL per service preset | ✅ `SERVICE_TTL_MINUTES` |
 
+### v0.74 — Distribution (P3)
+
+| P3 | Task | Status |
+|----|------|--------|
+| 16 | PyPI publish (`publish:agent-py` + CI) | ✅ |
+| 17 | Landing pages in site nav / footer | ✅ |
+| 18 | `@mailagent/qa` simulate `scenario` | ✅ 0.1.15 |
+| 19 | Pilot starter uses monorepo QA in CI guard | ✅ |
+| 20 | First external QA pilot | ⏳ kit ready · [PILOT-ONBOARD.md](./PILOT-ONBOARD.md) |
+
 ### Deferred (not QA)
 
 - ~~Agent session memory / multi-step run state~~ ✅ v0.35

@@ -7,6 +7,7 @@
 | `@mailagent/mcp` | see `mcp/package.json` | stdio MCP for Cursor |
 | `@mailagent/qa` | see `packages/mailagent-qa/package.json` | Playwright / Cypress QA SDK |
 | `@mailagent/agent` | see `packages/mailagent-agent/package.json` | REST + remote MCP SDK |
+| `mailagent-agent` (PyPI) | see `packages/mailagent-agent-py/pyproject.toml` | Python verify SDK |
 
 Build check:
 
@@ -79,6 +80,25 @@ npm run publish:all
 ```
 
 Requires 2FA/passkey OTP or granular token with bypass 2FA.
+
+## Python (PyPI)
+
+Package: **`mailagent-agent`** in `packages/mailagent-agent-py/`.
+
+1. [pypi.org/manage/account/token](https://pypi.org/manage/account/token/) — scope **Entire account** (or project-scoped after first upload)
+2. Local:
+
+```bash
+PYPI_API_TOKEN=pypi-… npm run publish:agent-py
+```
+
+3. CI: GitHub secret **`PYPI_API_TOKEN`** — optional step in `publish-packages.yml` (skipped when secret unset)
+
+Verify:
+
+```bash
+pip index versions mailagent-agent
+```
 
 ## Common errors
 

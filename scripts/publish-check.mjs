@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 /** Pre-publish: build packages + compare local vs npm registry versions */
 import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { execSync } from "node:child_process";
+
+const pyprojectPath = join("packages/mailagent-agent-py/pyproject.toml");
 
 const packages = [
   { name: "@mailagent/mcp", path: "mcp/package.json", build: "npm run build:mcp" },
@@ -44,18 +47,45 @@ for (const pkg of packages) {
   execSync(pkg.build, { stdio: "inherit" });
 }
 
+const pyproject = readFileSync(pyprojectPath, "utf8");
+const pyVersion = pyproject.match(/^version\s*=\s*"([^"]+)"/m)?.[1];
+let pypiLatest = null;
+if (pyVersion) {
+  try {
+    const res = await fetch("https://pypi.org/pypi/mailagent-agent/json");
+    if (res.ok) {
+      const data = await res.json();
+      pypiLatest = data.info?.version ?? null;
+    }
+  } catch {
+    pypiLatest = null;
+  }
+  const pyFlag =
+    pypiLatest && pypiLatest !== pyVersion
+      ? "↑ publish"
+      : pypiLatest
+        ? "ok"
+        : "new";
+  if (pyFlag !== "ok") needsPublish = true;
+  console.log(`\n  mailagent-agent@${pyVersion}  (pypi: ${pypiLatest ?? "—"})  ${pyFlag}`);
+}
+
 console.log(`
 Publish (requires npm login or NPM_TOKEN in CI):
 
   npm run publish:all
 
+Python (PyPI token):
+
+  PYPI_API_TOKEN=pypi-… npm run publish:agent-py
+
 Or tag push / workflow_dispatch:
 
   git tag v0.27.0 && git push origin v0.27.0
 
-GitHub secret: NPM_TOKEN → .github/workflows/publish-packages.yml
+GitHub secrets: NPM_TOKEN (optional) · PYPI_API_TOKEN → publish-packages.yml
 `);
 
 if (needsPublish) {
-  console.log("Note: at least one package is ahead of npm — run publish when ready.\n");
+  console.log("Note: at least one package is ahead of registry — run publish when ready.\n");
 }

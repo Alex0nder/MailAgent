@@ -43,6 +43,7 @@
     "publish:mcp": "npm run build:mcp && cd mcp && npm publish --access public",
     "publish:qa": "npm run build:qa && cd packages/mailagent-qa && npm publish --access public",
     "publish:agent": "npm run build:agent && cd packages/mailagent-agent && npm publish --access public",
+    "publish:agent-py": "node scripts/publish-if-new-pypi.mjs",
     "publish:check": "node scripts/publish-check.mjs",
     "publish:all": "npm run publish:check && npm run publish:mcp && npm run publish:qa && npm run publish:agent",
     "test:allowlist": "npx tsx scripts/test-allowlist.ts",

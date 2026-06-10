@@ -139,6 +139,9 @@
             <li><a href="/#qa">For QA</a></li>
             <li><a href="/#mcp">MCP tools</a></li>
             <li><a href="/#how">How it works</a></li>
+            <li><a href="/playwright-email-verification.html">Playwright QA</a></li>
+            <li><a href="/mcp-signup-qa.html">MCP signup QA</a></li>
+            <li><a href="/status.html">Status</a></li>
           </ul>
         </div>
         <div class="footer-col">

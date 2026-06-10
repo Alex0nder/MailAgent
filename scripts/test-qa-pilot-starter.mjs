@@ -27,7 +27,9 @@ function run(cmd, args, cwd) {
 }
 
 console.log("test:qa-pilot-starter →", starter, "\n");
+run("npm", ["run", "build:qa"], root);
 run("npm", ["install"], starter);
+run("npm", ["install", join(root, "packages/mailagent-qa")], starter);
 run("npx", ["playwright", "install", "chromium"], starter);
 run("npm", ["test"], starter);
 console.log("\ntest:qa-pilot-starter OK");

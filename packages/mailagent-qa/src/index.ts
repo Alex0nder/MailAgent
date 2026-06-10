@@ -473,6 +473,8 @@ export class MailAgentQa {
       otp?: string;
       from?: string;
       subject?: string;
+      /** Preset body/link — see GET /v1/inboxes/simulate/scenarios */
+      scenario?: string;
       fireCallback?: boolean;
       attachmentFilename?: string;
       inReplyToMessageId?: string;
@@ -502,22 +504,26 @@ export class MailAgentQa {
       otp?: string;
       from?: string;
       subject?: string;
+      scenario?: string;
       subjectContains?: string;
       timeoutSeconds?: number;
       fireCallback?: boolean;
       attachmentFilename?: string;
     }
   ): Promise<Verification> {
-    const subject = options?.subject ?? "MailAgent simulated OTP";
+    const subject =
+      options?.subject ?? (options?.scenario ? undefined : "MailAgent simulated OTP");
     await this.simulateMessage(inboxId, {
       otp: options?.otp,
       from: options?.from,
-      subject,
+      ...(subject !== undefined ? { subject } : {}),
+      scenario: options?.scenario,
       fireCallback: options?.fireCallback,
       attachmentFilename: options?.attachmentFilename,
     });
+    const defaultSubjectContains = options?.scenario ? "Verify" : "simulated";
     return this.waitForVerification(inboxId, {
-      subjectContains: options?.subjectContains ?? "simulated",
+      subjectContains: options?.subjectContains ?? defaultSubjectContains,
       timeoutSeconds: options?.timeoutSeconds ?? 30,
     });
   }

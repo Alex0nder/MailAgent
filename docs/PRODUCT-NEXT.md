@@ -4,7 +4,7 @@ Stripe **on hold** · QA pilot **on hold** (kit ready: [PILOT-ONBOARD.md](./PILO
 
 Context OS **done** for agents on repo ([skills/mailagent/SKILL.md](../skills/mailagent/SKILL.md) § Context OS).
 
-Pick the next sprint from **P0 → P2**. Re-prioritize when pilot feedback arrives.
+P0–P2 **done**. Next: **P3** (distribution) or human-blocked items below.
 
 ---
 
@@ -48,6 +48,20 @@ Pick the next sprint from **P0 → P2**. Re-prioritize when pilot feedback arriv
 
 ---
 
+## P3 — distribution & pilot polish
+
+| # | Feature | Status |
+|---|---------|--------|
+| 16 | **PyPI publish pipeline** | ✅ `publish:agent-py` + CI step |
+| 17 | **SEO / nav links** | ✅ footer + landing cross-links |
+| 18 | **QA SDK `scenario`** | ✅ `@mailagent/qa` + pilot starter test |
+| 19 | **Pilot starter ↔ monorepo** | ✅ CI installs local `@mailagent/qa` |
+| 20 | **Run first external pilot** | ⏳ `wizard:qa-pilot:onboard` + `issue:pilot-key` |
+
+**Done when:** `pip install mailagent-agent` works; pilot repo forks starter and passes CI.
+
+---
+
 ## Explicitly not now
 
 | Item | Reason |
@@ -59,10 +73,10 @@ Pick the next sprint from **P0 → P2**. Re-prioritize when pilot feedback arriv
 
 ---
 
-## Suggested first sprint (1–2 weeks)
+## Suggested next sprint
 
-1. P0 #4 — presets (GitLab, Bitbucket, …) + contract test  
-2. P0 #1 — console search (thin UI on existing API)  
-3. P0 #3 — diagnose deep-link in MCP + docs  
+1. P3 #20 — onboard first QA pilot (needs `DATABASE_URL` + staging URL)  
+2. Publish tag `v*` — npm `@mailagent/qa@0.1.15` + PyPI `mailagent-agent@0.1.0`  
+3. Team webhook docs page (when pilot asks for event delivery)
 
-Track in [ROADMAP.md](./ROADMAP.md) § v0.71.
+Track in [ROADMAP.md](./ROADMAP.md) § v0.74.

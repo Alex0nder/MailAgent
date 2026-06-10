@@ -50,3 +50,9 @@ jobs:
 
       - name: Publish @mailagent/agent
         run: node scripts/publish-if-new.mjs packages/mailagent-agent/package.json
+
+      - name: Publish mailagent-agent (PyPI)
+        if: secrets.PYPI_API_TOKEN != ''
+        env:
+          PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        run: node scripts/publish-if-new-pypi.mjs

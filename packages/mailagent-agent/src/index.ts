@@ -255,6 +255,7 @@ export class MailAgent {
       otp?: string;
       from?: string;
       subject?: string;
+      scenario?: string;
       fireCallback?: boolean;
       attachmentFilename?: string;
       inReplyToMessageId?: string;
