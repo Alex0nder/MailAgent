@@ -28,8 +28,9 @@
       .debug-badge { display: inline-block; font-size: 0.7rem; padding: 0.15rem 0.45rem; border-radius: 4px; margin-right: 0.25rem; background: #222; color: #aaa; }
       .debug-badge--ok { color: #6f6; }
       .debug-badge--err { color: #f88; }
-      .debug-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0; }
+      .debug-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.75rem 0; }
       .debug-actions button { font-size: 0.8rem; padding: 0.35rem 0.65rem; cursor: pointer; }
+      .debug-actions select { font-size: 0.8rem; padding: 0.35rem 0.5rem; max-width: 100%; }
       .debug-mono { font-family: ui-monospace, monospace; font-size: 0.8rem; word-break: break-all; }
     </style>
   </head>
@@ -85,13 +86,31 @@
         await loadInboxList();
       });
 
-      async function simulateInbox(id) {
+      let simulateScenarios = null;
+
+      async function loadSimulateScenarios() {
+        if (simulateScenarios) return simulateScenarios;
+        try {
+          const { res, data } = await authFetch("/v1/inboxes/simulate/scenarios");
+          if (res.ok && Array.isArray(data.scenarios)) {
+            simulateScenarios = data.scenarios;
+          }
+        } catch {
+          simulateScenarios = [];
+        }
+        return simulateScenarios ?? [];
+      }
+
+      async function simulateInbox(id, scenario) {
         errEl.hidden = true;
+        const body = scenario
+          ? { scenario }
+          : { otp: "482910", subject: "MailAgent simulated OTP" };
         try {
           const { res, data } = await authFetch(`/v1/inboxes/${id}/simulate`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ otp: "482910", subject: "MailAgent simulated OTP" }),
+            body: JSON.stringify(body),
           });
           if (!res.ok) {
             errEl.textContent = data.error || res.statusText;
@@ -175,8 +194,19 @@
           html += `</ul>`;
         }
 
+        const scenarios = await loadSimulateScenarios();
         html += `<div class="debug-actions">`;
-        html += btn("Simulate OTP email", () => simulateInbox(id));
+        html += `<label>Simulate <select id="sim-scenario">`;
+        html += `<option value="">custom OTP</option>`;
+        for (const s of scenarios) {
+          html += `<option value="${esc(s.id)}">${esc(s.id)}</option>`;
+        }
+        html += `</select></label>`;
+        html += btn("Inject", () => {
+          const sel = document.getElementById("sim-scenario");
+          const scenario = sel?.value?.trim() || undefined;
+          simulateInbox(id, scenario);
+        });
         html += btn("Copy wait curl", () => copyCurl(base, id, "wait"));
         html += btn("Copy extract curl", () => copyCurl(base, id, "extract"));
         html += btn("Copy diagnose curl", () => copyCurl(base, id, "diagnose"));

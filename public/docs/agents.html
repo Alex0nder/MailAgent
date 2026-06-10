@@ -185,6 +185,7 @@ tools/call mailagent_wait_for_message
       <p><code>runId</code> → label <code>agent-{runId}</code> for tracing via <code>GET /v1/inboxes?label=agent-…</code> or <a href="/agent-runs.html">Agent runs UI</a>.</p>
 
       <h2>SDK</h2>
+      <h3>TypeScript / Node</h3>
       <pre class="doc-pre"><code>npm install @mailagent/agent
 
 import { MailAgent } from "@mailagent/agent";
@@ -193,6 +194,26 @@ const { access_token } = await mail.fetchMcpAccessToken();
 const { sessionId } = await mail.connectMcp(undefined, access_token);
 await mail.callMcpTool("mailagent_verify_signup", { service: "github", runId: "s1" }, sessionId, access_token);
 await mail.verifySignup({ service: "github", runId: "session-1" });</code></pre>
+
+      <h3>Python</h3>
+      <pre class="doc-pre"><code>pip install mailagent-agent
+
+from mailagent import MailAgent
+
+client = MailAgent("https://api.webmailagent.com", "ma_…")
+result = client.verify_signup(service="github", timeout_seconds=90, delete_after=True)
+print(result.get("agent", {}).get("primaryAction"))</code></pre>
+      <p>
+        PyPI: <a href="https://pypi.org/project/mailagent-agent/" rel="noopener noreferrer">mailagent-agent</a>
+        · source: <code>packages/mailagent-agent-py</code>
+      </p>
+
+      <h3>QA (Playwright / Cypress)</h3>
+      <pre class="doc-pre"><code>npm install @mailagent/qa
+
+import { createMailAgentQa } from "@mailagent/qa";
+const mail = createMailAgentQa();
+await mail.simulateAndVerify(inboxId, { scenario: "magic_link" });</code></pre>
 
       <h2 id="raw-fallback">Raw MIME &amp; attachments</h2>
       <p>When <code>agent.primaryAction.type</code> is <code>manual</code>, use archived <code>.eml</code> or attachments:</p>

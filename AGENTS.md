@@ -83,13 +83,14 @@ npm run sync:skills   # after editing skills/mailagent/SKILL.md
 
 Guide: [docs/AGENT-SKILLS.md](docs/AGENT-SKILLS.md) · canonical: [skills/mailagent/SKILL.md](skills/mailagent/SKILL.md)
 
-## npm packages
+## Packages
 
 | Package | Use |
 |---------|-----|
 | `@mailagent/mcp` | stdio MCP |
-| `@mailagent/agent` | REST verify SDK |
+| `@mailagent/agent` | REST verify SDK (npm) |
 | `@mailagent/qa` | Playwright / Cypress |
+| `mailagent-agent` | Python verify SDK (PyPI) |
 
 ## Typical verify flow
 

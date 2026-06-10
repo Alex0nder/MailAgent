@@ -634,7 +634,7 @@ Backlog: [PRODUCT-NEXT.md](./PRODUCT-NEXT.md)
 | 19 | Pilot starter uses monorepo QA in CI guard | ✅ |
 | 20 | First external QA pilot | ⏳ baseline ✅ · [PILOT-INVITE.md](./PILOT-INVITE.md) |
 | npm `@mailagent/qa@0.1.15` | ✅ tag `v0.74.0` |
-| PyPI `mailagent-agent@0.1.0` | ⏳ needs `PYPI_API_TOKEN` |
+| PyPI `mailagent-agent@0.1.0` | ✅ |
 
 ### v0.75 — Pilot ops & docs
 
@@ -644,6 +644,14 @@ Backlog: [PRODUCT-NEXT.md](./PRODUCT-NEXT.md)
 | Team event webhook docs | ✅ `teams.html#event-webhook` |
 | QA troubleshooting redirect page | ✅ |
 | Issue pilot key to external team | ⏳ local `DATABASE_URL` |
+
+### v0.76 — Console & SDK visibility (P4)
+
+| P4 | Task | Status |
+|----|------|--------|
+| 23 | Debug UI simulate scenario picker | ✅ `debug.html` |
+| 24 | Python + QA SDK docs on agents.html | ✅ |
+| 25 | PyPI in AGENTS.md / landing | ✅ |
 
 ### Deferred (not QA)
 

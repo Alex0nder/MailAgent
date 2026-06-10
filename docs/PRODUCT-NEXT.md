@@ -4,7 +4,7 @@ Stripe **on hold** · QA pilot **on hold** (kit ready: [PILOT-ONBOARD.md](./PILO
 
 Context OS **done** for agents on repo ([skills/mailagent/SKILL.md](../skills/mailagent/SKILL.md) § Context OS).
 
-P0–P2 **done**. Next: **P3** (distribution) or human-blocked items below.
+P0–P3 **done** (pilot #20 = human). Next: **P4** (console & SDK polish).
 
 ---
 
@@ -59,8 +59,19 @@ P0–P2 **done**. Next: **P3** (distribution) or human-blocked items below.
 | 20 | **Run first external pilot** | ⏳ baseline ✅ · `print:pilot-invite` + `issue:pilot-key` |
 | 21 | **Team webhook docs** | ✅ `teams.html#event-webhook` |
 | 22 | **QA troubleshooting URL** | ✅ `/docs/qa-troubleshooting.html` |
+| PyPI `mailagent-agent@0.1.0` | ✅ |
 
 **Done when:** `pip install mailagent-agent` works; pilot repo forks starter and passes CI.
+
+---
+
+## P4 — console & SDK visibility
+
+| # | Feature | Status |
+|---|---------|--------|
+| 23 | **Debug simulate scenarios UI** | ✅ `debug.html` scenario picker |
+| 24 | **Python SDK on agents docs** | ✅ `agents.html` + landing |
+| 25 | **Package matrix in AGENTS.md** | ✅ npm + PyPI |
 
 ---
 
@@ -77,8 +88,8 @@ P0–P2 **done**. Next: **P3** (distribution) or human-blocked items below.
 
 ## Suggested next sprint
 
-1. P3 #20 — `npm run print:pilot-invite -- <slug>` → send invite + `issue:pilot-key` (local `DATABASE_URL`)  
-2. PyPI — GitHub secret `PYPI_API_TOKEN` → re-run **Publish npm packages** on `v0.74.0`  
-3. Pilot staging E2E — their `APP_SIGNUP_URL` + `service` preset
+1. P3 #20 — pilot invite + scoped key (`DATABASE_URL` in `.env`)  
+2. P4 follow-ups — simulate scenarios in `console-inbox.html`, Python landing snippet  
+3. Context OS eval export cleanup (optional) or catalog PR nudge
 
-Track in [ROADMAP.md](./ROADMAP.md) § v0.75.
+Track in [ROADMAP.md](./ROADMAP.md) § v0.76.
