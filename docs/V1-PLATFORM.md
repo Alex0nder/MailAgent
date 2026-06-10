@@ -106,6 +106,7 @@ Goal: **full email API for agents** (inbound + outbound + threads) **plus** adva
 
 ## Next step
 
-**Product:** v1.0 API surface complete — focus on adoption (QA pilots, npm, MCP).  
-**Distribution:** frozen until external merge — [DISTRIBUTION-STATUS.md](./DISTRIBUTION-STATUS.md) · `GET /v1/agent` → `distribution`.  
-Stripe on hold · OIDC + outbound on prod ✅ · CI: `test:prod:gate` + `doctor:security`.
+**v1.0 baseline complete** — API, MCP, QA starters, npm `@mailagent/*@0.1.14`.  
+**Waiting on external:** catalog PR merge · Stripe · Codex Directory · SOC 2.  
+**New work:** product features from pilot feedback — not blocked in repo.  
+Discovery: `GET /v1/agent` → `packages` · `distribution` · [DISTRIBUTION-STATUS.md](./DISTRIBUTION-STATUS.md).

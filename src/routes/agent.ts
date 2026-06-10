@@ -21,6 +21,7 @@ import {
   countActiveInboxesForHint,
   countActiveInboxesForTeam,
 } from "../services/inbox";
+import { NPM_PACKAGES } from "../lib/npm-versions";
 
 export const agentRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
 
@@ -102,8 +103,8 @@ agentRoutes.get("/", (c) => {
         catalogPr: "https://github.com/hashgraph-online/awesome-codex-plugins/pull/195",
       },
       skillsCatalogPr: "https://github.com/VoltAgent/awesome-agent-skills/pull/659",
-      npm: ["@mailagent/mcp", "@mailagent/agent", "@mailagent/qa"],
     },
+    packages: NPM_PACKAGES,
     console: "https://webmailagent.com/dashboard.html",
     billing: "https://webmailagent.com/docs/billing.html",
     enterprise: "https://webmailagent.com/docs/enterprise.html",

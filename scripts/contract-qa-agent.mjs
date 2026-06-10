@@ -60,8 +60,13 @@ async function main() {
     process.exit(1);
   }
   const d = hub.json.distribution;
-  if (!d?.skill?.install || !d?.codex?.marketplace || !d?.npm?.length) {
+  if (!d?.skill?.install || !d?.codex?.marketplace) {
     console.error("distribution discovery missing", d);
+    process.exit(1);
+  }
+  const pkgs = hub.json.packages;
+  if (!pkgs?.qa?.version || !pkgs?.mcp?.install) {
+    console.error("packages discovery missing", pkgs);
     process.exit(1);
   }
   console.log("agent hub OK", {

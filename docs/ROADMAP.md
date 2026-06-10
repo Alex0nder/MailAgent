@@ -552,6 +552,13 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 
 **Next product work:** features from pilot feedback · not blocked on MailAgent repo.
 
+### v0.68 — agent hub package versions
+
+| `src/lib/npm-versions.ts` | ✅ |
+| `GET /v1/agent` → `packages` (pinned install strings) | ✅ |
+| Starter lockfiles → `@mailagent/qa@0.1.14` | ✅ |
+| `contract-qa-agent` asserts `packages` | ✅ |
+
 ### Product (baseline — done)
 
 | v1.0 API (inbound, outbound, threads, search, MCP) | ✅ |
