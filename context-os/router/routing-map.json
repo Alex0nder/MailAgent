@@ -1,0 +1,32 @@
+{
+  "version": "1.0.0",
+  "routes": [
+    { "patterns": ["otp", "код", "verification code", "не приходит otp"], "cores": ["otp-core", "email-core"] },
+    { "patterns": ["500", "internal error", "api error", "server error"], "cores": ["api-core", "technical-core", "worker-core"] },
+    { "patterns": ["inbox", "ящик", "create inbox", "delete inbox"], "cores": ["inbox-core"] },
+    { "patterns": ["deploy", "развернуть", "wrangler", "setup"], "cores": ["deployment-core"] },
+    { "patterns": ["security", "риск", "secret", "pentest", "auth"], "cores": ["security-core"] },
+    { "patterns": ["product", "продукт", "сценарий", "flow"], "cores": ["product-core"] },
+    { "patterns": ["business", "зачем", "пользователь", "метрик"], "cores": ["business-core"] },
+    { "patterns": ["cleanup", "удалить", "dead code", "дубликат"], "cores": ["audit/cleanup-candidates", "business-core"] },
+    { "patterns": ["email", "письм", "webhook", "resend", "inbound"], "cores": ["email-core", "technical-core"] },
+    { "patterns": ["queue", "dlq", "consumer"], "cores": ["technical-core", "worker-core"] },
+    { "patterns": ["sse", "events", "real-time", "wait"], "cores": ["technical-core", "inbox-core"] },
+    { "patterns": ["database", "neon", "migration", "таблиц"], "cores": ["database-core"] },
+    { "patterns": ["mcp", "cursor", "codex", "tool"], "cores": ["technical-core", "product-core"] },
+    { "patterns": ["ci", "github actions", "test:prod", "contract"], "cores": ["operational-core"] },
+    { "patterns": ["stripe", "billing", "plan", "quota"], "cores": ["api-core", "operational-core"] },
+    { "patterns": ["domain", "custom domain", "mx"], "cores": ["inbox-core", "api-core"] },
+    { "patterns": ["simulate", "qa", "playwright", "e2e"], "cores": ["product-core", "email-core"] },
+    { "patterns": ["worker", "hono", "cloudflare"], "cores": ["worker-core", "technical-core"] },
+    { "patterns": ["openapi", "endpoint", "rest"], "cores": ["api-core"] },
+    { "patterns": ["architecture", "stack", "зависимост"], "cores": ["technical-core"] },
+    { "patterns": ["operator", "secrets", "env"], "cores": ["deployment-core", "operational-core"] },
+    { "patterns": ["timeout", "408", "wait failed"], "cores": ["otp-core", "inbox-core"] },
+    { "patterns": ["allowlist", "expectFrom", "sender"], "cores": ["security-core", "inbox-core"] },
+    { "patterns": ["attachment", "raw mime", "r2"], "cores": ["email-core", "technical-core"] },
+    { "patterns": ["agent run", "runId", "session"], "cores": ["product-core", "api-core"] },
+    { "patterns": ["map", "structure", "модул"], "cores": ["audit/project-map"] },
+    { "patterns": ["duplicate doc", "устаревш"], "cores": ["audit/duplicate-docs"] }
+  ]
+}

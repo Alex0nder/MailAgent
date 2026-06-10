@@ -1,0 +1,59 @@
+{
+  "name": "mailagent-context-os",
+  "version": "1.0.0",
+  "created": "2026-06-10",
+  "repository": "Alex0nder/MailAgent",
+  "productVersion": "0.1.0",
+  "mcpServerVersion": "0.8.1",
+  "cores": [
+    {
+      "id": "business",
+      "file": "cores/business-core.md",
+      "topics": ["purpose", "users", "scenarios", "metrics", "positioning"]
+    },
+    {
+      "id": "product",
+      "file": "cores/product-core.md",
+      "topics": ["inbox-flow", "email-flow", "otp-flow", "qa-flow", "agent-flow", "mcp-tools"]
+    },
+    {
+      "id": "technical",
+      "file": "cores/technical-core.md",
+      "topics": ["worker", "api", "neon", "resend", "queues", "durable-objects", "sse", "mcp", "r2", "workers-ai"]
+    },
+    {
+      "id": "operational",
+      "file": "cores/operational-core.md",
+      "topics": ["deploy", "ci", "env", "secrets", "testing", "monitoring", "operator"]
+    }
+  ],
+  "subcores": [
+    { "id": "inbox", "file": "subcores/inbox-core.md", "parent": "product" },
+    { "id": "email", "file": "subcores/email-core.md", "parent": "technical" },
+    { "id": "otp", "file": "subcores/otp-core.md", "parent": "product" },
+    { "id": "api", "file": "subcores/api-core.md", "parent": "technical" },
+    { "id": "worker", "file": "subcores/worker-core.md", "parent": "technical" },
+    { "id": "database", "file": "subcores/database-core.md", "parent": "technical" },
+    { "id": "deployment", "file": "subcores/deployment-core.md", "parent": "operational" },
+    { "id": "security", "file": "subcores/security-core.md", "parent": "operational" }
+  ],
+  "router": {
+    "rules": "router/question-router.md",
+    "map": "router/routing-map.json"
+  },
+  "audit": {
+    "projectMap": "audit/project-map.md",
+    "cleanup": "audit/cleanup-candidates.md",
+    "risks": "audit/risks.md",
+    "duplicateDocs": "audit/duplicate-docs.md"
+  },
+  "stats": {
+    "mcpTools": 23,
+    "dbMigrations": 16,
+    "docsMd": 42,
+    "srcTsFiles": 70,
+    "npmPackages": 3,
+    "githubWorkflows": 6,
+    "servicePresets": 12
+  }
+}
