@@ -541,13 +541,22 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 
 | Cypress `mailagentSimulateAndVerify` task | ✅ |
 | Starters on `^0.1.14` | ✅ |
-| npm publish via tag `v0.39.0` | CI |
+| npm publish via tag `v0.39.0` | ✅ [@mailagent/qa@0.1.14](https://www.npmjs.com/package/@mailagent/qa) |
 
-### Product (active track)
+### v0.67 — adoption track complete (frozen)
+
+| Playwright + Cypress starters + `wizard:qa-pilot` | ✅ |
+| `@mailagent/qa@0.1.14` on npm | ✅ |
+| All install paths documented | [DISTRIBUTION-STATUS.md](./DISTRIBUTION-STATUS.md) |
+| External test repos | copy starter → secrets → `npm test` |
+
+**Next product work:** features from pilot feedback · not blocked on MailAgent repo.
+
+### Product (baseline — done)
 
 | v1.0 API (inbound, outbound, threads, search, MCP) | ✅ |
-| QA adoption in external test repos | [QA-PILOT.md](./QA-PILOT.md) |
-| npm / MCP / skill install paths | ✅ — [DISTRIBUTION-STATUS.md](./DISTRIBUTION-STATUS.md) |
+| QA adoption toolkit | [QA-PILOT.md](./QA-PILOT.md) |
+| npm / MCP / skill install paths | ✅ |
 
 ### Deferred (not QA)
 

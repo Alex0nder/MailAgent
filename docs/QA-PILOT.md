@@ -20,6 +20,8 @@ Or open:
 
 MailAgent CI: `npm run test:qa-pilot-starter` · `npm run test:qa-pilot-cypress-starter`.
 
+SDK: `npm install @mailagent/qa@0.1.14` (Cypress `mailagentSimulateAndVerify` task).
+
 ## 1. Validate (5 min)
 
 ```bash
