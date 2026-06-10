@@ -19,13 +19,20 @@ context-os/
 └── audit/                 ← карта проекта, риски, кандидаты на cleanup
 ```
 
-## Автоматический A/B замер
+## Автоматический A/B/C замер
+
+| Condition | Что это |
+|-----------|---------|
+| A | Full repo baseline |
+| B | Context OS cores |
+| C | Hermes-style graph (`graph/graph-index.json`) |
 
 ```bash
-npm run eval:context-os:route    # router F1 (без LLM)
-npm run eval:context-os:dry        # размеры контекста A vs B
-npm run eval:context-os:pilot      # 10 вопросов + judge (нужен OPENAI_API_KEY)
-npm run eval:context-os:aggregate  # CCR и SUMMARY.md
+npm run eval:context-os:graph-build  # индекс для C
+npm run eval:context-os:dry-abc      # размеры A/B/C без API
+npm run eval:context-os:pilot        # 10 вопросов A/B/C
+npm run eval:context-os:aggregate      # SUMMARY.md
+npm run eval:context-os:tokens       # TOKENS.md
 ```
 
 Подробно: [eval/README.md](eval/README.md). Результаты в `eval/results/` — pull в [AI-Context-OS](https://github.com/Alex0nder/AI-Context-OS).

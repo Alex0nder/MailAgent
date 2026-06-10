@@ -86,10 +86,14 @@
     "ci:mailagent-alerts": "npm run build:qa && node scripts/ci-mailagent-alerts.mjs",
     "repo:github-about": "gh repo edit Alex0nder/MailAgent --description \"Temporary email inboxes for AI agents & QA/E2E — MCP, REST, OTP/magic links. Cloudflare Workers, Neon, Resend. MIT.\" --homepage https://webmailagent.com",
     "eval:context-os:route": "node context-os/eval/route-eval.mjs",
+    "eval:context-os:graph-build": "node context-os/eval/build-graph-index.mjs",
     "eval:context-os:dry": "node context-os/eval/run-eval.mjs --pilot --dry-run",
-    "eval:context-os:pilot": "node context-os/eval/run-eval.mjs --pilot",
-    "eval:context-os": "node context-os/eval/run-eval.mjs",
-    "eval:context-os:aggregate": "node context-os/eval/aggregate.mjs"
+    "eval:context-os:dry-abc": "node context-os/eval/run-eval.mjs --pilot --dry-run --condition all",
+    "eval:context-os:pilot": "node context-os/eval/run-eval.mjs --pilot --condition all",
+    "eval:context-os": "node context-os/eval/run-eval.mjs --condition all",
+    "eval:context-os:aggregate": "node context-os/eval/aggregate.mjs",
+    "eval:context-os:tokens": "node context-os/eval/tokens-report.mjs",
+    "eval:context-os:export": "node context-os/eval/export-results.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",

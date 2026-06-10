@@ -1,11 +1,12 @@
 #!/usr/bin/env node
-/** A/B eval: Condition A baseline vs Condition B context cores */
+/** A/B/C eval: A=full repo, B=Context OS cores, C=Hermes-style graph */
 import "../../scripts/load-env.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { routeQuestion } from "./lib/router.mjs";
 import { loadBaselineContext, loadCoreContext } from "./lib/context-loader.mjs";
+import { loadGraphContext } from "./lib/graph-loader.mjs";
 import { answerQuestion } from "./lib/llm.mjs";
 import { judgeAnswer } from "./lib/judge.mjs";
 import { writeCsv } from "./lib/csv.mjs";
@@ -18,7 +19,7 @@ function parseArgs(argv) {
     baseline: path.join(__dirname, "baseline-manifest.json"),
     out: null,
     pilot: false,
-    condition: "both",
+    condition: "all",
     dryRun: false,
     skipJudge: false,
     ids: null,
@@ -39,7 +40,7 @@ function parseArgs(argv) {
       console.log(`Usage: node run-eval.mjs [options]
   --pilot           MA01-MA10 only
   --ids MA01,MA02   subset
-  --condition a|b|both
+  --condition a|b|c|both|all|abc
   --dry-run         context sizes only, no API
   --skip-judge      answers only
   --out DIR         results directory
@@ -141,16 +142,23 @@ async function main() {
   );
 
   const rows = [];
+  const condArg = opts.condition.toLowerCase();
   const conditions =
-    opts.condition === "both" ? ["A", "B"] : [opts.condition.toUpperCase()];
+    condArg === "both"
+      ? ["A", "B"]
+      : condArg === "all" || condArg === "abc"
+        ? ["A", "B", "C"]
+        : [condArg.toUpperCase()];
 
   for (const q of questions) {
     const coreIds =
       q.expected_cores?.length > 0 ? q.expected_cores : routeQuestion(q.question);
     const coreCtx = loadCoreContext(coreIds);
+    const graphCtx = loadGraphContext(q.question);
 
     for (const cond of conditions) {
-      const ctx = cond === "A" ? baselineCtx : coreCtx;
+      const ctx =
+        cond === "A" ? baselineCtx : cond === "B" ? coreCtx : graphCtx;
       console.log(`[${q.id}] condition ${cond} …`);
       try {
         const row = await runOne(q, cond, ctx, opts);
@@ -169,7 +177,10 @@ async function main() {
           error: msg,
         });
       }
-      if (!opts.dryRun) await sleep(cond === "A" ? 20_000 : 800);
+      if (!opts.dryRun) {
+        const pause = cond === "A" ? 20_000 : cond === "C" ? 3_000 : 800;
+        await sleep(pause);
+      }
     }
   }
 

@@ -1,6 +1,14 @@
 # Context OS — automated A/B evaluation
 
-Замер **Condition A** (baseline repo) vs **Condition B** (routed cores) по протоколу [AI-Context-OS](https://github.com/Alex0nder/AI-Context-OS).
+Замер **A / B / C** на одном `questions.json`:
+
+| Condition | Стратегия |
+|-----------|-----------|
+| **A** | Full repo baseline (`baseline-manifest.json`) |
+| **B** | Context OS routed cores |
+| **C** | Hermes-style graph (`context-os/graph/`) — subgraph + snippets |
+
+Протокол: [AI-Context-OS](https://github.com/Alex0nder/AI-Context-OS).
 
 Результаты пишутся в `context-os/eval/results/` — можно **pull из MailAgent git** в окне AI-Context-OS.
 
@@ -28,11 +36,18 @@ npm run eval:context-os:route
 # 2) Dry-run — только размеры контекста
 npm run eval:context-os:dry
 
-# 3) Pilot A/B (10 вопросов, ~10–20 мин, платный API)
+# 3) Собрать graph index (Condition C)
+npm run eval:context-os:graph-build
+
+# 4) Dry-run размеров A/B/C (pilot, без API)
+npm run eval:context-os:dry-abc
+
+# 5) Pilot A/B/C (10 вопросов, платный API)
 npm run eval:context-os:pilot
 
-# 4) Сводка
-npm run eval:context-os:aggregate
+# 6) Сводка + токены
+npm run eval:context-os:aggregate -- context-os/eval/results/run-<id>
+npm run eval:context-os:tokens -- context-os/eval/results/run-<id>
 ```
 
 ## Pull results в AI-Context-OS (другое окно)
@@ -58,17 +73,34 @@ git -C _mailagent sparse-checkout set context-os/eval
 
 **Важно:** Condition B в `run-eval.mjs` берёт `expected_cores` из `questions.json` (gold routing), не keyword-router. Router F1 проверяется отдельно через `eval:context-os:route`.
 
-Рекомендуется коммитить в AI-Context-OS: `experiments/mailagent/runs/run-*/summary.json` + `SUMMARY.md`.
+### Экспорт в AI-Context-OS
+
+```bash
+npm run eval:context-os:export -- context-os/eval/results/run-<id>
+cp -R context-os/eval/export/run-<id> \
+  ../AI-Context-OS/experiments/mailagent/runs/
+```
+
+Публикуется lean bundle: `summary.json`, `results.json` (без полных ответов), `ABC-COMPARE.md`, `paired.csv`, per-question `MA*-{A,B,C}.md`.
 
 ## Команды
 
 | Script | Что делает |
 |--------|------------|
 | `npm run eval:context-os:route` | Routing F1 vs gold cores |
-| `npm run eval:context-os:dry` | Размеры A/B без API |
-| `npm run eval:context-os:pilot` | A/B + judge, MA01–MA10 |
-| `npm run eval:context-os` | A/B все 35 вопросов |
-| `npm run eval:context-os:aggregate -- <dir>` | CCR, accuracy Δ, SUMMARY.md |
+| `npm run eval:context-os:graph-build` | Индекс графа для Condition C |
+| `npm run eval:context-os:dry-abc` | Размеры A/B/C без API (pilot) |
+| `npm run eval:context-os:pilot` | A/B/C + judge, MA01–MA10 |
+| `npm run eval:context-os` | A/B/C все 35 вопросов |
+| `npm run eval:context-os:aggregate -- <dir>` | CCR, accuracy, SUMMARY.md |
+| `npm run eval:context-os:tokens -- <dir>` | Токены и $ по A/B/C |
+
+### Добавить C к уже прогнанным A/B
+
+```bash
+node context-os/eval/run-eval.mjs --condition c --merge context-os/eval/results/run-<id>
+npm run eval:context-os:aggregate -- context-os/eval/results/run-<id>
+```
 
 ### Ручной запуск
 
