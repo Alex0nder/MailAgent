@@ -19,6 +19,17 @@ context-os/
 └── audit/                 ← карта проекта, риски, кандидаты на cleanup
 ```
 
+## Автоматический A/B замер
+
+```bash
+npm run eval:context-os:route    # router F1 (без LLM)
+npm run eval:context-os:dry        # размеры контекста A vs B
+npm run eval:context-os:pilot      # 10 вопросов + judge (нужен OPENAI_API_KEY)
+npm run eval:context-os:aggregate  # CCR и SUMMARY.md
+```
+
+Подробно: [eval/README.md](eval/README.md). Результаты в `eval/results/` — pull в [AI-Context-OS](https://github.com/Alex0nder/AI-Context-OS).
+
 ## Как использовать
 
 1. Получить вопрос от пользователя или агента.

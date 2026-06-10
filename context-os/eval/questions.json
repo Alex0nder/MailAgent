@@ -1,0 +1,311 @@
+{
+  "version": "1.0.0",
+  "project": "mailagent",
+  "pilot_ids": ["MA01", "MA02", "MA03", "MA04", "MA05", "MA06", "MA07", "MA08", "MA09", "MA10"],
+  "questions": [
+    {
+      "id": "MA01",
+      "question": "How does OTP extraction work in MailAgent?",
+      "domain": "technical",
+      "expected_cores": ["otp-core"],
+      "gold": [
+        "extractOtp in src/services/extract.ts combines text and html",
+        "Runs in queue consumer processInboundEmail not in Resend webhook",
+        "Uses regex patterns and parse-otp-message fallback",
+        "Stored in messages.otp at insertMessage",
+        "Read via GET /v1/inboxes/:id/extract or MCP mailagent_extract_verification"
+      ]
+    },
+    {
+      "id": "MA02",
+      "question": "How do I deploy MailAgent to production?",
+      "domain": "operational",
+      "expected_cores": ["deployment-core"],
+      "gold": [
+        "wrangler login and wrangler secret put for DATABASE_URL RESEND_API_KEY RESEND_WEBHOOK_SECRET API_KEY INBOX_DOMAIN",
+        "npm run deploy and npm run db:migrate",
+        "Resend webhook URL must point to POST /webhooks/resend",
+        "R2 bucket mailagent-raw-mime for raw MIME",
+        "CI deploys on push to main via deploy-worker.yml"
+      ]
+    },
+    {
+      "id": "MA03",
+      "question": "Why are users not receiving emails in their MailAgent inbox?",
+      "domain": "technical",
+      "expected_cores": ["email-core", "technical-core"],
+      "gold": [
+        "Inbound path: Resend webhook enqueue queue consumer findInboxByAddress",
+        "isSenderAllowed drops mail not matching allowed_senders silently",
+        "Check Resend webhook events and INBOX_DOMAIN on address",
+        "Queue retries and DLQ mailagent-email-dlq on failures",
+        "Use GET diagnose or list messages to debug"
+      ]
+    },
+    {
+      "id": "MA04",
+      "question": "What is MailAgent and who is it for?",
+      "domain": "business",
+      "expected_cores": ["business-core", "product-core"],
+      "gold": [
+        "Temporary inboxes for AI agents and QA E2E",
+        "OTP and magic link extraction without HTML parsing",
+        "Users: QA engineers Playwright CI MCP agents teams",
+        "Not for human privacy burners",
+        "Prod at webmailagent.com api.webmailagent.com"
+      ]
+    },
+    {
+      "id": "MA05",
+      "question": "Why is OTP empty but a message exists in the inbox?",
+      "domain": "product",
+      "expected_cores": ["otp-core"],
+      "gold": [
+        "Extract uses text plus html from Resend receiving API",
+        "HTML-only or unusual format may miss regex",
+        "Check links and primaryLink for magic link flows",
+        "Use GET messages/:id/raw if hasRaw",
+        "Wrong messageIndex may read welcome email not verify email"
+      ]
+    },
+    {
+      "id": "MA06",
+      "question": "How does inbox creation work?",
+      "domain": "product",
+      "expected_cores": ["inbox-core"],
+      "gold": [
+        "POST /v1/inboxes calls createInbox in src/services/inbox.ts",
+        "Address inbox-{nanoid}@INBOX_DOMAIN or custom verified domain",
+        "ttlMinutes label callbackUrl allowed_senders from expectFrom or service preset",
+        "Returns id address expiresAt",
+        "Quota enforced by plan maxActiveInboxes"
+      ]
+    },
+    {
+      "id": "MA07",
+      "question": "What REST API endpoints exist for inboxes?",
+      "domain": "technical",
+      "expected_cores": ["api-core"],
+      "gold": [
+        "POST /v1/inboxes and POST /v1/inboxes/open",
+        "GET wait events messages extract diagnose callbacks",
+        "DELETE inbox and labelPrefix bulk delete",
+        "POST simulate send reply search",
+        "OpenAPI at GET /v1/openapi.json"
+      ]
+    },
+    {
+      "id": "MA08",
+      "question": "How is the Cloudflare Worker structured?",
+      "domain": "technical",
+      "expected_cores": ["worker-core"],
+      "gold": [
+        "Entry src/index.ts with fetch queue scheduled handlers",
+        "Hono routes in src/routes business logic in src/services",
+        "Queue consumer src/queue/consumer.ts",
+        "Durable Object InboxWait for SSE",
+        "Static public via ASSETS binding"
+      ]
+    },
+    {
+      "id": "MA09",
+      "question": "What database tables are critical in MailAgent?",
+      "domain": "technical",
+      "expected_cores": ["database-core"],
+      "gold": [
+        "Neon Postgres via migrations in migrations/",
+        "inboxes and messages are core tables",
+        "messages.provider_id UNIQUE for idempotency",
+        "teams and api_keys for multi-tenant auth",
+        "migrations applied with npm run db:migrate"
+      ]
+    },
+    {
+      "id": "MA10",
+      "question": "What environment variables are required for the Worker?",
+      "domain": "operational",
+      "expected_cores": ["deployment-core"],
+      "gold": [
+        "DATABASE_URL RESEND_API_KEY RESEND_WEBHOOK_SECRET API_KEY INBOX_DOMAIN",
+        "Set via wrangler secret put or .dev.vars locally",
+        "Optional STRIPE OIDC OUTBOUND_FROM",
+        "MAILAGENT_API_URL and MAILAGENT_API_KEY for MCP client in .env"
+      ]
+    },
+    {
+      "id": "MA11",
+      "question": "How does SSE wait work for new messages?",
+      "domain": "technical",
+      "expected_cores": ["technical-core", "inbox-core"],
+      "gold": ["Durable Object InboxWait", "GET /v1/inboxes/:id/events", "Queue notifies DO on message", "Poll fallback GET /wait"]
+    },
+    {
+      "id": "MA12",
+      "question": "How do I run production tests for MailAgent?",
+      "domain": "operational",
+      "expected_cores": ["operational-core"],
+      "gold": ["npm run test:prod full", "npm run test:prod:gate smoke CI", "MAILAGENT_API_URL and MAILAGENT_API_KEY", "contract tests use simulate"]
+    },
+    {
+      "id": "MA13",
+      "question": "What are the main security risks?",
+      "domain": "operational",
+      "expected_cores": ["security-core"],
+      "gold": ["API key leak IDOR cross-team", "Webhook signature bypass", "Allowlist silent drop", "Scoped keys labelPrefix readOnly"]
+    },
+    {
+      "id": "MA14",
+      "question": "How does MCP integrate with MailAgent?",
+      "domain": "product",
+      "expected_cores": ["product-core", "technical-core"],
+      "gold": ["23 tools in src/mcp/manifest.ts", "stdio @mailagent/mcp and remote POST /mcp", "GET /v1/agent discovery"]
+    },
+    {
+      "id": "MA15",
+      "question": "Why does the API return 401 unauthorized?",
+      "domain": "technical",
+      "expected_cores": ["security-core", "api-core"],
+      "gold": ["Bearer required on /v1", "resolveAuth API key or mat_ OAuth token", "401 unauthorized JSON"]
+    },
+    {
+      "id": "MA16",
+      "question": "Why does the API return 429?",
+      "domain": "business",
+      "expected_cores": ["security-core", "business-core"],
+      "gold": ["Rate limit per plan KV", "inbox_limit_reached quota", "GET /v1/me for plan limits"]
+    },
+    {
+      "id": "MA17",
+      "question": "How does simulate work for QA?",
+      "domain": "product",
+      "expected_cores": ["email-core", "api-core"],
+      "gold": ["POST /v1/inboxes/:id/simulate", "provider_id sim_*", "No real SMTP contract tests"]
+    },
+    {
+      "id": "MA18",
+      "question": "Describe the email ingest pipeline.",
+      "domain": "technical",
+      "expected_cores": ["email-core"],
+      "gold": ["Webhook queue processInboundEmail extract notify DO", "Idempotent provider_id"]
+    },
+    {
+      "id": "MA19",
+      "question": "How do I configure the Resend webhook?",
+      "domain": "operational",
+      "expected_cores": ["deployment-core", "email-core"],
+      "gold": ["email.received to /webhooks/resend", "RESEND_WEBHOOK_SECRET", "SETUP.md tunnel for local"]
+    },
+    {
+      "id": "MA20",
+      "question": "What are the plan limits?",
+      "domain": "business",
+      "expected_cores": ["business-core"],
+      "gold": ["free pro enterprise legacy in src/lib/plans.ts", "rate limit max inboxes team keys domains"]
+    },
+    {
+      "id": "MA21",
+      "question": "How to debug wait timeout 408?",
+      "domain": "product",
+      "expected_cores": ["otp-core", "inbox-core"],
+      "gold": ["subjectContains messageIndex", "diagnose endpoint", "welcome vs verify email"]
+    },
+    {
+      "id": "MA22",
+      "question": "Where is business logic in the Worker?",
+      "domain": "technical",
+      "expected_cores": ["worker-core"],
+      "gold": ["src/services/*.ts", "routes thin handlers", "queue consumer resend-mail"]
+    },
+    {
+      "id": "MA23",
+      "question": "How does the sender allowlist work?",
+      "domain": "security",
+      "expected_cores": ["security-core", "inbox-core"],
+      "gold": ["expectFrom service preset allowed_senders on create", "isSenderAllowed at ingest drops others"]
+    },
+    {
+      "id": "MA24",
+      "question": "What runs in CI on push to main?",
+      "domain": "operational",
+      "expected_cores": ["operational-core"],
+      "gold": ["deploy-worker.yml wrangler deploy", "test:prod:gate smoke", "only src public wrangler paths trigger deploy"]
+    },
+    {
+      "id": "MA25",
+      "question": "How do I create a team API key?",
+      "domain": "operational",
+      "expected_cores": ["deployment-core", "api-core"],
+      "gold": ["npm run issue:key:db", "POST /v1/team/keys", "hashed in api_keys table"]
+    },
+    {
+      "id": "MA26",
+      "question": "What is callbackUrl used for?",
+      "domain": "product",
+      "expected_cores": ["product-core", "email-core"],
+      "gold": ["QA webhook on message", "fireInboxCallback", "GET callbacks delivery log"]
+    },
+    {
+      "id": "MA27",
+      "question": "How are messages idempotent?",
+      "domain": "technical",
+      "expected_cores": ["database-core", "email-core"],
+      "gold": ["messages.provider_id UNIQUE", "Resend email_id or sim_*"]
+    },
+    {
+      "id": "MA28",
+      "question": "What happens when an inbox expires?",
+      "domain": "product",
+      "expected_cores": ["inbox-core", "worker-core"],
+      "gold": ["cron hourly purgeExpired", "expires_at TTL", "cascade messages R2 purge"]
+    },
+    {
+      "id": "MA29",
+      "question": "How do I use Playwright with MailAgent?",
+      "domain": "product",
+      "expected_cores": ["product-core", "operational-core"],
+      "gold": ["@mailagent/qa package", "createInbox waitForVerification", "examples/playwright"]
+    },
+    {
+      "id": "MA30",
+      "question": "What documentation files are duplicates?",
+      "domain": "operational",
+      "expected_cores": ["audit/duplicate-docs"],
+      "gold": ["docs md vs public docs html", "SKILL.md copies", "service-presets duplication"]
+    },
+    {
+      "id": "MA31",
+      "question": "What can be cleaned up in the repo?",
+      "domain": "business",
+      "expected_cores": ["audit/cleanup-candidates", "business-core"],
+      "gold": ["classification only no deletion", "catalog PR scripts historical docs"]
+    },
+    {
+      "id": "MA32",
+      "question": "Give me a map of the MailAgent repository modules.",
+      "domain": "technical",
+      "expected_cores": ["audit/project-map"],
+      "gold": ["src routes services mcp packages migrations docs scripts"]
+    },
+    {
+      "id": "MA33",
+      "question": "How does custom domain inbox work?",
+      "domain": "product",
+      "expected_cores": ["inbox-core", "api-core"],
+      "gold": ["POST /v1/domains verify DNS", "create with domainId username", "address @verified-domain"]
+    },
+    {
+      "id": "MA34",
+      "question": "Why does the email queue DLQ matter?",
+      "domain": "technical",
+      "expected_cores": ["technical-core", "email-core"],
+      "gold": ["mailagent-email-dlq", "max_retries 5", "failed ingest jobs"]
+    },
+    {
+      "id": "MA35",
+      "question": "What is mailagent_verify_signup MCP tool?",
+      "domain": "product",
+      "expected_cores": ["product-core", "otp-core"],
+      "gold": ["Preferred agent tool wait and primaryAction", "manifest.ts mailagent_verify_signup"]
+    }
+  ]
+}

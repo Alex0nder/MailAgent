@@ -1,0 +1,23 @@
+{
+  "description": "Condition A: full-repo baseline (excludes context-os treatment artifacts)",
+  "includeRoots": [
+    "README.md",
+    "AGENTS.md",
+    "SETUP.md",
+    "package.json",
+    "wrangler.jsonc"
+  ],
+  "includeDirs": [
+    { "dir": "src", "extensions": [".ts"] },
+    { "dir": "docs", "extensions": [".md"] },
+    { "dir": "migrations", "extensions": [".sql"] }
+  ],
+  "excludePathContains": [
+    "node_modules",
+    "/dist/",
+    "context-os/",
+    ".git/"
+  ],
+  "maxFileChars": 14000,
+  "maxTotalChars": 320000
+}
