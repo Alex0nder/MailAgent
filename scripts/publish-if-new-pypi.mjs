@@ -34,10 +34,10 @@ if (published === version) {
 }
 
 if (!process.env.PYPI_API_TOKEN) {
-  console.error(
-    `publish-if-new-pypi: ${name}@${version} not on PyPI (latest: ${published ?? "—"}) — set PYPI_API_TOKEN`
+  console.log(
+    `skip ${name}@${version} — PYPI_API_TOKEN unset (pypi: ${published ?? "—"})`
   );
-  process.exit(1);
+  process.exit(0);
 }
 
 console.log(`publish ${name}@${version} (pypi: ${published ?? "—"})`);
