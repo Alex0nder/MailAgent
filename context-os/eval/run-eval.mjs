@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 /** A/B eval: Condition A baseline vs Condition B context cores */
+import "../../scripts/load-env.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,6 +22,7 @@ function parseArgs(argv) {
     dryRun: false,
     skipJudge: false,
     ids: null,
+    merge: null,
   };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
@@ -32,6 +34,7 @@ function parseArgs(argv) {
     else if (a === "--ids" && argv[i + 1]) opts.ids = argv[++i].split(",");
     else if (a === "--dry-run") opts.dryRun = true;
     else if (a === "--skip-judge") opts.skipJudge = true;
+    else if (a === "--merge" && argv[i + 1]) opts.merge = argv[++i];
     else if (a === "--help") {
       console.log(`Usage: node run-eval.mjs [options]
   --pilot           MA01-MA10 only
@@ -40,6 +43,7 @@ function parseArgs(argv) {
   --dry-run         context sizes only, no API
   --skip-judge      answers only
   --out DIR         results directory
+  --merge DIR       merge into existing results.json (retry failed)
 Env: OPENAI_API_KEY, EVAL_MODEL (default gpt-4o-mini), OPENAI_BASE_URL`);
       process.exit(0);
     }
@@ -109,8 +113,18 @@ async function main() {
     questions = questions.filter((q) => set.has(q.id));
   }
 
-  const outDir = opts.out ?? path.join(__dirname, "results", `run-${Date.now()}`);
+  const outDir =
+    opts.merge ?? opts.out ?? path.join(__dirname, "results", `run-${Date.now()}`);
   fs.mkdirSync(outDir, { recursive: true });
+
+  /** @type {Record<string, object>} */
+  const merged = {};
+  const jsonPath = path.join(outDir, "results.json");
+  if (opts.merge && fs.existsSync(jsonPath)) {
+    for (const row of JSON.parse(fs.readFileSync(jsonPath, "utf8"))) {
+      merged[`${row.question_id}:${row.condition}`] = row;
+    }
+  }
 
   const baselineCtx = loadBaselineContext(opts.baseline);
   fs.writeFileSync(
@@ -141,9 +155,10 @@ async function main() {
       try {
         const row = await runOne(q, cond, ctx, opts);
         rows.push(row);
+        merged[`${q.id}:${cond}`] = row;
         fs.writeFileSync(
           path.join(outDir, `${q.id}-${cond}.md`),
-          `# ${q.id} (${cond})\n\n## Answer\n\n${row.answer}\n`
+          `# ${q.id} (${cond})\n\n## Answer\n\n${row.answer ?? row.error}\n`
         );
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -154,11 +169,20 @@ async function main() {
           error: msg,
         });
       }
-      if (!opts.dryRun) await sleep(500);
+      if (!opts.dryRun) await sleep(cond === "A" ? 20_000 : 800);
     }
   }
 
-  writeCsv(path.join(outDir, "results.csv"), rows);
+  const finalRows = opts.merge
+    ? Object.values(merged).sort((a, b) => {
+        const ai = `${a.question_id}:${a.condition}`;
+        const bi = `${b.question_id}:${b.condition}`;
+        return ai.localeCompare(bi);
+      })
+    : rows;
+
+  writeCsv(path.join(outDir, "results.csv"), finalRows);
+  fs.writeFileSync(path.join(outDir, "results.json"), JSON.stringify(finalRows, null, 2));
 
   const meta = {
     run_at: new Date().toISOString(),

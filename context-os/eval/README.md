@@ -7,7 +7,11 @@
 ## Требования
 
 ```bash
-export OPENAI_API_KEY=sk-...          # или EVAL_API_KEY
+# Корневой .env (gitignored) — подхватывается автоматически:
+OPENAI_API_KEY=sk-...
+
+# Или в shell:
+export OPENAI_API_KEY=sk-...
 export EVAL_MODEL=gpt-4o-mini         # опционально
 export OPENAI_BASE_URL=https://...    # OpenAI-compatible (опционально)
 ```

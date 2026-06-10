@@ -41,13 +41,17 @@ function mean(vals) {
 
 function main() {
   const { resultsDir } = parseArgs(process.argv);
+  const jsonPath = path.join(resultsDir, "results.json");
   const csvPath = path.join(resultsDir, "results.csv");
-  if (!fs.existsSync(csvPath)) {
-    console.error(`Missing ${csvPath}`);
+  let rows;
+  if (fs.existsSync(jsonPath)) {
+    rows = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
+  } else if (fs.existsSync(csvPath)) {
+    rows = readCsv(csvPath);
+  } else {
+    console.error(`Missing ${jsonPath} or ${csvPath}`);
     process.exit(1);
   }
-
-  const rows = readCsv(csvPath);
   const byQ = new Map();
 
   for (const row of rows) {

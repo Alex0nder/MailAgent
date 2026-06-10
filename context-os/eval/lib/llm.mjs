@@ -4,7 +4,10 @@ If the context is insufficient, say what is missing. Do not invent file paths or
 Be concise and factual. Prefer bullet points for technical answers.`;
 
 export function llmConfig() {
-  const apiKey = process.env.OPENAI_API_KEY ?? process.env.EVAL_API_KEY;
+  const apiKey =
+    process.env.OPENAI_API_KEY ??
+    process.env.EVAL_API_KEY ??
+    process.env.OpenAI_API_Key;
   const baseUrl = (process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1").replace(
     /\/$/,
     ""
@@ -21,10 +24,16 @@ export function llmConfig() {
   return { apiKey, baseUrl, model, judgeModel };
 }
 
-/**
- * @param {{ model: string, messages: object[], temperature?: number }} opts
- */
-export async function chatCompletion({ model, messages, temperature = 0 }) {
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+function retryableError(err) {
+  const msg = err instanceof Error ? err.message : String(err);
+  return /LLM 429|LLM 500|fetch failed|ECONNRESET|ETIMEDOUT/i.test(msg);
+}
+
+async function chatCompletionOnce({ model, messages, temperature = 0 }) {
   const { apiKey, baseUrl } = llmConfig();
   const started = Date.now();
 
@@ -60,6 +69,25 @@ export async function chatCompletion({ model, messages, temperature = 0 }) {
     tokens_out: usage.completion_tokens ?? 0,
     model,
   };
+}
+
+/**
+ * @param {{ model: string, messages: object[], temperature?: number }} opts
+ */
+export async function chatCompletion(opts) {
+  const maxAttempts = 5;
+  let lastErr;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await chatCompletionOnce(opts);
+    } catch (err) {
+      lastErr = err;
+      if (!retryableError(err) || attempt === maxAttempts) throw err;
+      const waitMs = Math.min(60_000, attempt * 15_000);
+      await sleep(waitMs);
+    }
+  }
+  throw lastErr;
 }
 
 /**
