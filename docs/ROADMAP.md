@@ -680,6 +680,19 @@ Spec: [DEV-EMAIL-RELAY.md](./DEV-EMAIL-RELAY.md)
 
 **Done when:** manual QA — temp address in app, code in `dev@company.com` within ~30s.
 
+### v0.79 — Email existence check (Reacher)
+
+Spec: [EMAIL-CHECK.md](./EMAIL-CHECK.md) · [check-if-email-exists](https://github.com/reacherhq/check-if-email-exists)
+
+| Task | Status |
+|------|--------|
+| `POST /v1/emails/check` — syntax + disposable + MX (DoH), no external deps | ✅ |
+| MCP `mailagent_check_email` | ✅ |
+| Disposable block on `notifyEmail` | ✅ |
+| `contract-qa-email-check` | ✅ |
+
+**Done when:** QA can call check API without sending mail or running external services.
+
 ### Deferred (not QA)
 
 - ~~Agent session memory / multi-step run state~~ ✅ v0.35

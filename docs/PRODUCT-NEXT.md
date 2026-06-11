@@ -78,6 +78,19 @@ P0–P3 **done** (pilot #20 = human). Next: **P4** (console & SDK polish).
 
 ---
 
+## P6 — email existence check (Reacher) ✅
+
+| # | Feature | Status |
+|---|---------|--------|
+| 34 | `POST /v1/emails/check` | ✅ |
+| 35 | MCP `mailagent_check_email` | ✅ |
+| 36 | Reacher HTTP proxy (`REACHER_BACKEND_URL`) | removed — self-contained local + DoH MX |
+| 37 | Disposable block on `notifyEmail` | ✅ |
+
+Spec: [EMAIL-CHECK.md](./EMAIL-CHECK.md)
+
+---
+
 ## Explicitly not now
 
 | Item | Reason |

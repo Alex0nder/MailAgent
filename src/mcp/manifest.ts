@@ -15,7 +15,7 @@ const verifySignupDesc =
 
 export const MCP_SERVER_INFO = {
   name: "mailagent",
-  version: "0.8.1",
+  version: "0.8.2",
 };
 
 export const MCP_TOOLS = [
@@ -229,6 +229,18 @@ export const MCP_TOOLS = [
         q: { type: "string" },
         limit: { type: "integer", maximum: 50 },
         mode: { type: "string", enum: ["auto", "keyword", "semantic"] },
+      },
+    },
+  },
+  {
+    name: "mailagent_check_email",
+    description:
+      "Check email syntax, disposable domain, role account, and MX (DNS). Use ONLY when testing whether an app rejects bad addresses — NOT before mailagent_verify_signup (temp inbox is always valid). No SMTP mailbox probe.",
+    inputSchema: {
+      type: "object",
+      required: ["email"],
+      properties: {
+        email: { type: "string", description: "Address to verify (e.g. user@company.com)" },
       },
     },
   },

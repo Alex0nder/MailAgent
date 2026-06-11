@@ -24,6 +24,7 @@ CI post-deploy: `test:prod:gate` (smoke only). Before merge: `test:prod` (full c
 | team keys / dashboard | `npm run test:contract:qa:team-keys` |
 | billing / Stripe routes | `npm run test:contract:qa:billing` |
 | notifyEmail relay | `npm run test:contract:qa:notify` |
+| email check (local + MX) | `npm run test:contract:qa:email-check` |
 | `src/mcp/manifest.ts`, service presets, `context-os/` | `npm run sync:context-os` then `npm run check:context-os-router` |
 | anything before merge | `npm run test:prod` (full; CI uses `test:prod:gate`) |
 
@@ -60,9 +61,9 @@ curl -s -H "Authorization: Bearer $MAILAGENT_API_KEY" \
 
 Returns `mcpTools`, `auth.oidc`, `remoteMcp`, `docs`.
 
-## MCP tools (23)
+## MCP tools (24)
 
-`mailagent_verify_signup` · `mailagent_create_inbox` · `mailagent_wait_for_message` · `mailagent_wait_and_extract` · `mailagent_extract_verification` · `mailagent_extract_structured` · `mailagent_list_messages` · `mailagent_get_raw_message` · `mailagent_list_attachments` · `mailagent_get_attachment` · `mailagent_diagnose_inbox` · `mailagent_simulate_message` · `mailagent_send_message` · `mailagent_list_threads` · `mailagent_add_domain` · `mailagent_list_domains` · `mailagent_verify_domain` · `mailagent_search_messages` · `mailagent_list_inboxes` · `mailagent_get_inbox` · `mailagent_delete_inbox` · `mailagent_get_run_session` · `mailagent_patch_run_session`
+`mailagent_verify_signup` · `mailagent_create_inbox` · `mailagent_wait_for_message` · `mailagent_wait_and_extract` · `mailagent_extract_verification` · `mailagent_extract_structured` · `mailagent_list_messages` · `mailagent_get_raw_message` · `mailagent_list_attachments` · `mailagent_get_attachment` · `mailagent_check_email` · `mailagent_diagnose_inbox` · `mailagent_simulate_message` · `mailagent_send_message` · `mailagent_list_threads` · `mailagent_add_domain` · `mailagent_list_domains` · `mailagent_verify_domain` · `mailagent_search_messages` · `mailagent_list_inboxes` · `mailagent_get_inbox` · `mailagent_delete_inbox` · `mailagent_get_run_session` · `mailagent_patch_run_session`
 
 Source of truth: `src/mcp/manifest.ts` → `GET /v1/agent`.
 
@@ -114,13 +115,21 @@ Guide: [docs/AGENT-SKILLS.md](docs/AGENT-SKILLS.md) · canonical: [skills/mailag
 
 ## Typical verify flow
 
-1. Create inbox (`label`, `service` preset).
-2. Fill signup form with `address`.
-3. Wait (`subjectContains`, optional `messageIndex`).
-4. Use `otp` or `primaryLink`.
+1. Create inbox (`label`, `service` preset) — optional `notifyEmail` for manual QA relay to real inbox.
+2. Fill signup form with `address` — **do not** run email check on this address.
+3. Wait (`subjectContains`, optional `messageIndex`) via verify or wait tools.
+4. Use `otp` or `primaryLink` from `agent.primaryAction`.
 5. Delete inbox when done.
 
 On failure: `mailagent_diagnose_inbox` or `POST …/simulate` then retry.
+
+## Email check (agents)
+
+`POST /v1/emails/check` · MCP `mailagent_check_email` — syntax, disposable, MX (local, no external deps).
+
+Use **only** to test app email validation (e.g. reject `@mailinator.com`). **Not** for signup verify path.
+
+Guide: [docs/EMAIL-CHECK.md](docs/EMAIL-CHECK.md) · contract: `npm run test:contract:qa:email-check`
 
 ## Docs
 

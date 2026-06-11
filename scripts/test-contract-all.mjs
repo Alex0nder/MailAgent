@@ -20,6 +20,7 @@ const scripts = [
   "contract-qa-billing.mjs",
   "contract-qa-callback.mjs",
   "contract-qa-notify.mjs",
+  "contract-qa-email-check.mjs",
   "contract-qa-attachments.mjs",
   "contract-qa-threads.mjs",
   "contract-qa-outbound.mjs",

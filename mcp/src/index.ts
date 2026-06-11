@@ -437,6 +437,25 @@ server.registerTool(
 );
 
 server.registerTool(
+  "mailagent_check_email",
+  {
+    description:
+      "Check email syntax, disposable, role, MX (DNS). ONLY for app validation tests — NOT before verify_signup.",
+    inputSchema: {
+      email: z.string().email().describe("Address to check"),
+    },
+  },
+  async ({ email }) => {
+    const client = new MailAgentClient();
+    try {
+      return toolText(await client.checkEmail(email));
+    } catch (e) {
+      return toolText({ error: String(e) });
+    }
+  }
+);
+
+server.registerTool(
   "mailagent_get_run_session",
   {
     description: "Read multi-step agent run state (JSON + step log) by runId.",

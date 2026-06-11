@@ -275,6 +275,31 @@ export const openApiSpec = {
         responses: { "200": { description: "This schema" } },
       },
     },
+    "/v1/emails/check": {
+      post: {
+        tags: ["meta"],
+        summary: "Check email (syntax, disposable, role, MX via DNS)",
+        security: bearer,
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["email"],
+                properties: {
+                  email: { type: "string", format: "email" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "local check result" },
+          "400": { description: "invalid_email" },
+        },
+      },
+    },
     "/v1/stats": {
       get: {
         tags: ["meta"],

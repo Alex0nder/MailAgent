@@ -21,6 +21,7 @@ import { webhookRoutes } from "./routes/webhooks";
 import { purgeExpired } from "./services/inbox";
 import { purgeExpiredAuditEvents } from "./services/audit-log";
 import { auditRoutes } from "./routes/audit";
+import { emailRoutes } from "./routes/emails";
 
 export { InboxWait };
 
@@ -41,6 +42,7 @@ app.route("/v1/console", consoleRoutes);
 app.route("/v1/audit", auditRoutes);
 app.route("/v1/team", teamRoutes);
 app.route("/v1/domains", domainRoutes);
+app.route("/v1/emails", emailRoutes);
 app.route("/v1/agent", agentRoutes);
 app.route("/v1/oauth", oauthTokenRoutes);
 app.route("/mcp", mcpHttpRoutes);

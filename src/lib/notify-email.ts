@@ -1,6 +1,7 @@
-/** Validate notifyEmail for developer relay (no inbox-domain loops) */
+/** Validate notifyEmail for developer relay (no inbox-domain loops, no DEA) */
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { isDisposableDomain } from "./disposable-domains";
+import { parseEmailSyntax } from "./email-syntax";
 
 export type NotifyMode = "verification" | "off";
 
@@ -14,17 +15,16 @@ export function parseNotifyEmail(
   options?: { blockedDomains?: string[] }
 ): string | null {
   if (raw === undefined || raw === null) return null;
-  if (typeof raw !== "string" || !raw.trim()) return null;
-  const email = raw.trim().toLowerCase();
-  if (email.length > 254 || !EMAIL_RE.test(email)) return null;
+  const parsed = parseEmailSyntax(raw);
+  if (!parsed) return null;
 
-  const domain = email.split("@")[1];
   const blocked = (options?.blockedDomains ?? [])
     .map((d) => d.trim().toLowerCase())
     .filter(Boolean);
-  if (blocked.includes(domain)) return null;
+  if (blocked.includes(parsed.domain)) return null;
+  if (isDisposableDomain(parsed.domain)) return null;
 
-  return email;
+  return parsed.email;
 }
 
 export function blockedNotifyDomains(

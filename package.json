@@ -52,6 +52,7 @@
     "test:contract:qa": "node scripts/contract-qa.mjs",
     "test:contract:qa:callback": "node scripts/contract-qa-callback.mjs",
     "test:contract:qa:notify": "node scripts/contract-qa-notify.mjs",
+    "test:contract:qa:email-check": "node scripts/contract-qa-email-check.mjs",
     "test:contract:qa:attachments": "node scripts/contract-qa-attachments.mjs",
     "test:contract:qa:threads": "node scripts/contract-qa-threads.mjs",
     "test:contract:qa:domains": "node scripts/contract-qa-domains.mjs",

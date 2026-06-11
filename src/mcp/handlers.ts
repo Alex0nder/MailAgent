@@ -51,6 +51,7 @@ import {
   type ExtractPreset,
 } from "../services/structured-extract";
 import { buildWaitTimeoutDebug, waitForMessage, type WaitProgressEvent } from "../services/wait";
+import { checkEmailAddress } from "../services/email-check";
 import type { McpProgressParams, McpToolContext } from "../mcp/progress";
 
 export type McpAuth = {
@@ -616,6 +617,15 @@ export async function executeMcpTool(
         limit: args.limit as number | undefined,
         mode,
       });
+      return textResult(result);
+    }
+
+    case "mailagent_check_email": {
+      const email = args.email as string;
+      const result = await checkEmailAddress(env, { email });
+      if ("error" in result) {
+        return textResult({ error: result.error }, true);
+      }
       return textResult(result);
     }
 

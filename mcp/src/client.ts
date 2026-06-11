@@ -52,6 +52,13 @@ export class MailAgentClient {
     return body as T;
   }
 
+  checkEmail(email: string) {
+    return this.request<EmailCheckResponse>("/v1/emails/check", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+  }
+
   createInbox(options?: CreateInboxOptions) {
     const body: Record<string, unknown> = {};
     if (options?.ttlMinutes !== undefined) body.ttlMinutes = options.ttlMinutes;
@@ -396,6 +403,20 @@ export class MailAgentClient {
       method: "DELETE",
     });
   }
+}
+
+export interface EmailCheckResponse {
+  email: string;
+  source: "local";
+  isReachable: "safe" | "risky" | "invalid" | "unknown";
+  syntax: { isValidSyntax: boolean; username: string; domain: string };
+  misc: {
+    isDisposable: boolean;
+    isRoleAccount: boolean;
+    isB2c: boolean | null;
+  };
+  mx: { acceptsMail: boolean; records: string[] };
+  hint?: string;
 }
 
 export interface CreateInboxOptions {
