@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "project": "mailagent",
   "pilot_ids": ["MA01", "MA02", "MA03", "MA04", "MA05", "MA06", "MA07", "MA08", "MA09", "MA10"],
   "questions": [
@@ -7,7 +7,7 @@
       "id": "MA01",
       "question": "How does OTP extraction work in MailAgent?",
       "domain": "technical",
-      "expected_cores": ["otp-core"],
+      "expected_cores": ["otp-core", "serialization-core"],
       "gold": [
         "extractOtp in src/services/extract.ts combines text and html",
         "Runs in queue consumer processInboundEmail not in Resend webhook",
@@ -20,7 +20,7 @@
       "id": "MA02",
       "question": "How do I deploy MailAgent to production?",
       "domain": "operational",
-      "expected_cores": ["deployment-core"],
+      "expected_cores": ["deployment-testing-core"],
       "gold": [
         "wrangler login and wrangler secret put for DATABASE_URL RESEND_API_KEY RESEND_WEBHOOK_SECRET API_KEY INBOX_DOMAIN",
         "npm run deploy and npm run db:migrate",
@@ -59,7 +59,7 @@
       "id": "MA05",
       "question": "Why is OTP empty but a message exists in the inbox?",
       "domain": "product",
-      "expected_cores": ["otp-core"],
+      "expected_cores": ["otp-core", "serialization-core"],
       "gold": [
         "Extract uses text plus html from Resend receiving API",
         "HTML-only or unusual format may miss regex",
@@ -111,7 +111,7 @@
       "id": "MA09",
       "question": "What database tables are critical in MailAgent?",
       "domain": "technical",
-      "expected_cores": ["database-core"],
+      "expected_cores": ["data-model-core"],
       "gold": [
         "Neon Postgres via migrations in migrations/",
         "inboxes and messages are core tables",
@@ -124,7 +124,7 @@
       "id": "MA10",
       "question": "What environment variables are required for the Worker?",
       "domain": "operational",
-      "expected_cores": ["deployment-core"],
+      "expected_cores": ["deployment-testing-core"],
       "gold": [
         "DATABASE_URL RESEND_API_KEY RESEND_WEBHOOK_SECRET API_KEY INBOX_DOMAIN",
         "Set via wrangler secret put or .dev.vars locally",
@@ -143,14 +143,14 @@
       "id": "MA12",
       "question": "How do I run production tests for MailAgent?",
       "domain": "operational",
-      "expected_cores": ["operational-core"],
+      "expected_cores": ["deployment-testing-core"],
       "gold": ["npm run test:prod full", "npm run test:prod:gate smoke CI", "MAILAGENT_API_URL and MAILAGENT_API_KEY", "contract tests use simulate"]
     },
     {
       "id": "MA13",
       "question": "What are the main security risks?",
       "domain": "operational",
-      "expected_cores": ["security-core"],
+      "expected_cores": ["security-core", "auth-billing-core"],
       "gold": ["API key leak IDOR cross-team", "Webhook signature bypass", "Allowlist silent drop", "Scoped keys labelPrefix readOnly"]
     },
     {
@@ -164,14 +164,14 @@
       "id": "MA15",
       "question": "Why does the API return 401 unauthorized?",
       "domain": "technical",
-      "expected_cores": ["security-core", "api-core"],
+      "expected_cores": ["auth-billing-core", "api-core"],
       "gold": ["Bearer required on /v1", "resolveAuth API key or mat_ OAuth token", "401 unauthorized JSON"]
     },
     {
       "id": "MA16",
       "question": "Why does the API return 429?",
       "domain": "business",
-      "expected_cores": ["security-core", "business-core"],
+      "expected_cores": ["auth-billing-core", "business-core"],
       "gold": ["Rate limit per plan KV", "inbox_limit_reached quota", "GET /v1/me for plan limits"]
     },
     {
@@ -192,14 +192,14 @@
       "id": "MA19",
       "question": "How do I configure the Resend webhook?",
       "domain": "operational",
-      "expected_cores": ["deployment-core", "email-core"],
+      "expected_cores": ["deployment-testing-core", "email-core"],
       "gold": ["email.received to /webhooks/resend", "RESEND_WEBHOOK_SECRET", "SETUP.md tunnel for local"]
     },
     {
       "id": "MA20",
       "question": "What are the plan limits?",
       "domain": "business",
-      "expected_cores": ["business-core"],
+      "expected_cores": ["business-core", "auth-billing-core"],
       "gold": ["free pro enterprise legacy in src/lib/plans.ts", "rate limit max inboxes team keys domains"]
     },
     {
@@ -220,21 +220,21 @@
       "id": "MA23",
       "question": "How does the sender allowlist work?",
       "domain": "security",
-      "expected_cores": ["security-core", "inbox-core"],
+      "expected_cores": ["security-core", "serialization-core", "inbox-core"],
       "gold": ["expectFrom service preset allowed_senders on create", "isSenderAllowed at ingest drops others"]
     },
     {
       "id": "MA24",
       "question": "What runs in CI on push to main?",
       "domain": "operational",
-      "expected_cores": ["operational-core"],
+      "expected_cores": ["deployment-testing-core"],
       "gold": ["deploy-worker.yml wrangler deploy", "test:prod:gate smoke", "only src public wrangler paths trigger deploy"]
     },
     {
       "id": "MA25",
       "question": "How do I create a team API key?",
       "domain": "operational",
-      "expected_cores": ["deployment-core", "api-core"],
+      "expected_cores": ["auth-billing-core", "deployment-testing-core"],
       "gold": ["npm run issue:key:db", "POST /v1/team/keys", "hashed in api_keys table"]
     },
     {
@@ -248,7 +248,7 @@
       "id": "MA27",
       "question": "How are messages idempotent?",
       "domain": "technical",
-      "expected_cores": ["database-core", "email-core"],
+      "expected_cores": ["data-model-core", "email-core"],
       "gold": ["messages.provider_id UNIQUE", "Resend email_id or sim_*"]
     },
     {
@@ -262,7 +262,7 @@
       "id": "MA29",
       "question": "How do I use Playwright with MailAgent?",
       "domain": "product",
-      "expected_cores": ["product-core", "operational-core"],
+      "expected_cores": ["product-core", "deployment-testing-core"],
       "gold": ["@mailagent/qa package", "createInbox waitForVerification", "examples/playwright"]
     },
     {
@@ -306,6 +306,136 @@
       "domain": "product",
       "expected_cores": ["product-core", "otp-core"],
       "gold": ["Preferred agent tool wait and primaryAction", "manifest.ts mailagent_verify_signup"]
+    },
+    {
+      "id": "MA36",
+      "question": "How does API key authentication and resolveAuth work?",
+      "domain": "technical",
+      "expected_cores": ["auth-billing-core"],
+      "gold": [
+        "resolveAuth in api-key-store.ts returns ResolvedAuth",
+        "Order: mat_ OAuth then DB hash then legacy API_KEY env",
+        "hint is SHA-256 prefix for rate limit and inbox scoping",
+        "requireApiKey middleware on /v1 routes",
+        "Scoped keys use labelPrefix and readOnly from api_keys table"
+      ]
+    },
+    {
+      "id": "MA37",
+      "question": "How does Stripe billing and checkout work in MailAgent?",
+      "domain": "operational",
+      "expected_cores": ["auth-billing-core"],
+      "gold": [
+        "stripeConfigured requires STRIPE_SECRET_KEY and STRIPE_PRICE_PRO",
+        "canUpgradeViaStripe only free to pro self-serve",
+        "POST /v1/billing/checkout and /billing/portal",
+        "Stripe webhook POST /webhooks/stripe updates team plan",
+        "Enterprise plan set manually via team:plan not Stripe"
+      ]
+    },
+    {
+      "id": "MA38",
+      "question": "What is the verification JSON object returned by extract?",
+      "domain": "technical",
+      "expected_cores": ["serialization-core"],
+      "gold": [
+        "message-verify.ts builds verification object",
+        "Fields otp primaryLink links subject from",
+        "Used by GET extract POST open agent verify and callbacks",
+        "OTP from messages.otp populated at queue ingest",
+        "primaryLink ranked by LINK_VERIFY patterns in extract.ts"
+      ]
+    },
+    {
+      "id": "MA39",
+      "question": "What validation rules apply to callbackUrl on inbox create?",
+      "domain": "technical",
+      "expected_cores": ["serialization-core"],
+      "gold": [
+        "parseCallbackUrl in lib/callback-url.ts",
+        "HTTPS only no localhost private IP",
+        "Returns 400 on invalid callback URL",
+        "fireInboxCallback POSTs verification JSON on message ingest",
+        "GET /v1/inboxes/:id/callbacks shows delivery log"
+      ]
+    },
+    {
+      "id": "MA40",
+      "question": "How are scoped API keys and labelPrefix enforced?",
+      "domain": "security",
+      "expected_cores": ["auth-billing-core"],
+      "gold": [
+        "scope_label_prefix and scope_read_only on api_keys migration 008",
+        "assertLabelForCreate requires label starting with prefix",
+        "assertInboxAccessible returns inbox_not_found for wrong prefix",
+        "narrowScope child prefix must extend parent",
+        "readOnly blocks create delete and write endpoints"
+      ]
+    },
+    {
+      "id": "MA41",
+      "question": "What indexes and constraints exist on the messages table?",
+      "domain": "technical",
+      "expected_cores": ["data-model-core"],
+      "gold": [
+        "provider_id UNIQUE for idempotency Resend email_id or sim_*",
+        "inbox_id FK CASCADE to inboxes",
+        "Index inbox_id received_at DESC for list queries",
+        "otp links_json raw_r2_key thread fields from migrations 009-011",
+        "Extract happens before insert in queue consumer"
+      ]
+    },
+    {
+      "id": "MA42",
+      "question": "Which contract test script should I run after changing billing routes?",
+      "domain": "operational",
+      "expected_cores": ["deployment-testing-core"],
+      "gold": [
+        "npm run test:contract:qa:billing against prod API",
+        "AGENTS.md matrix maps billing changes to this script",
+        "Uses simulate no DATABASE_URL",
+        "Full merge gate npm run test:prod",
+        "CI post-deploy uses test:prod:gate smoke only"
+      ]
+    },
+    {
+      "id": "MA43",
+      "question": "What wrangler bindings does the Worker need?",
+      "domain": "operational",
+      "expected_cores": ["deployment-testing-core"],
+      "gold": [
+        "MAIL_QUEUE mailagent-email with DLQ mailagent-email-dlq",
+        "INBOX_WAIT Durable Object InboxWait for SSE",
+        "RAW_MIME R2 bucket mailagent-raw-mime",
+        "RATE_LIMIT KV namespace",
+        "AI Workers AI ASSETS public static"
+      ]
+    },
+    {
+      "id": "MA44",
+      "question": "How does structured extract with Workers AI work?",
+      "domain": "technical",
+      "expected_cores": ["serialization-core"],
+      "gold": [
+        "POST /v1/inboxes/:id/messages/:messageId/extract",
+        "structured-extract.ts presets 2fa invoice custom schema",
+        "Workers AI binding AI in wrangler.jsonc",
+        "mailagent_extract_structured MCP tool",
+        "Separate from OTP regex extract at ingest"
+      ]
+    },
+    {
+      "id": "MA45",
+      "question": "How does OAuth mat_ token work for remote MCP?",
+      "domain": "technical",
+      "expected_cores": ["auth-billing-core"],
+      "gold": [
+        "mat_ prefix resolved by resolveMcpAccessToken",
+        "Stateless JWT via MCP_OAUTH_JWT_SECRET default API_KEY",
+        "Legacy KV fallback for old tokens",
+        "requireMcpAuth returns RFC 9728 WWW-Authenticate",
+        "POST /mcp JSON-RPC with Bearer mat_ or API key"
+      ]
     }
   ]
 }

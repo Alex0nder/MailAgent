@@ -1,158 +1,90 @@
 # Product Core — MailAgent
 
-Описание пользовательских сценариев и flows на основе README, docs/QA.md, AGENTS.md, skills/mailagent/SKILL.md.
+## Purpose
 
-## Основные пользовательские сценарии
+Product Core описывает **как пользователь (QA, agent, integrator) проходит сценарии** через API и MCP: inbox, inbound email, OTP/links, wait/SSE/callback, simulate, custom domains, outbound, console, run sessions.
 
-| # | Сценарий | Entry point | Результат |
-|---|----------|-------------|-----------|
-| 1 | One-shot verify | `POST /v1/inboxes/open` | OTP/link + auto-delete |
-| 2 | Step-by-step QA | `POST /v1/inboxes` → form → `GET …/wait` | verification object |
-| 3 | Agent MCP verify | `mailagent_verify_signup` | `agent.primaryAction` |
-| 4 | CI без SMTP | `POST …/simulate` | injected OTP email |
-| 5 | Debug failed wait | `GET …/diagnose` или `mailagent_diagnose_inbox` | hints, subjects, debugUiUrl |
-| 6 | Callback to CI | `callbackUrl` on create | webhook on message |
-| 7 | Custom domain inbox | `POST /v1/domains` → verify → create with `domainId` | `@mail.example.com` |
-| 8 | Outbound reply | `POST …/send`, `mailagent_send_message` | thread reply via Resend |
-| 9 | Multi-step agent run | `mailagent_get_run_session` / `patch_run_session` | persisted state by `runId` |
-| 10 | Console/dashboard | `public/dashboard.html` + `/v1/console/*` | human debug UI |
+Загружай, когда спрашивают:
+
+- «Как работает verify?» — `mailagent_verify_signup`, `POST /v1/inboxes/open`, `POST /v1/agent/verify`
+- Flows: inbox, email, OTP, QA, agent (ASCII ниже)
+- 10 scenarios, MCP 23 tools, service presets 25
+- Callback, custom domain, outbound, console, `runId` sessions
+- Troubleshooting: diagnose, simulate retry
+
+Не загружай для plan limits / Stripe → `business-core`.  
+Не загружай для schema/migrations → `data-model-core`.
 
 ---
 
-## Inbox Flow
+## Entities
 
-```
-Client (REST/MCP)
-    │
-    ▼
-POST /v1/inboxes  ──► createInbox() ──► Neon INSERT inboxes
-    │                      │
-    │                      ├─ address: inbox-{nanoid}@{INBOX_DOMAIN}
-    │                      ├─ или {username}@{verified-domain}
-    │                      ├─ ttlMinutes (default from DEFAULT_TTL_MINUTES=30)
-    │                      ├─ allowed_senders from expectFrom/service
-    │                      ├─ label, callback_url (QA)
-    │                      └─ api_key_hint, team_id
-    ▼
-Returns: { id, address, expiresAt, allowedSenders, label, callbackUrl }
-
-Read:
-  GET /v1/inboxes/:id
-  GET /v1/inboxes?label=…&labelPrefix=…
-  GET /v1/inboxes/:id/messages
-
-Wait:
-  GET /v1/inboxes/:id/events   (SSE via Durable Object)
-  GET /v1/inboxes/:id/wait     (server poll 500ms)
-
-Delete:
-  DELETE /v1/inboxes/:id
-  DELETE /v1/inboxes?labelPrefix=…  (bulk QA cleanup)
-
-Expiry:
-  Cron hourly → purgeExpired() deletes expired inboxes + R2 attachments
-```
-
-**Quota:** plan limits on active inboxes (`429 inbox_limit_reached`).
-
-**Scoped keys:** `labelPrefix` enforced on create; `readOnly` blocks write.
+| Entity | Описание | Entry |
+|--------|----------|-------|
+| **Inbox** | Temp address, TTL, allowlist, label, callback | `POST /v1/inboxes`, `mailagent_create_inbox` |
+| **Message** | Inbound: otp, links, provider_id | `GET …/messages` |
+| **Verification** | `{ otp, primaryLink, links[] }` | `GET …/extract`, `mailagent_extract_verification` |
+| **Wait** | Poll or SSE until message | `GET …/wait`, `GET …/events`, `mailagent_wait_for_message` |
+| **Open** | Create + wait + extract | `POST /v1/inboxes/open` |
+| **Simulate** | Inject without SMTP | `POST …/simulate`, `mailagent_simulate_message` |
+| **Callback** | POST on message processed | `callbackUrl`, `GET …/callbacks` |
+| **Service preset** | `service` → expectFrom + subject hint | `src/lib/service-presets.ts` |
+| **MCP Tool** | 23 tools | sync block ниже |
+| **Agent verify** | Signup + primaryAction | `POST /v1/agent/verify`, `mailagent_verify_signup` |
+| **Run session** | State by `runId` | `GET/PATCH /v1/agent/runs/:runId/session` |
+| **Custom domain** | `@mail.example.com` | `/v1/domains/*` |
+| **Outbound** | Reply via Resend | `POST …/send`, `mailagent_send_message` |
+| **Console** | Debug UI | `dashboard.html`, `/v1/console/*` |
+| **Diagnose** | Timeout hints | `GET …/diagnose`, `mailagent_diagnose_inbox` |
 
 ---
 
-## Email Flow
+## Decision history (table + narratives)
 
-```
-Resend inbound
-    │
-    ▼
-POST /webhooks/resend  (или /webhooks/resend/team/:teamId)
-    │ verify svix signature
-    │ enqueue EmailQueueMessage
-    ▼
-Cloudflare Queue (mailagent-email)
-    │ max_retries: 5 → DLQ mailagent-email-dlq
-    ▼
-processInboundEmail() in queue consumer
-    │ findInboxByAddress(to)
-    │ isSenderAllowed(from, allowed_senders) — drop if not allowed
-    │ resend.emails.receiving.get(emailId)
-    │ extractOtp + extractLinks
-    │ insertMessage (provider_id UNIQUE = idempotency)
-    │ store raw MIME → R2 (optional)
-    │ save attachments
-    │ indexMessageSearch (Workers AI embeddings)
-    │ fireInboxCallback(callback_url) if set
-    ▼
-notifyInbox → Durable Object INBOX_WAIT /notify
-    │
-    ▼
-SSE subscribers on GET …/events receive event: message
-```
+| Решение | Альтернатива | Почему |
+|---------|--------------|--------|
+| **`POST /v1/inboxes/open`** | Client create+wait loop | Меньше race в CI; один round-trip |
+| **Extract at queue ingest** | Extract on read | OTP один раз; быстрый webhook ack |
+| **SSE via Durable Object** | Long poll only | Push `/events`; `/wait` polls DO |
+| **`service` presets** | Только `expectFrom` | Agents: `auth0` вместо массива доменов |
+| **`mailagent_verify_signup`** | Raw extract | `agent.primaryAction` для LLM |
+| **Simulate `sim_*`** | Real SMTP в CI | Contract tests без Resend |
+| **Callback** | Poll only | Parallel CI; smee local |
+| **Run session table** | State in inbox row | Multi-step patch без churn |
+| **Console = debug** | Email client | Human fallback через `debugUiUrl` |
+| **Outbound gated** | Open relay | Abuse prevention |
 
-**Simulate path (QA/dev):** `POST /v1/inboxes/:id/simulate` — inject without SMTP, provider_id `sim_*`.
+### Narrative: One-shot vs step-by-step
+
+Playwright нужен **address до submit** → `POST /v1/inboxes` → fill form → wait. CI curl часто использует **`open`**. Agent skill: **create → form → verify(inboxId)** для browser.
+
+### Narrative: messageIndex
+
+Welcome email часто приходит раньше verify → `subjectContains` + `messageIndex`; presets дают default subject hints. Diagnose показывает subjects при timeout.
+
+### Narrative: Simulate then retry
+
+`mailagent_diagnose_inbox` → `mailagent_simulate_message` → retry — автономный agent path без human.
 
 ---
 
-## OTP Flow
+## Sources
 
-```
-Email body (text + html combined)
-    │
-    ▼
-extractOtp() — src/services/extract.ts
-    │ regex patterns (code, verification, 4-8 digits)
-    │ parse-otp-message library fallback
-    ▼
-Stored in messages.otp at ingest (NOT in webhook hot path)
+| # | File | Content |
+|---|------|---------|
+| 1 | `docs/QA.md` | QA flows, Playwright |
+| 2 | `docs/QA-CALLBACK.md` | Callback |
+| 3 | `docs/QA-TROUBLESHOOTING.md` | Timeout, empty OTP |
+| 4 | `docs/QA-PRESETS.md` | Service matrix |
+| 5 | `AGENTS.md` | MCP, autotests |
+| 6 | `skills/mailagent/SKILL.md` | Agent flow |
+| 7 | `src/mcp/manifest.ts` | MCP schemas |
+| 8 | `src/lib/service-presets.ts` | 25 presets |
+| 9 | `src/routes/inboxes.ts`, `agent.ts` | Routes |
+| 10 | `src/services/agent-verify.ts`, `extract.ts` | Verify, OTP |
+| 11 | `README.md` | API table |
 
-Read paths:
-  GET /v1/inboxes/:id/extract          → latest message verification
-  GET /v1/inboxes/:id/messages         → per-message otp
-  POST /v1/inboxes/open                → wait + verification
-  mailagent_extract_verification
-  mailagent_verify_signup              → agent.primaryAction
-
-Links:
-  extractLinks() → links_json, primaryLink (verify/confirm URLs ranked)
-```
-
-**Troubleshooting (docs/QA-TROUBLESHOOTING.md):**
-- 0 messages → webhook, domain, allowlist
-- messages but timeout → subjectContains, messageIndex (welcome vs verify)
-- message but empty OTP → raw MIME, HTML-only, links[]
-
----
-
-## QA Flow
-
-```
-CI env: MAILAGENT_API_URL + MAILAGENT_API_KEY + RUN_ID
-
-Option A — one-shot:
-  POST /v1/inboxes/open { label: "ci-$RUN_ID", service, timeoutSeconds }
-
-Option B — Playwright @mailagent/qa:
-  createInbox → fill form → waitForVerification → deleteInbox
-
-Option C — simulate only (no real email):
-  POST /v1/inboxes → POST …/simulate { otp, from, subject }
-  Contract tests: npm run test:contract:qa
-
-Option D — callback:
-  create with callbackUrl → message triggers POST to CI runner
-  Debug: GET …/callbacks
-
-Cleanup:
-  DELETE /v1/inboxes?labelPrefix=ci-$RUN_ID
-```
-
-<!-- sync:service-presets:start -->
-Presets (25): `dribbble`, `github`, `gitlab`, `bitbucket`, `google`, `auth0`, `stripe`, `vercel`, `supabase`, `clerk`, `discord`, `openai`, `resend`, `firebase`, `figma`, `notion`, `linear`, `slack`, `shopify`, `atlassian`, `aws`, `microsoft`, `apple`, `twilio`, `posthog` — source: `src/lib/service-presets.ts`.
-<!-- sync:service-presets:end -->
-
-### MCP tools (from src/mcp/manifest.ts)
-
-<!-- sync:mcp-tools:start -->
+Sync markers (`<!-- sync:mcp-tools:start -->
 23 tools (MCP server `0.8.1`):
 
 - `mailagent_verify_signup`
@@ -180,38 +112,104 @@ Presets (25): `dribbble`, `github`, `gitlab`, `bitbucket`, `google`, `auth0`, `s
 - `mailagent_patch_run_session`
 <!-- sync:mcp-tools:end -->
 
+| Group | Tools | When |
+|-------|-------|------|
+| Verify | verify_signup, wait_and_extract, extract_verification, wait_for_message | Signup/login |
+| Inbox | create, get, list, delete | Lifecycle |
+| Messages | list, get_raw, search | Debug |
+| QA | simulate, diagnose | CI, timeout |
+| Domains | add, list, verify | Custom @ |
+| Outbound | send, list_threads | Reply |
+| Attachments | list, get | Files |
+| Agent state | get/patch_run_session | Multi-step |
+| Advanced | extract_structured | AI extract |
+
+Source: `MCP_TOOL_NAMES` in `manifest.ts` → `GET /v1/agent`.
+
 ---
 
-## AI Agent Flow
+## Run sessions
 
-```
-Discovery:
-  GET /v1/agent  → mcpTools, auth.oidc, remoteMcp, docs
+**`runId`** — validated agent correlation id; inbox labels `agent-{runId}` for `GET /v1/agent/runs`.
 
-Typical MCP flow:
-  1. mailagent_create_inbox { service, label/runId }
-  2. [agent fills signup form with address]
-  3. mailagent_wait_for_message { inboxId, subjectContains, messageIndex }
-     OR mailagent_verify_signup (preferred)
-  4. mailagent_extract_verification (if needed)
-  5. mailagent_delete_inbox
+| Method | Path |
+|--------|------|
+| GET | `/v1/agent/runs`, `/v1/agent/runs/:runId` |
+| GET/PATCH | `/v1/agent/runs/:runId/session` |
 
-One-shot:
-  mailagent_wait_and_extract
-  POST /v1/agent/verify
+MCP: `mailagent_get_run_session`, `mailagent_patch_run_session`. Session scoped to team/key hint. `verify_signup` with `runId` writes completion state.
 
-Remote MCP:
-  POST https://api.webmailagent.com/mcp (JSON-RPC)
-  Auth: Bearer API key or OAuth mat_ JWT
-
-Run session (multi-step):
-  label agent-{runId}
-  GET/PATCH /v1/agent/runs/:runId/session
-  mailagent_get_run_session / mailagent_patch_run_session
-
-On failure:
-  mailagent_diagnose_inbox
-  POST …/simulate then retry
+```json
+PATCH session { "state": { "inboxId": "…", "step": "awaiting_verify" },
+                "step": { "name": "created_inbox" } }
 ```
 
-**Clients:** Cursor (`.cursor/mcp.json`), Codex (`codex mcp add`), npx `@mailagent/mcp`, Agent Skills (`npx skills add`).
+---
+
+## Console (dashboard)
+
+**UI:** https://webmailagent.com/dashboard.html — static `public/`, Bearer key or OIDC.
+
+| Endpoint | Returns |
+|----------|---------|
+| `GET /v1/console/summary` | Plan, usage |
+| `GET /v1/console/threads` | Recent threads |
+| `GET /v1/console/inboxes/:id` | Messages, verification preview |
+
+**`debugUiUrl`** on diagnose/timeout → deep link for human operator. Not a replacement for programmatic verify.
+
+---
+
+## Outbound
+
+`POST /v1/inboxes/:id/send` / `mailagent_send_message { inboxId, text, html?, replyToMessageId? }`.
+
+Requires verified custom domain or `OUTBOUND_FROM` (`outbound-capabilities.ts`). **`mailagent_list_threads`** for conversation view. Reply/thread use case only — not bulk ESP.
+
+---
+
+## Custom domains
+
+```
+POST /v1/domains { domain }
+    → DNS records (Resend)
+    → POST …/verify (or mailagent_verify_domain)
+    → POST /v1/inboxes { domainId, username }
+    → user@mail.example.com
+    → inbound → same queue pipeline
+```
+
+Enterprise option: `/webhooks/resend/team/:teamId` for dedicated inbound (business-core).
+
+---
+
+## Callback
+
+```
+POST /v1/inboxes { callbackUrl }
+    → [inbound or simulate processed]
+    → fireInboxCallback → POST JSON { inboxId, otp, primaryLink, … }
+    → logged in callback_deliveries
+    → GET …/callbacks for audit
+```
+
+| Poll `/wait` | Callback |
+|--------------|----------|
+| Simple E2E | Parallel / long flows |
+| Playwright default | smee.io / staging hook |
+
+Validation: `src/lib/callback-url.ts` (HTTPS, no internal IPs in prod). Contract: `test:contract:qa:callback`.
+
+---
+
+## Pairs with
+
+| Core | Adds |
+|------|------|
+| `business-core` | Plans, personas, KPIs |
+| `inbox-core` / `email-core` / `otp-core` | Deep dives |
+| `serialization-core` | OpenAPI, verification schema |
+| `auth-billing-core` | Scopes, OAuth MCP |
+| `deployment-testing-core` | test:prod, doctor |
+
+Router: `context-os/router/routing-map.json` · Eval: `eval/questions.json`.

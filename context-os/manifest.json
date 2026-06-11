@@ -1,6 +1,6 @@
 {
   "name": "mailagent-context-os",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "created": "2026-06-10",
   "repository": "Alex0nder/MailAgent",
   "productVersion": "0.1.0",
@@ -99,6 +99,54 @@
       "id": "security",
       "file": "subcores/security-core.md",
       "parent": "operational"
+    },
+    {
+      "id": "auth-billing",
+      "file": "subcores/auth-billing-core.md",
+      "parent": "technical",
+      "topics": [
+        "auth",
+        "billing",
+        "oauth",
+        "stripe",
+        "scopes",
+        "rate-limit"
+      ]
+    },
+    {
+      "id": "data-model",
+      "file": "subcores/data-model-core.md",
+      "parent": "technical",
+      "topics": [
+        "schema",
+        "migrations",
+        "neon",
+        "tables",
+        "idempotency"
+      ]
+    },
+    {
+      "id": "serialization",
+      "file": "subcores/serialization-core.md",
+      "parent": "technical",
+      "topics": [
+        "validation",
+        "extract",
+        "openapi",
+        "verification-json"
+      ]
+    },
+    {
+      "id": "deployment-testing",
+      "file": "subcores/deployment-testing-core.md",
+      "parent": "operational",
+      "topics": [
+        "deploy",
+        "ci",
+        "testing",
+        "env",
+        "wrangler"
+      ]
     }
   ],
   "router": {
@@ -114,15 +162,15 @@
   "stats": {
     "mcpTools": 23,
     "dbMigrations": 17,
-    "docsMd": 44,
+    "docsMd": 45,
     "srcTsFiles": 85,
     "npmPackages": 3,
-    "githubWorkflows": 6,
+    "githubWorkflows": 7,
     "servicePresets": 25
   },
-  "sourceCommit": "e9f0a2cf3890a5620e64851b65cfde5bfa2b02d2",
-  "sourceCommitShort": "e9f0a2c",
-  "syncedAt": "2026-06-10T15:02:17.195Z",
+  "sourceCommit": "869949b173a5f6ac1d72eeeeef99fc135007f91b",
+  "sourceCommitShort": "869949b",
+  "syncedAt": "2026-06-11T03:38:34.776Z",
   "syncSources": [
     "src/mcp/manifest.ts",
     "src/lib/service-presets.ts",

@@ -13,8 +13,8 @@ context-os/
 ├── README.md              ← вы здесь
 ├── manifest.json          ← индекс ядер и метаданные
 ├── REPORT.md              ← итоги эксперимента
-├── cores/                 ← 4 главных ядра
-├── subcores/              ← 8 специализированных ядер
+├── cores/                 ← 4 главных ядра (~500+ строк каждое)
+├── subcores/              ← 12 специализированных ядер (incl. auth-billing, data-model, serialization, deployment-testing)
 ├── router/                ← маршрутизация вопросов → ядра
 └── audit/                 ← карта проекта, риски, кандидаты на cleanup
 ```
@@ -45,10 +45,23 @@ npm run eval:context-os:tokens       # TOKENS.md
 
 1. Получить вопрос от пользователя или агента.
 2. Открыть `router/question-router.md` или `router/routing-map.json`.
-3. Загрузить **только** указанные ядра (core + subcore). Router: `routeQuestion()` в `eval/lib/router.mjs` (F1 **1.0** на 35 eval-вопросах).
+3. Загрузить **только** указанные ядра (core + subcore). Router: `routeQuestion()` в `eval/lib/router.mjs` (F1 **1.0** на 45 eval-вопросах).
 4. При необходимости добавить `audit/project-map.md` для навигации по файлам.
 
-## Четыре главных ядра
+## Шесть primary cores (+ legacy subcores)
+
+См. [CORE-DEFINITIONS.md](CORE-DEFINITIONS.md) · Аудит: [audit/codebase-audit.md](audit/codebase-audit.md)
+
+| Ядро | Файл | Когда |
+|------|------|-------|
+| Business | `cores/business-core.md` | Зачем продукт, планы, monetization |
+| Product | `cores/product-core.md` | Flows, MCP, QA scenarios |
+| Auth & Billing | `subcores/auth-billing-core.md` | API keys, OAuth, Stripe, scopes |
+| Data Model | `subcores/data-model-core.md` | Schema, migrations, idempotency |
+| Serialization | `subcores/serialization-core.md` | Extract, validation, OpenAPI |
+| Deployment & Testing | `subcores/deployment-testing-core.md` | Deploy, CI, contract tests |
+
+## Четыре главных ядра (overview)
 
 | Ядро | Файл | Когда |
 |------|------|-------|
@@ -57,7 +70,7 @@ npm run eval:context-os:tokens       # TOKENS.md
 | Technical | `cores/technical-core.md` | Архитектура, стек, зависимости, точки отказа |
 | Operational | `cores/operational-core.md` | Deploy, CI, env, тесты, мониторинг |
 
-## Восемь subcores
+## Legacy subcores (узкая маршрутизация)
 
 `inbox-core` · `email-core` · `otp-core` · `api-core` · `worker-core` · `database-core` · `deployment-core` · `security-core`
 
@@ -65,4 +78,4 @@ npm run eval:context-os:tokens       # TOKENS.md
 
 Данные взяты из: `README.md`, `AGENTS.md`, `SETUP.md`, `docs/`, `src/`, `mcp/`, `packages/`, `migrations/`, `wrangler.jsonc`, `package.json`, `.github/workflows/`.
 
-Создано: 2026-06-10. Версия репозитория: `mailagent@0.1.0`, MCP server `0.8.1`.
+Создано: 2026-06-10. Обновлено: 2026-06-11 (6 primary + 12 subcores, ~500+ строк). Версия репозитория: `mailagent@0.1.0`, MCP server `0.8.1`.

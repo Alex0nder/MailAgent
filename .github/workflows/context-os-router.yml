@@ -1,0 +1,38 @@
+# Context OS keyword router F1 gate — no secrets, no LLM
+name: Context OS router
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "context-os/**"
+      - "src/mcp/manifest.ts"
+      - "src/lib/service-presets.ts"
+      - "mcp/src/service-presets.ts"
+  pull_request:
+    branches: [main]
+    paths:
+      - "context-os/**"
+      - "src/mcp/manifest.ts"
+      - "src/lib/service-presets.ts"
+      - "mcp/src/service-presets.ts"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  router-f1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      - name: npm run check:context-os-router
+        run: npm run check:context-os-router
