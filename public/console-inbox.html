@@ -172,7 +172,52 @@
         box.innerHTML = renderCallbackRows(r.json.deliveries);
       }
 
-      function renderDetail(d) {
+      let simulateScenarios = null;
+
+      async function loadSimulateScenarios() {
+        if (simulateScenarios) return simulateScenarios;
+        const r = await api("/v1/inboxes/simulate/scenarios");
+        if (r.ok && Array.isArray(r.json.scenarios)) {
+          simulateScenarios = r.json.scenarios;
+        } else {
+          simulateScenarios = [];
+        }
+        return simulateScenarios;
+      }
+
+      async function simulateInbox(scenario) {
+        const body = scenario ? { scenario } : { otp: "482910", subject: "MailAgent simulated OTP" };
+        const r = await api(`/v1/inboxes/${encodeURIComponent(inboxId)}/simulate`, {
+          method: "POST",
+          body: JSON.stringify(body),
+        });
+        if (r.ok) load();
+        else alert(r.json.error || r.status || "Simulate failed");
+      }
+
+      function bindSimulate(scenarios) {
+        document.getElementById("sim-inject")?.addEventListener("click", () => {
+          const sel = document.getElementById("sim-scenario");
+          const scenario = sel?.value?.trim() || undefined;
+          simulateInbox(scenario);
+        });
+      }
+
+      function renderSimulate(scenarios) {
+        let opts = `<option value="">custom OTP</option>`;
+        for (const s of scenarios) {
+          opts += `<option value="${esc(s.id)}">${esc(s.id)} — ${esc(s.description || "")}</option>`;
+        }
+        return `<div class="console-key-form" id="simulate-box">
+          <h2>Simulate message</h2>
+          <p class="console-meta">Inject test mail without SMTP — same presets as MCP <code>scenario</code>.</p>
+          <label for="sim-scenario">Scenario</label>
+          <select id="sim-scenario">${opts}</select>
+          <button type="button" class="app-btn app-btn--ghost" id="sim-inject">Inject</button>
+        </div>`;
+      }
+
+      async function renderDetail(d) {
         titleEl.textContent = d.address || "Inbox";
         leadEl.textContent = d.label
           ? `Label: ${d.label} · expires ${new Date(d.expiresAt).toLocaleString()}`
@@ -187,6 +232,9 @@
           <a href="${esc(debugHref)}"><strong>Debug UI</strong></a>
           · <a href="${esc(d.links?.diagnose || "#")}" target="_blank" rel="noopener">Diagnose JSON</a>
         </div>`;
+
+        const scenarios = await loadSimulateScenarios();
+        html += renderSimulate(scenarios);
 
         html += `<div class="console-key-form" id="search-box">
           <h2>Search messages</h2>
@@ -256,6 +304,7 @@
         </p>`;
         out.innerHTML = html;
         bindCompose(d);
+        bindSimulate(scenarios);
         bindSearch();
         document.getElementById("reload-callbacks")?.addEventListener("click", reloadCallbacks);
         reloadCallbacks();
@@ -308,7 +357,7 @@
           return;
         }
         lastDetail = r.json;
-        renderDetail(lastDetail);
+        await renderDetail(lastDetail);
       }
 
       document.getElementById("load").onclick = load;

@@ -4,6 +4,8 @@ node_modules/
 .dev.vars
 .env
 .env.local
+.pilot-keys.local
+*.egg-info/
 dist/
 dist/catalog-staging/
 *.log

@@ -72,6 +72,9 @@ P0–P3 **done** (pilot #20 = human). Next: **P4** (console & SDK polish).
 | 23 | **Debug simulate scenarios UI** | ✅ `debug.html` scenario picker |
 | 24 | **Python SDK on agents docs** | ✅ `agents.html` + landing |
 | 25 | **Package matrix in AGENTS.md** | ✅ npm + PyPI |
+| 26 | **Console simulate UI** | ✅ `console-inbox.html` |
+| 27 | **Python landing page** | ✅ `python-agent-verify.html` |
+| 28 | **Pilot scoped key issued** | ⏳ `issue:pilot-key` |
 
 ---
 
@@ -88,8 +91,8 @@ P0–P3 **done** (pilot #20 = human). Next: **P4** (console & SDK polish).
 
 ## Suggested next sprint
 
-1. P3 #20 — pilot invite + scoped key (`DATABASE_URL` in `.env`)  
-2. P4 follow-ups — simulate scenarios in `console-inbox.html`, Python landing snippet  
-3. Context OS eval export cleanup (optional) or catalog PR nudge
+1. P3 #20 — send `print:pilot-invite` + scoped key to first pilot team  
+2. P4+ — agent-runs links to console-inbox simulate  
+3. Catalog PR / Context OS eval cleanup (optional)
 
-Track in [ROADMAP.md](./ROADMAP.md) § v0.76.
+Track in [ROADMAP.md](./ROADMAP.md) § v0.77.

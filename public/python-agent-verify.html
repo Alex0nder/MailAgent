@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Python agent email verification — MailAgent</title>
+    <meta
+      name="description"
+      content="Verify signup emails from Python agents with mailagent-agent on PyPI — disposable inboxes, OTP and magic links, parity with @mailagent/agent."
+    />
+    <link rel="canonical" href="https://webmailagent.com/python-agent-verify.html" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body data-site="marketing">
+    <div id="site-nav"></div>
+    <main class="landing site-container" style="padding: 48px 24px 80px">
+      <p class="pill pill-oss"><span class="pill-dot"></span> Python · PyPI</p>
+      <h1>Python agent email verification</h1>
+      <p class="hero-lead" style="max-width: 640px">
+        <a href="https://pypi.org/project/mailagent-agent/" rel="noopener noreferrer">mailagent-agent</a>
+        on PyPI — same verify loop as <code>@mailagent/agent</code>: create inbox,
+        wait for mail, return OTP or magic link. No MCP required.
+      </p>
+
+      <h2>Quick start</h2>
+      <pre class="code-panel" style="padding: 16px; overflow: auto"><code>pip install mailagent-agent
+
+from mailagent import MailAgent
+
+client = MailAgent(
+    "https://api.webmailagent.com",
+    "ma_…",
+)
+result = client.verify_signup(
+    service="github",
+    timeout_seconds=90,
+    delete_after=True,
+)
+action = result.get("agent", {}).get("primaryAction")
+print(action)  # otp or magic_link</code></pre>
+
+      <h2>Simulate in CI (no SMTP)</h2>
+      <pre class="code-panel" style="padding: 16px; overflow: auto"><code>inbox = client.create_inbox(label="ci-test", service="github")
+client.simulate_message(inbox["id"], scenario="magic_link")
+# then wait / extract as usual</code></pre>
+
+      <h2>Also available</h2>
+      <ul class="console-keys">
+        <li>MCP — <code>mailagent_verify_signup</code> from Cursor / Codex</li>
+        <li>TypeScript — <code>npm install @mailagent/agent</code></li>
+        <li>Playwright — <code>@mailagent/qa</code> · <a href="/playwright-email-verification.html">QA guide</a></li>
+      </ul>
+
+      <p class="hero-ctas" style="margin-top: 32px">
+        <a class="btn btn-primary" href="/docs/agents.html">Agent docs</a>
+        <a class="btn btn-outline" href="https://pypi.org/project/mailagent-agent/" rel="noopener noreferrer">PyPI</a>
+        <a class="btn btn-outline" href="/mcp-signup-qa.html">MCP signup QA</a>
+      </p>
+    </main>
+    <div id="site-footer"></div>
+    <script src="/site-shell.js" defer></script>
+  </body>
+</html>

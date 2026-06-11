@@ -653,6 +653,14 @@ Backlog: [PRODUCT-NEXT.md](./PRODUCT-NEXT.md)
 | 24 | Python + QA SDK docs on agents.html | ✅ |
 | 25 | PyPI in AGENTS.md / landing | ✅ |
 
+### v0.77 — Console simulate + Python landing (P4+)
+
+| P4+ | Task | Status |
+|-----|------|--------|
+| 26 | Console inbox simulate scenario picker | ✅ |
+| 27 | `python-agent-verify.html` landing | ✅ |
+| 28 | Issue pilot scoped key | ⏳ |
+
 ### Deferred (not QA)
 
 - ~~Agent session memory / multi-step run state~~ ✅ v0.35
