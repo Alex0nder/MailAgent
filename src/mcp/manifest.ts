@@ -27,6 +27,12 @@ export const MCP_TOOLS = [
       properties: {
         inboxId: { type: "string", description: "Existing inbox after form submit" },
         service: { type: "string", enum: servicesEnum },
+        flow: {
+          type: "string",
+          enum: ["signup", "login", "password_reset"],
+          description:
+            "Default subjectContains when omitted: signup=verify, login=2FA code, password_reset=reset link",
+        },
         runId: { type: "string", description: "Agent run id (stored as label for tracing)" },
         label: { type: "string" },
         subjectContains: { type: "string", description: subjectContainsDesc },
@@ -52,6 +58,14 @@ export const MCP_TOOLS = [
         label: { type: "string" },
         ttlMinutes: { type: "integer" },
         callbackUrl: { type: "string", format: "uri" },
+        notifyEmail: {
+          type: "string",
+          description: "Developer real inbox — relay OTP/summary after verification mail",
+        },
+        notifyMode: {
+          type: "string",
+          enum: ["verification", "off"],
+        },
         username: {
           type: "string",
           description: "Local part for custom domain inbox (requires domainId)",
@@ -130,7 +144,15 @@ export const MCP_TOOLS = [
         inboxId: { type: "string" },
         scenario: {
           type: "string",
-          enum: ["otp", "magic_link", "attachment", "invite", "invoice_fixture"],
+          enum: [
+            "otp",
+            "magic_link",
+            "attachment",
+            "invite",
+            "invoice_fixture",
+            "login_2fa",
+            "password_reset",
+          ],
         },
         otp: { type: "string" },
         from: { type: "string" },

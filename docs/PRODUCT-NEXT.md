@@ -109,7 +109,7 @@ Spec: [EMAIL-CHECK.md](./EMAIL-CHECK.md)
 | 29 | **`notifyEmail` on inbox create** — OTP/summary to developer's real inbox | ✅ |
 | 30 | **Temp address for signup** — any MailAgent inbox; relay ≠ signup address | ✅ |
 | 31 | **Notify delivery log** — `GET …/notify-deliveries` + console | ✅ API · UI partial |
-| 32 | **MCP + SDK `notifyEmail`** | ✅ MCP · SDK planned |
+| 32 | **MCP + SDK `notifyEmail`** | ✅ MCP · `@mailagent/agent` + `@mailagent/qa` |
 | 33 | **Contract `contract-qa-notify`** (simulate path) | ✅ |
 
 Spec: [DEV-EMAIL-RELAY.md](./DEV-EMAIL-RELAY.md)

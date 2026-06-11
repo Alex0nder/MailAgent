@@ -5,6 +5,7 @@ import { buildInboxDiagnose } from "./inbox-diagnose";
 import { listThreads } from "./outbound-mail";
 import { outboundCapabilities } from "../lib/outbound-capabilities";
 import type { PlanId } from "../lib/plans";
+import { listNotifyDeliveries } from "./notify-log";
 
 export async function buildConsoleInboxDetail(
   env: Env,
@@ -19,12 +20,13 @@ export async function buildConsoleInboxDetail(
   const inbox = await getInbox(env, inboxId, { apiKeyHint: ctx.apiKeyHint });
   if (!inbox) return null;
 
-  const [threads, diagnose] = await Promise.all([
+  const [threads, diagnose, notifyDeliveries] = await Promise.all([
     listThreads(env, inboxId),
     buildInboxDiagnose(env, inboxId, {
       apiBaseUrl: ctx.apiBaseUrl,
       apiKeyHint: ctx.apiKeyHint,
     }),
+    listNotifyDeliveries(env, inboxId, 50),
   ]);
 
   const outbound = await outboundCapabilities(env, {
@@ -45,6 +47,16 @@ export async function buildConsoleInboxDetail(
     messages: diagnose?.messages ?? [],
     threads,
     callbacks: diagnose?.callbacks ?? [],
+    notifyDeliveries: notifyDeliveries.map((row) => ({
+      id: row.id,
+      notifyEmail: row.notify_email,
+      messageId: row.message_id,
+      resendId: row.resend_id,
+      ok: row.ok,
+      error: row.error_text,
+      durationMs: row.duration_ms,
+      createdAt: row.created_at,
+    })),
     troubleshooting: diagnose?.troubleshooting ?? [],
     outbound: {
       ...outbound,

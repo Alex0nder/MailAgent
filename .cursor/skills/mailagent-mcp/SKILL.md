@@ -86,6 +86,43 @@ Two-step (preferred for browser automation):
 
 REST equivalent: `POST /v1/agent/verify`
 
+### Login 2FA / password reset
+
+Same tools — set **`flow`** when `subjectContains` is omitted:
+
+| Flow | `flow` | Example subject hint (github) |
+|------|--------|-------------------------------|
+| Signup verify | `signup` (default) | `verify` |
+| Login / step-up 2FA | `login` | `sign in` |
+| Password reset | `password_reset` | `reset` |
+
+```json
+{ "inboxId": "…", "service": "github", "flow": "login" }
+```
+
+Recipes: `GET /v1/agent/recipes/github?flow=login` · simulate: `scenario=login_2fa` or `password_reset`.
+
+### Async verify (`callbackUrl`)
+
+When the test runner has a **public HTTPS** endpoint, prefer callback over long poll:
+
+1. `mailagent_create_inbox` with `callbackUrl` (smee.io, staging hook, CI tunnel)
+2. Submit form → MailAgent `POST`s verification JSON to your URL
+3. `@mailagent/qa`: `waitForCallback(inboxId)` — or poll `GET …/callbacks`
+
+Do **not** use callback for Cursor agents without a reachable URL — use `verify_signup` poll instead.
+
+### Developer relay (`notifyEmail`)
+
+Manual QA only — OTP summary to your real Gmail while the **temp address** is on the signup form:
+
+```json
+{ "service": "github", "notifyEmail": "you@company.com" }
+```
+
+SDK: `createInbox({ notifyEmail })` · `@mailagent/qa`: `waitForNotifyDelivery(inboxId)` after mail arrives.
+Console: `console-inbox.html` → notify relay log.
+
 ## Popular MCP tools
 
 | Tool | When |
@@ -102,6 +139,9 @@ REST equivalent: `POST /v1/agent/verify`
 | `mailagent_list_threads` | Conversation view after reply |
 | `mailagent_get_run_session` | Multi-step agent run memory |
 | `mailagent_delete_inbox` | Cleanup |
+| `flow=login` / `password_reset` on verify | Login 2FA / reset — default subject hints |
+| `callbackUrl` on create | Async CI — `waitForCallback` in QA SDK |
+| `notifyEmail` on create | Relay OTP to developer's real inbox |
 
 Full list: `GET https://api.webmailagent.com/v1/agent` → `mcpTools` (24 tools).
 

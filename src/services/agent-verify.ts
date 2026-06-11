@@ -33,6 +33,8 @@ export type VerifyInput = {
   inboxId?: string;
   ttlMinutes?: number;
   service?: string;
+  /** signup (default) | login | password_reset — default subjectContains per service */
+  flow?: string;
   expectFrom?: string | string[];
   allowedSenders?: string | string[];
   label?: string;
@@ -106,7 +108,8 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
   const timeoutSec = Math.min(Number(input.timeoutSeconds ?? 90), 120);
   const messageIndex = Math.max(0, Math.floor(Number(input.messageIndex ?? 0)));
   const subjectContains =
-    input.subjectContains?.trim() || resolveSubjectHint(input.service);
+    input.subjectContains?.trim() ||
+    resolveSubjectHint(input.service, input.flow);
   const waitOpts = {
     subjectContains,
     messageIndex,
@@ -127,7 +130,8 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
       email: formatEmail(inbox),
       ...debug,
       debugUiUrl: debugUiUrl(apiBase, inbox.id),
-      suggestedSubjectContains: resolveSubjectHint(input.service) ?? null,
+      suggestedSubjectContains:
+        resolveSubjectHint(input.service, input.flow) ?? null,
       inboxKept: !deleteAfter,
     };
     await recordVerifyRunSession(

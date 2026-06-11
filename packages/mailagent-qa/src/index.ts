@@ -13,6 +13,9 @@ export interface CreateInboxOptions {
   expectFrom?: string | string[];
   label?: string;
   callbackUrl?: string;
+  /** Relay OTP/summary to developer's real inbox (manual QA) */
+  notifyEmail?: string;
+  notifyMode?: "verification" | "off";
 }
 
 export interface OpenInboxOptions extends CreateInboxOptions {
@@ -36,6 +39,19 @@ export interface InboxInfo {
   address: string;
   expiresAt?: string;
   label?: string | null;
+  notifyEmail?: string | null;
+  notifyMode?: string | null;
+}
+
+export interface NotifyDelivery {
+  id: string;
+  notifyEmail: string;
+  messageId: string | null;
+  resendId: string | null;
+  ok: boolean;
+  error: string | null;
+  durationMs: number | null;
+  createdAt: string;
 }
 
 export interface OpenResult {
@@ -123,11 +139,23 @@ export class MailAgentQa {
   }
 
   async createInbox(options: CreateInboxOptions = {}): Promise<InboxInfo> {
-    const body = await this.request<{ id: string; address: string; label?: string }>(
-      "/v1/inboxes",
-      { method: "POST", body: JSON.stringify(this.withQaDefaults(options)) }
-    );
-    return { id: body.id, address: body.address, label: body.label };
+    const body = await this.request<{
+      id: string;
+      address: string;
+      label?: string;
+      notifyEmail?: string | null;
+      notifyMode?: string | null;
+    }>("/v1/inboxes", {
+      method: "POST",
+      body: JSON.stringify(this.withQaDefaults(options)),
+    });
+    return {
+      id: body.id,
+      address: body.address,
+      label: body.label,
+      notifyEmail: body.notifyEmail,
+      notifyMode: body.notifyMode,
+    };
   }
 
   /** Create → wait → extract (recommended for signup flow) */
@@ -282,6 +310,57 @@ export class MailAgentQa {
       `/v1/inboxes/${inboxId}/callbacks?limit=${limit}`
     );
     return data.deliveries ?? [];
+  }
+
+  async listNotifyDeliveries(
+    inboxId: string,
+    limit = 20
+  ): Promise<NotifyDelivery[]> {
+    const data = await this.request<{ deliveries: NotifyDelivery[] }>(
+      `/v1/inboxes/${inboxId}/notify-deliveries?limit=${limit}`
+    );
+    return data.deliveries ?? [];
+  }
+
+  /** Poll notify relay log after simulate or real inbound (manual QA) */
+  async waitForNotifyDelivery(
+    inboxId: string,
+    options?: {
+      timeoutSeconds?: number;
+      pollIntervalMs?: number;
+      since?: Date | string;
+      deliveryIndex?: number;
+    }
+  ): Promise<NotifyDelivery> {
+    const timeoutMs = (options?.timeoutSeconds ?? 60) * 1000;
+    const pollMs = Math.max(500, options?.pollIntervalMs ?? 1500);
+    const sinceMs = options?.since
+      ? new Date(options.since).getTime()
+      : Date.now();
+    const index = Math.max(0, options?.deliveryIndex ?? 0);
+    const deadline = Date.now() + timeoutMs;
+
+    while (Date.now() < deadline) {
+      const deliveries = await this.listNotifyDeliveries(inboxId, 50);
+      const ok = deliveries
+        .filter(
+          (d) => d.ok && new Date(d.createdAt).getTime() >= sinceMs - 5000
+        )
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      const hit = ok[index];
+      if (hit) return hit;
+      await sleep(pollMs);
+    }
+
+    throw new MailAgentTimeoutError("Notify delivery not logged (no ok entry)", {
+      inboxId,
+      deliveryIndex: index,
+      notifyDeliveries: await this.listNotifyDeliveries(inboxId).catch(() => []),
+      debugUiUrl: this.debugUiUrl(inboxId),
+    });
   }
 
   /** OTP/links from latest or specific messageId */

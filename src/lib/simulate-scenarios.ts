@@ -5,7 +5,9 @@ export type SimulateScenarioId =
   | "magic_link"
   | "attachment"
   | "invite"
-  | "invoice_fixture";
+  | "invoice_fixture"
+  | "login_2fa"
+  | "password_reset";
 
 export type SimulateScenarioFixture = {
   id: SimulateScenarioId;
@@ -77,6 +79,28 @@ export const SIMULATE_SCENARIOS: Record<
     links: [],
     textPreview: "Please pay invoice INV-8842. Amount due $129.99 USD by March 15, 2026.",
     htmlPreview: null,
+  },
+  login_2fa: {
+    id: "login_2fa",
+    description: "Login / step-up 2FA code (not signup verify)",
+    from: "noreply@github.com",
+    subject: "Your GitHub sign-in verification code",
+    otp: "773421",
+    links: [],
+    textPreview: "Your sign-in verification code is 773421",
+    htmlPreview: null,
+  },
+  password_reset: {
+    id: "password_reset",
+    description: "Password reset link — magic_link style",
+    from: "accounts@google.com",
+    subject: "Reset your password",
+    otp: "",
+    links: ["https://accounts.example.com/reset?token=pr_sim_7c1d9e"],
+    textPreview:
+      "Reset your password: https://accounts.example.com/reset?token=pr_sim_7c1d9e",
+    htmlPreview:
+      '<a href="https://accounts.example.com/reset?token=pr_sim_7c1d9e">Reset password</a>',
   },
 };
 

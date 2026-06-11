@@ -33,6 +33,7 @@ type VerifyBody = {
   inboxId?: string;
   ttlMinutes?: number;
   service?: string;
+  flow?: "signup" | "login" | "password_reset";
   expectFrom?: string | string[];
   allowedSenders?: string | string[];
   label?: string;
@@ -136,9 +137,14 @@ agentRoutes.get("/recipes", (c) => {
 });
 
 agentRoutes.get("/recipes/:service", (c) => {
-  const recipe = getAgentRecipe(c.req.param("service"));
+  const flowRaw = c.req.query("flow")?.trim().toLowerCase();
+  const flow =
+    flowRaw === "login" || flowRaw === "password_reset"
+      ? flowRaw
+      : "signup";
+  const recipe = getAgentRecipe(c.req.param("service"), flow);
   if (!recipe) return c.json({ error: "unknown_service" }, 404);
-  return c.json(recipe);
+  return c.json({ ...recipe, flow });
 });
 
 /** Active agent runs (label agent-*) */

@@ -437,6 +437,7 @@ export interface WaitAndExtractOptions {
   inboxId?: string;
   ttlMinutes?: number;
   service?: string;
+  flow?: "signup" | "login" | "password_reset";
   expectFrom?: string | string[];
   allowedSenders?: string | string[];
   label?: string;

@@ -124,6 +124,10 @@ server.registerTool(
         .describe("Existing inbox after form submit; omit to create new"),
       ttlMinutes: z.number().int().min(5).max(1440).optional(),
       service: z.enum(SERVICE_NAMES).optional(),
+      flow: z
+        .enum(["signup", "login", "password_reset"])
+        .optional()
+        .describe("Default subjectContains: signup | login 2FA | password reset"),
       expectFrom: senderSchema,
       allowedSenders: senderSchema,
       label: z.string().optional().describe("QA/CI run id"),

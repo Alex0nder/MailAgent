@@ -141,6 +141,37 @@
         });
       }
 
+      function renderNotifyRows(rows) {
+        if (!rows?.length) {
+          return `<p class="console-empty">No notify relay deliveries yet.</p>`;
+        }
+        let t = `<table class="console-table"><thead><tr><th>Status</th><th>To</th><th>Resend</th><th>Msg</th><th>When</th></tr></thead><tbody>`;
+        for (const row of rows) {
+          t += `<tr>
+            <td>${row.ok ? "OK" : "fail"}</td>
+            <td class="debug-mono">${esc(row.notifyEmail)}</td>
+            <td><code>${esc(row.resendId || row.error || "—")}</code></td>
+            <td><code>${esc(row.messageId || "—")}</code></td>
+            <td>${esc(new Date(row.createdAt).toLocaleString())}</td>
+          </tr>`;
+        }
+        return `${t}</tbody></table>`;
+      }
+
+      async function reloadNotify() {
+        const box = document.getElementById("notify-log");
+        if (!box) return;
+        box.textContent = "Loading…";
+        const r = await api(
+          `/v1/inboxes/${encodeURIComponent(inboxId)}/notify-deliveries?limit=50`
+        );
+        if (!r.ok) {
+          box.innerHTML = `<p class="app-err">${esc(r.json.error || r.status)}</p>`;
+          return;
+        }
+        box.innerHTML = renderNotifyRows(r.json.deliveries);
+      }
+
       function renderCallbackRows(rows) {
         if (!rows?.length) {
           return `<p class="console-empty">No webhook deliveries yet.</p>`;
@@ -225,6 +256,9 @@
 
         let html = `<p class="console-meta"><code>${esc(d.id)}</code>`;
         if (d.callbackUrl) html += ` · callback configured`;
+        if (d.notifyEmail) {
+          html += ` · notify <span class="debug-mono">${esc(d.notifyEmail)}</span> (${esc(d.notifyMode || "verification")})`;
+        }
         html += `</p>`;
 
         const debugHref = d.debugUiUrl || d.links?.debug || `/debug.html?inbox=${esc(d.id)}`;
@@ -293,6 +327,13 @@
           html += `</tbody></table>`;
         }
 
+        if (d.notifyEmail) {
+          html += `<h2>Notify relay</h2>
+            <p class="console-meta">OTP/summary to <code>notifyEmail</code>. API: <code>GET …/notify-deliveries</code></p>
+            <button type="button" class="app-btn app-btn--ghost" id="reload-notify">Refresh notify log</button>
+            <div id="notify-log">${renderNotifyRows(d.notifyDeliveries)}</div>`;
+        }
+
         html += `<h2>Callback deliveries</h2>
           <p class="console-meta">Per-inbox <code>callbackUrl</code> and team webhook deliveries. API: <code>GET …/callbacks</code></p>
           <button type="button" class="app-btn app-btn--ghost" id="reload-callbacks">Refresh log</button>
@@ -307,7 +348,9 @@
         bindSimulate(scenarios);
         bindSearch();
         document.getElementById("reload-callbacks")?.addEventListener("click", reloadCallbacks);
+        document.getElementById("reload-notify")?.addEventListener("click", reloadNotify);
         reloadCallbacks();
+        if (d.notifyEmail) reloadNotify();
       }
 
       function bindSearch() {

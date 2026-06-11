@@ -127,6 +127,7 @@ export async function executeMcpTool(
       const result = await runAgentVerify(env, {
         inboxId: args.inboxId as string | undefined,
         service: args.service as string | undefined,
+        flow: args.flow as string | undefined,
         label: labelCheck.label ?? undefined,
         subjectContains: args.subjectContains as string | undefined,
         messageIndex: args.messageIndex as number | undefined,

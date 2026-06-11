@@ -1,5 +1,9 @@
 /** Signup-flow recipes for LLM agents (MCP + REST) */
-import { SERVICE_EXPECT_FROM } from "./service-presets";
+import {
+  SERVICE_EXPECT_FROM,
+  resolveSubjectHint,
+  type ServiceFlow,
+} from "./service-presets";
 
 export interface AgentRecipe {
   service: string;
@@ -77,15 +81,59 @@ function defaultRecipe(service: string): AgentRecipe {
   };
 }
 
-export function getAgentRecipe(service: string): AgentRecipe | null {
+const FLOW_STEPS: Record<
+  ServiceFlow,
+  (service: string, subjectHint: string | undefined) => string[]
+> = {
+  signup: (service, hint) => [
+    `POST /v1/agent/verify with service=${service}`,
+    "Submit address on the service signup form",
+    `subjectContains=${hint ?? "verify"} if multiple mails`,
+    "Follow agent.primaryAction (otp or magic_link)",
+  ],
+  login: (service, hint) => [
+    `Create inbox (service=${service}) → use address on login form`,
+    `mailagent_verify_signup with inboxId, flow=login`,
+    `subjectContains=${hint ?? "sign in"} for 2FA mail`,
+    "Enter OTP from primaryAction",
+  ],
+  password_reset: (service, hint) => [
+    `Create inbox (service=${service}) → request password reset`,
+    `verify with flow=password_reset`,
+    `subjectContains=${hint ?? "reset"}`,
+    "Open reset link from primaryAction",
+  ],
+};
+
+export function getAgentRecipe(
+  service: string,
+  flow: ServiceFlow = "signup"
+): AgentRecipe | null {
   const key = service.trim().toLowerCase();
   const senders = SERVICE_EXPECT_FROM[key];
   if (!senders) return null;
   const meta = RECIPE_META[key];
+  const subjectHint = resolveSubjectHint(key, flow);
+  const base = meta ?? defaultRecipe(key);
+  if (flow === "signup") {
+    return {
+      service: key,
+      allowedSenders: senders,
+      ...base,
+    };
+  }
+  const flowLabel =
+    flow === "login" ? "login / 2FA" : "password reset";
   return {
     service: key,
     allowedSenders: senders,
-    ...(meta ?? defaultRecipe(key)),
+    summary: `${base.summary} — ${flowLabel}`,
+    steps: FLOW_STEPS[flow](key, subjectHint),
+    tips: [
+      ...(base.tips ?? []),
+      `flow=${flow}`,
+      subjectHint ? `default subjectContains: ${subjectHint}` : "",
+    ].filter(Boolean),
   };
 }
 

@@ -1,5 +1,7 @@
 /** expectFrom presets for popular services (agent / MCP / API) */
 
+export type ServiceFlow = "signup" | "login" | "password_reset";
+
 /** Suggested subjectContains when waiting for verification mail (MCP / verify). */
 export const SERVICE_SUBJECT_HINTS: Record<string, string> = {
   github: "verify",
@@ -27,6 +29,64 @@ export const SERVICE_SUBJECT_HINTS: Record<string, string> = {
   twilio: "verify",
   aws: "verify",
   resend: "verify",
+};
+
+/** Login / step-up 2FA — use flow=login on verify when subjectContains omitted. */
+export const SERVICE_LOGIN_SUBJECT_HINTS: Record<string, string> = {
+  github: "sign in",
+  gitlab: "sign in",
+  bitbucket: "sign in",
+  google: "sign-in",
+  auth0: "code",
+  stripe: "verification code",
+  vercel: "sign in",
+  supabase: "code",
+  clerk: "code",
+  discord: "verify",
+  openai: "code",
+  figma: "sign in",
+  notion: "sign in",
+  linear: "sign in",
+  slack: "login",
+  shopify: "log in",
+  atlassian: "sign in",
+  microsoft: "security code",
+  apple: "Apple ID",
+  firebase: "sign-in",
+  dribbble: "sign in",
+  posthog: "code",
+  twilio: "code",
+  aws: "verification",
+  resend: "code",
+};
+
+/** Password reset — use flow=password_reset on verify. */
+export const SERVICE_PASSWORD_RESET_SUBJECT_HINTS: Record<string, string> = {
+  github: "reset",
+  gitlab: "reset",
+  bitbucket: "reset",
+  google: "reset",
+  auth0: "reset",
+  stripe: "reset",
+  vercel: "reset",
+  supabase: "reset",
+  clerk: "reset",
+  discord: "reset",
+  openai: "reset",
+  figma: "reset",
+  notion: "reset",
+  linear: "reset",
+  slack: "reset",
+  shopify: "reset",
+  atlassian: "reset",
+  microsoft: "reset",
+  apple: "reset",
+  firebase: "reset",
+  dribbble: "reset",
+  posthog: "reset",
+  twilio: "reset",
+  aws: "reset",
+  resend: "reset",
 };
 
 /** Default inbox TTL (minutes) when create/verify omits ttlMinutes. */
@@ -77,9 +137,32 @@ export const SERVICE_EXPECT_FROM: Record<string, string[]> = {
   posthog: ["posthog.com"],
 };
 
-export function resolveSubjectHint(service?: string): string | undefined {
+function parseServiceFlow(flow?: string): ServiceFlow {
+  const f = flow?.trim().toLowerCase();
+  if (f === "login") return "login";
+  if (f === "password_reset") return "password_reset";
+  return "signup";
+}
+
+export function resolveSubjectHint(
+  service?: string,
+  flow?: ServiceFlow | string
+): string | undefined {
   const key = service?.trim().toLowerCase();
-  return key ? SERVICE_SUBJECT_HINTS[key] : undefined;
+  if (!key) return undefined;
+  const parsed = typeof flow === "string" ? parseServiceFlow(flow) : flow ?? "signup";
+  switch (parsed) {
+    case "login":
+      return SERVICE_LOGIN_SUBJECT_HINTS[key] ?? SERVICE_SUBJECT_HINTS[key];
+    case "password_reset":
+      return (
+        SERVICE_PASSWORD_RESET_SUBJECT_HINTS[key] ??
+        SERVICE_SUBJECT_HINTS[key] ??
+        "reset"
+      );
+    default:
+      return SERVICE_SUBJECT_HINTS[key];
+  }
 }
 
 export function formatSubjectHintsForDocs(max = 12): string {

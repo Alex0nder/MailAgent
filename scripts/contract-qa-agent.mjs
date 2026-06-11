@@ -94,7 +94,13 @@ async function main() {
     process.exit(1);
   }
   const scenarioIds = scenarios.json.scenarios.map((s) => s.id);
-  for (const id of ["otp", "magic_link", "attachment"]) {
+  for (const id of [
+    "otp",
+    "magic_link",
+    "attachment",
+    "login_2fa",
+    "password_reset",
+  ]) {
     if (!scenarioIds.includes(id)) {
       console.error(`simulate scenario missing: ${id}`);
       process.exit(1);

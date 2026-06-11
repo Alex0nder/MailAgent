@@ -4,8 +4,12 @@ export type MailAgentOptions = {
   apiKey: string;
 };
 
+export type ServiceFlow = "signup" | "login" | "password_reset";
+
 export type VerifySignupOptions = {
   service?: string;
+  /** Default subject hints per service when subjectContains omitted */
+  flow?: ServiceFlow;
   inboxId?: string;
   runId?: string;
   label?: string;
@@ -15,6 +19,43 @@ export type VerifySignupOptions = {
   timeoutSeconds?: number;
   ttlMinutes?: number;
   deleteAfter?: boolean;
+  callbackUrl?: string;
+  notifyEmail?: string;
+  notifyMode?: "verification" | "off";
+};
+
+export type CreateInboxOptions = {
+  service?: string;
+  label?: string;
+  runId?: string;
+  ttlMinutes?: number;
+  callbackUrl?: string;
+  notifyEmail?: string;
+  notifyMode?: "verification" | "off";
+  expectFrom?: string | string[];
+  username?: string;
+  domainId?: string;
+};
+
+export type InboxInfo = {
+  id: string;
+  address: string;
+  expiresAt?: string;
+  label?: string | null;
+  callbackUrl?: string | null;
+  notifyEmail?: string | null;
+  notifyMode?: string | null;
+};
+
+export type NotifyDelivery = {
+  id: string;
+  notifyEmail: string;
+  messageId: string | null;
+  resendId: string | null;
+  ok: boolean;
+  error: string | null;
+  durationMs: number | null;
+  createdAt: string;
 };
 
 export type PrimaryAction = {
@@ -151,6 +192,33 @@ export class MailAgent {
       method: "POST",
       body: JSON.stringify(options),
     });
+  }
+
+  /** POST /v1/inboxes — temp address (+ optional notifyEmail relay) */
+  createInbox(options: CreateInboxOptions = {}): Promise<InboxInfo> {
+    const body = { ...options };
+    if (options.runId && !options.label) {
+      body.label = `agent-${options.runId}`;
+    }
+    return this.request<InboxInfo & { id: string }>("/v1/inboxes", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }).then((row) => ({
+      id: row.id,
+      address: row.address,
+      expiresAt: row.expiresAt,
+      label: row.label,
+      callbackUrl: row.callbackUrl,
+      notifyEmail: row.notifyEmail,
+      notifyMode: row.notifyMode,
+    }));
+  }
+
+  /** GET /v1/inboxes/:id/notify-deliveries — developer relay log */
+  listNotifyDeliveries(inboxId: string, limit = 20): Promise<NotifyDelivery[]> {
+    return this.request<{ deliveries: NotifyDelivery[] }>(
+      `/v1/inboxes/${inboxId}/notify-deliveries?limit=${limit}`
+    ).then((data) => data.deliveries ?? []);
   }
 
   /** GET /v1/me — plan, scope, usage, billing, capabilities */

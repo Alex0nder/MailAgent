@@ -673,9 +673,9 @@ Spec: [DEV-EMAIL-RELAY.md](./DEV-EMAIL-RELAY.md)
 | 30 | `fireInboxNotify` after ingest (Resend, `OUTBOUND_FROM`) | ✅ |
 | 31 | `GET /v1/inboxes/:id/notify-deliveries` + `notify_deliveries` table | ✅ |
 | 32 | REST create/open + OpenAPI + MCP `create_inbox` | ✅ |
-| 33 | Console inbox: notify address + delivery status | ✅ partial (fields in console-inbox API) |
+| 33 | Console inbox: notify address + delivery status | ✅ `notify-deliveries` UI |
 | 34 | `contract-qa-notify` (simulate → delivery row) | ✅ `npm run test:contract:qa:notify` |
-| 35 | `@mailagent/agent` + `@mailagent/qa` `notifyEmail` | planned |
+| 35 | `@mailagent/agent` + `@mailagent/qa` `notifyEmail` | ✅ 0.1.13 / 0.1.16 |
 | 36 | Plan quota `notifyEmailsPerDay` + rate limit | planned |
 
 **Done when:** manual QA — temp address in app, code in `dev@company.com` within ~30s.
@@ -692,6 +692,17 @@ Spec: [EMAIL-CHECK.md](./EMAIL-CHECK.md) · [check-if-email-exists](https://gith
 | `contract-qa-email-check` | ✅ |
 
 **Done when:** QA can call check API without sending mail or running external services.
+
+### v0.80 — Agent flows + SDK notify
+
+| Task | Status |
+|------|--------|
+| `@mailagent/agent` `createInbox` + `notifyEmail` + `listNotifyDeliveries` | ✅ 0.1.13 |
+| `@mailagent/qa` `notifyEmail` + `waitForNotifyDelivery` | ✅ 0.1.16 |
+| Console `notify-deliveries` UI | ✅ |
+| `flow=login` / `password_reset` on verify + recipes | ✅ |
+| Simulate `login_2fa`, `password_reset` scenarios | ✅ |
+| Skill: callbackUrl + notifyEmail + flows | ✅ |
 
 ### Deferred (not QA)
 
