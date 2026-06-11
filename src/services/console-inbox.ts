@@ -39,6 +39,8 @@ export async function buildConsoleInboxDetail(
     expiresAt: inbox.expires_at,
     createdAt: inbox.created_at,
     callbackUrl: inbox.callback_url,
+    notifyEmail: inbox.notify_email,
+    notifyMode: inbox.notify_mode,
     messageCount: diagnose?.messageCount ?? 0,
     messages: diagnose?.messages ?? [],
     threads,

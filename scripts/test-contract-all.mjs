@@ -19,6 +19,7 @@ const scripts = [
   "contract-qa-oidc.mjs",
   "contract-qa-billing.mjs",
   "contract-qa-callback.mjs",
+  "contract-qa-notify.mjs",
   "contract-qa-attachments.mjs",
   "contract-qa-threads.mjs",
   "contract-qa-outbound.mjs",

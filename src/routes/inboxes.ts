@@ -4,6 +4,11 @@ import type { ApiVariables } from "../lib/api-context";
 import { requireApiKey } from "../lib/auth";
 import { rateLimit } from "../lib/rate-limit";
 import { parseCallbackUrl } from "../lib/callback-url";
+import {
+  blockedNotifyDomains,
+  parseNotifyEmail,
+  parseNotifyMode,
+} from "../lib/notify-email";
 import { listSimulateScenarios } from "../lib/simulate-scenarios";
 import { resolveExpectFrom, resolveTtlMinutes } from "../lib/service-presets";
 import {
@@ -13,6 +18,8 @@ import {
   scopeWriteDenied,
 } from "../lib/scope-guard";
 import { listCallbackDeliveries } from "../services/callback-log";
+import { listNotifyDeliveries } from "../services/notify-log";
+import { getDomainForInbox } from "../services/domains";
 import { auditRoute } from "../services/audit-log";
 import {
   countActiveInboxesForHint,
@@ -65,6 +72,8 @@ type CreateBody = {
   allowedSenders?: string | string[];
   label?: string;
   callbackUrl?: string;
+  notifyEmail?: string;
+  notifyMode?: string;
   subjectContains?: string;
   messageIndex?: number;
   timeoutSeconds?: number;
@@ -84,8 +93,8 @@ inboxRoutes.post("/open", async (c) => {
     body = {};
   }
 
-  const opts = inboxOptionsFromBody(body);
-  const clean = rejectInvalidCallback(opts);
+  const opts = await inboxOptionsFromBody(c, body);
+  const clean = rejectInvalidInboxOptions(opts);
   if ("error" in clean) return c.json(clean, 400);
 
   const quotaErr = await checkInboxQuota(c);
@@ -181,8 +190,8 @@ inboxRoutes.post("/", async (c) => {
   } catch {
     body = {};
   }
-  const opts = inboxOptionsFromBody(body);
-  const clean = rejectInvalidCallback(opts);
+  const opts = await inboxOptionsFromBody(c, body);
+  const clean = rejectInvalidInboxOptions(opts);
   if ("error" in clean) return c.json(clean, 400);
 
   const quotaErr = await checkInboxQuota(c);
@@ -520,6 +529,29 @@ inboxRoutes.get("/:id/diagnose", async (c) => {
   return c.json(diagnose);
 });
 
+inboxRoutes.get("/:id/notify-deliveries", async (c) => {
+  const inbox = await getInbox(c.env, c.req.param("id"), {
+    apiKeyHint: c.get("apiKeyHint"),
+  });
+  if (!inbox) return c.json({ error: "inbox_not_found" }, 404);
+  const denied = scopeInboxDenied(c, inbox);
+  if (denied) return denied;
+  const limit = Number(c.req.query("limit") ?? "20");
+  const rows = await listNotifyDeliveries(c.env, inbox.id, limit);
+  return c.json({
+    deliveries: rows.map((row) => ({
+      id: row.id,
+      notifyEmail: row.notify_email,
+      messageId: row.message_id,
+      resendId: row.resend_id,
+      ok: row.ok,
+      error: row.error_text,
+      durationMs: row.duration_ms,
+      createdAt: row.created_at,
+    })),
+  });
+});
+
 inboxRoutes.get("/:id/callbacks", async (c) => {
   const inbox = await getInbox(c.env, c.req.param("id"), {
     apiKeyHint: c.get("apiKeyHint"),
@@ -803,9 +835,25 @@ function formatMessage(m: {
   };
 }
 
-function inboxOptionsFromBody(body: CreateBody) {
+async function inboxOptionsFromBody(
+  c: import("hono").Context<{ Bindings: Env; Variables: ApiVariables }>,
+  body: CreateBody
+) {
   const expectFrom = resolveExpectFrom(body.service, body.expectFrom);
   const callbackUrl = parseCallbackUrl(body.callbackUrl);
+
+  let customDomain: string | undefined;
+  if (body.domainId) {
+    const domain = await getDomainForInbox(c.env, body.domainId, {
+      teamId: c.get("teamId"),
+      apiKeyHint: c.get("apiKeyHint"),
+    });
+    customDomain = domain?.name;
+  }
+  const notifyEmail = parseNotifyEmail(body.notifyEmail, {
+    blockedDomains: blockedNotifyDomains(c.env.INBOX_DOMAIN, customDomain),
+  });
+
   return {
     ttlMinutes: resolveTtlMinutes(body.service, body.ttlMinutes),
     expectFrom,
@@ -813,18 +861,24 @@ function inboxOptionsFromBody(body: CreateBody) {
     label: body.label,
     callbackUrl,
     callbackInvalid: Boolean(body.callbackUrl && !callbackUrl),
+    notifyEmail,
+    notifyMode: notifyEmail ? parseNotifyMode(body.notifyMode) : "off",
+    notifyInvalid: Boolean(body.notifyEmail && !notifyEmail),
     username: body.username,
     domainId: body.domainId,
   };
 }
 
-function rejectInvalidCallback(
-  opts: ReturnType<typeof inboxOptionsFromBody>
+function rejectInvalidInboxOptions(
+  opts: Awaited<ReturnType<typeof inboxOptionsFromBody>>
 ) {
   if (opts.callbackInvalid) {
     return { error: "invalid_callback_url" as const };
   }
-  const { callbackInvalid: _, ...rest } = opts;
+  if (opts.notifyInvalid) {
+    return { error: "invalid_notify_email" as const };
+  }
+  const { callbackInvalid: _c, notifyInvalid: _n, ...rest } = opts;
   return rest;
 }
 
@@ -836,6 +890,8 @@ function formatInbox(inbox: InboxRow) {
     allowedSenders: inbox.allowed_senders,
     label: inbox.label,
     callbackUrl: inbox.callback_url,
+    notifyEmail: inbox.notify_email,
+    notifyMode: inbox.notify_mode,
     ...(inbox.domain_id ? { domainId: inbox.domain_id } : {}),
   };
 }

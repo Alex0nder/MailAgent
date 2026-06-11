@@ -68,9 +68,23 @@ server.registerTool(
         .url()
         .optional()
         .describe("HTTPS webhook when email arrives (CI hooks)"),
+      notifyEmail: z
+        .string()
+        .email()
+        .optional()
+        .describe("Developer real inbox — OTP summary relay after verification email"),
     },
   },
-  async ({ ttlMinutes, expectFrom, allowedSenders, service, label, runId, callbackUrl }) => {
+  async ({
+    ttlMinutes,
+    expectFrom,
+    allowedSenders,
+    service,
+    label,
+    runId,
+    callbackUrl,
+    notifyEmail,
+  }) => {
     const client = new MailAgentClient();
     const resolvedLabel = runId
       ? label
@@ -84,10 +98,11 @@ server.registerTool(
       allowedSenders,
       label: resolvedLabel,
       callbackUrl,
+      notifyEmail,
     });
     return toolText({
       ...inbox,
-      hint: "Use address on the signup form, then mailagent_wait_and_extract or wait + extract.",
+      hint: "Use address on the signup form, then mailagent_wait_and_extract or wait + extract. notifyEmail relays OTP to your real inbox.",
     });
   }
 );

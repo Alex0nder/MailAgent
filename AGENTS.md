@@ -23,6 +23,7 @@ CI post-deploy: `test:prod:gate` (smoke only). Before merge: `test:prod` (full c
 | attachments / raw MIME | `npm run test:contract:qa:attachments` |
 | team keys / dashboard | `npm run test:contract:qa:team-keys` |
 | billing / Stripe routes | `npm run test:contract:qa:billing` |
+| notifyEmail relay | `npm run test:contract:qa:notify` |
 | `src/mcp/manifest.ts`, service presets, `context-os/` | `npm run sync:context-os` then `npm run check:context-os-router` |
 | anything before merge | `npm run test:prod` (full; CI uses `test:prod:gate`) |
 

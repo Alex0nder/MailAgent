@@ -58,6 +58,7 @@ export class MailAgentClient {
     if (options?.service) body.service = options.service;
     if (options?.label) body.label = options.label;
     if (options?.callbackUrl) body.callbackUrl = options.callbackUrl;
+    if (options?.notifyEmail) body.notifyEmail = options.notifyEmail;
     const expectFrom = resolveExpectFrom(
       options?.service,
       options?.expectFrom
@@ -407,6 +408,8 @@ export interface CreateInboxOptions {
   label?: string;
   /** QA: HTTPS webhook on message */
   callbackUrl?: string;
+  /** Developer real inbox — OTP relay */
+  notifyEmail?: string;
 }
 
 export interface WaitAndExtractOptions {

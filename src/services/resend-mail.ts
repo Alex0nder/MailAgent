@@ -8,6 +8,8 @@ import {
   primaryLink,
 } from "./extract";
 import { fireInboxCallback } from "./callback";
+import { shouldFireNotify } from "../lib/notify-email";
+import { fireInboxNotify } from "./notify-mail";
 import { fireTeamEventForMessage } from "./team-event-webhook";
 import {
   findInboxByAddress,
@@ -145,6 +147,14 @@ export async function processInboundEmail(
         address: inbox.address,
         label: inbox.label,
       },
+    });
+  }
+
+  if (shouldFireNotify(inbox)) {
+    await fireInboxNotify(env, {
+      inbox,
+      messageId: row.id,
+      verification: formatMessageVerification(row, inbox.id),
     });
   }
 

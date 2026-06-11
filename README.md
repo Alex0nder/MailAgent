@@ -86,6 +86,7 @@ Authorization: Bearer <API_KEY>
 | `GET` | `/v1/inboxes/:id/events` | **SSE** — wait for new message |
 | `GET` | `/v1/inboxes/:id/wait?timeout=60` | Poll fallback (every 500ms) |
 | `GET` | `/v1/inboxes/:id/callbacks` | `callbackUrl` delivery log (QA) |
+| `GET` | `/v1/inboxes/:id/notify-deliveries` | `notifyEmail` relay log (manual QA) |
 | `DELETE` | `/v1/inboxes/:id` | Delete |
 | `GET` | `/v1/stats` | Inbox / message counters (24h) |
 | `POST` | `/webhooks/resend` | Resend webhook (no API key) |

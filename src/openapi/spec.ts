@@ -25,6 +25,16 @@ const inboxBody = {
     },
     label: { type: "string", maxLength: 128 },
     callbackUrl: { type: "string", format: "uri", description: "HTTPS webhook" },
+    notifyEmail: {
+      type: "string",
+      format: "email",
+      description: "Developer real inbox — OTP summary relay after ingest",
+    },
+    notifyMode: {
+      type: "string",
+      enum: ["verification", "off"],
+      description: "Relay mode (default verification when notifyEmail set)",
+    },
     username: { type: "string", description: "Local part on custom domain" },
     domainId: { type: "string", description: "Verified domain from POST /v1/domains" },
   },
@@ -55,6 +65,8 @@ const inbox = {
     allowedSenders: { type: "array", items: { type: "string" } },
     label: { type: "string", nullable: true },
     callbackUrl: { type: "string", nullable: true },
+    notifyEmail: { type: "string", nullable: true },
+    notifyMode: { type: "string", nullable: true },
     messageCount: { type: "integer" },
   },
 } as const;
@@ -118,6 +130,20 @@ const callbackDelivery = {
     callbackUrl: { type: "string" },
     messageId: { type: "string", nullable: true },
     statusCode: { type: "integer", nullable: true },
+    ok: { type: "boolean" },
+    error: { type: "string", nullable: true },
+    durationMs: { type: "integer", nullable: true },
+    createdAt: { type: "string", format: "date-time" },
+  },
+} as const;
+
+const notifyDelivery = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    notifyEmail: { type: "string" },
+    messageId: { type: "string", nullable: true },
+    resendId: { type: "string", nullable: true },
     ok: { type: "boolean" },
     error: { type: "string", nullable: true },
     durationMs: { type: "integer", nullable: true },
@@ -400,7 +426,9 @@ export const openApiSpec = {
               "application/json": { schema: inbox },
             },
           },
-          "400": { description: "invalid_callback_url" },
+          "400": {
+            description: "invalid_callback_url or invalid_notify_email",
+          },
         },
       },
       delete: {
@@ -897,6 +925,35 @@ export const openApiSpec = {
           },
           "404": { $ref: "#/components/responses/NotFound" },
           "500": { description: "simulate_failed" },
+        },
+      },
+    },
+    "/v1/inboxes/{id}/notify-deliveries": {
+      get: {
+        tags: ["inboxes"],
+        summary: "Developer email relay delivery log",
+        security: bearer,
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string" } },
+          { name: "limit", in: "query", schema: { type: "integer", maximum: 50 } },
+        ],
+        responses: {
+          "200": {
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    deliveries: {
+                      type: "array",
+                      items: notifyDelivery,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          "404": { $ref: "#/components/responses/NotFound" },
         },
       },
     },

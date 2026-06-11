@@ -661,6 +661,25 @@ Backlog: [PRODUCT-NEXT.md](./PRODUCT-NEXT.md)
 | 27 | `python-agent-verify.html` landing | ✅ |
 | 28 | Issue pilot scoped key | ⏳ |
 
+### v0.78 — Developer email relay (P5)
+
+Signup form uses **temp MailAgent address**; extracted OTP / magic link **relayed to developer's real email**.
+
+Spec: [DEV-EMAIL-RELAY.md](./DEV-EMAIL-RELAY.md)
+
+| P5 | Task | Status |
+|----|------|--------|
+| 29 | Migration + `notifyEmail` / `notifyMode` on `inboxes` | ✅ `018_notify_email.sql` |
+| 30 | `fireInboxNotify` after ingest (Resend, `OUTBOUND_FROM`) | ✅ |
+| 31 | `GET /v1/inboxes/:id/notify-deliveries` + `notify_deliveries` table | ✅ |
+| 32 | REST create/open + OpenAPI + MCP `create_inbox` | ✅ |
+| 33 | Console inbox: notify address + delivery status | ✅ partial (fields in console-inbox API) |
+| 34 | `contract-qa-notify` (simulate → delivery row) | ✅ `npm run test:contract:qa:notify` |
+| 35 | `@mailagent/agent` + `@mailagent/qa` `notifyEmail` | planned |
+| 36 | Plan quota `notifyEmailsPerDay` + rate limit | planned |
+
+**Done when:** manual QA — temp address in app, code in `dev@company.com` within ~30s.
+
 ### Deferred (not QA)
 
 - ~~Agent session memory / multi-step run state~~ ✅ v0.35

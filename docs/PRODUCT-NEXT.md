@@ -89,10 +89,27 @@ P0–P3 **done** (pilot #20 = human). Next: **P4** (console & SDK polish).
 
 ---
 
+## P5 — developer email relay (manual QA)
+
+| # | Feature | Status |
+|---|---------|--------|
+| 29 | **`notifyEmail` on inbox create** — OTP/summary to developer's real inbox | ✅ |
+| 30 | **Temp address for signup** — any MailAgent inbox; relay ≠ signup address | ✅ |
+| 31 | **Notify delivery log** — `GET …/notify-deliveries` + console | ✅ API · UI partial |
+| 32 | **MCP + SDK `notifyEmail`** | ✅ MCP · SDK planned |
+| 33 | **Contract `contract-qa-notify`** (simulate path) | ✅ |
+
+Spec: [DEV-EMAIL-RELAY.md](./DEV-EMAIL-RELAY.md)
+
+**Done when:** dev puts temp `address` in signup form, reads OTP in their real Gmail while debugging manually.
+
+---
+
 ## Suggested next sprint
 
 1. P3 #20 — send `print:pilot-invite` + scoped key to first pilot team  
-2. P4+ — agent-runs links to console-inbox simulate  
-3. Catalog PR / Context OS eval cleanup (optional)
+2. P5 #29 — implement `notifyEmail` relay (after pilot feedback or in parallel)  
+3. P4+ — agent-runs links to console-inbox simulate  
+4. Catalog PR / Context OS eval cleanup (optional)
 
-Track in [ROADMAP.md](./ROADMAP.md) § v0.77.
+Track in [ROADMAP.md](./ROADMAP.md) § v0.78.

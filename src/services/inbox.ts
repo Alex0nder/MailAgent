@@ -17,6 +17,8 @@ export interface InboxRow {
   allowed_senders: string[];
   label: string | null;
   callback_url: string | null;
+  notify_email: string | null;
+  notify_mode: string | null;
   api_key_hint: string | null;
   domain_id?: string | null;
 }
@@ -48,6 +50,8 @@ export async function createInbox(
     allowedSenders?: string | string[];
     label?: string;
     callbackUrl?: string | null;
+    notifyEmail?: string | null;
+    notifyMode?: string | null;
     apiKeyHint?: string;
     teamId?: string | null;
     username?: string;
@@ -64,6 +68,10 @@ export async function createInbox(
   );
   const label = options?.label?.trim().slice(0, 128) || null;
   const callbackUrl = options?.callbackUrl ?? null;
+  const notifyEmail = options?.notifyEmail ?? null;
+  const notifyMode = notifyEmail
+    ? (options?.notifyMode ?? "verification")
+    : (options?.notifyMode ?? "off");
   const apiKeyHint = options?.apiKeyHint?.slice(0, 16) ?? null;
   const id = nanoid(12);
 
@@ -92,11 +100,11 @@ export async function createInbox(
   await sql`
     INSERT INTO inboxes (
       id, address, expires_at, allowed_senders, label, callback_url,
-      api_key_hint, domain_id
+      notify_email, notify_mode, api_key_hint, domain_id
     )
     VALUES (
       ${id}, ${address}, ${expiresAt}, ${allowed}, ${label}, ${callbackUrl},
-      ${apiKeyHint}, ${domainId}
+      ${notifyEmail}, ${notifyMode}, ${apiKeyHint}, ${domainId}
     )
   `;
 
@@ -108,6 +116,8 @@ export async function createInbox(
     allowed_senders: allowed,
     label,
     callback_url: callbackUrl,
+    notify_email: notifyEmail,
+    notify_mode: notifyMode,
     api_key_hint: apiKeyHint,
     domain_id: domainId,
   };
@@ -141,7 +151,7 @@ export async function listInboxes(
     const pattern = `${labelPrefix}%`;
     const rows = hint
       ? ((await sql`
-          SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, api_key_hint
+          SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, notify_email, notify_mode, api_key_hint, domain_id
           FROM inboxes
           WHERE label LIKE ${pattern}
             AND expires_at > NOW()
@@ -150,7 +160,7 @@ export async function listInboxes(
           LIMIT ${limit}
         `) as InboxRow[])
       : ((await sql`
-          SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, api_key_hint
+          SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, notify_email, notify_mode, api_key_hint, domain_id
           FROM inboxes
           WHERE label LIKE ${pattern}
             AND expires_at > NOW()
@@ -162,7 +172,7 @@ export async function listInboxes(
 
   if (label && hint) {
     const rows = (await sql`
-      SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, api_key_hint
+      SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, notify_email, notify_mode, api_key_hint, domain_id
       FROM inboxes
       WHERE label = ${label}
         AND expires_at > NOW()
@@ -175,7 +185,7 @@ export async function listInboxes(
 
   if (label) {
     const rows = (await sql`
-      SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, api_key_hint
+      SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, notify_email, notify_mode, api_key_hint, domain_id
       FROM inboxes
       WHERE label = ${label}
         AND expires_at > NOW()
@@ -187,7 +197,7 @@ export async function listInboxes(
 
   if (hint) {
     const rows = (await sql`
-      SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, api_key_hint
+      SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, notify_email, notify_mode, api_key_hint, domain_id
       FROM inboxes
       WHERE expires_at > NOW()
         AND (api_key_hint IS NULL OR api_key_hint = ${hint})
@@ -198,7 +208,7 @@ export async function listInboxes(
   }
 
   const rows = (await sql`
-    SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, api_key_hint
+    SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, notify_email, notify_mode, api_key_hint, domain_id
     FROM inboxes
     WHERE expires_at > NOW()
     ORDER BY created_at DESC
@@ -214,7 +224,7 @@ export async function getInbox(
 ): Promise<InboxRow | null> {
   const sql = getDb(env);
   const rows = (await sql`
-    SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, api_key_hint
+    SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, notify_email, notify_mode, api_key_hint, domain_id
     FROM inboxes
     WHERE id = ${id}
       AND expires_at > NOW()
@@ -243,7 +253,7 @@ export async function findInboxByAddress(
   const sql = getDb(env);
   const normalized = address.trim().toLowerCase();
   const rows = (await sql`
-    SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, api_key_hint
+    SELECT id, address, expires_at, created_at, allowed_senders, label, callback_url, notify_email, notify_mode, api_key_hint, domain_id
     FROM inboxes
     WHERE LOWER(address) = ${normalized}
       AND expires_at > NOW()
@@ -259,7 +269,10 @@ function mapInboxRow(row: InboxRow): InboxRow {
     allowed_senders: Array.isArray(allowed) ? allowed : [],
     label: row.label ?? null,
     callback_url: row.callback_url ?? null,
+    notify_email: row.notify_email ?? null,
+    notify_mode: row.notify_mode ?? "off",
     api_key_hint: row.api_key_hint ?? null,
+    domain_id: row.domain_id ?? null,
   };
 }
 

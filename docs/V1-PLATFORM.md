@@ -24,6 +24,7 @@ Goal: **full email API for agents** (inbound + outbound + threads) **plus** adva
 | **Diagnose on timeout** | ❌ | ✅ |
 | **Agent verify + primaryAction** | partial | ✅ |
 | **Multi-step run memory** | partial | ✅ session API + MCP |
+| **Developer email relay** | ❌ | 🔜 v0.78 `notifyEmail` |
 
 ---
 

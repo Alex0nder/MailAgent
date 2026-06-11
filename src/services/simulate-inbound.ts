@@ -4,6 +4,8 @@ import type { Env, MessageNotifyPayload } from "../env";
 import { primaryLink } from "./extract";
 import { getInbox, getMessage, insertMessage, type MessageRow } from "./inbox";
 import { fireInboxCallback } from "./callback";
+import { shouldFireNotify } from "../lib/notify-email";
+import { fireInboxNotify } from "./notify-mail";
 import { fireTeamEventForMessage } from "./team-event-webhook";
 import { formatMessageVerification } from "./message-verify";
 import { getDb } from "../db/client";
@@ -43,6 +45,7 @@ export type SimulateInboundResult = {
   scenario?: string;
   attachmentId?: string;
   callback?: { ok: boolean; statusCode: number | null };
+  notify?: { ok: boolean; resendId: string | null; error?: string };
 };
 
 export async function simulateInboundMessage(
@@ -159,6 +162,15 @@ export async function simulateInboundMessage(
     });
   }
 
+  let notify: SimulateInboundResult["notify"];
+  if (shouldFireNotify(inbox)) {
+    notify = await fireInboxNotify(env, {
+      inbox,
+      messageId: row.id,
+      verification: formatMessageVerification(row, inbox.id),
+    });
+  }
+
   await fireTeamEventForMessage(env, {
     inbox,
     messageId: row.id,
@@ -175,6 +187,7 @@ export async function simulateInboundMessage(
     ...(input.scenario ? { scenario: input.scenario } : {}),
     ...(attachmentId ? { attachmentId } : {}),
     ...(callback ? { callback } : {}),
+    ...(notify ? { notify } : {}),
   };
 }
 
