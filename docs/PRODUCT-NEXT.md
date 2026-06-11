@@ -56,7 +56,7 @@ P0–P3 **done** (pilot #20 = human). Next: **P4** (console & SDK polish).
 | 17 | **SEO / nav links** | ✅ footer + landing cross-links |
 | 18 | **QA SDK `scenario`** | ✅ `@mailagent/qa` + pilot starter test |
 | 19 | **Pilot starter ↔ monorepo** | ✅ CI installs local `@mailagent/qa` |
-| 20 | **Run first external pilot** | ⏳ baseline ✅ · `print:pilot-invite` + `issue:pilot-key` |
+| 20 | **Run first external pilot** | ⏳ key issued · send invite + key |
 | 21 | **Team webhook docs** | ✅ `teams.html#event-webhook` |
 | 22 | **QA troubleshooting URL** | ✅ `/docs/qa-troubleshooting.html` |
 | PyPI `mailagent-agent@0.1.0` | ✅ |
@@ -74,7 +74,7 @@ P0–P3 **done** (pilot #20 = human). Next: **P4** (console & SDK polish).
 | 25 | **Package matrix in AGENTS.md** | ✅ npm + PyPI |
 | 26 | **Console simulate UI** | ✅ `console-inbox.html` |
 | 27 | **Python landing page** | ✅ `python-agent-verify.html` |
-| 28 | **Pilot scoped key issued** | ⏳ `issue:pilot-key` |
+| 28 | **Pilot scoped key issued** | ✅ `external-pilot` (local `issue:pilot-key`) |
 
 ---
 
@@ -108,7 +108,7 @@ Spec: [EMAIL-CHECK.md](./EMAIL-CHECK.md)
 |---|---------|--------|
 | 29 | **`notifyEmail` on inbox create** — OTP/summary to developer's real inbox | ✅ |
 | 30 | **Temp address for signup** — any MailAgent inbox; relay ≠ signup address | ✅ |
-| 31 | **Notify delivery log** — `GET …/notify-deliveries` + console | ✅ API · UI partial |
+| 31 | **Notify delivery log** — `GET …/notify-deliveries` + console | ✅ |
 | 32 | **MCP + SDK `notifyEmail`** | ✅ MCP · `@mailagent/agent` + `@mailagent/qa` |
 | 33 | **Contract `contract-qa-notify`** (simulate path) | ✅ |
 
