@@ -4,7 +4,11 @@ import "../../scripts/load-env.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { routeQuestion, routingScores } from "./lib/router.mjs";
+import {
+  routeQuestion,
+  routeQuestionSemantic,
+  routingScores,
+} from "./lib/router.mjs";
 import { loadBaselineContext, loadCoreContext } from "./lib/context-loader.mjs";
 import { loadGraphContext } from "./lib/graph-loader.mjs";
 import { answerQuestion } from "./lib/llm.mjs";
@@ -24,6 +28,7 @@ function parseArgs(argv) {
     skipJudge: false,
     ids: null,
     merge: null,
+    router: "keyword",
   };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
@@ -36,11 +41,13 @@ function parseArgs(argv) {
     else if (a === "--dry-run") opts.dryRun = true;
     else if (a === "--skip-judge") opts.skipJudge = true;
     else if (a === "--merge" && argv[i + 1]) opts.merge = argv[++i];
+    else if (a === "--router" && argv[i + 1]) opts.router = argv[++i];
     else if (a === "--help") {
       console.log(`Usage: node run-eval.mjs [options]
   --pilot           MA01-MA10 only
   --ids MA01,MA02   subset
   --condition a|b|c|both|all|abc
+  --router gold|keyword|semantic   B context routing (default: keyword)
   --dry-run         context sizes only, no API
   --skip-judge      answers only
   --out DIR         results directory
@@ -54,6 +61,28 @@ Env: OPENAI_API_KEY, EVAL_MODEL (default gpt-4o-mini), OPENAI_BASE_URL`);
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
+}
+
+const ROUTER_MODES = ["gold", "keyword", "semantic"];
+
+/** Cores loaded for condition B — gold=oracle, keyword/semantic=production routers. */
+async function resolveCoreIds(question, routerMode) {
+  switch (routerMode) {
+    case "gold":
+      return question.expected_cores?.length
+        ? [...question.expected_cores]
+        : routeQuestion(question.question);
+    case "keyword":
+      return routeQuestion(question.question);
+    case "semantic":
+      return routeQuestionSemantic(question.question);
+    default: {
+      const unknown = routerMode;
+      throw new Error(
+        `Invalid --router: ${unknown}. Use: ${ROUTER_MODES.join("|")}`
+      );
+    }
+  }
 }
 
 async function runOne(question, condition, context, opts) {
@@ -102,6 +131,10 @@ async function runOne(question, condition, context, opts) {
 
 async function main() {
   const opts = parseArgs(process.argv);
+  if (!ROUTER_MODES.includes(opts.router)) {
+    console.error(`Invalid --router: ${opts.router}. Use: ${ROUTER_MODES.join("|")}`);
+    process.exit(1);
+  }
   const bank = JSON.parse(fs.readFileSync(opts.questions, "utf8"));
   let questions = bank.questions;
 
@@ -153,16 +186,16 @@ async function main() {
   const routingLog = [];
 
   for (const q of questions) {
-    const routedIds = routeQuestion(q.question);
-    const coreCtx = loadCoreContext(routedIds);
+    const coreIds = await resolveCoreIds(q, opts.router);
+    const coreCtx = loadCoreContext(coreIds);
     const graphCtx = loadGraphContext(q.question);
 
     if (q.expected_cores?.length) {
-      const rs = routingScores(q.expected_cores, routedIds);
+      const rs = routingScores(q.expected_cores, coreIds);
       routingLog.push({
         question_id: q.id,
         expected: q.expected_cores,
-        routed: routedIds,
+        routed: coreIds,
         f1: Number(rs.f1.toFixed(3)),
       });
     }
@@ -170,11 +203,12 @@ async function main() {
     for (const cond of conditions) {
       const ctx =
         cond === "A" ? baselineCtx : cond === "B" ? coreCtx : graphCtx;
-      console.log(`[${q.id}] condition ${cond} …`);
+      console.log(`[${q.id}] condition ${cond} (router=${opts.router}) …`);
       try {
         const row = await runOne(q, cond, ctx, opts);
         if (cond === "B") {
-          row.routed_cores = routedIds.join(";");
+          row.routed_cores = coreIds.join(";");
+          row.router_mode = opts.router;
         }
         rows.push(row);
         merged[`${q.id}:${cond}`] = row;
@@ -222,7 +256,7 @@ async function main() {
     skip_judge: opts.skipJudge,
     baseline_chars: baselineCtx.chars,
     model: process.env.EVAL_MODEL ?? "gpt-4o-mini",
-    router_mode: "keyword",
+    router_mode: opts.router,
     router_mean_f1: routingF1 != null ? Number(routingF1.toFixed(3)) : null,
     routing: routingLog,
   };

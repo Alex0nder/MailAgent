@@ -101,6 +101,9 @@
     "eval:context-os:dry-abc": "node context-os/eval/run-eval.mjs --pilot --dry-run --condition all",
     "eval:context-os:pilot": "node context-os/eval/run-eval.mjs --pilot --condition all",
     "eval:context-os": "node context-os/eval/run-eval.mjs --condition all",
+    "eval:context-os:ab-gold": "node context-os/eval/run-eval.mjs --condition both --router gold",
+    "eval:context-os:ab-keyword": "node context-os/eval/run-eval.mjs --condition both --router keyword",
+    "eval:context-os:ab-semantic": "node context-os/eval/run-eval.mjs --condition both --router semantic",
     "eval:context-os:aggregate": "node context-os/eval/aggregate.mjs",
     "eval:context-os:tokens": "node context-os/eval/tokens-report.mjs",
     "eval:context-os:export": "node context-os/eval/export-results.mjs"

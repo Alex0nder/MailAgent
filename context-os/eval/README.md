@@ -71,7 +71,7 @@ git clone --filter=blob:none --sparse https://github.com/Alex0nder/MailAgent.git
 git -C _mailagent sparse-checkout set context-os/eval
 ```
 
-**Важно:** Condition B в `run-eval.mjs` берёт `expected_cores` из `questions.json` (gold routing), не keyword-router. Router F1 проверяется отдельно через `eval:context-os:route`.
+**Важно:** Condition B — `--router gold|keyword|semantic` (default: `keyword`). Gold = oracle `expected_cores`; keyword/semantic = production routers. Router F1 пишется в `run-meta.json`. Stage-0 F1 без LLM: `eval:context-os:route` / `:route-semantic`.
 
 ### Экспорт в AI-Context-OS
 
