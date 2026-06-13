@@ -569,11 +569,11 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 
 | Step | Task | Status |
 |------|------|--------|
-| 1 | Baseline green: `wizard:qa-pilot`, `test:qa-pilot-starter`, `test:qa-pilot-cypress-starter` | ✅ |
+| 1 | Baseline green: `wizard:qa-pilot:onboard` (smoke + Playwright/Cypress starter guards) | ✅ |
 | 1b | Operator kit: `issue:pilot-key`, `wizard:qa-pilot:onboard`, [PILOT-ONBOARD.md](./PILOT-ONBOARD.md) | ✅ |
 | 2 | Pilot #1: external test repo copies starter → CI secrets → green `npm test` | pending |
 | 3 | Pilot #1: staging E2E (`APP_SIGNUP_URL` + `service` preset) | pending |
-| 4 | Collect feedback (setup time, flaky, missing API/docs) → backlog v0.70 | pending |
+| 4 | Collect feedback (setup time, flaky, missing API/docs) → [#5](https://github.com/Alex0nder/MailAgent/issues/5) / backlog v0.70 | pending |
 | 5 | Pilot #2 (Cypress track or second team) | pending |
 | 6 | Metrics vs targets ([QA-ROADMAP.md](./QA-ROADMAP.md): flaky <2%, setup <30 min) | pending |
 
@@ -592,7 +592,7 @@ Guide: [QA-PILOT.md](./QA-PILOT.md) · operators: [YOUR-TURN.md](./YOUR-TURN.md)
 | `npm run check:context-os-router` (F1 gate) | ✅ |
 | Eval baseline: B wins accuracy/tokens (`run-1781075014160`) | see [AI-Context-OS](https://github.com/Alex0nder/AI-Context-OS) |
 
-### v0.71 — Product (active; Stripe & pilot on hold)
+### v0.71 — Product (active; Stripe on hold)
 
 Backlog: [PRODUCT-NEXT.md](./PRODUCT-NEXT.md)
 
@@ -632,7 +632,7 @@ Backlog: [PRODUCT-NEXT.md](./PRODUCT-NEXT.md)
 | 17 | Landing pages in site nav / footer | ✅ |
 | 18 | `@mailagent/qa` simulate `scenario` | ✅ 0.1.15 |
 | 19 | Pilot starter uses monorepo QA in CI guard | ✅ |
-| 20 | First external QA pilot | ⏳ baseline ✅ · [PILOT-INVITE.md](./PILOT-INVITE.md) |
+| 20 | First external QA pilot | ⏳ baseline ✅ · key issued · feedback [#5](https://github.com/Alex0nder/MailAgent/issues/5) |
 | npm `@mailagent/qa@0.1.15` | ✅ tag `v0.74.0` |
 | PyPI `mailagent-agent@0.1.0` | ✅ |
 
@@ -643,7 +643,7 @@ Backlog: [PRODUCT-NEXT.md](./PRODUCT-NEXT.md)
 | `print:pilot-invite` + PILOT-INVITE.md | ✅ |
 | Team event webhook docs | ✅ `teams.html#event-webhook` |
 | QA troubleshooting redirect page | ✅ |
-| Issue pilot key to external team | ⏳ local `DATABASE_URL` |
+| Issue pilot key to external team | ✅ `external-pilot` · send out-of-band only |
 
 ### v0.76 — Console & SDK visibility (P4)
 
@@ -659,7 +659,7 @@ Backlog: [PRODUCT-NEXT.md](./PRODUCT-NEXT.md)
 |-----|------|--------|
 | 26 | Console inbox simulate scenario picker | ✅ |
 | 27 | `python-agent-verify.html` landing | ✅ |
-| 28 | Issue pilot scoped key | ⏳ |
+| 28 | Issue pilot scoped key | ✅ `external-pilot` |
 
 ### v0.78 — Developer email relay (P5)
 
