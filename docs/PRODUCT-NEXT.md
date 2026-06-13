@@ -1,6 +1,6 @@
 # Product backlog — service development
 
-Stripe **on hold** · QA pilot **on hold** (kit ready: [PILOT-ONBOARD.md](./PILOT-ONBOARD.md)).
+Stripe **on hold** · QA pilot kit ready; external handoff pending ([PILOT-ONBOARD.md](./PILOT-ONBOARD.md)).
 
 Context OS **done** for agents on repo ([skills/mailagent/SKILL.md](../skills/mailagent/SKILL.md) § Context OS).
 
@@ -56,7 +56,7 @@ P0–P3 **done** (pilot #20 = human). Next: **P4** (console & SDK polish).
 | 17 | **SEO / nav links** | ✅ footer + landing cross-links |
 | 18 | **QA SDK `scenario`** | ✅ `@mailagent/qa` + pilot starter test |
 | 19 | **Pilot starter ↔ monorepo** | ✅ CI installs local `@mailagent/qa` |
-| 20 | **Run first external pilot** | ⏳ key issued · send invite + key |
+| 20 | **Run first external pilot** | ⏳ key issued · invite ready · feedback issue [#5](https://github.com/Alex0nder/MailAgent/issues/5) |
 | 21 | **Team webhook docs** | ✅ `teams.html#event-webhook` |
 | 22 | **QA troubleshooting URL** | ✅ `/docs/qa-troubleshooting.html` |
 | PyPI `mailagent-agent@0.1.0` | ✅ |
@@ -122,7 +122,7 @@ Spec: [DEV-EMAIL-RELAY.md](./DEV-EMAIL-RELAY.md)
 
 ## Suggested next sprint
 
-1. P3 #20 — send `print:pilot-invite` + scoped key to first pilot team  
+1. P3 #20 — send `print:pilot-invite` + scoped key to first pilot team out-of-band  
 2. Catalog PR / Context OS eval cleanup (optional)
 
 Track in [ROADMAP.md](./ROADMAP.md) § v0.78.
