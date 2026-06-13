@@ -55,12 +55,14 @@ if (!apiKey) {
 run("doctor:qa", "npm", ["run", "doctor:qa"]);
 run("smoke:qa", "npm", ["run", "smoke:qa"]);
 run("test:qa-pilot-starter", "npm", ["run", "test:qa-pilot-starter"]);
+run("test:qa-pilot-cypress-starter", "npm", ["run", "test:qa-pilot-cypress-starter"]);
 
 console.log("═".repeat(60));
 console.log("Pilot package — copy to external team (see docs/PILOT-ONBOARD.md)");
 console.log("═".repeat(60));
 console.log(`
 Starter:  https://github.com/Alex0nder/MailAgent/tree/main/examples/qa-pilot-starter
+Cypress:  https://github.com/Alex0nder/MailAgent/tree/main/examples/qa-pilot-cypress-starter
 Docs:     https://webmailagent.com/docs/qa.html
 
 Their steps:

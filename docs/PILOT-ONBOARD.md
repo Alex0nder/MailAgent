@@ -6,14 +6,14 @@ Onboard an external test repo onto hosted MailAgent (Stripe on hold). Consumer g
 
 | # | Task | Command / link |
 |---|------|----------------|
-| 1 | Baseline green | `npm run wizard:qa-pilot` |
+| 1 | Baseline green | `npm run wizard:qa-pilot:onboard` |
 | 2 | Issue scoped pilot key | `npm run issue:pilot-key -- <pilot-slug>` (needs `DATABASE_URL`) |
 | 3 | Send pilot package | section below → Slack/email |
 | 4 | They green CI | `npm test` in copied starter |
 | 5 | Staging E2E | `APP_SIGNUP_URL` + `service` preset |
 | 6 | Collect feedback | [Feedback](#feedback) → backlog v0.70 |
 
-Full wizard (smoke + print package):
+Full wizard (smoke + Playwright/Cypress starter guards + print package):
 
 ```bash
 npm run wizard:qa-pilot:onboard
@@ -70,7 +70,7 @@ Docs: https://webmailagent.com/docs/qa.html
 Troubleshooting: https://webmailagent.com/docs/qa-troubleshooting.html (timeouts → diagnose)
 ```
 
-Cypress track: [qa-pilot-cypress-starter](../examples/qa-pilot-cypress-starter).
+Cypress track: [qa-pilot-cypress-starter](../examples/qa-pilot-cypress-starter) is also checked by `npm run wizard:qa-pilot:onboard`.
 
 ## Feedback
 
