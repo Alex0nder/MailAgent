@@ -27,8 +27,8 @@ P0–P2 done — see [QA-ROADMAP.md](./QA-ROADMAP.md).
 | Package | Version (npm) |
 |-------|----------------|
 | `@mailagent/mcp` | 0.2.5 |
-| `@mailagent/qa` | 0.1.14 |
-| `@mailagent/agent` | 0.1.11 |
+| `@mailagent/qa` | 0.1.16 |
+| `@mailagent/agent` | 0.1.13 |
 
 ```bash
 npm install @mailagent/mcp @mailagent/qa @mailagent/agent

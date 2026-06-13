@@ -368,7 +368,7 @@ Domain scope: `teamId` + `apiKeyHint` + `plan` через `domainScope(c)`.
 
 **JSON-RPC methods:**
 - `initialize` → capabilities + `Mcp-Session-Id` header
-- `tools/list` → 23 tools from `MCP_TOOLS`
+- `tools/list` → 24 tools from `MCP_TOOLS`
 - `tools/call` → `executeMcpTool()` → REST-equivalent logic
 - `ping` → `{}`
 - `notifications/*` → 204 no content
