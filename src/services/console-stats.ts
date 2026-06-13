@@ -5,6 +5,7 @@ import { countDomainsForScope } from "./domains";
 import type { PlanId } from "../lib/plans";
 import { countActiveInboxesForHint, countActiveInboxesForTeam } from "./inbox";
 import { countTeamKeys } from "./api-key-store";
+import { countNotifyQuotaEvents24h } from "./notify-log";
 
 export type UsageScope = {
   teamId: string | null;
@@ -30,12 +31,17 @@ export async function getScopedUsage(env: Env, scope: UsageScope) {
   const messagesLast24h = scope.teamId
     ? await countMessages24hForTeam(env, scope.teamId)
     : await countMessages24hForHint(env, scope.apiKeyHint);
+  const notifyEmailsLast24h = await countNotifyQuotaEvents24h(env, {
+    teamId: scope.teamId,
+    apiKeyHint: scope.apiKeyHint,
+  });
 
   return {
     activeInboxes,
     customDomains,
     teamKeys,
     messagesLast24h,
+    notifyEmailsLast24h,
   };
 }
 

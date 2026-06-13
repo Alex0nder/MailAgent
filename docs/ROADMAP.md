@@ -676,7 +676,7 @@ Spec: [DEV-EMAIL-RELAY.md](./DEV-EMAIL-RELAY.md)
 | 33 | Console inbox: notify address + delivery status | ✅ `notify-deliveries` UI |
 | 34 | `contract-qa-notify` (simulate → delivery row) | ✅ `npm run test:contract:qa:notify` |
 | 35 | `@mailagent/agent` + `@mailagent/qa` `notifyEmail` | ✅ 0.1.13 / 0.1.16 |
-| 36 | Plan quota `notifyEmailsPerDay` + rate limit | planned |
+| 36 | Plan quota `notifyEmailsPerDay` + rate limit | ✅ `019_notify_quota_events.sql` |
 
 **Done when:** manual QA — temp address in app, code in `dev@company.com` within ~30s.
 

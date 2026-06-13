@@ -8,6 +8,7 @@ export const PLAN_LIMITS: Record<
     maxActiveInboxes: number;
     maxTeamKeys: number;
     maxCustomDomains: number;
+    notifyEmailsPerDay: number;
     dedicatedResend: boolean;
   }
 > = {
@@ -16,6 +17,7 @@ export const PLAN_LIMITS: Record<
     maxActiveInboxes: 10,
     maxTeamKeys: 5,
     maxCustomDomains: 1,
+    notifyEmailsPerDay: 20,
     dedicatedResend: false,
   },
   pro: {
@@ -23,6 +25,7 @@ export const PLAN_LIMITS: Record<
     maxActiveInboxes: 100,
     maxTeamKeys: 20,
     maxCustomDomains: 10,
+    notifyEmailsPerDay: 500,
     dedicatedResend: false,
   },
   enterprise: {
@@ -30,6 +33,7 @@ export const PLAN_LIMITS: Record<
     maxActiveInboxes: 500,
     maxTeamKeys: 50,
     maxCustomDomains: 25,
+    notifyEmailsPerDay: 5000,
     dedicatedResend: true,
   },
   legacy: {
@@ -37,6 +41,7 @@ export const PLAN_LIMITS: Record<
     maxActiveInboxes: 500,
     maxTeamKeys: 0,
     maxCustomDomains: 3,
+    notifyEmailsPerDay: 500,
     dedicatedResend: false,
   },
 };

@@ -15,7 +15,7 @@ What **only a human** can enable. Everything else runs without you.
 | npm packages | `@mailagent/mcp` · `@mailagent/agent` · `@mailagent/qa` |
 | Docs / privacy / terms / SLA draft | hosted on webmailagent.com |
 
-**Catalog PRs** ([#195](https://github.com/hashgraph-online/awesome-codex-plugins/pull/195), [#659](https://github.com/VoltAgent/awesome-agent-skills/pull/659)) — submitted; merge is maintainer-only, not blocking install. Status: `npm run check:catalog-prs` · [DISTRIBUTION-STATUS.md](./DISTRIBUTION-STATUS.md).
+**Catalog PRs** ([#195](https://github.com/hashgraph-online/awesome-codex-plugins/pull/195), [#659](https://github.com/VoltAgent/awesome-agent-skills/pull/659)) — submitted; merge is maintainer-only, not blocking install. Current check: #195 mergeable, #659 conflicting and needs fork refresh. Status: `npm run check:catalog-prs` · [DISTRIBUTION-STATUS.md](./DISTRIBUTION-STATUS.md).
 
 ## Blocked without a human (optional visibility)
 

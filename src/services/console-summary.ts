@@ -47,6 +47,11 @@ export async function buildConsoleSummary(
       ? Math.max(0, limits.maxTeamKeys - usageRaw.teamKeys)
       : null,
     messagesLast24h: usageRaw.messagesLast24h,
+    notifyEmailsLast24h: usageRaw.notifyEmailsLast24h,
+    notifyEmailsRemaining: Math.max(
+      0,
+      limits.notifyEmailsPerDay - usageRaw.notifyEmailsLast24h
+    ),
   };
 
   const recentInboxes = await listInboxes(env, {
@@ -153,6 +158,7 @@ export async function buildConsoleSummary(
       maxActiveInboxes: limits.maxActiveInboxes,
       maxTeamKeys: limits.maxTeamKeys,
       maxCustomDomains: limits.maxCustomDomains,
+      notifyEmailsPerDay: limits.notifyEmailsPerDay,
       dedicatedResend: limits.dedicatedResend,
     },
     dedicatedResend: input.teamId

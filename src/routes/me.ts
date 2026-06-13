@@ -51,6 +51,7 @@ meRoutes.get("/", async (c) => {
       maxActiveInboxes: limits.maxActiveInboxes,
       maxTeamKeys: limits.maxTeamKeys,
       maxCustomDomains: limits.maxCustomDomains,
+      notifyEmailsPerDay: limits.notifyEmailsPerDay,
     },
     usage: {
       activeInboxes: usageRaw.activeInboxes,
@@ -65,6 +66,11 @@ meRoutes.get("/", async (c) => {
       ),
       teamKeys: usageRaw.teamKeys,
       messagesLast24h: usageRaw.messagesLast24h,
+      notifyEmailsLast24h: usageRaw.notifyEmailsLast24h,
+      notifyEmailsRemaining: Math.max(
+        0,
+        limits.notifyEmailsPerDay - usageRaw.notifyEmailsLast24h
+      ),
     },
     billing: {
       stripeEnabled: stripeConfigured(c.env) && Boolean(teamId),

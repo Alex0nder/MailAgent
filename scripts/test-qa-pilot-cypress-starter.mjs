@@ -17,7 +17,11 @@ if (!apiKey) {
 }
 
 function run(cmd, args, cwd) {
-  const r = spawnSync(cmd, args, { cwd, stdio: "inherit", env: process.env });
+  const env = {
+    ...process.env,
+    CYPRESS_BASE_URL: process.env.CYPRESS_BASE_URL ?? "https://example.com",
+  };
+  const r = spawnSync(cmd, args, { cwd, stdio: "inherit", env });
   if (r.status !== 0) process.exit(r.status ?? 1);
 }
 

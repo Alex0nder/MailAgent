@@ -2,9 +2,16 @@
 import type { Env } from "../env";
 import type { InboxRow } from "./inbox";
 import type { MessageVerification } from "./message-verify";
-import { recordNotifyDelivery } from "./notify-log";
+import {
+  countNotifyQuotaEvents24h,
+  recordNotifyDelivery,
+  recordNotifyQuotaEvent,
+} from "./notify-log";
 import { createResendClient } from "./resend-mail";
 import { debugUiUrl } from "./inbox-diagnose";
+import { PLAN_LIMITS, normalizePlan } from "../lib/plans";
+import { getTeam } from "./api-key-store";
+import { getTeamIdByApiKeyHint } from "./team-event-webhook";
 
 export type NotifyMailInput = {
   inbox: InboxRow;
@@ -84,6 +91,34 @@ export async function fireInboxNotify(
   }
 
   const started = Date.now();
+  const apiKeyHint = input.inbox.api_key_hint?.trim() ?? "";
+  const teamId = await getTeamIdByApiKeyHint(env, apiKeyHint);
+  const team = teamId ? await getTeam(env, teamId) : null;
+  const plan = teamId ? normalizePlan(team?.plan) : "legacy";
+  const limit = PLAN_LIMITS[plan].notifyEmailsPerDay;
+  const used = await countNotifyQuotaEvents24h(env, { teamId, apiKeyHint });
+  if (used >= limit) {
+    const durationMs = Date.now() - started;
+    const error = "notify_quota_exceeded";
+    await recordNotifyDelivery(env, {
+      inboxId: input.inbox.id,
+      messageId: input.messageId,
+      notifyEmail,
+      ok: false,
+      errorText: error,
+      durationMs,
+    });
+    return { ok: false, resendId: null, error };
+  }
+  if (apiKeyHint) {
+    await recordNotifyQuotaEvent(env, {
+      teamId,
+      apiKeyHint,
+      inboxId: input.inbox.id,
+      notifyEmail,
+    });
+  }
+
   const apiBase = input.apiBaseUrl?.replace(/\/$/, "") ?? "https://api.webmailagent.com";
   const debugUrl = debugUiUrl(apiBase, input.inbox.id);
   const { subject, text, html } = buildNotifyBodies(

@@ -18,7 +18,10 @@ import {
   scopeWriteDenied,
 } from "../lib/scope-guard";
 import { listCallbackDeliveries } from "../services/callback-log";
-import { listNotifyDeliveries } from "../services/notify-log";
+import {
+  countNotifyQuotaEvents24h,
+  listNotifyDeliveries,
+} from "../services/notify-log";
 import { getDomainForInbox } from "../services/domains";
 import { auditRoute } from "../services/audit-log";
 import {
@@ -58,6 +61,7 @@ import {
   type ExtractPreset,
 } from "../services/structured-extract";
 import { publicOriginFromUrl } from "../lib/public-origin";
+import { PLAN_LIMITS } from "../lib/plans";
 
 export const inboxRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
 
@@ -99,6 +103,8 @@ inboxRoutes.post("/open", async (c) => {
 
   const quotaErr = await checkInboxQuota(c);
   if (quotaErr) return quotaErr;
+  const notifyQuotaErr = await checkNotifyQuota(c, clean.notifyEmail);
+  if (notifyQuotaErr) return notifyQuotaErr;
 
   const labelCheck = scopeLabelForCreate(c, clean.label);
   if (labelCheck instanceof Response) return labelCheck;
@@ -196,6 +202,8 @@ inboxRoutes.post("/", async (c) => {
 
   const quotaErr = await checkInboxQuota(c);
   if (quotaErr) return quotaErr;
+  const notifyQuotaErr = await checkNotifyQuota(c, clean.notifyEmail);
+  if (notifyQuotaErr) return notifyQuotaErr;
 
   const labelCheck = scopeLabelForCreate(c, clean.label);
   if (labelCheck instanceof Response) return labelCheck;
@@ -929,6 +937,30 @@ async function checkInboxQuota(
         plan: c.get("apiPlan"),
         active,
         max,
+      },
+      429
+    );
+  }
+  return null;
+}
+
+async function checkNotifyQuota(
+  c: import("hono").Context<{ Bindings: Env; Variables: ApiVariables }>,
+  notifyEmail: string | null | undefined
+) {
+  if (!notifyEmail) return null;
+  const teamId = c.get("teamId");
+  const apiKeyHint = c.get("apiKeyHint");
+  const used = await countNotifyQuotaEvents24h(c.env, { teamId, apiKeyHint });
+  const plan = c.get("apiPlan");
+  const limit = PLAN_LIMITS[plan].notifyEmailsPerDay;
+  if (used >= limit) {
+    return c.json(
+      {
+        error: "notify_quota_exceeded",
+        plan,
+        used,
+        limit,
       },
       429
     );

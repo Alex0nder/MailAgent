@@ -4,7 +4,7 @@
   "created": "2026-06-10",
   "repository": "Alex0nder/MailAgent",
   "productVersion": "0.1.0",
-  "mcpServerVersion": "0.8.1",
+  "mcpServerVersion": "0.8.2",
   "cores": [
     {
       "id": "business",
@@ -160,17 +160,17 @@
     "duplicateDocs": "audit/duplicate-docs.md"
   },
   "stats": {
-    "mcpTools": 23,
-    "dbMigrations": 17,
-    "docsMd": 45,
-    "srcTsFiles": 85,
+    "mcpTools": 24,
+    "dbMigrations": 19,
+    "docsMd": 47,
+    "srcTsFiles": 93,
     "npmPackages": 3,
     "githubWorkflows": 7,
     "servicePresets": 25
   },
-  "sourceCommit": "869949b173a5f6ac1d72eeeeef99fc135007f91b",
-  "sourceCommitShort": "869949b",
-  "syncedAt": "2026-06-11T03:38:34.776Z",
+  "sourceCommit": "2118caebb1bbd4f6dc6ff1dd1efc6134a1aff4f4",
+  "sourceCommitShort": "2118cae",
+  "syncedAt": "2026-06-13T15:51:10.072Z",
   "syncSources": [
     "src/mcp/manifest.ts",
     "src/lib/service-presets.ts",

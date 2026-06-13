@@ -85,7 +85,7 @@ Welcome email часто приходит раньше verify → `subjectContai
 | 11 | `README.md` | API table |
 
 Sync markers (`<!-- sync:mcp-tools:start -->
-23 tools (MCP server `0.8.1`):
+24 tools (MCP server `0.8.2`):
 
 - `mailagent_verify_signup`
 - `mailagent_create_inbox`
@@ -101,6 +101,7 @@ Sync markers (`<!-- sync:mcp-tools:start -->
 - `mailagent_verify_domain`
 - `mailagent_extract_structured`
 - `mailagent_search_messages`
+- `mailagent_check_email`
 - `mailagent_diagnose_inbox`
 - `mailagent_get_inbox`
 - `mailagent_delete_inbox`
@@ -213,3 +214,7 @@ Validation: `src/lib/callback-url.ts` (HTTPS, no internal IPs in prod). Contract
 | `deployment-testing-core` | test:prod, doctor |
 
 Router: `context-os/router/routing-map.json` · Eval: `eval/questions.json`.
+
+<!-- sync:service-presets:start -->
+Presets (25): `dribbble`, `github`, `gitlab`, `bitbucket`, `google`, `auth0`, `stripe`, `vercel`, `supabase`, `clerk`, `discord`, `openai`, `resend`, `firebase`, `figma`, `notion`, `linear`, `slack`, `shopify`, `atlassian`, `aws`, `microsoft`, `apple`, `twilio`, `posthog` — source: `src/lib/service-presets.ts`.
+<!-- sync:service-presets:end -->

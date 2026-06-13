@@ -1,6 +1,6 @@
 # Developer email relay (notifyEmail)
 
-**Status:** implemented · v0.78 (API + MCP + contract; run migration `018_notify_email.sql`)
+**Status:** implemented · v0.78 (API + MCP + contract; run migrations `018_notify_email.sql` and `019_notify_quota_events.sql`)
 
 ## Problem
 
@@ -34,7 +34,7 @@ App signup form          Service (Auth0, etc.)
 
 **Not** full MIME forward by default — structured summary reduces abuse surface and spam complaints.
 
-## API (draft)
+## API
 
 ### Create inbox
 
@@ -79,11 +79,12 @@ Table: `notify_deliveries` (inbox_id, message_id, notify_email, resend_id, ok, e
 |-------|--------|
 | Migration `018_notify_email.sql` | `inboxes.notify_email`, `inboxes.notify_mode`, `notify_deliveries` |
 | `src/lib/notify-email.ts` | Parse + validate email; block disposable relay loops |
-| `src/services/notify-mail.ts` | `sendVerificationNotify(env, inbox, message, payload)` via Resend |
+| Migration `019_notify_quota_events.sql` | Durable daily usage events for `notifyEmailsPerDay` |
+| `src/services/notify-mail.ts` | `fireInboxNotify(env, inbox, message, payload)` via Resend |
 | `src/services/resend-mail.ts` | After `fireInboxCallback`, call notify if `inbox.notify_email` |
 | `src/routes/inboxes.ts` | create/open body + notify deliveries route |
 | `src/mcp/manifest.ts` | `create_inbox.notifyEmail` optional |
-| OpenAPI | `InboxCreate.notifyEmail`, `NotifyDelivery` |
+| OpenAPI | `InboxCreate.notifyEmail`, `NotifyDelivery`, quota errors |
 | Console | inbox detail: notify email + delivery log |
 | Contract | `contract-qa-notify` via simulate → assert Resend mock or delivery row |
 
@@ -99,7 +100,9 @@ Reuse: `outbound-mail.ts` Resend client, `formatMessageVerification`, `parseCall
 | Bounce / complaint | Resend domain reputation; opt-in per inbox |
 | Loop (notify → same inbox) | Reject if `notifyEmail` domain === `INBOX_DOMAIN` |
 
-Plan gate (proposal): **free** — 10 notify emails/day; **pro+** — `PLAN_LIMITS.notifyEmailsPerDay`.
+Plan gate: `PLAN_LIMITS.notifyEmailsPerDay` per team/API key over the last 24 hours.
+Current limits: **free 20/day**, **pro 500/day**, **enterprise 5000/day**, **legacy 500/day**.
+Exceeded quota returns `429 { error: "notify_quota_exceeded", used, limit }`; relay attempts beyond the limit are logged as failed notify deliveries.
 
 ## MCP / SDK
 
@@ -113,7 +116,7 @@ notifyEmail: z.string().email().optional()
 ## Deploy
 
 ```bash
-npm run db:migrate   # applies 018_notify_email.sql
+npm run db:migrate   # applies 018_notify_email.sql and 019_notify_quota_events.sql
 # OUTBOUND_FROM must be set for ok=true deliveries (see docs/outbound.html)
 ```
 

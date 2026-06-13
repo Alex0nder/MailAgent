@@ -120,6 +120,9 @@
     "@cloudflare/workers-types": "^4.20260120.0",
     "@playwright/test": "^1.51.0",
     "typescript": "^5.9.3",
-    "wrangler": "^4.59.0"
+    "wrangler": "^4.100.0"
+  },
+  "overrides": {
+    "esbuild": "^0.28.1"
   }
 }

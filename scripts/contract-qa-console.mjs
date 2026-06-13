@@ -25,7 +25,12 @@ async function main() {
   }
 
   const s0 = summary0.json;
-  if (!s0.limits?.maxActiveInboxes || s0.usage?.messagesLast24h == null) {
+  if (
+    !s0.limits?.maxActiveInboxes ||
+    !s0.limits?.notifyEmailsPerDay ||
+    s0.usage?.messagesLast24h == null ||
+    s0.usage?.notifyEmailsLast24h == null
+  ) {
     console.error("summary shape invalid", s0);
     process.exit(1);
   }
@@ -48,10 +53,16 @@ async function main() {
   console.log("console summary OK", {
     plan: s0.plan,
     messagesLast24h: s0.usage.messagesLast24h,
+    notifyEmailsLast24h: s0.usage.notifyEmailsLast24h,
   });
 
   const me = await contractApi(base, headers, "/v1/me");
-  if (!me.ok || me.json?.usage?.messagesLast24h == null) {
+  if (
+    !me.ok ||
+    me.json?.usage?.messagesLast24h == null ||
+    me.json?.usage?.notifyEmailsLast24h == null ||
+    !me.json?.limits?.notifyEmailsPerDay
+  ) {
     console.error("/v1/me usage meters failed", me.status, me.json);
     process.exit(1);
   }
