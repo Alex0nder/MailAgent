@@ -349,6 +349,9 @@
         bindSearch();
         document.getElementById("reload-callbacks")?.addEventListener("click", reloadCallbacks);
         document.getElementById("reload-notify")?.addEventListener("click", reloadNotify);
+        if (location.hash) {
+          document.querySelector(location.hash)?.scrollIntoView({ block: "start" });
+        }
         reloadCallbacks();
         if (d.notifyEmail) reloadNotify();
       }

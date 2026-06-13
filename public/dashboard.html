@@ -142,6 +142,7 @@
         html += `<div class="console-grid">
           ${meter("Active inboxes", u.activeInboxes, l.maxActiveInboxes)}
           ${stat("Messages (24h)", u.messagesLast24h)}
+          ${meter("Notify relays (24h)", u.notifyEmailsLast24h || 0, l.notifyEmailsPerDay)}
           ${meter("Custom domains", u.customDomains, l.maxCustomDomains)}
           ${d.teamId && u.teamKeysRemaining != null ? meter("Team keys", u.teamKeys, l.maxTeamKeys) : ""}
           ${d.rateLimit ? meter("API rate (this min)", d.rateLimit.used, d.rateLimit.limitPerMinute) : ""}

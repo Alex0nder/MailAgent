@@ -76,6 +76,16 @@ async function main() {
     process.exit(1);
   }
 
+  const meBefore = await contractApi(base, headers, "/v1/me");
+  if (
+    !meBefore.ok ||
+    !meBefore.json?.limits?.notifyEmailsPerDay ||
+    meBefore.json?.usage?.notifyEmailsLast24h == null
+  ) {
+    console.error("notify quota fields missing", meBefore.status, meBefore.json);
+    process.exit(1);
+  }
+
   const sim = await contractSimulate(base, headers, inboxId, {
     otp: expectedOtp,
     from: "noreply@auth0.com",
@@ -111,6 +121,15 @@ async function main() {
     error: delivery.error,
     resendId: delivery.resendId,
   });
+
+  const meAfter = await contractApi(base, headers, "/v1/me");
+  if (
+    !meAfter.ok ||
+    meAfter.json.usage.notifyEmailsLast24h < meBefore.json.usage.notifyEmailsLast24h
+  ) {
+    console.error("notify quota usage regressed", meAfter.status, meAfter.json);
+    process.exit(1);
+  }
 
   const ext = await contractApi(base, headers, `/v1/inboxes/${inboxId}/extract`);
   if (!ext.ok || ext.json.otp !== expectedOtp) {

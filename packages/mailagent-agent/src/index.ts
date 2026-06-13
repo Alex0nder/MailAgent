@@ -80,6 +80,7 @@ export type MeProfile = {
     maxActiveInboxes: number;
     maxTeamKeys: number;
     maxCustomDomains: number;
+    notifyEmailsPerDay: number;
   };
   usage: {
     activeInboxes: number;
@@ -88,6 +89,8 @@ export type MeProfile = {
     domainsRemaining: number;
     teamKeys: number;
     messagesLast24h: number;
+    notifyEmailsLast24h: number;
+    notifyEmailsRemaining: number;
   };
   billing: {
     stripeEnabled: boolean;

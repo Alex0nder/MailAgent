@@ -57,3 +57,65 @@ export async function listNotifyDeliveries(
     LIMIT ${cap}
   `) as NotifyDeliveryRow[];
 }
+
+export async function countNotifyQuotaEvents24h(
+  env: Env,
+  scope: { teamId: string | null; apiKeyHint: string }
+): Promise<number> {
+  const sql = getDb(env);
+  try {
+    const rows = scope.teamId
+      ? ((await sql`
+          SELECT COUNT(*)::int AS n
+          FROM notify_quota_events
+          WHERE team_id = ${scope.teamId}
+            AND created_at > NOW() - INTERVAL '24 hours'
+        `) as { n: number }[])
+      : ((await sql`
+          SELECT COUNT(*)::int AS n
+          FROM notify_quota_events
+          WHERE team_id IS NULL
+            AND api_key_hint = ${scope.apiKeyHint}
+            AND created_at > NOW() - INTERVAL '24 hours'
+        `) as { n: number }[]);
+    return rows[0]?.n ?? 0;
+  } catch (e) {
+    if (isMissingNotifyQuotaTable(e)) return 0;
+    throw e;
+  }
+}
+
+export async function recordNotifyQuotaEvent(
+  env: Env,
+  input: {
+    teamId: string | null;
+    apiKeyHint: string;
+    inboxId: string;
+    notifyEmail: string;
+  }
+): Promise<void> {
+  const sql = getDb(env);
+  const id = nanoid(12);
+  try {
+    await sql`
+      INSERT INTO notify_quota_events (
+        id, team_id, api_key_hint, inbox_id, notify_email
+      )
+      VALUES (
+        ${id}, ${input.teamId}, ${input.apiKeyHint}, ${input.inboxId}, ${input.notifyEmail}
+      )
+    `;
+  } catch (e) {
+    if (isMissingNotifyQuotaTable(e)) return;
+    throw e;
+  }
+}
+
+function isMissingNotifyQuotaTable(e: unknown): boolean {
+  if (typeof e !== "object" || e === null) return false;
+  const err = e as { code?: string; message?: string };
+  return (
+    err.code === "42P01" ||
+    Boolean(err.message?.includes("notify_quota_events"))
+  );
+}

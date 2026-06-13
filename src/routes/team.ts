@@ -70,6 +70,7 @@ teamRoutes.get("/", async (c) => {
       maxTeamKeys: limits.maxTeamKeys,
       maxActiveInboxes: limits.maxActiveInboxes,
       maxCustomDomains: limits.maxCustomDomains,
+      notifyEmailsPerDay: limits.notifyEmailsPerDay,
       dedicatedResend: limits.dedicatedResend,
     },
     dedicatedResend,

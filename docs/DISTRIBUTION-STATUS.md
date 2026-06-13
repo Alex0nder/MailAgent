@@ -28,8 +28,8 @@ Last automated check: CI `check:catalog-prs` (weekly) · discovery: `GET /v1/age
 
 | Catalog | PR | State |
 |---------|-----|--------|
-| [awesome-codex-plugins](https://github.com/hashgraph-online/awesome-codex-plugins) | [#195](https://github.com/hashgraph-online/awesome-codex-plugins/pull/195) | run `npm run check:catalog-prs` |
-| [awesome-agent-skills](https://github.com/VoltAgent/awesome-agent-skills) | [#659](https://github.com/VoltAgent/awesome-agent-skills/pull/659) | run `npm run check:catalog-prs` |
+| [awesome-codex-plugins](https://github.com/hashgraph-online/awesome-codex-plugins) | [#195](https://github.com/hashgraph-online/awesome-codex-plugins/pull/195) | open, mergeable |
+| [awesome-agent-skills](https://github.com/VoltAgent/awesome-agent-skills) | [#659](https://github.com/VoltAgent/awesome-agent-skills/pull/659) | open, conflicting — refresh fork PR |
 
 ```bash
 npm run check:catalog-prs

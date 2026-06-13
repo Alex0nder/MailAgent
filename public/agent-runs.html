@@ -91,6 +91,7 @@
                   (i) =>
                     `<li><code>${i.id}</code> ${i.address}${i.label ? ` <span class="meta">(${i.label})</span>` : ""}
                       — <a href="/console-inbox.html?inbox=${encodeURIComponent(i.id)}">console</a>
+                      · <a href="/console-inbox.html?inbox=${encodeURIComponent(i.id)}#simulate-box">simulate</a>
                       · <a href="/debug.html?inbox=${encodeURIComponent(i.id)}">debug</a></li>`
                 )
                 .join("")}</ul>

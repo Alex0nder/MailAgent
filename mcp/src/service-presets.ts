@@ -3,6 +3,8 @@
 export const SERVICE_EXPECT_FROM: Record<string, string[]> = {
   dribbble: ["dribbble.com", "m.dribbble.com"],
   github: ["github.com", "noreply@github.com"],
+  gitlab: ["gitlab.com", "about.gitlab.com", "noreply@gitlab.com"],
+  bitbucket: ["bitbucket.org", "messaging.atlassian.com"],
   google: ["google.com", "accounts.google.com"],
   auth0: ["auth0.com"],
   stripe: ["stripe.com"],

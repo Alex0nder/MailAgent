@@ -111,6 +111,8 @@ Spec: [EMAIL-CHECK.md](./EMAIL-CHECK.md)
 | 31 | **Notify delivery log** — `GET …/notify-deliveries` + console | ✅ |
 | 32 | **MCP + SDK `notifyEmail`** | ✅ MCP · `@mailagent/agent` + `@mailagent/qa` |
 | 33 | **Contract `contract-qa-notify`** (simulate path) | ✅ |
+| 34 | **Daily plan quota** — `notifyEmailsPerDay` + usage meters | ✅ |
+| 35 | **Run explorer simulate links** — agent run inbox → console simulate | ✅ |
 
 Spec: [DEV-EMAIL-RELAY.md](./DEV-EMAIL-RELAY.md)
 
@@ -121,8 +123,6 @@ Spec: [DEV-EMAIL-RELAY.md](./DEV-EMAIL-RELAY.md)
 ## Suggested next sprint
 
 1. P3 #20 — send `print:pilot-invite` + scoped key to first pilot team  
-2. P5 #29 — implement `notifyEmail` relay (after pilot feedback or in parallel)  
-3. P4+ — agent-runs links to console-inbox simulate  
-4. Catalog PR / Context OS eval cleanup (optional)
+2. Catalog PR / Context OS eval cleanup (optional)
 
 Track in [ROADMAP.md](./ROADMAP.md) § v0.78.

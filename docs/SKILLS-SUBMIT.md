@@ -53,7 +53,7 @@ API: [doc.agentskillhub.dev/guide/api.html](https://doc.agentskillhub.dev/guide/
 
 | Catalog | Fit | Notes |
 |---------|-----|--------|
-| [VoltAgent/awesome-agent-skills](https://github.com/VoltAgent/awesome-agent-skills) | ✅ verification / QA | [PR #659](https://github.com/VoltAgent/awesome-agent-skills/pull/659) submitted |
+| [VoltAgent/awesome-agent-skills](https://github.com/VoltAgent/awesome-agent-skills) | ✅ verification / QA | [PR #659](https://github.com/VoltAgent/awesome-agent-skills/pull/659) submitted; currently conflicting, refresh fork PR |
 | [membranedev/application-skills](https://github.com/membranedev/application-skills) | ❌ post-login SaaS integrations | Use Membrane skills after MailAgent verify |
 
 ## Not the same as Codex plugin directory

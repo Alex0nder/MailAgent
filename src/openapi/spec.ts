@@ -454,6 +454,9 @@ export const openApiSpec = {
           "400": {
             description: "invalid_callback_url or invalid_notify_email",
           },
+          "429": {
+            description: "inbox_limit_reached or notify_quota_exceeded",
+          },
         },
       },
       delete: {
@@ -499,6 +502,9 @@ export const openApiSpec = {
         responses: {
           "200": { description: "Verification payload" },
           "408": { description: "timeout" },
+          "429": {
+            description: "inbox_limit_reached or notify_quota_exceeded",
+          },
         },
       },
     },
