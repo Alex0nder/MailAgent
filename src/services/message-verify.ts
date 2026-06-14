@@ -1,5 +1,6 @@
 /** Verification format for REST, callback, agent */
 import { primaryLink } from "./extract";
+import { extractHtmlActions, type HtmlActionCandidate } from "./html-actions";
 import type { MessageRow } from "./inbox";
 
 export type VerificationConfidence = "high" | "medium" | "low";
@@ -13,6 +14,10 @@ export type MessageVerification = {
   otp: string | null;
   links: string[];
   primaryLink: string | null;
+  buttons: HtmlActionCandidate[];
+  primaryButton: HtmlActionCandidate | null;
+  visibleText: string;
+  filteredLinks: string[];
   confidence: VerificationConfidence;
   matchedRule: string | null;
   reason: string;
@@ -31,10 +36,16 @@ export function formatMessageVerification(
   const links = parseLinks(row.links_json);
   const primary = primaryLink(links);
   const metadata = buildVerificationMetadata(row.otp, links, primary);
+  const actions = extractHtmlActions({
+    html: row.html_preview,
+    text: row.text_preview,
+    links,
+  });
   return {
     otp: row.otp,
     links,
     primaryLink: primary,
+    ...actions,
     ...metadata,
     from: row.from_addr,
     subject: row.subject,

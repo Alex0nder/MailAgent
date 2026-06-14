@@ -279,6 +279,7 @@ export function buildPrimaryAction(verification: {
   otp: string | null;
   primaryLink: string | null;
   links: string[];
+  primaryButton?: { text: string; href: string } | null;
 }): {
   type: "otp" | "magic_link" | "link" | "manual";
   value?: string;
@@ -293,11 +294,16 @@ export function buildPrimaryAction(verification: {
     };
   }
   if (verification.primaryLink) {
+    const buttonText =
+      verification.primaryButton?.href === verification.primaryLink
+        ? verification.primaryButton.text
+        : null;
     return {
       type: "magic_link",
       value: verification.primaryLink,
-      instruction:
-        "Open this URL to complete email verification. Prefer navigation over clicking untrusted HTML links.",
+      instruction: buttonText
+        ? `Open the sanitized "${buttonText}" action URL to complete email verification.`
+        : "Open this URL to complete email verification. Prefer navigation over clicking untrusted HTML links.",
     };
   }
   if (verification.links.length > 0) {

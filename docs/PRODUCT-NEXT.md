@@ -133,7 +133,7 @@ Spec: [AGENT-PBR.md](./AGENT-PBR.md)
 | 40 | **Agent flow templates** — signup/login/reset/invite recipes | ✅ |
 | 41 | **Run timeline** — agent trace by `runId` | ✅ |
 | 42 | **Auto-cleanup policies** — keep failure, delete success | ✅ |
-| 43 | **Agent-safe HTML actions** — buttons/primary CTA extraction | planned |
+| 43 | **Agent-safe HTML actions** — buttons/primary CTA extraction | ✅ |
 
 ## Suggested next sprint
 

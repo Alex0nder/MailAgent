@@ -9,7 +9,7 @@ Temporary inbox in CI: signup, OTP, magic link — without shared mailboxes and 
 | Shared test@company.com — races, other people's mail | **Inbox per test** (`label` = CI run id) |
 | Wait 60–120 s for mail in test | **POST /v1/inboxes/open** — one call |
 | Flaky: mail arrived, poll missed it | **SSE** + poll; optional **callbackUrl** |
-| Need OTP / link, not HTML parsing | **verification.otp**, **primaryLink** |
+| Need OTP / link, not HTML parsing | **verification.otp**, **primaryLink**, **primaryButton** |
 | Test failed — what's in inbox? | **GET /v1/inboxes?label=...** + messages |
 | Mail not from staging | **expectFrom** / **service** allowlist |
 
@@ -35,6 +35,7 @@ RESULT=$(curl -sS -X POST "$MAILAGENT_API_URL/v1/inboxes/open" \
 echo "$RESULT" | jq .
 OTP=$(echo "$RESULT" | jq -r '.verification.otp')
 LINK=$(echo "$RESULT" | jq -r '.verification.primaryLink')
+BUTTON_TEXT=$(echo "$RESULT" | jq -r '.verification.primaryButton.text // empty')
 ADDRESS=$(echo "$RESULT" | jq -r '.address')
 
 # 2. Put $ADDRESS in signup form in Playwright/Cypress

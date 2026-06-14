@@ -96,6 +96,8 @@ Acceptance: QA starters can keep failed inboxes and auto-delete successful runs.
 
 ## PBR-6 — Agent-safe HTML actions
 
+**Status:** implemented.
+
 Return sanitized CTA/action candidates from email HTML:
 
 - `buttons[]`

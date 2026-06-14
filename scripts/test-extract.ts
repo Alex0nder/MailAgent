@@ -1,6 +1,7 @@
 /** Quick check of extract OTP/links */
 import assert from "node:assert/strict";
 import { extractLinks, extractOtp, primaryLink } from "../src/services/extract";
+import { extractHtmlActions } from "../src/services/html-actions";
 import { buildVerificationMetadata } from "../src/services/message-verify";
 
 const sample = `
@@ -23,3 +24,17 @@ assert.equal(otpMeta.matchedRule, "otp_6_digit");
 const linkMeta = buildVerificationMetadata(null, links, primary);
 assert.equal(linkMeta.confidence, "high");
 assert.equal(linkMeta.matchedRule, "verification_link");
+
+const actions = extractHtmlActions({
+  html: `
+    <p>Confirm your account</p>
+    <a class="button primary" href="https://app.example.com/verify?token=abc">Verify email</a>
+    <a href="https://app.example.com/privacy">Privacy</a>
+    <a href="https://app.example.com/unsubscribe">Unsubscribe</a>
+  `,
+});
+assert.equal(actions.primaryButton?.text, "Verify email");
+assert.equal(actions.primaryButton?.href, "https://app.example.com/verify?token=abc");
+assert.deepEqual(actions.filteredLinks, ["https://app.example.com/verify?token=abc"]);
+assert.match(actions.visibleText, /Confirm your account Verify email/);
+console.log("htmlActions:", actions.primaryButton);
