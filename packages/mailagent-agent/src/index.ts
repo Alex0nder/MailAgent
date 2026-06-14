@@ -97,6 +97,13 @@ export type VerificationAlternatives = {
   links: string[];
 };
 
+export type HtmlActionCandidate = {
+  text: string;
+  href: string;
+  kind: "button" | "link";
+  score: number;
+};
+
 export type OutboundCapabilities = {
   enabled: boolean;
   verifiedFrom: boolean;
@@ -175,6 +182,10 @@ export type VerifySignupResult = {
     otp: string | null;
     primaryLink: string | null;
     links: string[];
+    buttons?: HtmlActionCandidate[];
+    primaryButton?: HtmlActionCandidate | null;
+    visibleText?: string;
+    filteredLinks?: string[];
     confidence?: VerificationConfidence;
     matchedRule?: string | null;
     reason?: string;
@@ -200,6 +211,10 @@ export type MessageSummary = {
   otp: string | null;
   links: string[];
   primaryLink: string | null;
+  buttons?: HtmlActionCandidate[];
+  primaryButton?: HtmlActionCandidate | null;
+  visibleText?: string;
+  filteredLinks?: string[];
   confidence?: VerificationConfidence;
   matchedRule?: string | null;
   reason?: string;

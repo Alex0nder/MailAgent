@@ -10,6 +10,7 @@ import {
 
 const base = contractBase();
 const headers = contractHeaders();
+const requireHtmlActions = process.env.MAILAGENT_REQUIRE_HTML_ACTIONS === "1";
 if (!headers) {
   console.error("contract-qa-extract: set MAILAGENT_API_KEY");
   process.exit(1);
@@ -121,6 +122,25 @@ async function main() {
   if (!extMl.ok || !extMl.json?.data?.primaryLink) {
     console.error("magic_link extract failed", extMl.status, extMl.json);
     process.exit(1);
+  }
+  if (requireHtmlActions) {
+    const data = extMl.json?.data ?? {};
+    if (
+      !Array.isArray(data.buttons) ||
+      data.buttons.length < 1 ||
+      !data.primaryButton?.href ||
+      data.primaryButton.text !== "Verify email" ||
+      !String(data.visibleText ?? "").includes("Verify email") ||
+      !Array.isArray(data.filteredLinks) ||
+      data.filteredLinks.some((href) => /unsubscribe|privacy|preferences/i.test(href))
+    ) {
+      console.error("html action extraction failed", data);
+      process.exit(1);
+    }
+    console.log("html actions OK", {
+      primaryButton: data.primaryButton,
+      filteredLinks: data.filteredLinks,
+    });
   }
   console.log("magic_link preset OK");
 

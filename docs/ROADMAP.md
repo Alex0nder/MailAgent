@@ -715,7 +715,7 @@ Spec: [AGENT-PBR.md](./AGENT-PBR.md)
 | Flow templates in `GET /v1/agent` | ✅ |
 | Run timeline by `runId` | ✅ |
 | Auto-cleanup policies | ✅ |
-| Agent-safe HTML action extraction | planned |
+| Agent-safe HTML action extraction | ✅ |
 
 ### Deferred (not QA)
 

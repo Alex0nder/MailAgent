@@ -28,10 +28,21 @@ export interface OpenInboxOptions extends CreateInboxOptions {
   keepOnFailure?: boolean;
 }
 
+export interface HtmlActionCandidate {
+  text: string;
+  href: string;
+  kind: "button" | "link";
+  score: number;
+}
+
 export interface Verification {
   otp: string | null;
   links: string[];
   primaryLink: string | null;
+  buttons?: HtmlActionCandidate[];
+  primaryButton?: HtmlActionCandidate | null;
+  visibleText?: string;
+  filteredLinks?: string[];
   confidence?: "high" | "medium" | "low";
   matchedRule?: string | null;
   reason?: string;
@@ -85,6 +96,10 @@ export interface MessageSummary {
   otp?: string | null;
   links?: string[];
   primaryLink?: string | null;
+  buttons?: HtmlActionCandidate[];
+  primaryButton?: HtmlActionCandidate | null;
+  visibleText?: string;
+  filteredLinks?: string[];
   confidence?: "high" | "medium" | "low";
   matchedRule?: string | null;
   reason?: string;
@@ -451,6 +466,10 @@ export class MailAgentQa {
       otp: m.otp ?? null,
       links: m.links ?? [],
       primaryLink: m.primaryLink ?? null,
+      buttons: m.buttons,
+      primaryButton: m.primaryButton,
+      visibleText: m.visibleText,
+      filteredLinks: m.filteredLinks,
       from: m.from,
       subject: m.subject,
       messageId: m.id,

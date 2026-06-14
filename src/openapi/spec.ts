@@ -85,6 +85,16 @@ const inbox = {
   },
 } as const;
 
+const htmlActionCandidate = {
+  type: "object",
+  properties: {
+    text: { type: "string" },
+    href: { type: "string" },
+    kind: { type: "string", enum: ["button", "link"] },
+    score: { type: "integer" },
+  },
+} as const;
+
 const message = {
   type: "object",
   properties: {
@@ -95,6 +105,10 @@ const message = {
     otp: { type: "string", nullable: true },
     links: { type: "array", items: { type: "string" } },
     primaryLink: { type: "string", nullable: true },
+    buttons: { type: "array", items: htmlActionCandidate },
+    primaryButton: { ...htmlActionCandidate, nullable: true },
+    visibleText: { type: "string" },
+    filteredLinks: { type: "array", items: { type: "string" } },
     confidence: { type: "string", enum: ["high", "medium", "low"] },
     matchedRule: { type: "string", nullable: true },
     reason: { type: "string" },
@@ -141,6 +155,10 @@ const verification = {
     otp: { type: "string", nullable: true },
     links: { type: "array", items: { type: "string" } },
     primaryLink: { type: "string", nullable: true },
+    buttons: { type: "array", items: htmlActionCandidate },
+    primaryButton: { ...htmlActionCandidate, nullable: true },
+    visibleText: { type: "string" },
+    filteredLinks: { type: "array", items: { type: "string" } },
     confidence: { type: "string", enum: ["high", "medium", "low"] },
     matchedRule: { type: "string", nullable: true },
     reason: { type: "string" },

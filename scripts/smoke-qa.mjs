@@ -190,6 +190,36 @@ async function main() {
     process.exit(1);
   }
 
+  if (process.env.MAILAGENT_REQUIRE_HTML_ACTIONS === "1") {
+    const simMagic = await req("POST", `/v1/inboxes/${inboxId}/simulate`, {
+      scenario: "magic_link",
+      subject: "smoke-qa magic link",
+    });
+    console.log(
+      "POST …/simulate (magic_link)",
+      simMagic.res.status,
+      simMagic.json?.messageId ?? simMagic.json?.error
+    );
+    if (!simMagic.res.ok || !simMagic.json?.messageId) process.exit(1);
+
+    const htmlExtract = await req("GET", `/v1/inboxes/${inboxId}/extract`);
+    console.log(
+      "GET …/extract (html actions)",
+      htmlExtract.res.status,
+      htmlExtract.json?.primaryButton?.text ?? "—"
+    );
+    if (
+      !htmlExtract.res.ok ||
+      htmlExtract.json?.primaryButton?.text !== "Verify email" ||
+      !htmlExtract.json?.primaryButton?.href ||
+      !String(htmlExtract.json?.visibleText ?? "").includes("Verify email") ||
+      !Array.isArray(htmlExtract.json?.filteredLinks)
+    ) {
+      console.error("extract missing html action metadata");
+      process.exit(1);
+    }
+  }
+
   const del = await req("DELETE", `/v1/inboxes/${inboxId}`);
   console.log("DELETE inbox", del.res.status);
   if (!del.res.ok) process.exit(1);

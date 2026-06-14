@@ -517,13 +517,28 @@ export interface MessageSummary {
   otp: string | null;
   links: string[];
   primaryLink?: string | null;
+  buttons?: HtmlActionCandidate[];
+  primaryButton?: HtmlActionCandidate | null;
+  visibleText?: string;
+  filteredLinks?: string[];
   receivedAt: string;
+}
+
+export interface HtmlActionCandidate {
+  text: string;
+  href: string;
+  kind: "button" | "link";
+  score: number;
 }
 
 export interface ExtractResponse {
   otp: string | null;
   links: string[];
   primaryLink: string | null;
+  buttons?: HtmlActionCandidate[];
+  primaryButton?: HtmlActionCandidate | null;
+  visibleText?: string;
+  filteredLinks?: string[];
   from: string;
   subject: string;
   messageId: string;

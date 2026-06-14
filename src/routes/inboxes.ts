@@ -45,6 +45,7 @@ import {
   listAttachments,
 } from "../services/message-attachments";
 import { primaryLink } from "../services/extract";
+import { extractHtmlActions } from "../services/html-actions";
 import {
   buildVerificationMetadata,
   formatMessageVerification,
@@ -869,6 +870,7 @@ function formatMessage(m: {
   from_addr: string;
   subject: string;
   text_preview: string | null;
+  html_preview?: string | null;
   otp: string | null;
   links_json: unknown;
   received_at: string;
@@ -876,6 +878,11 @@ function formatMessage(m: {
 }) {
   const links = parseLinks(m.links_json);
   const primary = primaryLink(links);
+  const actions = extractHtmlActions({
+    html: m.html_preview,
+    text: m.text_preview,
+    links,
+  });
   return {
     id: m.id,
     from: m.from_addr,
@@ -884,6 +891,7 @@ function formatMessage(m: {
     otp: m.otp,
     links,
     primaryLink: primary,
+    ...actions,
     ...buildVerificationMetadata(m.otp, links, primary),
     receivedAt: m.received_at,
     hasRaw: Boolean(m.raw_r2_key),
