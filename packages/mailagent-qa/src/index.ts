@@ -95,6 +95,22 @@ export interface CallbackDelivery {
   createdAt: string;
 }
 
+export interface DiagnoseAction {
+  type:
+    | "wait"
+    | "adjust_subject_filter"
+    | "adjust_message_index"
+    | "fix_callback"
+    | "extract_verification"
+    | "simulate_message"
+    | "open_debug_ui";
+  confidence: "high" | "medium" | "low";
+  reason: string;
+  label: string;
+  href?: string;
+  payload?: Record<string, unknown>;
+}
+
 export interface DebugContext {
   inboxId: string;
   address?: string;
@@ -104,6 +120,39 @@ export interface DebugContext {
   messages: MessageSummary[];
   callbacks: CallbackDelivery[];
   troubleshooting: string[];
+  failureSummary?: {
+    code:
+      | "no_messages"
+      | "subject_filter_no_match"
+      | "message_index_too_high"
+      | "callback_failed"
+      | "message_received"
+      | "unknown";
+    message: string;
+    confidence: "high" | "medium" | "low";
+  };
+  recommendedAction?: DiagnoseAction;
+  retry?: {
+    keepInbox: boolean;
+    wait: {
+      method: "GET";
+      path: string;
+      query: {
+        timeoutSeconds: number;
+        subjectContains?: string;
+        messageIndex: number;
+      };
+    };
+    simulate: {
+      method: "POST";
+      path: string;
+      body: {
+        subject: string;
+        otp: string;
+      };
+    };
+  };
+  nextActions?: DiagnoseAction[];
 }
 
 export class MailAgentQa {
@@ -463,6 +512,10 @@ export class MailAgentQa {
         messages: MessageSummary[];
         callbacks: CallbackDelivery[];
         troubleshooting: string[];
+        failureSummary?: DebugContext["failureSummary"];
+        recommendedAction?: DiagnoseAction;
+        retry?: DebugContext["retry"];
+        nextActions?: DiagnoseAction[];
         debugUiUrl: string;
         apiMessagesUrl: string;
       }>(path);
@@ -475,6 +528,10 @@ export class MailAgentQa {
         messages: data.messages,
         callbacks: data.callbacks,
         troubleshooting: data.troubleshooting,
+        failureSummary: data.failureSummary,
+        recommendedAction: data.recommendedAction,
+        retry: data.retry,
+        nextActions: data.nextActions,
       };
     } catch {
       const [messages, callbacks] = await Promise.all([

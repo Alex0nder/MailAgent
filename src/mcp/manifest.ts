@@ -269,7 +269,7 @@ export const MCP_TOOLS = [
   {
     name: "mailagent_diagnose_inbox",
     description:
-      "When wait/verify fails: messages, callbacks, wait hints, debugUiUrl, troubleshooting steps.",
+      "When wait/verify fails: messages, callbacks, wait hints, debugUiUrl, troubleshooting steps, and machine-readable recommendedAction/retry payloads.",
     inputSchema: {
       type: "object",
       required: ["inboxId"],

@@ -162,15 +162,15 @@
   "stats": {
     "mcpTools": 24,
     "dbMigrations": 19,
-    "docsMd": 47,
+    "docsMd": 48,
     "srcTsFiles": 93,
     "npmPackages": 3,
     "githubWorkflows": 7,
     "servicePresets": 25
   },
-  "sourceCommit": "03a2e95fa3d7d9e1ea075749a91a263e99055ead",
-  "sourceCommitShort": "03a2e95",
-  "syncedAt": "2026-06-13T18:57:49.130Z",
+  "sourceCommit": "cae76da50e118ec87c2cc6ce9c7f7e7e5cf67bb9",
+  "sourceCommitShort": "cae76da",
+  "syncedAt": "2026-06-14T01:46:56.880Z",
   "syncSources": [
     "src/mcp/manifest.ts",
     "src/lib/service-presets.ts",

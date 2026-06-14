@@ -712,4 +712,4 @@ OpenAPI: `src/openapi/spec.ts` → `GET /v1/openapi.json`. SDKs: `@mailagent/age
 
 **Security (technical):** tenant isolation via API key; webhook signatures; allowlist drop at ingest; simulate auth-gated. Ops procedures → `operational-core.md`.
 
-**Local vs prod:** dev needs webhook tunnel; secrets in `.dev.vars`; contracts target prod URL. MCP manifest `0.8.1`; wrangler `compatibility_date` `2026-01-15`; 16 migrations.
+**Local vs prod:** dev needs webhook tunnel; secrets in `.dev.vars`; contracts target prod URL. MCP manifest `0.8.2`; wrangler `compatibility_date` `2026-01-15`; 19 migrations.
