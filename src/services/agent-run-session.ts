@@ -1,6 +1,7 @@
 /** Multi-step agent run state (scoped by team or api key hint) */
 import type { Env } from "../env";
 import { getDb } from "../db/client";
+import { parseRunIdFromLabel } from "../lib/agent-recipes";
 import { normalizeRunId, validateRunId } from "../lib/validate-run-id";
 
 export interface AgentRunStep {
@@ -9,10 +10,31 @@ export interface AgentRunStep {
   data?: Record<string, unknown>;
 }
 
+export interface AgentRunTimelineEvent {
+  id: string;
+  type:
+    | "inbox_created"
+    | "wait_started"
+    | "message_received"
+    | "extraction_success"
+    | "extraction_failure"
+    | "callback_delivery"
+    | "notify_delivery"
+    | "diagnose_run"
+    | "session_step";
+  at: string;
+  title: string;
+  status: "info" | "success" | "failure" | "timeout";
+  inboxId?: string;
+  messageId?: string;
+  data?: Record<string, unknown>;
+}
+
 export interface AgentRunSession {
   runId: string;
   state: Record<string, unknown>;
   steps: AgentRunStep[];
+  timeline: AgentRunTimelineEvent[];
   createdAt: string;
   updatedAt: string;
 }
@@ -36,10 +58,12 @@ export function sessionOwnerKey(
 }
 
 function rowToSession(row: SessionRow): AgentRunSession {
+  const steps = Array.isArray(row.steps) ? row.steps : [];
   return {
     runId: row.run_id,
     state: (row.state as Record<string, unknown>) ?? {},
-    steps: Array.isArray(row.steps) ? row.steps : [],
+    steps,
+    timeline: buildAgentRunTimeline(steps),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -125,6 +149,137 @@ export async function patchAgentRunSession(
   return { ok: true, session: rowToSession(rows[0]!) };
 }
 
+export function buildAgentRunTimeline(
+  steps: AgentRunStep[]
+): AgentRunTimelineEvent[] {
+  return steps.map((step, index) => {
+    const data = step.data;
+    const inboxId = stringField(data, "inboxId");
+    const messageId = stringField(data, "messageId");
+    const event = timelineShapeForStep(step.name, data);
+    return {
+      id: `${index + 1}-${step.name}`,
+      type: event.type,
+      at: step.at,
+      title: event.title,
+      status: event.status,
+      ...(inboxId ? { inboxId } : {}),
+      ...(messageId ? { messageId } : {}),
+      ...(data ? { data } : {}),
+    };
+  });
+}
+
+function timelineShapeForStep(
+  name: string,
+  data?: Record<string, unknown>
+): Pick<AgentRunTimelineEvent, "type" | "title" | "status"> {
+  switch (name) {
+    case "inbox.created":
+    case "inbox_created":
+      return { type: "inbox_created", title: "Inbox created", status: "success" };
+    case "wait.started":
+      return { type: "wait_started", title: "Wait started", status: "info" };
+    case "message.received":
+      return { type: "message_received", title: "Message received", status: "success" };
+    case "verify.success":
+    case "extraction.success":
+      return {
+        type: "extraction_success",
+        title: "Verification extracted",
+        status: "success",
+      };
+    case "verify.timeout":
+    case "extraction.failure":
+      return {
+        type: "extraction_failure",
+        title: name === "verify.timeout" ? "Verification timed out" : "Extraction failed",
+        status: name === "verify.timeout" ? "timeout" : "failure",
+      };
+    case "callback.delivery":
+      return {
+        type: "callback_delivery",
+        title: Boolean(data?.ok) ? "Callback delivered" : "Callback failed",
+        status: Boolean(data?.ok) ? "success" : "failure",
+      };
+    case "notify.delivery":
+      return {
+        type: "notify_delivery",
+        title: Boolean(data?.ok) ? "Notify email delivered" : "Notify email failed",
+        status: Boolean(data?.ok) ? "success" : "failure",
+      };
+    case "diagnose.run":
+      return { type: "diagnose_run", title: "Diagnose run", status: "info" };
+    default:
+      return { type: "session_step", title: name, status: "info" };
+  }
+}
+
+function stringField(
+  data: Record<string, unknown> | undefined,
+  key: string
+): string | null {
+  const value = data?.[key];
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+async function recordRunStep(
+  env: Env,
+  runId: string | undefined,
+  ownerKey: string,
+  step: { name: string; data?: Record<string, unknown> },
+  merge?: Record<string, unknown>
+): Promise<void> {
+  if (!runId?.trim() || !validateRunId(runId)) return;
+  try {
+    await patchAgentRunSession(env, runId, ownerKey, {
+      step,
+      ...(merge ? { merge } : {}),
+    });
+  } catch {
+    /* session is best-effort */
+  }
+}
+
+async function sessionOwnerKeyForInbox(
+  env: Env,
+  inbox: { api_key_hint?: string | null }
+): Promise<string | null> {
+  const apiKeyHint = inbox.api_key_hint?.trim();
+  if (!apiKeyHint) return null;
+  const teamId = await getTeamIdByApiKeyHint(env, apiKeyHint);
+  return sessionOwnerKey(teamId, apiKeyHint);
+}
+
+async function getTeamIdByApiKeyHint(
+  env: Env,
+  hint: string | null | undefined
+): Promise<string | null> {
+  if (!hint?.trim()) return null;
+  const sql = getDb(env);
+  const rows = (await sql`
+    SELECT team_id FROM api_keys WHERE key_hint = ${hint.trim()} LIMIT 1
+  `) as { team_id: string }[];
+  return rows[0]?.team_id ?? null;
+}
+
+async function recordInboxLabelRunStep(
+  env: Env,
+  inbox: { id: string; label: string | null; api_key_hint?: string | null },
+  step: { name: string; data?: Record<string, unknown> },
+  merge?: Record<string, unknown>
+): Promise<void> {
+  try {
+    const runId = parseRunIdFromLabel(inbox.label);
+    if (!runId) return;
+    const ownerKey = await sessionOwnerKeyForInbox(env, inbox);
+    if (!ownerKey) return;
+    await recordRunStep(env, runId, ownerKey, step, merge);
+  } catch {
+    /* timeline is best-effort */
+  }
+}
+
 type VerifySessionResult =
   | {
       status: "verified";
@@ -154,16 +309,26 @@ export async function recordVerifyRunSession(
     lastVerify.primaryLink = result.verification.primaryLink ?? null;
   }
 
-  try {
-    await patchAgentRunSession(env, runId, ownerKey, {
-      step: {
-        name: result.status === "verified" ? "verify.success" : "verify.timeout",
+  await recordRunStep(
+    env,
+    runId,
+    ownerKey,
+    {
+      name: result.status === "verified" ? "verify.success" : "verify.timeout",
+      data: {
+        inboxId: result.email.inboxId,
+        status: result.status,
+        service: service ?? null,
+        ...(result.status === "verified"
+          ? {
+              otp: result.verification.otp ?? null,
+              primaryLink: result.verification.primaryLink ?? null,
+            }
+          : {}),
       },
-      merge: { lastVerify },
-    });
-  } catch {
-    /* session is best-effort */
-  }
+    },
+    { lastVerify }
+  );
 }
 
 /** Record inbox creation in run session (MCP create_inbox + agents). */
@@ -175,12 +340,110 @@ export async function recordInboxRunSession(
 ): Promise<void> {
   if (!runId?.trim() || !validateRunId(runId)) return;
 
-  try {
-    await patchAgentRunSession(env, runId, ownerKey, {
-      step: { name: "inbox.created", data: { address: inbox.address } },
-      merge: { inboxId: inbox.id, address: inbox.address },
-    });
-  } catch {
-    /* best-effort */
+  await recordRunStep(
+    env,
+    runId,
+    ownerKey,
+    {
+      name: "inbox.created",
+      data: { inboxId: inbox.id, address: inbox.address },
+    },
+    { inboxId: inbox.id, address: inbox.address }
+  );
+}
+
+export async function recordWaitStartedRunSession(
+  env: Env,
+  runId: string | undefined,
+  ownerKey: string,
+  input: {
+    inboxId: string;
+    timeoutSeconds: number;
+    subjectContains?: string;
+    messageIndex?: number;
   }
+): Promise<void> {
+  await recordRunStep(env, runId, ownerKey, {
+    name: "wait.started",
+    data: input as Record<string, unknown>,
+  });
+}
+
+export async function recordMessageReceivedRunSession(
+  env: Env,
+  runId: string | undefined,
+  ownerKey: string,
+  input: {
+    inboxId: string;
+    messageId: string;
+    from: string;
+    subject: string;
+    receivedAt: string;
+  }
+): Promise<void> {
+  await recordRunStep(env, runId, ownerKey, {
+    name: "message.received",
+    data: input,
+  });
+}
+
+export async function recordDiagnoseRunSession(
+  env: Env,
+  inbox: {
+    id: string;
+    label: string | null;
+    api_key_hint?: string | null;
+  },
+  input: {
+    failureCode?: string | null;
+    recommendedAction?: string | null;
+    messageCount?: number;
+    subjectContains?: string;
+    messageIndex?: number;
+  }
+): Promise<void> {
+  await recordInboxLabelRunStep(env, inbox, {
+    name: "diagnose.run",
+    data: { inboxId: inbox.id, ...input },
+  });
+}
+
+export async function recordCallbackRunSession(
+  env: Env,
+  inbox: {
+    id: string;
+    label: string | null;
+    api_key_hint?: string | null;
+  },
+  input: {
+    messageId: string;
+    ok: boolean;
+    statusCode: number | null;
+    source?: string;
+  }
+): Promise<void> {
+  await recordInboxLabelRunStep(env, inbox, {
+    name: "callback.delivery",
+    data: { inboxId: inbox.id, ...input },
+  });
+}
+
+export async function recordNotifyRunSession(
+  env: Env,
+  inbox: {
+    id: string;
+    label: string | null;
+    api_key_hint?: string | null;
+  },
+  input: {
+    messageId: string;
+    ok: boolean;
+    resendId: string | null;
+    error?: string;
+  }
+): Promise<void> {
+  await recordInboxLabelRunStep(env, inbox, {
+    name: "notify.delivery",
+    data: { inboxId: inbox.id, ...input },
+  });
 }

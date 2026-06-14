@@ -65,6 +65,13 @@ import {
 } from "../services/structured-extract";
 import { publicOriginFromUrl } from "../lib/public-origin";
 import { PLAN_LIMITS } from "../lib/plans";
+import { parseRunIdFromLabel } from "../lib/agent-recipes";
+import {
+  recordDiagnoseRunSession,
+  recordMessageReceivedRunSession,
+  recordWaitStartedRunSession,
+  sessionOwnerKey,
+} from "../services/agent-run-session";
 
 export const inboxRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
 
@@ -536,6 +543,13 @@ inboxRoutes.get("/:id/diagnose", async (c) => {
     apiKeyHint: c.get("apiKeyHint"),
   });
   if (!diagnose) return c.json({ error: "inbox_not_found" }, 404);
+  await recordDiagnoseRunSession(c.env, inbox, {
+    failureCode: diagnose.failureSummary.code,
+    recommendedAction: diagnose.recommendedAction.type,
+    messageCount: diagnose.messageCount,
+    ...(subjectContains ? { subjectContains } : {}),
+    messageIndex,
+  });
 
   return c.json(diagnose);
 });
@@ -762,11 +776,26 @@ inboxRoutes.get("/:id/wait", async (c) => {
     Math.floor(Number(c.req.query("messageIndex") ?? 0))
   );
   const waitOpts = { subjectContains, messageIndex };
+  const runId = parseRunIdFromLabel(inbox.label);
+  const ownerKey = sessionOwnerKey(c.get("teamId"), c.get("apiKeyHint"));
+  await recordWaitStartedRunSession(c.env, runId ?? undefined, ownerKey, {
+    inboxId: inbox.id,
+    timeoutSeconds: timeoutSec,
+    ...(subjectContains ? { subjectContains } : {}),
+    messageIndex,
+  });
   const message = await waitForMessage(c.env, inbox.id, timeoutSec, waitOpts);
   if (!message) {
     const debug = await buildWaitTimeoutDebug(c.env, inbox.id, waitOpts);
     return c.json({ error: "timeout", inboxId: inbox.id, ...debug }, 408);
   }
+  await recordMessageReceivedRunSession(c.env, runId ?? undefined, ownerKey, {
+    inboxId: inbox.id,
+    messageId: message.id,
+    from: message.from_addr,
+    subject: message.subject,
+    receivedAt: message.received_at,
+  });
   return c.json({
     message: {
       ...formatMessage(message),

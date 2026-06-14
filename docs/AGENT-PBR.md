@@ -68,6 +68,8 @@ Acceptance: `GET /v1/agent`, `GET /v1/agent/flows`, and MCP docs expose flow tem
 
 ## PBR-4 — Run timeline
 
+**Status:** implemented.
+
 Add an agent-readable timeline for a `runId`:
 
 - inbox created

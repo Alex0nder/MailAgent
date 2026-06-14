@@ -81,20 +81,47 @@
             '<p class="app-lead" style="margin-top:24px">No active agent runs. Use <code>runId</code> in MCP or <code>POST /v1/agent/verify</code>.</p>';
           return;
         }
+        const esc = (value) =>
+          String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+        const timelineHtml = (timeline) => {
+          if (!Array.isArray(timeline) || !timeline.length) {
+            return '<p class="meta">No timeline events yet.</p>';
+          }
+          return `<ol class="timeline-list">${timeline
+            .map(
+              (e) => `<li>
+                <strong>${esc(e.title || e.type)}</strong>
+                <span class="meta">${esc(e.at)} · ${esc(e.status)}</span>
+                ${
+                  e.inboxId || e.messageId
+                    ? `<div class="meta">${e.inboxId ? `inbox ${esc(e.inboxId)}` : ""}${
+                        e.messageId ? ` · message ${esc(e.messageId)}` : ""
+                      }</div>`
+                    : ""
+                }
+              </li>`
+            )
+            .join("")}</ol>`;
+        };
         listEl.innerHTML = runs
           .map(
             (r) => `<div class="run-card">
-              <h3><code>${r.runId}</code> · ${r.inboxCount} inbox(es)</h3>
-              <p class="meta">Latest: ${r.latestAt}</p>
+              <h3><code>${esc(r.runId)}</code> · ${r.inboxCount} inbox(es)</h3>
+              <p class="meta">Latest: ${esc(r.latestAt)}</p>
               <ul>${r.inboxes
                 .map(
                   (i) =>
-                    `<li><code>${i.id}</code> ${i.address}${i.label ? ` <span class="meta">(${i.label})</span>` : ""}
+                    `<li><code>${esc(i.id)}</code> ${esc(i.address)}${i.label ? ` <span class="meta">(${esc(i.label)})</span>` : ""}
                       — <a href="/console-inbox.html?inbox=${encodeURIComponent(i.id)}">console</a>
                       · <a href="/console-inbox.html?inbox=${encodeURIComponent(i.id)}#simulate-box">simulate</a>
                       · <a href="/debug.html?inbox=${encodeURIComponent(i.id)}">debug</a></li>`
                 )
                 .join("")}</ul>
+              ${r.session ? `<h4>Timeline</h4>${timelineHtml(r.session.timeline)}` : ""}
             </div>`
           )
           .join("");

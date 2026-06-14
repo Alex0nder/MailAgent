@@ -194,6 +194,55 @@ const notifyDelivery = {
   },
 } as const;
 
+const agentRunTimelineEvent = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    type: {
+      type: "string",
+      enum: [
+        "inbox_created",
+        "wait_started",
+        "message_received",
+        "extraction_success",
+        "extraction_failure",
+        "callback_delivery",
+        "notify_delivery",
+        "diagnose_run",
+        "session_step",
+      ],
+    },
+    at: { type: "string", format: "date-time" },
+    title: { type: "string" },
+    status: { type: "string", enum: ["info", "success", "failure", "timeout"] },
+    inboxId: { type: "string" },
+    messageId: { type: "string" },
+    data: { type: "object", additionalProperties: true },
+  },
+} as const;
+
+const agentRunSession = {
+  type: "object",
+  properties: {
+    runId: { type: "string" },
+    state: { type: "object", additionalProperties: true },
+    steps: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          at: { type: "string", format: "date-time" },
+          data: { type: "object", additionalProperties: true },
+        },
+      },
+    },
+    timeline: { type: "array", items: agentRunTimelineEvent },
+    createdAt: { type: "string", format: "date-time" },
+    updatedAt: { type: "string", format: "date-time" },
+  },
+} as const;
+
 const domain = {
   type: "object",
   properties: {
@@ -249,6 +298,8 @@ export const openApiSpec = {
       Message: message,
       Verification: verification,
       CallbackDelivery: callbackDelivery,
+      AgentRunSession: agentRunSession,
+      AgentRunTimelineEvent: agentRunTimelineEvent,
       Domain: domain,
     },
     responses: {
@@ -354,6 +405,115 @@ export const openApiSpec = {
           },
           "401": { $ref: "#/components/responses/Unauthorized" },
           "429": { $ref: "#/components/responses/RateLimited" },
+        },
+      },
+    },
+    "/v1/agent/runs": {
+      get: {
+        tags: ["meta"],
+        summary: "List active agent runs grouped by runId",
+        security: bearer,
+        parameters: [
+          { name: "runId", in: "query", schema: { type: "string" } },
+          { name: "label", in: "query", schema: { type: "string" } },
+          { name: "limit", in: "query", schema: { type: "integer", maximum: 100 } },
+        ],
+        responses: { "200": { description: "Agent run summaries" } },
+      },
+    },
+    "/v1/agent/runs/{runId}": {
+      get: {
+        tags: ["meta"],
+        summary: "Get agent run detail including session and timeline",
+        security: bearer,
+        parameters: [{ name: "runId", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Agent run detail" },
+          "404": { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
+    "/v1/agent/runs/{runId}/session": {
+      get: {
+        tags: ["meta"],
+        summary: "Get multi-step agent run session",
+        security: bearer,
+        parameters: [{ name: "runId", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": {
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/AgentRunSession" },
+              },
+            },
+          },
+          "404": { $ref: "#/components/responses/NotFound" },
+        },
+      },
+      patch: {
+        tags: ["meta"],
+        summary: "Patch agent run state or append a step",
+        security: bearer,
+        parameters: [{ name: "runId", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  merge: { type: "object", additionalProperties: true },
+                  replaceState: { type: "object", additionalProperties: true },
+                  step: {
+                    type: "object",
+                    properties: {
+                      name: { type: "string" },
+                      data: { type: "object", additionalProperties: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/AgentRunSession" },
+              },
+            },
+          },
+          "400": { description: "invalid_run_id | state_too_large | invalid_step" },
+          "404": { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
+    "/v1/agent/runs/{runId}/timeline": {
+      get: {
+        tags: ["meta"],
+        summary: "Get normalized agent run timeline",
+        security: bearer,
+        parameters: [{ name: "runId", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": {
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    runId: { type: "string" },
+                    timeline: {
+                      type: "array",
+                      items: { $ref: "#/components/schemas/AgentRunTimelineEvent" },
+                    },
+                    createdAt: { type: "string", format: "date-time" },
+                    updatedAt: { type: "string", format: "date-time" },
+                  },
+                },
+              },
+            },
+          },
+          "404": { $ref: "#/components/responses/NotFound" },
         },
       },
     },

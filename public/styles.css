@@ -1758,6 +1758,30 @@ h1 {
   color: var(--text-muted);
 }
 
+.run-card h4 {
+  margin: 18px 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.timeline-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.timeline-list li {
+  padding-left: 2px;
+}
+
+.timeline-list strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
 .doc-page .footer {
   margin-top: 0;
 }

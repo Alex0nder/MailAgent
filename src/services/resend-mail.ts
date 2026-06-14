@@ -12,6 +12,14 @@ import { shouldFireNotify } from "../lib/notify-email";
 import { fireInboxNotify } from "./notify-mail";
 import { fireTeamEventForMessage } from "./team-event-webhook";
 import {
+  recordCallbackRunSession,
+  recordMessageReceivedRunSession,
+  recordNotifyRunSession,
+  sessionOwnerKey,
+} from "./agent-run-session";
+import { parseRunIdFromLabel } from "../lib/agent-recipes";
+import { getTeamIdByApiKeyHint } from "./team-event-webhook";
+import {
   findInboxByAddress,
   insertMessage,
   type InboxRow,
@@ -126,6 +134,26 @@ export async function processInboundEmail(
 
   await indexMessageSearch(env, row);
 
+  const runId = parseRunIdFromLabel(inbox.label);
+  let ownerKey: string | null = null;
+  try {
+    if (runId && inbox.api_key_hint) {
+      const teamId = await getTeamIdByApiKeyHint(env, inbox.api_key_hint);
+      ownerKey = sessionOwnerKey(teamId, inbox.api_key_hint);
+    }
+    if (runId && ownerKey) {
+      await recordMessageReceivedRunSession(env, runId, ownerKey, {
+        inboxId: inbox.id,
+        messageId: row.id,
+        from: row.from_addr,
+        subject: row.subject,
+        receivedAt: row.received_at,
+      });
+    }
+  } catch {
+    /* timeline is best-effort */
+  }
+
   await saveAttachmentsFromEmail(
     env,
     inbox.id,
@@ -138,7 +166,7 @@ export async function processInboundEmail(
   await notify(inbox, payload);
 
   if (inbox.callback_url) {
-    await fireInboxCallback(env, {
+    const callback = await fireInboxCallback(env, {
       inboxId: inbox.id,
       messageId: row.id,
       callbackUrl: inbox.callback_url,
@@ -148,13 +176,24 @@ export async function processInboundEmail(
         label: inbox.label,
       },
     });
+    await recordCallbackRunSession(env, inbox, {
+      messageId: row.id,
+      ok: callback.ok,
+      statusCode: callback.statusCode,
+    });
   }
 
   if (shouldFireNotify(inbox)) {
-    await fireInboxNotify(env, {
+    const notifyResult = await fireInboxNotify(env, {
       inbox,
       messageId: row.id,
       verification: formatMessageVerification(row, inbox.id),
+    });
+    await recordNotifyRunSession(env, inbox, {
+      messageId: row.id,
+      ok: notifyResult.ok,
+      resendId: notifyResult.resendId,
+      ...(notifyResult.error ? { error: notifyResult.error } : {}),
     });
   }
 
