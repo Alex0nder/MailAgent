@@ -35,6 +35,15 @@ async function main() {
   const agentJson = await agent.json();
   console.log("GET /v1/agent", agent.status, agentJson.version ?? "", agentJson.auth?.oidc ?? "");
   if (!agent.ok) process.exit(1);
+  if (process.env.MAILAGENT_REQUIRE_RUN_TIMELINE === "1") {
+    if (
+      !agentJson.runs?.timeline ||
+      !agentJson.mcpTools?.includes("mailagent_get_run_timeline")
+    ) {
+      console.error("run timeline discovery missing", agentJson.runs, agentJson.mcpTools);
+      process.exit(1);
+    }
+  }
   if (process.env.MAILAGENT_REQUIRE_AGENT_FLOWS === "1") {
     const flowIds = agentJson.flowTemplates?.ids ?? [];
     for (const id of ["signup", "login_2fa", "password_reset", "invite_accept", "magic_link_login"]) {

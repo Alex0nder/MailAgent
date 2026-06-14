@@ -474,6 +474,21 @@ server.registerTool(
 );
 
 server.registerTool(
+  "mailagent_get_run_timeline",
+  {
+    description:
+      "Read normalized agent run timeline events by runId.",
+    inputSchema: {
+      runId: z.string().describe("Agent run id (label agent-{runId})"),
+    },
+  },
+  async ({ runId }) => {
+    const client = new MailAgentClient();
+    return toolText(await client.getRunTimeline(runId));
+  }
+);
+
+server.registerTool(
   "mailagent_patch_run_session",
   {
     description: "Merge state and/or append a step for multi-step agent flows.",

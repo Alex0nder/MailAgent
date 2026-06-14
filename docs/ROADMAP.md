@@ -282,7 +282,7 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 
 | Migration `015_agent_run_sessions` | ✅ |
 | `GET/PATCH /v1/agent/runs/:runId/session` | ✅ |
-| MCP `mailagent_get_run_session`, `mailagent_patch_run_session` | ✅ |
+| MCP `mailagent_get_run_session`, `mailagent_get_run_timeline`, `mailagent_patch_run_session` | ✅ |
 | `@mailagent/agent@0.1.9` — getRunSession / patchRunSession | ✅ |
 | `@mailagent/mcp@0.2.4` | ✅ |
 | `contract-qa-session` + Playwright `simulate-gate.spec.ts` in `test:prod` | ✅ |
@@ -713,7 +713,7 @@ Spec: [AGENT-PBR.md](./AGENT-PBR.md)
 | Failure recovery hints in `GET …/diagnose` and `mailagent_diagnose_inbox` | ✅ |
 | Verification confidence + alternatives | ✅ |
 | Flow templates in `GET /v1/agent` | ✅ |
-| Run timeline by `runId` | planned |
+| Run timeline by `runId` | ✅ |
 | Auto-cleanup policies | planned |
 | Agent-safe HTML action extraction | planned |
 

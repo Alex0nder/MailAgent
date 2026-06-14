@@ -371,6 +371,18 @@ export const MCP_TOOLS = [
     },
   },
   {
+    name: "mailagent_get_run_timeline",
+    description:
+      "Read normalized agent run timeline events for inbox, wait, message, extraction, callback, notify, and diagnose milestones.",
+    inputSchema: {
+      type: "object",
+      required: ["runId"],
+      properties: {
+        runId: { type: "string", description: "Agent run id (label agent-{runId})" },
+      },
+    },
+  },
+  {
     name: "mailagent_patch_run_session",
     description:
       "Merge state and/or append a step for multi-step agent flows.",

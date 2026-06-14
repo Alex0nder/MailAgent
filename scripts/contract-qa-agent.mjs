@@ -47,8 +47,17 @@ async function main() {
     console.error("mailagent_get_run_session missing from hub");
     process.exit(1);
   }
+  const requireRunTimeline = process.env.MAILAGENT_REQUIRE_RUN_TIMELINE === "1";
+  if (requireRunTimeline && !hub.json.mcpTools.includes("mailagent_get_run_timeline")) {
+    console.error("mailagent_get_run_timeline missing from hub");
+    process.exit(1);
+  }
   if (!hub.json.runs?.session?.patch) {
     console.error("runs.session discovery missing", hub.json.runs);
+    process.exit(1);
+  }
+  if (requireRunTimeline && !hub.json.runs?.timeline) {
+    console.error("runs.timeline discovery missing", hub.json.runs);
     process.exit(1);
   }
   const requireAgentFlows = process.env.MAILAGENT_REQUIRE_AGENT_FLOWS === "1";

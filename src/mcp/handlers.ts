@@ -683,6 +683,22 @@ export async function executeMcpTool(
       return textResult(session);
     }
 
+    case "mailagent_get_run_timeline": {
+      const runId = args.runId as string;
+      if (!validateRunId(runId)) {
+        return textResult({ error: "invalid_run_id" }, true);
+      }
+      const owner = sessionOwnerKey(auth.teamId, auth.apiKeyHint);
+      const session = await getAgentRunSession(env, runId, owner);
+      if (!session) return textResult({ error: "session_not_found" }, true);
+      return textResult({
+        runId: session.runId,
+        timeline: session.timeline,
+        createdAt: session.createdAt,
+        updatedAt: session.updatedAt,
+      });
+    }
+
     case "mailagent_patch_run_session": {
       const writeErr = scopeWriteError(auth.scope);
       if (writeErr) return textResult(writeErr, true);

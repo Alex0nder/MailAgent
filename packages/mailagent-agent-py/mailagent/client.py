@@ -118,3 +118,8 @@ class MailAgent:
         if label:
             params.append(f"label={urllib.parse.quote(label)}")
         return self._request("GET", f"/v1/agent/runs?{'&'.join(params)}")
+
+    def get_run_timeline(self, run_id: str) -> MutableMapping[str, Any]:
+        return self._request(
+            "GET", f"/v1/agent/runs/{urllib.parse.quote(run_id)}/timeline"
+        )

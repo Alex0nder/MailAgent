@@ -144,6 +144,16 @@ export type AgentRunSession = {
   runId: string;
   state: Record<string, unknown>;
   steps: Array<{ name: string; at: string; data?: Record<string, unknown> }>;
+  timeline: Array<{
+    id: string;
+    type: string;
+    at: string;
+    title: string;
+    status: "info" | "success" | "failure" | "timeout";
+    inboxId?: string;
+    messageId?: string;
+    data?: Record<string, unknown>;
+  }>;
   createdAt: string;
   updatedAt: string;
 };
@@ -415,13 +425,19 @@ export class MailAgent {
 
   /** GET /v1/agent/runs/:runId/session — multi-step run memory */
   getRunSession(runId: string) {
+    return this.request<AgentRunSession>(
+      `/v1/agent/runs/${encodeURIComponent(runId)}/session`
+    );
+  }
+
+  /** GET /v1/agent/runs/:runId/timeline — normalized agent-readable timeline */
+  getRunTimeline(runId: string) {
     return this.request<{
       runId: string;
-      state: Record<string, unknown>;
-      steps: Array<{ name: string; at: string; data?: Record<string, unknown> }>;
+      timeline: AgentRunSession["timeline"];
       createdAt: string;
       updatedAt: string;
-    }>(`/v1/agent/runs/${encodeURIComponent(runId)}/session`);
+    }>(`/v1/agent/runs/${encodeURIComponent(runId)}/timeline`);
   }
 
   /** PATCH /v1/agent/runs/:runId/session */
@@ -433,13 +449,7 @@ export class MailAgent {
       step?: { name: string; data?: Record<string, unknown> };
     }
   ) {
-    return this.request<{
-      runId: string;
-      state: Record<string, unknown>;
-      steps: Array<{ name: string; at: string; data?: Record<string, unknown> }>;
-      createdAt: string;
-      updatedAt: string;
-    }>(`/v1/agent/runs/${encodeURIComponent(runId)}/session`, {
+    return this.request<AgentRunSession>(`/v1/agent/runs/${encodeURIComponent(runId)}/session`, {
       method: "PATCH",
       body: JSON.stringify(patch),
     });

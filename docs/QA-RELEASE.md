@@ -38,7 +38,7 @@ npm run test:contract:qa:callback
 npm run doctor
 ```
 
-After deploy `GET /v1/agent` should return **12** `mcpTools` (including `mailagent_list_attachments`, `mailagent_get_attachment`).
+After deploy `GET /v1/agent` should return **25** `mcpTools` (including `mailagent_get_run_timeline`).
 
 ## 5. npm publish (optional)
 

@@ -64,6 +64,7 @@ export class MailAgentClient {
     if (options?.ttlMinutes !== undefined) body.ttlMinutes = options.ttlMinutes;
     if (options?.service) body.service = options.service;
     if (options?.label) body.label = options.label;
+    if (options?.runId) body.runId = options.runId;
     if (options?.callbackUrl) body.callbackUrl = options.callbackUrl;
     if (options?.notifyEmail) body.notifyEmail = options.notifyEmail;
     const expectFrom = resolveExpectFrom(
@@ -89,6 +90,7 @@ export class MailAgentClient {
     if (options.inboxId) body.inboxId = options.inboxId;
     if (options.ttlMinutes !== undefined) body.ttlMinutes = options.ttlMinutes;
     if (options.service) body.service = options.service;
+    if (options.runId) body.runId = options.runId;
     if (options.label) body.label = options.label;
     if (options.callbackUrl) body.callbackUrl = options.callbackUrl;
     if (options.subjectContains) body.subjectContains = options.subjectContains;
@@ -157,6 +159,7 @@ export class MailAgentClient {
     };
     if (options.ttlMinutes !== undefined) body.ttlMinutes = options.ttlMinutes;
     if (options.service) body.service = options.service;
+    if (options.runId) body.runId = options.runId;
     if (options.label) body.label = options.label;
     if (options.callbackUrl) body.callbackUrl = options.callbackUrl;
     if (options.subjectContains) body.subjectContains = options.subjectContains;
@@ -211,6 +214,12 @@ export class MailAgentClient {
   getRunSession(runId: string) {
     return this.request<Record<string, unknown>>(
       `/v1/agent/runs/${encodeURIComponent(runId)}/session`
+    );
+  }
+
+  getRunTimeline(runId: string) {
+    return this.request<Record<string, unknown>>(
+      `/v1/agent/runs/${encodeURIComponent(runId)}/timeline`
     );
   }
 
@@ -427,6 +436,8 @@ export interface CreateInboxOptions {
   allowedSenders?: string | string[];
   /** QA: CI run id / parallel worker */
   label?: string;
+  /** Agent run id (stored as label agent-{runId}) */
+  runId?: string;
   /** QA: HTTPS webhook on message */
   callbackUrl?: string;
   /** Developer real inbox — OTP relay */
@@ -441,6 +452,7 @@ export interface WaitAndExtractOptions {
   expectFrom?: string | string[];
   allowedSenders?: string | string[];
   label?: string;
+  runId?: string;
   callbackUrl?: string;
   /** QA: wait for message with subject substring */
   subjectContains?: string;

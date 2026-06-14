@@ -3,6 +3,7 @@ import type { Env, MessageNotifyPayload } from "../env";
 import { parseCallbackUrl } from "../lib/callback-url";
 import { getDb } from "../db/client";
 import { fireInboxCallback } from "./callback";
+import { recordCallbackRunSession } from "./agent-run-session";
 import type { InboxRow } from "./inbox";
 
 export type TeamWebhookConfig = {
@@ -93,7 +94,7 @@ export async function fireTeamEventForMessage(
   const config = await getTeamEventWebhook(env, teamId);
   if (!config.url) return null;
 
-  return fireInboxCallback(env, {
+  const result = await fireInboxCallback(env, {
     inboxId: input.inbox.id,
     messageId: input.messageId,
     callbackUrl: config.url,
@@ -105,4 +106,11 @@ export async function fireTeamEventForMessage(
       source: "team_webhook",
     },
   });
+  await recordCallbackRunSession(env, input.inbox, {
+    messageId: input.messageId,
+    ok: result.ok,
+    statusCode: result.statusCode,
+    source: "team_webhook",
+  });
+  return result;
 }

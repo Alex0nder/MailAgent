@@ -138,12 +138,13 @@ Console: `console-inbox.html` → notify relay log.
 | `mailagent_send_message` | Outbound from verified domain |
 | `mailagent_list_threads` | Conversation view after reply |
 | `mailagent_get_run_session` | Multi-step agent run memory |
+| `mailagent_get_run_timeline` | Agent-readable run timeline |
 | `mailagent_delete_inbox` | Cleanup |
 | `flow=login` / `password_reset` on verify | Login 2FA / reset — default subject hints |
 | `callbackUrl` on create | Async CI — `waitForCallback` in QA SDK |
 | `notifyEmail` on create | Relay OTP to developer's real inbox |
 
-Full list: `GET https://api.webmailagent.com/v1/agent` → `mcpTools` (24 tools).
+Full list: `GET https://api.webmailagent.com/v1/agent` → `mcpTools` (25 tools).
 
 ## Email check (`mailagent_check_email`)
 

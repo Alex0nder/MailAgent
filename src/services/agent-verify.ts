@@ -25,6 +25,9 @@ import {
   recordVerifyRunSession,
   sessionOwnerKey,
   getAgentRunSession,
+  recordInboxRunSession,
+  recordMessageReceivedRunSession,
+  recordWaitStartedRunSession,
   type AgentRunSession,
 } from "./agent-run-session";
 import { validateRunId } from "../lib/validate-run-id";
@@ -78,6 +81,7 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
     runId: input.runId,
   });
   let inbox: InboxRow;
+  let createdInbox = false;
 
   if (input.inboxId) {
     const existing = await getInbox(env, input.inboxId, {
@@ -103,6 +107,13 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
       return { error: created.error, status: 400 as const };
     }
     inbox = created;
+    createdInbox = true;
+    await recordInboxRunSession(
+      env,
+      input.runId,
+      sessionOwnerKey(input.teamId, input.apiKeyHint),
+      { id: inbox.id, address: inbox.address }
+    );
   }
 
   const timeoutSec = Math.min(Number(input.timeoutSeconds ?? 90), 120);
@@ -115,6 +126,17 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
     messageIndex,
     onProgress: input.onProgress,
   };
+  await recordWaitStartedRunSession(
+    env,
+    input.runId,
+    sessionOwnerKey(input.teamId, input.apiKeyHint),
+    {
+      inboxId: inbox.id,
+      timeoutSeconds: timeoutSec,
+      ...(subjectContains ? { subjectContains } : {}),
+      messageIndex,
+    }
+  );
   const message = await waitForMessage(env, inbox.id, timeoutSec, waitOpts);
 
   if (!message) {
@@ -133,6 +155,7 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
       suggestedSubjectContains:
         resolveSubjectHint(input.service, input.flow) ?? null,
       inboxKept: !deleteAfter,
+      ...(createdInbox ? { createdInbox: true } : {}),
     };
     await recordVerifyRunSession(
       env,
@@ -143,6 +166,19 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
     );
     return await attachRunSession(env, input, timeoutResult);
   }
+
+  await recordMessageReceivedRunSession(
+    env,
+    input.runId,
+    sessionOwnerKey(input.teamId, input.apiKeyHint),
+    {
+      inboxId: inbox.id,
+      messageId: message.id,
+      from: message.from_addr,
+      subject: message.subject,
+      receivedAt: message.received_at,
+    }
+  );
 
   const attachmentCount = await countAttachmentsForMessage(env, message.id);
   const verification = {

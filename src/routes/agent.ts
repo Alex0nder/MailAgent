@@ -91,6 +91,7 @@ agentRoutes.get("/", (c) => {
         get: "GET /v1/agent/runs/:runId/session",
         patch: "PATCH /v1/agent/runs/:runId/session",
       },
+      timeline: "GET /v1/agent/runs/:runId/timeline",
     },
     remoteMcp: {
       endpoint: "POST /mcp",
@@ -190,6 +191,22 @@ agentRoutes.get("/runs/:runId/session", async (c) => {
   const session = await getAgentRunSession(c.env, runId, owner);
   if (!session) return c.json({ error: "session_not_found" }, 404);
   return c.json(session);
+});
+
+agentRoutes.get("/runs/:runId/timeline", async (c) => {
+  const runId = c.req.param("runId");
+  if (!validateRunId(runId)) {
+    return c.json({ error: "invalid_run_id" }, 400);
+  }
+  const owner = sessionOwnerKey(c.get("teamId"), c.get("apiKeyHint"));
+  const session = await getAgentRunSession(c.env, runId, owner);
+  if (!session) return c.json({ error: "session_not_found" }, 404);
+  return c.json({
+    runId: session.runId,
+    timeline: session.timeline,
+    createdAt: session.createdAt,
+    updatedAt: session.updatedAt,
+  });
 });
 
 type SessionPatchBody = {
