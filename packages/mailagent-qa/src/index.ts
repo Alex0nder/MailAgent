@@ -29,6 +29,13 @@ export interface Verification {
   otp: string | null;
   links: string[];
   primaryLink: string | null;
+  confidence?: "high" | "medium" | "low";
+  matchedRule?: string | null;
+  reason?: string;
+  alternatives?: {
+    otp: string[];
+    links: string[];
+  };
   from?: string;
   subject?: string;
   messageId?: string;
@@ -70,6 +77,13 @@ export interface MessageSummary {
   otp?: string | null;
   links?: string[];
   primaryLink?: string | null;
+  confidence?: "high" | "medium" | "low";
+  matchedRule?: string | null;
+  reason?: string;
+  alternatives?: {
+    otp: string[];
+    links: string[];
+  };
   hasRaw?: boolean;
   rawUrl?: string;
   attachmentCount?: number;

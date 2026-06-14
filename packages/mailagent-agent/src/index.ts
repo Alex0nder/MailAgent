@@ -80,6 +80,13 @@ export type PrimaryAction = {
   instruction: string;
 };
 
+export type VerificationConfidence = "high" | "medium" | "low";
+
+export type VerificationAlternatives = {
+  otp: string[];
+  links: string[];
+};
+
 export type OutboundCapabilities = {
   enabled: boolean;
   verifiedFrom: boolean;
@@ -148,6 +155,10 @@ export type VerifySignupResult = {
     otp: string | null;
     primaryLink: string | null;
     links: string[];
+    confidence?: VerificationConfidence;
+    matchedRule?: string | null;
+    reason?: string;
+    alternatives?: VerificationAlternatives;
     messageId?: string;
     hasRaw?: boolean;
     rawUrl?: string;
@@ -168,6 +179,10 @@ export type MessageSummary = {
   otp: string | null;
   links: string[];
   primaryLink: string | null;
+  confidence?: VerificationConfidence;
+  matchedRule?: string | null;
+  reason?: string;
+  alternatives?: VerificationAlternatives;
   receivedAt: string;
   hasRaw?: boolean;
   rawUrl?: string;

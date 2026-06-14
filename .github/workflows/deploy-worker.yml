@@ -64,6 +64,7 @@ jobs:
           MAILAGENT_API_URL: https://api.webmailagent.com
           MAILAGENT_API_KEY: ${{ secrets.MAILAGENT_API_KEY }}
           MAILAGENT_REQUIRE_DIAGNOSE_RECOVERY: "1"
+          MAILAGENT_REQUIRE_VERIFICATION_CONFIDENCE: "1"
         run: |
           if [ -z "$MAILAGENT_API_KEY" ]; then
             echo "::error::Set MAILAGENT_API_KEY in GitHub Actions secrets — see docs/OPERATOR.md"

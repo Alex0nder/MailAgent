@@ -39,6 +39,8 @@ Reduce agent dead ends during signup, login, password reset, invite, and magic-l
 
 ## PBR-2 — Verification confidence
 
+**Status:** implemented.
+
 Add confidence metadata to extracted verification:
 
 | Field | Purpose |
@@ -105,4 +107,3 @@ Acceptance: agents can choose "Verify email" or "Reset password" without parsing
 4. PBR-4 Run timeline
 5. PBR-5 Auto-cleanup policies
 6. PBR-6 Agent-safe HTML actions
-
