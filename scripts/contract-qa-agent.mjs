@@ -51,6 +51,16 @@ async function main() {
     console.error("runs.session discovery missing", hub.json.runs);
     process.exit(1);
   }
+  const requireAgentFlows = process.env.MAILAGENT_REQUIRE_AGENT_FLOWS === "1";
+  if (requireAgentFlows) {
+    const flowTemplateIds = hub.json.flowTemplates?.ids ?? [];
+    for (const id of ["signup", "login_2fa", "password_reset", "invite_accept", "magic_link_login"]) {
+      if (!flowTemplateIds.includes(id)) {
+        console.error(`flow template missing from hub: ${id}`, hub.json.flowTemplates);
+        process.exit(1);
+      }
+    }
+  }
   if (!hub.json.security || !hub.json.privacy || !hub.json.terms) {
     console.error("trust URLs missing", {
       security: hub.json.security,
@@ -107,6 +117,24 @@ async function main() {
     }
   }
   console.log("simulate scenarios OK", scenarioIds.length);
+
+  if (requireAgentFlows) {
+    const flows = await contractApi(base, headers, "/v1/agent/flows");
+    if (!flows.ok || !Array.isArray(flows.json?.flows) || flows.json.flows.length < 5) {
+      console.error("agent flow templates missing", flows.status, flows.json);
+      process.exit(1);
+    }
+    const resetFlow = await contractApi(base, headers, "/v1/agent/flows/password_reset");
+    if (
+      !resetFlow.ok ||
+      resetFlow.json?.serviceFlow !== "password_reset" ||
+      !resetFlow.json?.recovery?.length
+    ) {
+      console.error("password_reset flow template invalid", resetFlow.status, resetFlow.json);
+      process.exit(1);
+    }
+    console.log("agent flow templates OK", flows.json.flows.length);
+  }
 
   console.log("agent hub OK", {
     tools: hub.json.mcpTools.length,

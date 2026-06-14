@@ -35,6 +35,21 @@ async function main() {
   const agentJson = await agent.json();
   console.log("GET /v1/agent", agent.status, agentJson.version ?? "", agentJson.auth?.oidc ?? "");
   if (!agent.ok) process.exit(1);
+  if (process.env.MAILAGENT_REQUIRE_AGENT_FLOWS === "1") {
+    const flowIds = agentJson.flowTemplates?.ids ?? [];
+    for (const id of ["signup", "login_2fa", "password_reset", "invite_accept", "magic_link_login"]) {
+      if (!flowIds.includes(id)) {
+        console.error("agent flow template missing", id, agentJson.flowTemplates);
+        process.exit(1);
+      }
+    }
+    const flows = await fetch(`${base}/v1/agent/flows`, { headers: jsonHeaders });
+    const flowsJson = await flows.json();
+    console.log("GET /v1/agent/flows", flows.status, flowsJson.flows?.length ?? 0);
+    if (!flows.ok || !Array.isArray(flowsJson.flows) || flowsJson.flows.length < 5) {
+      process.exit(1);
+    }
+  }
 
   const discovery = await fetch(`${base}/.well-known/oauth-protected-resource/mcp`);
   console.log("GET oauth-protected-resource/mcp", discovery.status);

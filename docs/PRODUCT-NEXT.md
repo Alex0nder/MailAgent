@@ -130,7 +130,7 @@ Spec: [AGENT-PBR.md](./AGENT-PBR.md)
 |---|---------|--------|
 | 38 | **Failure recovery hints** — machine-readable `diagnose` next action | ✅ |
 | 39 | **Verification confidence** — confidence + alternatives | ✅ |
-| 40 | **Agent flow templates** — signup/login/reset/invite recipes | planned |
+| 40 | **Agent flow templates** — signup/login/reset/invite recipes | ✅ |
 | 41 | **Run timeline** — agent trace by `runId` | planned |
 | 42 | **Auto-cleanup policies** — keep failure, delete success | planned |
 | 43 | **Agent-safe HTML actions** — buttons/primary CTA extraction | planned |

@@ -13,6 +13,131 @@ export interface AgentRecipe {
   tips?: string[];
 }
 
+export type AgentFlowTemplateId =
+  | "signup"
+  | "login_2fa"
+  | "password_reset"
+  | "invite_accept"
+  | "magic_link_login";
+
+export interface AgentFlowTemplate {
+  id: AgentFlowTemplateId;
+  title: string;
+  summary: string;
+  serviceFlow: ServiceFlow;
+  recommendedTool: string;
+  recommendedTimeoutSeconds: number;
+  subjectHints: string[];
+  expectedPrimaryAction: Array<"otp" | "magic_link" | "link">;
+  simulateScenario: string;
+  steps: string[];
+  recovery: string[];
+}
+
+export const AGENT_FLOW_TEMPLATES: Record<AgentFlowTemplateId, AgentFlowTemplate> = {
+  signup: {
+    id: "signup",
+    title: "Signup / email verification",
+    summary: "Create a temporary inbox, submit it to a signup form, then use OTP or primaryLink.",
+    serviceFlow: "signup",
+    recommendedTool: "mailagent_verify_signup",
+    recommendedTimeoutSeconds: 120,
+    subjectHints: ["verify", "verification", "confirm", "activation"],
+    expectedPrimaryAction: ["otp", "magic_link", "link"],
+    simulateScenario: "otp",
+    steps: [
+      "Call mailagent_verify_signup with service when known.",
+      "Submit returned address to the signup form.",
+      "Use agent.primaryAction; prefer OTP over link when both exist.",
+    ],
+    recovery: [
+      "On timeout, call mailagent_diagnose_inbox.",
+      "If subject_filter_no_match, retry with broader subjectContains.",
+      "If no_messages, keep inbox and retry wait before creating a new inbox.",
+    ],
+  },
+  login_2fa: {
+    id: "login_2fa",
+    title: "Login / step-up 2FA",
+    summary: "Wait for a sign-in OTP sent to an existing MailAgent inbox.",
+    serviceFlow: "login",
+    recommendedTool: "mailagent_verify_signup",
+    recommendedTimeoutSeconds: 90,
+    subjectHints: ["sign in", "login", "security code", "verification code"],
+    expectedPrimaryAction: ["otp"],
+    simulateScenario: "login_2fa",
+    steps: [
+      "Create or reuse an inbox tied to the login attempt.",
+      "Call mailagent_verify_signup with inboxId and flow=login.",
+      "Enter the OTP from agent.primaryAction.",
+    ],
+    recovery: [
+      "Use messageIndex=1 only when a newer non-2FA email arrives first.",
+      "If no OTP is extracted, list messages and inspect confidence/reason.",
+    ],
+  },
+  password_reset: {
+    id: "password_reset",
+    title: "Password reset",
+    summary: "Wait for a reset email and open the reset primaryLink.",
+    serviceFlow: "password_reset",
+    recommendedTool: "mailagent_verify_signup",
+    recommendedTimeoutSeconds: 120,
+    subjectHints: ["reset", "password", "recover"],
+    expectedPrimaryAction: ["magic_link", "link"],
+    simulateScenario: "password_reset",
+    steps: [
+      "Create or reuse inbox, then request password reset in the target app.",
+      "Call mailagent_verify_signup with inboxId and flow=password_reset.",
+      "Open primaryAction URL; do not parse raw HTML manually unless confidence is low.",
+    ],
+    recovery: [
+      "If primaryAction is manual, call mailagent_extract_structured with preset=magic_link.",
+      "If multiple links exist, prefer primaryLink and inspect alternatives.",
+    ],
+  },
+  invite_accept: {
+    id: "invite_accept",
+    title: "Invite acceptance",
+    summary: "Extract and open a team/workspace invite link.",
+    serviceFlow: "signup",
+    recommendedTool: "mailagent_extract_structured",
+    recommendedTimeoutSeconds: 120,
+    subjectHints: ["invite", "invited", "join"],
+    expectedPrimaryAction: ["magic_link", "link"],
+    simulateScenario: "invite",
+    steps: [
+      "Create inbox with service preset if sender is known.",
+      "Wait for invite email with subjectContains=invite or join.",
+      "Use primaryLink or structured preset inviteUrl.",
+    ],
+    recovery: [
+      "If verification confidence is medium/low, run structured extract preset=invite.",
+      "Use diagnose retry payload when wait times out.",
+    ],
+  },
+  magic_link_login: {
+    id: "magic_link_login",
+    title: "Magic link login",
+    summary: "Wait for a passwordless login link and navigate to primaryLink.",
+    serviceFlow: "login",
+    recommendedTool: "mailagent_verify_signup",
+    recommendedTimeoutSeconds: 90,
+    subjectHints: ["magic", "sign in", "login", "link"],
+    expectedPrimaryAction: ["magic_link", "link"],
+    simulateScenario: "magic_link",
+    steps: [
+      "Create inbox or reuse inbox used in the login form.",
+      "Call mailagent_verify_signup with flow=login and subjectContains when needed.",
+      "Open primaryAction URL.",
+    ],
+    recovery: [
+      "If OTP is null but primaryLink exists, this is expected.",
+      "If alternatives.links is non-empty, inspect them only when confidence is not high.",
+    ],
+  },
+};
+
 const RECIPE_META: Record<string, Omit<AgentRecipe, "service" | "allowedSenders">> = {
   github: {
     summary: "GitHub signup or email verification",
@@ -139,6 +264,15 @@ export function getAgentRecipe(
 
 export function listAgentRecipes(): AgentRecipe[] {
   return Object.keys(SERVICE_EXPECT_FROM).map((s) => getAgentRecipe(s)!);
+}
+
+export function listAgentFlowTemplates(): AgentFlowTemplate[] {
+  return Object.values(AGENT_FLOW_TEMPLATES);
+}
+
+export function getAgentFlowTemplate(id: string): AgentFlowTemplate | null {
+  const key = id.trim().toLowerCase() as AgentFlowTemplateId;
+  return key in AGENT_FLOW_TEMPLATES ? AGENT_FLOW_TEMPLATES[key] : null;
 }
 
 export function buildPrimaryAction(verification: {
