@@ -29,7 +29,7 @@ Subcores (`inbox`, `email`, `otp`, `api`, `worker`, `deployment`, `security`) о
 |---|---|
 | **File** | `cores/product-core.md` |
 | **Purpose** | User flows: inbox, email, OTP, QA, agent, MCP; entry points; presets; tools |
-| **Entities** | Inbox flow, Email flow, OTP flow, MCP tools (23), service presets (25), scenarios |
+| **Entities** | Inbox flow, Email flow, OTP flow, MCP tools (26), service presets (25), scenarios |
 | **When to load** | «Как работает verify?», simulate, callback, custom domain, Playwright |
 | **Pairs with** | Subcores: `inbox-core`, `otp-core`, `email-core` |
 

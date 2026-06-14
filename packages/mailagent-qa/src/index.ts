@@ -9,6 +9,7 @@ export interface MailAgentQaConfig {
 
 export interface CreateInboxOptions {
   ttlMinutes?: number;
+  deleteAfterMinutes?: number;
   service?: string;
   expectFrom?: string | string[];
   label?: string;
@@ -23,6 +24,8 @@ export interface OpenInboxOptions extends CreateInboxOptions {
   subjectContains?: string;
   messageIndex?: number;
   deleteAfter?: boolean;
+  deleteAfterSuccess?: boolean;
+  keepOnFailure?: boolean;
 }
 
 export interface Verification {
@@ -66,6 +69,11 @@ export interface OpenResult {
   address: string;
   verification: Verification;
   deleted?: boolean;
+  cleanupPolicy?: {
+    deleteAfterSuccess: boolean;
+    keepOnFailure: boolean;
+    deleteAfterMinutes?: number;
+  };
   label?: string | null;
 }
 

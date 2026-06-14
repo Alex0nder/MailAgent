@@ -8,7 +8,7 @@ Product Core описывает **как пользователь (QA, agent, in
 
 - «Как работает verify?» — `mailagent_verify_signup`, `POST /v1/inboxes/open`, `POST /v1/agent/verify`
 - Flows: inbox, email, OTP, QA, agent (ASCII ниже)
-- 10 scenarios, MCP 25 tools, service presets 25
+- 10 scenarios, MCP 26 tools, service presets 25
 - Callback, custom domain, outbound, console, `runId` sessions
 - Troubleshooting: diagnose, simulate retry
 
@@ -29,7 +29,7 @@ Product Core описывает **как пользователь (QA, agent, in
 | **Simulate** | Inject without SMTP | `POST …/simulate`, `mailagent_simulate_message` |
 | **Callback** | POST on message processed | `callbackUrl`, `GET …/callbacks` |
 | **Service preset** | `service` → expectFrom + subject hint | `src/lib/service-presets.ts` |
-| **MCP Tool** | 25 tools | sync block ниже |
+| **MCP Tool** | 26 tools | sync block ниже |
 | **Agent verify** | Signup + primaryAction | `POST /v1/agent/verify`, `mailagent_verify_signup` |
 | **Run session** | State by `runId` | `GET/PATCH /v1/agent/runs/:runId/session` |
 | **Custom domain** | `@mail.example.com` | `/v1/domains/*` |
@@ -85,7 +85,7 @@ Welcome email часто приходит раньше verify → `subjectContai
 | 11 | `README.md` | API table |
 
 Sync markers (`<!-- sync:mcp-tools:start -->
-25 tools (MCP server `0.8.2`):
+26 tools (MCP server `0.8.2`):
 
 - `mailagent_verify_signup`
 - `mailagent_create_inbox`
@@ -105,6 +105,7 @@ Sync markers (`<!-- sync:mcp-tools:start -->
 - `mailagent_diagnose_inbox`
 - `mailagent_get_inbox`
 - `mailagent_delete_inbox`
+- `mailagent_cleanup_inboxes`
 - `mailagent_list_messages`
 - `mailagent_get_raw_message`
 - `mailagent_list_attachments`

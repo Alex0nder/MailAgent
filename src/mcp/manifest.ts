@@ -44,6 +44,14 @@ export const MCP_TOOLS = [
         timeoutSeconds: { type: "integer", minimum: 5, maximum: 120 },
         ttlMinutes: { type: "integer" },
         deleteAfter: { type: "boolean" },
+        deleteAfterSuccess: { type: "boolean" },
+        keepOnFailure: { type: "boolean" },
+        deleteAfterMinutes: {
+          type: "integer",
+          minimum: 1,
+          maximum: 1440,
+          description: "Set inbox TTL/auto-expiry in minutes",
+        },
       },
     },
   },
@@ -57,6 +65,12 @@ export const MCP_TOOLS = [
         runId: { type: "string" },
         label: { type: "string" },
         ttlMinutes: { type: "integer" },
+        deleteAfterMinutes: {
+          type: "integer",
+          minimum: 1,
+          maximum: 1440,
+          description: "Set inbox TTL/auto-expiry in minutes",
+        },
         callbackUrl: { type: "string", format: "uri" },
         notifyEmail: {
           type: "string",
@@ -91,6 +105,9 @@ export const MCP_TOOLS = [
         },
         timeoutSeconds: { type: "integer" },
         deleteAfter: { type: "boolean" },
+        deleteAfterSuccess: { type: "boolean" },
+        keepOnFailure: { type: "boolean" },
+        deleteAfterMinutes: { type: "integer", minimum: 1, maximum: 1440 },
       },
     },
   },
@@ -301,6 +318,18 @@ export const MCP_TOOLS = [
       type: "object",
       required: ["inboxId"],
       properties: { inboxId: { type: "string" } },
+    },
+  },
+  {
+    name: "mailagent_cleanup_inboxes",
+    description:
+      "Delete all inboxes matching a labelPrefix, or an agent run via runId (label agent-{runId}). Useful after CI/QA runs.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        labelPrefix: { type: "string", minLength: 3 },
+        runId: { type: "string", description: "Deletes label prefix agent-{runId}" },
+      },
     },
   },
   {

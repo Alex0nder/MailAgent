@@ -48,6 +48,9 @@ type VerifyBody = {
   messageIndex?: number;
   timeoutSeconds?: number;
   deleteAfter?: boolean;
+  deleteAfterSuccess?: boolean;
+  deleteAfterMinutes?: number;
+  keepOnFailure?: boolean;
   runId?: string;
 };
 
@@ -69,6 +72,8 @@ agentRoutes.get("/", (c) => {
         method: "POST",
         path: "/v1/agent/verify",
         runSession: "pass runId → response includes session",
+        cleanupPolicy:
+          "deleteAfterSuccess, keepOnFailure, deleteAfterMinutes; deleteAfter remains supported",
       },
       oneShot: { method: "POST", path: "/v1/inboxes/open" },
       rawMessage: {

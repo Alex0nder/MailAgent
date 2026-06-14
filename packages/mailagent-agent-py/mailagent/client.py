@@ -76,6 +76,16 @@ class MailAgent:
         """DELETE /v1/inboxes/:id"""
         return self._request("DELETE", f"/v1/inboxes/{inbox_id}")
 
+    def cleanup_inboxes(
+        self, *, label_prefix: Optional[str] = None, run_id: Optional[str] = None
+    ) -> MutableMapping[str, Any]:
+        """DELETE /v1/inboxes?labelPrefix=..."""
+        prefix = label_prefix or (f"agent-{run_id}" if run_id else "")
+        return self._request(
+            "DELETE",
+            f"/v1/inboxes?labelPrefix={urllib.parse.quote(prefix)}",
+        )
+
     def list_messages(
         self, inbox_id: str, *, subject_contains: Optional[str] = None
     ) -> MutableMapping[str, Any]:

@@ -31,6 +31,7 @@ import {
   type AgentRunSession,
 } from "./agent-run-session";
 import { validateRunId } from "../lib/validate-run-id";
+import { resolveCleanupPolicy } from "../lib/cleanup-policy";
 
 export type VerifyInput = {
   inboxId?: string;
@@ -46,6 +47,9 @@ export type VerifyInput = {
   messageIndex?: number;
   timeoutSeconds?: number;
   deleteAfter?: boolean;
+  deleteAfterSuccess?: boolean;
+  deleteAfterMinutes?: number;
+  keepOnFailure?: boolean;
   runId?: string;
   apiKeyHint: string;
   teamId?: string | null;
@@ -76,6 +80,10 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
   }
 
   const expectFrom = resolveExpectFrom(input.service, input.expectFrom);
+  const cleanup = resolveCleanupPolicy(input, {
+    deleteAfterSuccess: true,
+    keepOnFailure: false,
+  });
   const label = resolveAgentLabel({
     label: input.label,
     runId: input.runId,
@@ -93,7 +101,8 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
     inbox = existing;
   } else {
     const created = await createInbox(env, {
-      ttlMinutes: resolveTtlMinutes(input.service, input.ttlMinutes),
+      ttlMinutes:
+        cleanup.ttlMinutes ?? resolveTtlMinutes(input.service, input.ttlMinutes),
       expectFrom,
       allowedSenders: input.allowedSenders,
       label,
@@ -140,8 +149,8 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
   const message = await waitForMessage(env, inbox.id, timeoutSec, waitOpts);
 
   if (!message) {
-    const deleteAfter = input.deleteAfter !== false && !input.inboxId;
-    if (deleteAfter) {
+    const deleteOnFailure = !cleanup.keepOnFailure && !input.inboxId;
+    if (deleteOnFailure) {
       await deleteInbox(env, inbox.id, { apiKeyHint: input.apiKeyHint });
     }
     const debug = await buildWaitTimeoutDebug(env, inbox.id, waitOpts);
@@ -154,7 +163,8 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
       debugUiUrl: debugUiUrl(apiBase, inbox.id),
       suggestedSubjectContains:
         resolveSubjectHint(input.service, input.flow) ?? null,
-      inboxKept: !deleteAfter,
+      inboxKept: !deleteOnFailure,
+      cleanupPolicy: formatCleanupPolicy(cleanup),
       ...(createdInbox ? { createdInbox: true } : {}),
     };
     await recordVerifyRunSession(
@@ -188,8 +198,10 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
   };
 
   const deleted =
-    input.deleteAfter !== false &&
-    (input.inboxId ? input.deleteAfter === true : true);
+    cleanup.deleteAfterSuccess &&
+    (!input.inboxId ||
+      input.deleteAfterSuccess === true ||
+      input.deleteAfter === true);
   if (deleted) {
     await deleteInbox(env, inbox.id, { apiKeyHint: input.apiKeyHint });
   }
@@ -204,6 +216,7 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
       service: input.service ?? null,
     },
     deleted,
+    cleanupPolicy: formatCleanupPolicy(cleanup),
   };
   await recordVerifyRunSession(
     env,
@@ -220,6 +233,16 @@ export async function runAgentVerify(env: Env, input: VerifyInput) {
     }
   );
   return await attachRunSession(env, input, verifiedResult);
+}
+
+function formatCleanupPolicy(cleanup: ReturnType<typeof resolveCleanupPolicy>) {
+  return {
+    deleteAfterSuccess: cleanup.deleteAfterSuccess,
+    keepOnFailure: cleanup.keepOnFailure,
+    ...(cleanup.deleteAfterMinutes !== undefined
+      ? { deleteAfterMinutes: cleanup.deleteAfterMinutes }
+      : {}),
+  };
 }
 
 function formatEmail(inbox: InboxRow) {

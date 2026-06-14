@@ -44,6 +44,18 @@ async function main() {
       process.exit(1);
     }
   }
+  if (process.env.MAILAGENT_REQUIRE_CLEANUP_POLICIES === "1") {
+    if (
+      !agentJson.recommended?.verify?.cleanupPolicy ||
+      !agentJson.mcpTools?.includes("mailagent_cleanup_inboxes")
+    ) {
+      console.error("cleanup policy discovery missing", {
+        recommended: agentJson.recommended?.verify,
+        mcpTools: agentJson.mcpTools,
+      });
+      process.exit(1);
+    }
+  }
   if (process.env.MAILAGENT_REQUIRE_AGENT_FLOWS === "1") {
     const flowIds = agentJson.flowTemplates?.ids ?? [];
     for (const id of ["signup", "login_2fa", "password_reset", "invite_accept", "magic_link_login"]) {

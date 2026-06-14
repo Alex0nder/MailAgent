@@ -20,6 +20,7 @@ if (!headers) {
 
 const label = `contract-${Date.now()}`;
 const expectedOtp = "739182";
+const requireCleanupPolicies = process.env.MAILAGENT_REQUIRE_CLEANUP_POLICIES === "1";
 
 async function main() {
   console.log("contract-qa →", base, "label:", label);
@@ -111,6 +112,80 @@ async function main() {
     process.exit(1);
   }
   console.log("messageIndex OK", { subject: waitSubject, otp: waitOtp });
+
+  if (requireCleanupPolicies) {
+    const failLabel = `${label}-keep-failure`;
+    const timeout = await contractApi(base, headers, "/v1/inboxes/open", {
+      method: "POST",
+      body: JSON.stringify({
+        label: failLabel,
+        timeoutSeconds: 5,
+        keepOnFailure: true,
+        deleteAfterMinutes: 15,
+      }),
+    });
+    if (
+      timeout.status !== 408 ||
+      timeout.json?.inboxKept !== true ||
+      timeout.json?.cleanupPolicy?.keepOnFailure !== true
+    ) {
+      console.error("keepOnFailure timeout contract failed", timeout.status, timeout.json);
+      process.exit(1);
+    }
+    const kept = await contractApi(
+      base,
+      headers,
+      `/v1/inboxes/${timeout.json.inboxId}`
+    );
+    if (!kept.ok) {
+      console.error("kept failed inbox not readable", kept.status, kept.json);
+      process.exit(1);
+    }
+
+    const successLabel = `${label}-delete-success`;
+    const opened = await contractApi(base, headers, "/v1/inboxes", {
+      method: "POST",
+      body: JSON.stringify({ label: successLabel, deleteAfterMinutes: 15 }),
+    });
+    if (!opened.ok) {
+      console.error("cleanup policy create failed", opened.status, opened.json);
+      process.exit(1);
+    }
+    await contractSimulate(base, headers, opened.json.id, {
+      otp: "551199",
+      subject: "MailAgent cleanup success",
+    });
+    const verified = await contractApi(base, headers, "/v1/agent/verify", {
+      method: "POST",
+      body: JSON.stringify({
+        inboxId: opened.json.id,
+        subjectContains: "cleanup success",
+        timeoutSeconds: 30,
+        deleteAfterSuccess: true,
+      }),
+    });
+    if (!verified.ok || verified.json?.deleted !== true) {
+      console.error("deleteAfterSuccess contract failed", verified.status, verified.json);
+      process.exit(1);
+    }
+    const gone = await contractApi(base, headers, `/v1/inboxes/${opened.json.id}`);
+    if (gone.status !== 404) {
+      console.error("successful inbox was not deleted", gone.status, gone.json);
+      process.exit(1);
+    }
+
+    const cleanup = await contractApi(
+      base,
+      headers,
+      `/v1/inboxes?labelPrefix=${encodeURIComponent(failLabel)}`,
+      { method: "DELETE" }
+    );
+    if (!cleanup.ok || cleanup.json?.deleted < 1) {
+      console.error("labelPrefix cleanup failed", cleanup.status, cleanup.json);
+      process.exit(1);
+    }
+    console.log("cleanup policies OK");
+  }
 
   const del = await contractApi(base, headers, `/v1/inboxes/${inboxId}`, {
     method: "DELETE",

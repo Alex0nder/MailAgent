@@ -61,9 +61,9 @@ curl -s -H "Authorization: Bearer $MAILAGENT_API_KEY" \
 
 Returns `mcpTools`, `auth.oidc`, `remoteMcp`, `docs`.
 
-## MCP tools (25)
+## MCP tools (26)
 
-`mailagent_verify_signup` · `mailagent_create_inbox` · `mailagent_wait_for_message` · `mailagent_wait_and_extract` · `mailagent_extract_verification` · `mailagent_extract_structured` · `mailagent_list_messages` · `mailagent_get_raw_message` · `mailagent_list_attachments` · `mailagent_get_attachment` · `mailagent_check_email` · `mailagent_diagnose_inbox` · `mailagent_simulate_message` · `mailagent_send_message` · `mailagent_list_threads` · `mailagent_add_domain` · `mailagent_list_domains` · `mailagent_verify_domain` · `mailagent_search_messages` · `mailagent_list_inboxes` · `mailagent_get_inbox` · `mailagent_delete_inbox` · `mailagent_get_run_session` · `mailagent_get_run_timeline` · `mailagent_patch_run_session`
+`mailagent_verify_signup` · `mailagent_create_inbox` · `mailagent_wait_for_message` · `mailagent_wait_and_extract` · `mailagent_extract_verification` · `mailagent_extract_structured` · `mailagent_list_messages` · `mailagent_get_raw_message` · `mailagent_list_attachments` · `mailagent_get_attachment` · `mailagent_check_email` · `mailagent_diagnose_inbox` · `mailagent_simulate_message` · `mailagent_send_message` · `mailagent_list_threads` · `mailagent_add_domain` · `mailagent_list_domains` · `mailagent_verify_domain` · `mailagent_search_messages` · `mailagent_list_inboxes` · `mailagent_get_inbox` · `mailagent_delete_inbox` · `mailagent_cleanup_inboxes` · `mailagent_get_run_session` · `mailagent_get_run_timeline` · `mailagent_patch_run_session`
 
 Source of truth: `src/mcp/manifest.ts` → `GET /v1/agent`.
 

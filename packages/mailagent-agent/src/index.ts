@@ -19,6 +19,9 @@ export type VerifySignupOptions = {
   timeoutSeconds?: number;
   ttlMinutes?: number;
   deleteAfter?: boolean;
+  deleteAfterSuccess?: boolean;
+  deleteAfterMinutes?: number;
+  keepOnFailure?: boolean;
   callbackUrl?: string;
   notifyEmail?: string;
   notifyMode?: "verification" | "off";
@@ -29,6 +32,7 @@ export type CreateInboxOptions = {
   label?: string;
   runId?: string;
   ttlMinutes?: number;
+  deleteAfterMinutes?: number;
   callbackUrl?: string;
   notifyEmail?: string;
   notifyMode?: "verification" | "off";
@@ -78,6 +82,12 @@ export type PrimaryAction = {
   type: "otp" | "magic_link" | "link" | "manual";
   value?: string;
   instruction: string;
+};
+
+export type CleanupPolicy = {
+  deleteAfterSuccess: boolean;
+  keepOnFailure: boolean;
+  deleteAfterMinutes?: number;
 };
 
 export type VerificationConfidence = "high" | "medium" | "low";
@@ -177,6 +187,7 @@ export type VerifySignupResult = {
   };
   agent?: { primaryAction: PrimaryAction; service: string | null };
   session?: AgentRunSession;
+  cleanupPolicy?: CleanupPolicy;
   error?: string;
   hint?: string;
 };
@@ -467,6 +478,14 @@ export class MailAgent {
     }
     if (options?.limit) q.set("limit", String(options.limit));
     return this.request<{ runs: unknown[] }>(`/v1/agent/runs?${q}`);
+  }
+
+  cleanupInboxes(options: { labelPrefix?: string; runId?: string }) {
+    const labelPrefix = options.labelPrefix ?? (options.runId ? `agent-${options.runId}` : "");
+    return this.request<{ deleted: number; ids: string[] }>(
+      `/v1/inboxes?labelPrefix=${encodeURIComponent(labelPrefix)}`,
+      { method: "DELETE" }
+    );
   }
 
   /** OAuth client_credentials → mat_ access token */
