@@ -126,7 +126,8 @@ export const MCP_TOOLS = [
   },
   {
     name: "mailagent_extract_verification",
-    description: "OTP + links from latest message.",
+    description:
+      "OTP + links from latest message, including confidence, matchedRule, reason, and alternatives.",
     inputSchema: {
       type: "object",
       required: ["inboxId"],

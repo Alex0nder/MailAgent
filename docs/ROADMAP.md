@@ -711,7 +711,7 @@ Spec: [AGENT-PBR.md](./AGENT-PBR.md)
 | Task | Status |
 |------|--------|
 | Failure recovery hints in `GET …/diagnose` and `mailagent_diagnose_inbox` | ✅ |
-| Verification confidence + alternatives | planned |
+| Verification confidence + alternatives | ✅ |
 | Flow templates in `GET /v1/agent` | planned |
 | Run timeline by `runId` | planned |
 | Auto-cleanup policies | planned |

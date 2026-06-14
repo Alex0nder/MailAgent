@@ -1,5 +1,7 @@
 /** Quick check of extract OTP/links */
+import assert from "node:assert/strict";
 import { extractLinks, extractOtp, primaryLink } from "../src/services/extract";
+import { buildVerificationMetadata } from "../src/services/message-verify";
 
 const sample = `
 Your code is 847291
@@ -13,4 +15,11 @@ console.log("otp:", extractOtp(sample));
 console.log("otp (parse-otp-message):", extractOtp(microsoft));
 const links = extractLinks(sample);
 console.log("links:", links);
-console.log("primaryLink:", primaryLink(links));
+const primary = primaryLink(links);
+console.log("primaryLink:", primary);
+const otpMeta = buildVerificationMetadata(extractOtp(sample), links, primary);
+assert.equal(otpMeta.confidence, "high");
+assert.equal(otpMeta.matchedRule, "otp_6_digit");
+const linkMeta = buildVerificationMetadata(null, links, primary);
+assert.equal(linkMeta.confidence, "high");
+assert.equal(linkMeta.matchedRule, "verification_link");

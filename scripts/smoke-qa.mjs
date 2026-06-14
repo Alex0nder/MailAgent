@@ -172,8 +172,23 @@ async function main() {
   if (!threads.res.ok) process.exit(1);
 
   const extract = await req("GET", `/v1/inboxes/${inboxId}/extract`);
-  console.log("GET …/extract", extract.res.status, extract.json?.otp ?? "—");
+  console.log(
+    "GET …/extract",
+    extract.res.status,
+    extract.json?.otp ?? "—",
+    `confidence=${extract.json?.confidence ?? "?"}`
+  );
   if (!extract.res.ok || extract.json?.otp !== "991123") process.exit(1);
+  if (
+    process.env.MAILAGENT_REQUIRE_VERIFICATION_CONFIDENCE === "1" &&
+    (extract.json?.confidence !== "high" ||
+      extract.json?.matchedRule !== "otp_6_digit" ||
+      !extract.json?.reason ||
+      !extract.json?.alternatives)
+  ) {
+    console.error("extract missing verification confidence metadata");
+    process.exit(1);
+  }
 
   const del = await req("DELETE", `/v1/inboxes/${inboxId}`);
   console.log("DELETE inbox", del.res.status);

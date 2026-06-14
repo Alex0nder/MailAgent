@@ -20,6 +20,10 @@ import {
 } from "../services/agent-run-session";
 import { primaryLink } from "../services/extract";
 import {
+  buildVerificationMetadata,
+  formatMessageVerification,
+} from "../services/message-verify";
+import {
   createInbox,
   deleteInbox,
   getInbox,
@@ -253,15 +257,7 @@ export async function executeMcpTool(
         });
         return textResult({ error: "timeout", inboxId, ...debug }, true);
       }
-      const links = parseLinks(message.links_json);
-      const verification = {
-        otp: message.otp,
-        links,
-        primaryLink: primaryLink(links),
-        from: message.from_addr,
-        subject: message.subject,
-        messageId: message.id,
-      };
+      const verification = formatMessageVerification(message, inboxId);
       let deleted = false;
       if (args.deleteAfter !== false) {
         if (scopeWriteError(auth.scope)) {
@@ -317,6 +313,7 @@ export async function executeMcpTool(
         return textResult({ error: "timeout", inboxId, ...debug }, true);
       }
       const links = parseLinks(message.links_json);
+      const primary = primaryLink(links);
       return textResult({
         message: {
           id: message.id,
@@ -324,7 +321,8 @@ export async function executeMcpTool(
           subject: message.subject,
           otp: message.otp,
           links,
-          primaryLink: primaryLink(links),
+          primaryLink: primary,
+          ...buildVerificationMetadata(message.otp, links, primary),
           receivedAt: message.received_at,
           hasRaw: Boolean(message.raw_r2_key),
           ...(message.raw_r2_key
@@ -348,6 +346,7 @@ export async function executeMcpTool(
         messages: await Promise.all(
           messages.map(async (m) => {
             const links = parseLinks(m.links_json);
+            const primary = primaryLink(links);
             const attachmentCount = await countAttachmentsForMessage(env, m.id);
             return {
               id: m.id,
@@ -355,7 +354,8 @@ export async function executeMcpTool(
               subject: m.subject,
               otp: m.otp,
               links,
-              primaryLink: primaryLink(links),
+              primaryLink: primary,
+              ...buildVerificationMetadata(m.otp, links, primary),
               receivedAt: m.received_at,
               hasRaw: Boolean(m.raw_r2_key),
               ...(m.raw_r2_key
@@ -442,18 +442,8 @@ export async function executeMcpTool(
       const messages = await listMessages(env, inboxId);
       const latest = messages[0];
       if (!latest) return textResult({ error: "no_messages" }, true);
-      const links = parseLinks(latest.links_json);
       return textResult({
-        otp: latest.otp,
-        links,
-        primaryLink: primaryLink(links),
-        from: latest.from_addr,
-        subject: latest.subject,
-        messageId: latest.id,
-        hasRaw: Boolean(latest.raw_r2_key),
-        ...(latest.raw_r2_key
-          ? { rawUrl: `/v1/inboxes/${inboxId}/messages/${latest.id}/raw` }
-          : {}),
+        ...formatMessageVerification(latest, inboxId),
         attachmentCount: await countAttachmentsForMessage(env, latest.id),
       });
     }

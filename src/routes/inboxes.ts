@@ -45,7 +45,10 @@ import {
   listAttachments,
 } from "../services/message-attachments";
 import { primaryLink } from "../services/extract";
-import { formatMessageVerification } from "../services/message-verify";
+import {
+  buildVerificationMetadata,
+  formatMessageVerification,
+} from "../services/message-verify";
 import { buildInboxDiagnose } from "../services/inbox-diagnose";
 import {
   listThreadMessages,
@@ -830,6 +833,7 @@ function formatMessage(m: {
   raw_r2_key?: string | null;
 }) {
   const links = parseLinks(m.links_json);
+  const primary = primaryLink(links);
   return {
     id: m.id,
     from: m.from_addr,
@@ -837,7 +841,8 @@ function formatMessage(m: {
     textPreview: m.text_preview,
     otp: m.otp,
     links,
-    primaryLink: primaryLink(links),
+    primaryLink: primary,
+    ...buildVerificationMetadata(m.otp, links, primary),
     receivedAt: m.received_at,
     hasRaw: Boolean(m.raw_r2_key),
   };

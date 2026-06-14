@@ -81,6 +81,16 @@ const message = {
     otp: { type: "string", nullable: true },
     links: { type: "array", items: { type: "string" } },
     primaryLink: { type: "string", nullable: true },
+    confidence: { type: "string", enum: ["high", "medium", "low"] },
+    matchedRule: { type: "string", nullable: true },
+    reason: { type: "string" },
+    alternatives: {
+      type: "object",
+      properties: {
+        otp: { type: "array", items: { type: "string" } },
+        links: { type: "array", items: { type: "string" } },
+      },
+    },
     receivedAt: { type: "string", format: "date-time" },
     hasRaw: {
       type: "boolean",
@@ -117,6 +127,16 @@ const verification = {
     otp: { type: "string", nullable: true },
     links: { type: "array", items: { type: "string" } },
     primaryLink: { type: "string", nullable: true },
+    confidence: { type: "string", enum: ["high", "medium", "low"] },
+    matchedRule: { type: "string", nullable: true },
+    reason: { type: "string" },
+    alternatives: {
+      type: "object",
+      properties: {
+        otp: { type: "array", items: { type: "string" } },
+        links: { type: "array", items: { type: "string" } },
+      },
+    },
     from: { type: "string" },
     subject: { type: "string" },
     messageId: { type: "string" },
