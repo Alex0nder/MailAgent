@@ -712,7 +712,7 @@ Spec: [AGENT-PBR.md](./AGENT-PBR.md)
 |------|--------|
 | Failure recovery hints in `GET …/diagnose` and `mailagent_diagnose_inbox` | ✅ |
 | Verification confidence + alternatives | ✅ |
-| Flow templates in `GET /v1/agent` | planned |
+| Flow templates in `GET /v1/agent` | ✅ |
 | Run timeline by `runId` | planned |
 | Auto-cleanup policies | planned |
 | Agent-safe HTML action extraction | planned |

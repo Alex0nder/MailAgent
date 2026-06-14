@@ -4,7 +4,13 @@ import type { Env } from "../env";
 import type { ApiVariables } from "../lib/api-context";
 import { requireApiKey } from "../lib/auth";
 import { rateLimit } from "../lib/rate-limit";
-import { resolveAgentLabel, getAgentRecipe, listAgentRecipes } from "../lib/agent-recipes";
+import {
+  getAgentFlowTemplate,
+  getAgentRecipe,
+  listAgentFlowTemplates,
+  listAgentRecipes,
+  resolveAgentLabel,
+} from "../lib/agent-recipes";
 import { scopeLabelForCreate, scopeWriteDenied } from "../lib/scope-guard";
 import { publicOriginFromUrl } from "../lib/public-origin";
 import { SERVICE_EXPECT_FROM } from "../lib/service-presets";
@@ -73,6 +79,11 @@ agentRoutes.get("/", (c) => {
     mcpTools: MCP_TOOL_NAMES,
     services: Object.keys(SERVICE_EXPECT_FROM),
     recipes: "/v1/agent/recipes",
+    flowTemplates: {
+      list: "GET /v1/agent/flows",
+      detail: "GET /v1/agent/flows/:flow",
+      ids: listAgentFlowTemplates().map((f) => f.id),
+    },
     runs: {
       list: "GET /v1/agent/runs",
       detail: "GET /v1/agent/runs/:runId (includes session)",
@@ -134,6 +145,16 @@ agentRoutes.get("/", (c) => {
 
 agentRoutes.get("/recipes", (c) => {
   return c.json({ recipes: listAgentRecipes() });
+});
+
+agentRoutes.get("/flows", (c) => {
+  return c.json({ flows: listAgentFlowTemplates() });
+});
+
+agentRoutes.get("/flows/:flow", (c) => {
+  const template = getAgentFlowTemplate(c.req.param("flow"));
+  if (!template) return c.json({ error: "unknown_flow" }, 404);
+  return c.json(template);
 });
 
 agentRoutes.get("/recipes/:service", (c) => {

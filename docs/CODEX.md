@@ -127,6 +127,8 @@ Example: [examples/codex/config.remote-oauth.toml.example](../examples/codex/con
 
 ## Recommended agent flow in Codex
 
+Flow templates: `GET /v1/agent/flows` lists signup, login 2FA, password reset, invite acceptance, and magic-link login templates with subject hints and recovery steps.
+
 1. `mailagent_create_inbox` or `mailagent_verify_signup` with `service: "github"` / `"auth0"`.
 2. Agent fills email on signup form.
 3. `mailagent_wait_and_extract` / `mailagent_wait_for_message` with `subjectContains`.

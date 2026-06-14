@@ -54,6 +54,8 @@ Acceptance: verify/open/wait-and-extract responses expose confidence without bre
 
 ## PBR-3 — Agent flow templates
 
+**Status:** implemented.
+
 Expose recipes for common flows:
 
 - `signup`
@@ -62,7 +64,7 @@ Expose recipes for common flows:
 - `invite_accept`
 - `magic_link_login`
 
-Acceptance: `GET /v1/agent` and MCP docs expose flow templates with subject hints, expected sender hints, recommended timeouts, and recovery strategy.
+Acceptance: `GET /v1/agent`, `GET /v1/agent/flows`, and MCP docs expose flow templates with subject hints, expected sender hints, recommended timeouts, and recovery strategy.
 
 ## PBR-4 — Run timeline
 
