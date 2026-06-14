@@ -1,6 +1,6 @@
 # QA Pilot #1 — operator runbook
 
-Onboard an external test repo onto hosted MailAgent (Stripe on hold). Consumer guide: [QA-PILOT.md](./QA-PILOT.md).
+Onboard an external test repo onto hosted MailAgent (Stripe on hold). Consumer guide: [QA-PILOT.md](./QA-PILOT.md). Candidate tracker: [PILOT-CANDIDATES.md](./PILOT-CANDIDATES.md).
 
 Current status: operator baseline is green as of 2026-06-14 (`wizard:qa-pilot:onboard` passed doctor, smoke, Playwright starter, and Cypress starter). The next step is external handoff: send the invite text plus the scoped key through a private channel.
 
@@ -10,10 +10,11 @@ Current status: operator baseline is green as of 2026-06-14 (`wizard:qa-pilot:on
 |---|------|----------------|
 | 1 | Baseline green | `npm run wizard:qa-pilot:onboard` |
 | 2 | Issue scoped pilot key | `npm run issue:pilot-key -- <pilot-slug>` (needs `DATABASE_URL`) |
-| 3 | Send pilot package | `npm run print:pilot-invite -- external-pilot` → Slack/email |
-| 4 | They green CI | `npm test` in copied starter |
-| 5 | Staging E2E | `APP_SIGNUP_URL` + `service` preset |
-| 6 | Collect feedback | [Feedback](#feedback) → backlog v0.70 |
+| 3 | Pick/contact candidate | [PILOT-CANDIDATES.md](./PILOT-CANDIDATES.md) → first message without key |
+| 4 | Send pilot package | `npm run print:pilot-invite -- external-pilot` → Slack/email |
+| 5 | They green CI | `npm test` in copied starter |
+| 6 | Staging E2E | `APP_SIGNUP_URL` + `service` preset |
+| 7 | Collect feedback | [Feedback](#feedback) → backlog v0.70 |
 
 Full wizard (smoke + Playwright/Cypress starter guards + print package):
 

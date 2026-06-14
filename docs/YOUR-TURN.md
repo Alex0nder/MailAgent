@@ -64,7 +64,7 @@ Repo → **Settings → Secrets and variables → Actions**
 
 Verify: last [Deploy Worker](https://github.com/Alex0nder/MailAgent/actions/workflows/deploy-worker.yml) run is green.
 
-**QA pilot #1:** baseline green (`wizard:qa-pilot:onboard`). Send invite: `npm run print:pilot-invite -- <slug>`. Issue key locally: [PILOT-ONBOARD.md](./PILOT-ONBOARD.md).
+**QA pilot #1:** baseline green (`wizard:qa-pilot:onboard`). First pick/contact a candidate: [PILOT-CANDIDATES.md](./PILOT-CANDIDATES.md). After they accept, send invite: `npm run print:pilot-invite -- <slug>`. Issue/send key locally and privately: [PILOT-ONBOARD.md](./PILOT-ONBOARD.md).
 
 ---
 

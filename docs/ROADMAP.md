@@ -571,7 +571,8 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 |------|------|--------|
 | 1 | Baseline green: `wizard:qa-pilot:onboard` (smoke + Playwright/Cypress starter guards) | ✅ last run 2026-06-14 |
 | 1b | Operator kit: `issue:pilot-key`, `wizard:qa-pilot:onboard`, [PILOT-ONBOARD.md](./PILOT-ONBOARD.md) | ✅ |
-| 2 | Pilot #1: external test repo copies starter → CI secrets → green `npm test` | ready for external team |
+| 2 | Pilot #1: identify/contact external candidate | pending · [PILOT-CANDIDATES.md](./PILOT-CANDIDATES.md) |
+| 2b | Pilot #1: external test repo copies starter → CI secrets → green `npm test` | ready after candidate accepts |
 | 3 | Pilot #1: staging E2E (`APP_SIGNUP_URL` + `service` preset) | pending |
 | 4 | Collect feedback (setup time, flaky, missing API/docs) → [#5](https://github.com/Alex0nder/MailAgent/issues/5) / backlog v0.70 | pending |
 | 5 | Pilot #2 (Cypress track or second team) | pending |
