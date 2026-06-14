@@ -2,7 +2,7 @@
 
 What **only a human** can enable. Everything else runs without you.
 
-**Stripe is on hold** — skip `STRIPE_*` until billing is a priority.
+**Stripe is on hold** — skip `STRIPE_*` until the tax number is ready and the Stripe account can be registered.
 
 ## Works without you (agents can use prod today)
 
@@ -23,7 +23,7 @@ What **only a human** can enable. Everything else runs without you.
 |------|------------------------|
 | Agent Skill Hub listing | Hub API needs `skhub login` / browser OAuth or their GitHub token is down |
 | Codex Plugin Directory | OpenAI self-serve not open yet |
-| Stripe live | No Stripe account / `wizard:stripe --deploy` |
+| Stripe live | Waiting for tax number / Stripe account, then `wizard:stripe --deploy` |
 | SOC 2 Type II | Paid audit + legal sign-off |
 | awesome-* PR merge | External repo maintainers |
 

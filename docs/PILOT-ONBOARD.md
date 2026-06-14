@@ -2,13 +2,15 @@
 
 Onboard an external test repo onto hosted MailAgent (Stripe on hold). Consumer guide: [QA-PILOT.md](./QA-PILOT.md).
 
+Current status: operator baseline is green as of 2026-06-14 (`wizard:qa-pilot:onboard` passed doctor, smoke, Playwright starter, and Cypress starter). The next step is external handoff: send the invite text plus the scoped key through a private channel.
+
 ## Operator checklist
 
 | # | Task | Command / link |
 |---|------|----------------|
 | 1 | Baseline green | `npm run wizard:qa-pilot:onboard` |
 | 2 | Issue scoped pilot key | `npm run issue:pilot-key -- <pilot-slug>` (needs `DATABASE_URL`) |
-| 3 | Send pilot package | section below → Slack/email |
+| 3 | Send pilot package | `npm run print:pilot-invite -- external-pilot` → Slack/email |
 | 4 | They green CI | `npm test` in copied starter |
 | 5 | Staging E2E | `APP_SIGNUP_URL` + `service` preset |
 | 6 | Collect feedback | [Feedback](#feedback) → backlog v0.70 |

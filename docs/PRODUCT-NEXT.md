@@ -1,6 +1,6 @@
 # Product backlog — service development
 
-Stripe **on hold** · QA pilot kit ready; external handoff pending ([PILOT-ONBOARD.md](./PILOT-ONBOARD.md)).
+Stripe **on hold** until tax/account setup is ready · QA pilot kit ready; external handoff pending ([PILOT-ONBOARD.md](./PILOT-ONBOARD.md)).
 
 Agent-native backlog: [AGENT-PBR.md](./AGENT-PBR.md).
 
@@ -135,9 +135,10 @@ Spec: [AGENT-PBR.md](./AGENT-PBR.md)
 | 42 | **Auto-cleanup policies** — keep failure, delete success | ✅ |
 | 43 | **Agent-safe HTML actions** — buttons/primary CTA extraction | ✅ |
 
-## Suggested next sprint
+## Current next work
 
-1. P7 #38 — failure recovery hints in `diagnose`
-2. P3 #20 — send `print:pilot-invite` + scoped key to first pilot team out-of-band
+1. P3 #20 — send `print:pilot-invite -- external-pilot` + scoped key to first pilot team out-of-band.
+2. Pilot #1 — external test repo copies starter, sets `MAILAGENT_API_KEY`, and gets green `npm test`.
+3. Pilot #1 — add staging `APP_SIGNUP_URL` + service preset, then collect feedback in [#5](https://github.com/Alex0nder/MailAgent/issues/5).
 
-Track in [ROADMAP.md](./ROADMAP.md) § v0.81.
+Track in [ROADMAP.md](./ROADMAP.md) § v0.69.
