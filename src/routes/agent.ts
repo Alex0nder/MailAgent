@@ -16,7 +16,7 @@ import {
   sessionOwnerKey,
 } from "../services/agent-run-session";
 import { validateRunId } from "../lib/validate-run-id";
-import { MCP_TOOL_NAMES } from "../mcp/manifest";
+import { MCP_SERVER_INFO, MCP_TOOL_NAMES } from "../mcp/manifest";
 import { isOidcEnabled } from "../services/oidc-oauth";
 import {
   countActiveInboxesForHint,
@@ -49,7 +49,7 @@ agentRoutes.get("/", (c) => {
   const oidc = isOidcEnabled(c.env);
   return c.json({
     name: "MailAgent Agent API",
-    version: "0.8.1",
+    version: MCP_SERVER_INFO.version,
     auth: {
       oidc: oidc ? "enabled" : "disabled",
       me: "GET /v1/me",
@@ -125,7 +125,7 @@ agentRoutes.get("/", (c) => {
       qaPilotStarter: "https://github.com/Alex0nder/MailAgent/tree/main/examples/qa-pilot-starter",
       qaPilotCypressStarter:
         "https://github.com/Alex0nder/MailAgent/tree/main/examples/qa-pilot-cypress-starter",
-      qaWizard: "npm run wizard:qa-pilot",
+      qaWizard: "npm run wizard:qa-pilot:onboard",
       smokeQa: "npm run smoke:qa",
     },
     cli: "npx @mailagent/mcp mailagent open --service github --json",
