@@ -13,6 +13,12 @@ const inboxBody = {
   type: "object",
   properties: {
     ttlMinutes: { type: "integer", minimum: 1, maximum: 1440 },
+    deleteAfterMinutes: {
+      type: "integer",
+      minimum: 1,
+      maximum: 1440,
+      description: "Alias for inbox TTL/auto-expiry in minutes",
+    },
     service: {
       type: "string",
       description: "Preset allowlist (github, google, …)",
@@ -50,6 +56,14 @@ const openBody = {
         messageIndex: { type: "integer", minimum: 0, default: 0 },
         timeoutSeconds: { type: "integer", maximum: 120, default: 90 },
         deleteAfter: { type: "boolean", default: true },
+        deleteAfterSuccess: {
+          type: "boolean",
+          description: "Delete inbox after successful extraction (overrides deleteAfter)",
+        },
+        keepOnFailure: {
+          type: "boolean",
+          description: "Keep inbox after timeout/failure for debugging",
+        },
       },
     },
   ],

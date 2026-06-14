@@ -39,6 +39,13 @@ server.registerTool(
         .max(1440)
         .optional()
         .describe("Inbox lifetime in minutes (default from server, usually 30)"),
+      deleteAfterMinutes: z
+        .number()
+        .int()
+        .min(1)
+        .max(1440)
+        .optional()
+        .describe("Alias for TTL/auto-expiry in minutes"),
       expectFrom: z
         .union([z.string(), z.array(z.string())])
         .optional()
@@ -139,6 +146,9 @@ server.registerTool(
       subjectContains: z.string().optional(),
       timeoutSeconds: z.number().int().min(5).max(120).optional(),
       deleteAfter: z.boolean().optional(),
+      deleteAfterSuccess: z.boolean().optional(),
+      keepOnFailure: z.boolean().optional(),
+      deleteAfterMinutes: z.number().int().min(1).max(1440).optional(),
     },
   },
   async (args) => {
@@ -167,6 +177,7 @@ server.registerTool(
         .optional()
         .describe("Existing inbox; if omitted, a new inbox is created"),
       ttlMinutes: z.number().int().min(5).max(1440).optional(),
+      deleteAfterMinutes: z.number().int().min(1).max(1440).optional(),
       service: z
         .enum(SERVICE_NAMES)
         .optional()
@@ -184,6 +195,8 @@ server.registerTool(
         .boolean()
         .optional()
         .describe("Delete inbox after success (default true)"),
+      deleteAfterSuccess: z.boolean().optional(),
+      keepOnFailure: z.boolean().optional(),
       label: z.string().optional().describe("QA/CI run id"),
       callbackUrl: z.string().url().optional(),
       subjectContains: z
@@ -397,6 +410,22 @@ server.registerTool(
   async ({ inboxId }) => {
     const client = new MailAgentClient();
     return toolText(await client.deleteInbox(inboxId));
+  }
+);
+
+server.registerTool(
+  "mailagent_cleanup_inboxes",
+  {
+    description:
+      "Delete all inboxes matching a labelPrefix, or an agent run via runId.",
+    inputSchema: {
+      labelPrefix: z.string().min(3).optional(),
+      runId: z.string().optional(),
+    },
+  },
+  async (args) => {
+    const client = new MailAgentClient();
+    return toolText(await client.cleanupInboxes(args));
   }
 );
 

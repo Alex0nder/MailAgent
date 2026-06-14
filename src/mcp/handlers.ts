@@ -26,6 +26,7 @@ import {
 import {
   createInbox,
   deleteInbox,
+  deleteInboxesByLabelPrefix,
   getInbox,
   getMessage,
   isCreateInboxError,
@@ -138,6 +139,9 @@ export async function executeMcpTool(
         timeoutSeconds: args.timeoutSeconds as number | undefined,
         ttlMinutes: args.ttlMinutes as number | undefined,
         deleteAfter: args.deleteAfter as boolean | undefined,
+        deleteAfterSuccess: args.deleteAfterSuccess as boolean | undefined,
+        deleteAfterMinutes: args.deleteAfterMinutes as number | undefined,
+        keepOnFailure: args.keepOnFailure as boolean | undefined,
         runId: args.runId as string | undefined,
         apiKeyHint: auth.apiKeyHint,
         teamId: auth.teamId,
@@ -175,7 +179,8 @@ export async function executeMcpTool(
       const inbox = await createInbox(env, {
         ttlMinutes: resolveTtlMinutes(
           args.service as string | undefined,
-          args.ttlMinutes as number | undefined
+          (args.deleteAfterMinutes as number | undefined) ??
+            (args.ttlMinutes as number | undefined)
         ),
         expectFrom,
         label: labelCheck.label ?? undefined,
@@ -222,6 +227,9 @@ export async function executeMcpTool(
           messageIndex: args.messageIndex as number | undefined,
           timeoutSeconds: args.timeoutSeconds as number | undefined,
           deleteAfter: args.deleteAfter as boolean | undefined,
+          deleteAfterSuccess: args.deleteAfterSuccess as boolean | undefined,
+          deleteAfterMinutes: args.deleteAfterMinutes as number | undefined,
+          keepOnFailure: args.keepOnFailure as boolean | undefined,
           runId: args.runId as string | undefined,
           apiKeyHint: auth.apiKeyHint,
           teamId: auth.teamId,
@@ -259,7 +267,11 @@ export async function executeMcpTool(
       }
       const verification = formatMessageVerification(message, inboxId);
       let deleted = false;
-      if (args.deleteAfter !== false) {
+      const deleteAfterSuccess =
+        (args.deleteAfterSuccess as boolean | undefined) ??
+        (args.deleteAfter as boolean | undefined) ??
+        true;
+      if (deleteAfterSuccess) {
         if (scopeWriteError(auth.scope)) {
           return textResult({ error: "scope_read_only" }, true);
         }
@@ -268,6 +280,24 @@ export async function executeMcpTool(
         });
       }
       return textResult({ inboxId, verification, deleted });
+    }
+
+    case "mailagent_cleanup_inboxes": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr) return textResult(writeErr, true);
+      const requestedPrefix =
+        typeof args.labelPrefix === "string" && args.labelPrefix.trim()
+          ? args.labelPrefix
+          : typeof args.runId === "string" && args.runId.trim()
+            ? `agent-${args.runId.trim()}`
+            : undefined;
+      const prefix = effectiveLabelPrefix(auth.scope, requestedPrefix);
+      if (!prefix) return textResult({ error: "labelPrefix_required" }, true);
+      if (prefix.length < 3) {
+        return textResult({ error: "labelPrefix_too_short", minLength: 3 }, true);
+      }
+      const ids = await deleteInboxesByLabelPrefix(env, prefix, auth.apiKeyHint);
+      return textResult({ deleted: ids.length, ids, labelPrefix: prefix });
     }
 
     case "mailagent_list_inboxes": {

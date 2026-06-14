@@ -83,6 +83,8 @@ Acceptance: API and console can show the timeline for a run without agents scrap
 
 ## PBR-5 — Auto-cleanup policies
 
+**Status:** implemented.
+
 Add inbox lifecycle options:
 
 - `deleteAfterSuccess`

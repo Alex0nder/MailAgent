@@ -714,7 +714,7 @@ Spec: [AGENT-PBR.md](./AGENT-PBR.md)
 | Verification confidence + alternatives | ✅ |
 | Flow templates in `GET /v1/agent` | ✅ |
 | Run timeline by `runId` | ✅ |
-| Auto-cleanup policies | planned |
+| Auto-cleanup policies | ✅ |
 | Agent-safe HTML action extraction | planned |
 
 ### Deferred (not QA)

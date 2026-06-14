@@ -62,6 +62,9 @@ export class MailAgentClient {
   createInbox(options?: CreateInboxOptions) {
     const body: Record<string, unknown> = {};
     if (options?.ttlMinutes !== undefined) body.ttlMinutes = options.ttlMinutes;
+    if (options?.deleteAfterMinutes !== undefined) {
+      body.deleteAfterMinutes = options.deleteAfterMinutes;
+    }
     if (options?.service) body.service = options.service;
     if (options?.label) body.label = options.label;
     if (options?.runId) body.runId = options.runId;
@@ -89,11 +92,20 @@ export class MailAgentClient {
     };
     if (options.inboxId) body.inboxId = options.inboxId;
     if (options.ttlMinutes !== undefined) body.ttlMinutes = options.ttlMinutes;
+    if (options.deleteAfterMinutes !== undefined) {
+      body.deleteAfterMinutes = options.deleteAfterMinutes;
+    }
     if (options.service) body.service = options.service;
     if (options.runId) body.runId = options.runId;
     if (options.label) body.label = options.label;
     if (options.callbackUrl) body.callbackUrl = options.callbackUrl;
     if (options.subjectContains) body.subjectContains = options.subjectContains;
+    if (options.deleteAfterSuccess !== undefined) {
+      body.deleteAfterSuccess = options.deleteAfterSuccess;
+    }
+    if (options.keepOnFailure !== undefined) {
+      body.keepOnFailure = options.keepOnFailure;
+    }
     const expectFrom = resolveExpectFrom(options.service, options.expectFrom);
     if (expectFrom?.length) body.expectFrom = expectFrom;
     if (options.allowedSenders !== undefined) {
@@ -158,11 +170,20 @@ export class MailAgentClient {
       deleteAfter: options.deleteAfter !== false,
     };
     if (options.ttlMinutes !== undefined) body.ttlMinutes = options.ttlMinutes;
+    if (options.deleteAfterMinutes !== undefined) {
+      body.deleteAfterMinutes = options.deleteAfterMinutes;
+    }
     if (options.service) body.service = options.service;
     if (options.runId) body.runId = options.runId;
     if (options.label) body.label = options.label;
     if (options.callbackUrl) body.callbackUrl = options.callbackUrl;
     if (options.subjectContains) body.subjectContains = options.subjectContains;
+    if (options.deleteAfterSuccess !== undefined) {
+      body.deleteAfterSuccess = options.deleteAfterSuccess;
+    }
+    if (options.keepOnFailure !== undefined) {
+      body.keepOnFailure = options.keepOnFailure;
+    }
     const expectFrom = resolveExpectFrom(
       options.service,
       options.expectFrom
@@ -412,6 +433,14 @@ export class MailAgentClient {
       method: "DELETE",
     });
   }
+
+  cleanupInboxes(options: { labelPrefix?: string; runId?: string }) {
+    const labelPrefix = options.labelPrefix ?? (options.runId ? `agent-${options.runId}` : "");
+    return this.request<{ deleted: number; ids: string[]; labelPrefix?: string }>(
+      `/v1/inboxes?labelPrefix=${encodeURIComponent(labelPrefix)}`,
+      { method: "DELETE" }
+    );
+  }
 }
 
 export interface EmailCheckResponse {
@@ -430,6 +459,7 @@ export interface EmailCheckResponse {
 
 export interface CreateInboxOptions {
   ttlMinutes?: number;
+  deleteAfterMinutes?: number;
   /** Preset: dribbble, github, google, auth0, stripe */
   service?: string;
   expectFrom?: string | string[];
@@ -459,6 +489,9 @@ export interface WaitAndExtractOptions {
   timeoutSeconds?: number;
   /** Default true — delete inbox after successful extract */
   deleteAfter?: boolean;
+  deleteAfterSuccess?: boolean;
+  keepOnFailure?: boolean;
+  deleteAfterMinutes?: number;
 }
 
 export interface CreateInboxResponse {

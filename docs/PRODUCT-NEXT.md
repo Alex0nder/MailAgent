@@ -132,7 +132,7 @@ Spec: [AGENT-PBR.md](./AGENT-PBR.md)
 | 39 | **Verification confidence** — confidence + alternatives | ✅ |
 | 40 | **Agent flow templates** — signup/login/reset/invite recipes | ✅ |
 | 41 | **Run timeline** — agent trace by `runId` | ✅ |
-| 42 | **Auto-cleanup policies** — keep failure, delete success | planned |
+| 42 | **Auto-cleanup policies** — keep failure, delete success | ✅ |
 | 43 | **Agent-safe HTML actions** — buttons/primary CTA extraction | planned |
 
 ## Suggested next sprint

@@ -66,6 +66,7 @@ import {
 import { publicOriginFromUrl } from "../lib/public-origin";
 import { PLAN_LIMITS } from "../lib/plans";
 import { parseRunIdFromLabel } from "../lib/agent-recipes";
+import { resolveCleanupPolicy } from "../lib/cleanup-policy";
 import {
   recordDiagnoseRunSession,
   recordMessageReceivedRunSession,
@@ -92,6 +93,9 @@ type CreateBody = {
   messageIndex?: number;
   timeoutSeconds?: number;
   deleteAfter?: boolean;
+  deleteAfterSuccess?: boolean;
+  deleteAfterMinutes?: number;
+  keepOnFailure?: boolean;
   username?: string;
   domainId?: string;
 };
@@ -110,6 +114,10 @@ inboxRoutes.post("/open", async (c) => {
   const opts = await inboxOptionsFromBody(c, body);
   const clean = rejectInvalidInboxOptions(opts);
   if ("error" in clean) return c.json(clean, 400);
+  const cleanup = resolveCleanupPolicy(body, {
+    deleteAfterSuccess: true,
+    keepOnFailure: false,
+  });
 
   const quotaErr = await checkInboxQuota(c);
   if (quotaErr) return quotaErr;
@@ -121,6 +129,7 @@ inboxRoutes.post("/open", async (c) => {
 
   const inbox = await createInbox(c.env, {
     ...clean,
+    ttlMinutes: cleanup.ttlMinutes ?? clean.ttlMinutes,
     label: labelCheck.label ?? undefined,
     apiKeyHint: c.get("apiKeyHint"),
     teamId: c.get("teamId"),
@@ -140,7 +149,8 @@ inboxRoutes.post("/open", async (c) => {
 
   if (!message) {
     const debug = await buildWaitTimeoutDebug(c.env, inbox.id, waitOpts);
-    if (body.deleteAfter !== false) {
+    const deleteOnFailure = !cleanup.keepOnFailure;
+    if (deleteOnFailure) {
       await deleteInbox(c.env, inbox.id, {
         apiKeyHint: c.get("apiKeyHint"),
       });
@@ -151,13 +161,15 @@ inboxRoutes.post("/open", async (c) => {
         inboxId: inbox.id,
         ...formatInbox(inbox),
         ...debug,
+        inboxKept: !deleteOnFailure,
+        cleanupPolicy: formatCleanupPolicy(cleanup),
       },
       408
     );
   }
 
   const verification = formatMessageVerification(message, inbox.id);
-  const deleted = body.deleteAfter !== false;
+  const deleted = cleanup.deleteAfterSuccess;
   if (deleted) {
     await deleteInbox(c.env, inbox.id, { apiKeyHint: c.get("apiKeyHint") });
   }
@@ -168,6 +180,7 @@ inboxRoutes.post("/open", async (c) => {
       inboxId: inbox.id,
       verification,
       deleted,
+      cleanupPolicy: formatCleanupPolicy(cleanup),
     },
     201
   );
@@ -897,7 +910,10 @@ async function inboxOptionsFromBody(
   });
 
   return {
-    ttlMinutes: resolveTtlMinutes(body.service, body.ttlMinutes),
+    ttlMinutes: resolveTtlMinutes(
+      body.service,
+      body.deleteAfterMinutes ?? body.ttlMinutes
+    ),
     expectFrom,
     allowedSenders: body.allowedSenders,
     label: body.label,
@@ -908,6 +924,18 @@ async function inboxOptionsFromBody(
     notifyInvalid: Boolean(body.notifyEmail && !notifyEmail),
     username: body.username,
     domainId: body.domainId,
+  };
+}
+
+function formatCleanupPolicy(
+  cleanup: ReturnType<typeof resolveCleanupPolicy>
+) {
+  return {
+    deleteAfterSuccess: cleanup.deleteAfterSuccess,
+    keepOnFailure: cleanup.keepOnFailure,
+    ...(cleanup.deleteAfterMinutes !== undefined
+      ? { deleteAfterMinutes: cleanup.deleteAfterMinutes }
+      : {}),
   };
 }
 

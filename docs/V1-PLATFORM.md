@@ -14,7 +14,7 @@ Goal: **full email API for agents** (inbound + outbound + threads) **plus** adva
 | Custom domains | ✅ API | ✅ |
 | Semantic search | ✅ | ✅ |
 | Document extraction | ✅ | ✅ |
-| MCP | ✅ | ✅ OAuth + 25 tools |
+| MCP | ✅ | ✅ OAuth + 26 tools |
 | SDK (TS/Python) | ✅ | ✅ TS SDKs + Python + MCP |
 | Enterprise / SOC 2 | ✅ | ✅ audit log + retention |
 | **Open source** | ❌ | ✅ MIT |

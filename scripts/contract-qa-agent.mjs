@@ -60,6 +60,18 @@ async function main() {
     console.error("runs.timeline discovery missing", hub.json.runs);
     process.exit(1);
   }
+  if (process.env.MAILAGENT_REQUIRE_CLEANUP_POLICIES === "1") {
+    if (
+      !hub.json.recommended?.verify?.cleanupPolicy ||
+      !hub.json.mcpTools.includes("mailagent_cleanup_inboxes")
+    ) {
+      console.error("cleanup policy discovery missing", {
+        verify: hub.json.recommended?.verify,
+        mcpTools: hub.json.mcpTools,
+      });
+      process.exit(1);
+    }
+  }
   const requireAgentFlows = process.env.MAILAGENT_REQUIRE_AGENT_FLOWS === "1";
   if (requireAgentFlows) {
     const flowTemplateIds = hub.json.flowTemplates?.ids ?? [];
