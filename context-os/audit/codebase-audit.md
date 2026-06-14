@@ -1,6 +1,6 @@
 # Codebase Audit — MailAgent
 
-Дата: 2026-06-11 · Версия: `mailagent@0.1.0` · MCP `@mailagent/mcp@0.2.5` · Worker MCP manifest `0.8.1`
+Дата: 2026-06-14 · Версия: `mailagent@0.1.0` · MCP `@mailagent/mcp@0.2.5` · Worker MCP manifest `0.8.2`
 
 ---
 

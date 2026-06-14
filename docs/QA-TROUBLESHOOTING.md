@@ -85,6 +85,16 @@ curl -sS "$MAILAGENT_API_URL/v1/inboxes/INBOX_ID/diagnose" \
   -H "Authorization: Bearer $MAILAGENT_API_KEY" | jq .
 ```
 
+Agent recovery fields:
+
+| Field | Use |
+|-------|-----|
+| `failureSummary.code` | Stable reason (`no_messages`, `subject_filter_no_match`, `message_index_too_high`, `callback_failed`, `message_received`, `unknown`) |
+| `recommendedAction` | Best next step for an agent |
+| `retry.wait` | Ready-to-use wait retry payload |
+| `retry.simulate` | Ready-to-use simulate payload for SMTP-free debugging |
+| `nextActions` | Ordered alternatives, including debug UI |
+
 ## Smoke after deploy
 
 ```bash

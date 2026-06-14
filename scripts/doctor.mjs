@@ -103,7 +103,9 @@ if (qaMode) {
       console.log(
         diagnose.ok ? "✓" : "✗",
         "GET …/diagnose",
-        diagnose.ok ? `hints=${diagJson.troubleshooting?.length ?? 0}` : diagJson.error
+        diagnose.ok
+          ? `hints=${diagJson.troubleshooting?.length ?? 0} action=${diagJson.recommendedAction?.type ?? "?"}`
+          : diagJson.error
       );
       if (!diagnose.ok) ok = false;
 

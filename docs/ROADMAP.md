@@ -704,6 +704,19 @@ Spec: [EMAIL-CHECK.md](./EMAIL-CHECK.md) · [check-if-email-exists](https://gith
 | Simulate `login_2fa`, `password_reset` scenarios | ✅ |
 | Skill: callbackUrl + notifyEmail + flows | ✅ |
 
+### v0.81 — Agent-native reliability
+
+Spec: [AGENT-PBR.md](./AGENT-PBR.md)
+
+| Task | Status |
+|------|--------|
+| Failure recovery hints in `GET …/diagnose` and `mailagent_diagnose_inbox` | ✅ |
+| Verification confidence + alternatives | planned |
+| Flow templates in `GET /v1/agent` | planned |
+| Run timeline by `runId` | planned |
+| Auto-cleanup policies | planned |
+| Agent-safe HTML action extraction | planned |
+
 ### Deferred (not QA)
 
 - ~~Agent session memory / multi-step run state~~ ✅ v0.35

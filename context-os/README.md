@@ -78,4 +78,4 @@ npm run eval:context-os:tokens       # TOKENS.md
 
 Данные взяты из: `README.md`, `AGENTS.md`, `SETUP.md`, `docs/`, `src/`, `mcp/`, `packages/`, `migrations/`, `wrangler.jsonc`, `package.json`, `.github/workflows/`.
 
-Создано: 2026-06-10. Обновлено: 2026-06-11 (6 primary + 12 subcores, ~500+ строк). Версия репозитория: `mailagent@0.1.0`, MCP server `0.8.1`.
+Создано: 2026-06-10. Обновлено: 2026-06-14 (6 primary + 12 subcores, ~500+ строк). Версия репозитория: `mailagent@0.1.0`, MCP server `0.8.2`.

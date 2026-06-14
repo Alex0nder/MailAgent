@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 /** Light prod gate — smoke only (saves KV quota vs full test:prod) */
+import "./load-env.mjs";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import path from "node:path";

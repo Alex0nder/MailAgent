@@ -2,6 +2,8 @@
 
 Stripe **on hold** · QA pilot kit ready; external handoff pending ([PILOT-ONBOARD.md](./PILOT-ONBOARD.md)).
 
+Agent-native backlog: [AGENT-PBR.md](./AGENT-PBR.md).
+
 Context OS **done** for agents on repo ([skills/mailagent/SKILL.md](../skills/mailagent/SKILL.md) § Context OS).
 
 P0–P3 **done** (pilot #20 = human). Next: **P4** (console & SDK polish).
@@ -120,9 +122,22 @@ Spec: [DEV-EMAIL-RELAY.md](./DEV-EMAIL-RELAY.md)
 
 ---
 
+## P7 — agent-native reliability
+
+Spec: [AGENT-PBR.md](./AGENT-PBR.md)
+
+| # | Feature | Status |
+|---|---------|--------|
+| 38 | **Failure recovery hints** — machine-readable `diagnose` next action | ✅ |
+| 39 | **Verification confidence** — confidence + alternatives | planned |
+| 40 | **Agent flow templates** — signup/login/reset/invite recipes | planned |
+| 41 | **Run timeline** — agent trace by `runId` | planned |
+| 42 | **Auto-cleanup policies** — keep failure, delete success | planned |
+| 43 | **Agent-safe HTML actions** — buttons/primary CTA extraction | planned |
+
 ## Suggested next sprint
 
-1. P3 #20 — send `print:pilot-invite` + scoped key to first pilot team out-of-band  
-2. Catalog PR / Context OS eval cleanup (optional)
+1. P7 #38 — failure recovery hints in `diagnose`
+2. P3 #20 — send `print:pilot-invite` + scoped key to first pilot team out-of-band
 
-Track in [ROADMAP.md](./ROADMAP.md) § v0.78.
+Track in [ROADMAP.md](./ROADMAP.md) § v0.81.

@@ -126,9 +126,18 @@ async function main() {
   console.log(
     "GET …/diagnose",
     diagnose.res.status,
-    `troubleshooting=${diagnose.json?.troubleshooting?.length ?? 0}`
+    `troubleshooting=${diagnose.json?.troubleshooting?.length ?? 0}`,
+    `action=${diagnose.json?.recommendedAction?.type ?? "?"}`
   );
   if (!diagnose.res.ok || !diagnose.json?.debugUiUrl) process.exit(1);
+  if (process.env.MAILAGENT_REQUIRE_DIAGNOSE_RECOVERY === "1" && (
+    diagnose.json?.failureSummary?.code !== "no_messages" ||
+    diagnose.json?.recommendedAction?.type !== "wait" ||
+    !diagnose.json?.retry?.wait?.path
+  )) {
+    console.error("diagnose missing recovery hints");
+    process.exit(1);
+  }
 
   const sim = await req("POST", `/v1/inboxes/${inboxId}/simulate`, {
     otp: "991122",

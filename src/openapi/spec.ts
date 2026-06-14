@@ -123,6 +123,29 @@ const verification = {
   },
 } as const;
 
+const diagnoseAction = {
+  type: "object",
+  properties: {
+    type: {
+      type: "string",
+      enum: [
+        "wait",
+        "adjust_subject_filter",
+        "adjust_message_index",
+        "fix_callback",
+        "extract_verification",
+        "simulate_message",
+        "open_debug_ui",
+      ],
+    },
+    confidence: { type: "string", enum: ["high", "medium", "low"] },
+    reason: { type: "string" },
+    label: { type: "string" },
+    href: { type: "string" },
+    payload: { type: "object", additionalProperties: true },
+  },
+} as const;
+
 const callbackDelivery = {
   type: "object",
   properties: {
@@ -775,7 +798,7 @@ export const openApiSpec = {
     "/v1/inboxes/{id}/diagnose": {
       get: {
         tags: ["inboxes"],
-        summary: "Debug wait failures — messages, callbacks, troubleshooting",
+        summary: "Debug wait failures — messages, callbacks, troubleshooting, recovery hints",
         security: bearer,
         parameters: [
           { name: "id", in: "path", required: true, schema: { type: "string" } },
@@ -794,6 +817,34 @@ export const openApiSpec = {
                     messageCount: { type: "integer" },
                     messages: { type: "array", items: message },
                     troubleshooting: { type: "array", items: { type: "string" } },
+                    failureSummary: {
+                      type: "object",
+                      properties: {
+                        code: {
+                          type: "string",
+                          enum: [
+                            "no_messages",
+                            "subject_filter_no_match",
+                            "message_index_too_high",
+                            "callback_failed",
+                            "message_received",
+                            "unknown",
+                          ],
+                        },
+                        message: { type: "string" },
+                        confidence: { type: "string", enum: ["high", "medium", "low"] },
+                      },
+                    },
+                    recommendedAction: diagnoseAction,
+                    retry: {
+                      type: "object",
+                      properties: {
+                        keepInbox: { type: "boolean" },
+                        wait: { type: "object", additionalProperties: true },
+                        simulate: { type: "object", additionalProperties: true },
+                      },
+                    },
+                    nextActions: { type: "array", items: diagnoseAction },
                     debugUiUrl: { type: "string", format: "uri" },
                   },
                 },

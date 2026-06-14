@@ -12,6 +12,32 @@ export type InboxDiagnoseOptions = {
   apiKeyHint?: string;
 };
 
+export type DiagnoseFailureCode =
+  | "no_messages"
+  | "subject_filter_no_match"
+  | "message_index_too_high"
+  | "callback_failed"
+  | "message_received"
+  | "unknown";
+
+export type DiagnoseNextActionType =
+  | "wait"
+  | "adjust_subject_filter"
+  | "adjust_message_index"
+  | "fix_callback"
+  | "extract_verification"
+  | "simulate_message"
+  | "open_debug_ui";
+
+export type DiagnoseAction = {
+  type: DiagnoseNextActionType;
+  confidence: "high" | "medium" | "low";
+  reason: string;
+  label: string;
+  href?: string;
+  payload?: Record<string, unknown>;
+};
+
 export type InboxDiagnoseResult = {
   inboxId: string;
   address: string;
@@ -42,6 +68,33 @@ export type InboxDiagnoseResult = {
   }>;
   waitDebug: Awaited<ReturnType<typeof buildWaitTimeoutDebug>>;
   troubleshooting: string[];
+  failureSummary: {
+    code: DiagnoseFailureCode;
+    message: string;
+    confidence: "high" | "medium" | "low";
+  };
+  recommendedAction: DiagnoseAction;
+  retry: {
+    keepInbox: boolean;
+    wait: {
+      method: "GET";
+      path: string;
+      query: {
+        timeoutSeconds: number;
+        subjectContains?: string;
+        messageIndex: number;
+      };
+    };
+    simulate: {
+      method: "POST";
+      path: string;
+      body: {
+        subject: string;
+        otp: string;
+      };
+    };
+  };
+  nextActions: DiagnoseAction[];
   debugUiUrl: string;
   apiMessagesUrl: string;
 };
@@ -95,6 +148,17 @@ export async function buildInboxDiagnose(
   });
 
   const base = options.apiBaseUrl.replace(/\/$/, "");
+  const debugUrl = debugUiUrl(base, inboxId);
+  const recovery = buildRecovery({
+    inboxId,
+    subjectContains,
+    messageIndex,
+    messageCount: allMessages.length,
+    matchingCount: subjectContains ? filteredMessages.length : allMessages.length,
+    callbacks,
+    messages,
+    debugUiUrl: debugUrl,
+  });
 
   return {
     inboxId: inbox.id,
@@ -116,7 +180,11 @@ export async function buildInboxDiagnose(
     })),
     waitDebug,
     troubleshooting,
-    debugUiUrl: debugUiUrl(base, inboxId),
+    failureSummary: recovery.failureSummary,
+    recommendedAction: recovery.recommendedAction,
+    retry: recovery.retry,
+    nextActions: recovery.nextActions,
+    debugUiUrl: debugUrl,
     apiMessagesUrl: `${base}/v1/inboxes/${inboxId}/messages`,
   };
 }
@@ -160,6 +228,182 @@ function buildTroubleshooting(input: {
 
   steps.push("Open debugUiUrl or GET /v1/inboxes?label=… for related inboxes.");
   return steps;
+}
+
+function buildRecovery(input: {
+  inboxId: string;
+  subjectContains?: string;
+  messageIndex: number;
+  messageCount: number;
+  matchingCount: number;
+  callbacks: Awaited<ReturnType<typeof listCallbackDeliveries>>;
+  messages: InboxDiagnoseResult["messages"];
+  debugUiUrl: string;
+}): Pick<
+  InboxDiagnoseResult,
+  "failureSummary" | "recommendedAction" | "retry" | "nextActions"
+> {
+  const waitPath = `/v1/inboxes/${input.inboxId}/wait`;
+  const simulatePath = `/v1/inboxes/${input.inboxId}/simulate`;
+  const retry = {
+    keepInbox: true,
+    wait: {
+      method: "GET" as const,
+      path: waitPath,
+      query: {
+        timeoutSeconds: 120,
+        ...(input.subjectContains ? { subjectContains: input.subjectContains } : {}),
+        messageIndex: input.messageIndex,
+      },
+    },
+    simulate: {
+      method: "POST" as const,
+      path: simulatePath,
+      body: {
+        subject: input.subjectContains
+          ? `MailAgent retry: ${input.subjectContains}`
+          : "MailAgent retry verification",
+        otp: "482910",
+      },
+    },
+  };
+
+  const hasFailedCallback = input.callbacks.some((d) => !d.ok);
+  const hasVerification = input.messages.some((m) => Boolean(m.otp || m.primaryLink));
+
+  const actions: DiagnoseAction[] = [];
+  let failureSummary: InboxDiagnoseResult["failureSummary"];
+  let recommendedAction: DiagnoseAction;
+
+  const waitAction: DiagnoseAction = {
+    type: "wait",
+    confidence: "medium",
+    label: "Retry wait on this inbox",
+    reason: "Keep the same inbox and wait again before creating a new address.",
+    payload: retry.wait,
+  };
+  const simulateAction: DiagnoseAction = {
+    type: "simulate_message",
+    confidence: "medium",
+    label: "Simulate a verification message",
+    reason: "Use simulate to validate extraction and app-side test wiring without SMTP.",
+    payload: retry.simulate,
+  };
+  const debugAction: DiagnoseAction = {
+    type: "open_debug_ui",
+    confidence: "medium",
+    label: "Open debug UI",
+    reason: "Inspect messages, callbacks, raw MIME, and troubleshooting in the console.",
+    href: input.debugUiUrl,
+  };
+
+  if (!input.messageCount) {
+    failureSummary = {
+      code: "no_messages",
+      message: "No messages have reached this inbox yet.",
+      confidence: "high",
+    };
+    recommendedAction = {
+      ...waitAction,
+      confidence: "high",
+      reason:
+        "No message is stored yet; keep the inbox and retry wait while checking sender allowlist/webhook setup.",
+    };
+    actions.push(recommendedAction, simulateAction, debugAction);
+  } else if (input.subjectContains && !input.matchingCount) {
+    failureSummary = {
+      code: "subject_filter_no_match",
+      message: `Messages exist, but none match subjectContains="${input.subjectContains}".`,
+      confidence: "high",
+    };
+    recommendedAction = {
+      type: "adjust_subject_filter",
+      confidence: "high",
+      label: "Relax subject filter",
+      reason: "Messages arrived with different subjects; retry without or with a broader subjectContains.",
+      payload: {
+        method: "GET",
+        path: waitPath,
+        query: { timeoutSeconds: 60, messageIndex: 0 },
+      },
+    };
+    actions.push(recommendedAction, waitAction, debugAction);
+  } else if (input.matchingCount <= input.messageIndex) {
+    failureSummary = {
+      code: "message_index_too_high",
+      message: `Need messageIndex=${input.messageIndex}, but only ${input.matchingCount} matching message(s) exist.`,
+      confidence: "high",
+    };
+    recommendedAction = {
+      type: "adjust_message_index",
+      confidence: "high",
+      label: "Lower messageIndex",
+      reason: "The requested message index is not available yet; use messageIndex=0 or wait for another email.",
+      payload: {
+        method: "GET",
+        path: waitPath,
+        query: {
+          timeoutSeconds: 60,
+          ...(input.subjectContains ? { subjectContains: input.subjectContains } : {}),
+          messageIndex: 0,
+        },
+      },
+    };
+    actions.push(recommendedAction, waitAction, debugAction);
+  } else if (hasFailedCallback) {
+    failureSummary = {
+      code: "callback_failed",
+      message: "Message processing succeeded, but one or more callbacks failed.",
+      confidence: "high",
+    };
+    recommendedAction = {
+      type: "fix_callback",
+      confidence: "high",
+      label: "Inspect callback endpoint",
+      reason: "At least one callback delivery is not ok; fix the endpoint or inspect callback logs.",
+      payload: { method: "GET", path: `/v1/inboxes/${input.inboxId}/callbacks` },
+    };
+    actions.push(recommendedAction, debugAction);
+  } else if (hasVerification) {
+    failureSummary = {
+      code: "message_received",
+      message: "A message with verification data is available.",
+      confidence: "high",
+    };
+    recommendedAction = {
+      type: "extract_verification",
+      confidence: "high",
+      label: "Use extracted verification",
+      reason: "The inbox already has an OTP or primary link; use GET /extract or the message summary.",
+      payload: { method: "GET", path: `/v1/inboxes/${input.inboxId}/extract` },
+    };
+    actions.push(recommendedAction, debugAction);
+  } else {
+    failureSummary = {
+      code: "unknown",
+      message: "Messages exist, but no clear verification or callback failure was found.",
+      confidence: "low",
+    };
+    recommendedAction = debugAction;
+    actions.push(recommendedAction, waitAction, simulateAction);
+  }
+
+  return {
+    failureSummary,
+    recommendedAction,
+    retry,
+    nextActions: dedupeActions(actions),
+  };
+}
+
+function dedupeActions(actions: DiagnoseAction[]): DiagnoseAction[] {
+  const seen = new Set<string>();
+  return actions.filter((action) => {
+    const key = `${action.type}:${action.label}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 export function debugUiUrl(apiBase: string, inboxId: string): string {
