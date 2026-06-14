@@ -168,9 +168,9 @@
     "githubWorkflows": 7,
     "servicePresets": 25
   },
-  "sourceCommit": "cae76da50e118ec87c2cc6ce9c7f7e7e5cf67bb9",
-  "sourceCommitShort": "cae76da",
-  "syncedAt": "2026-06-14T01:46:56.880Z",
+  "sourceCommit": "03d51eb9542cc67becfd66d531cf9a95eacc64c2",
+  "sourceCommitShort": "03d51eb",
+  "syncedAt": "2026-06-14T01:55:27.046Z",
   "syncSources": [
     "src/mcp/manifest.ts",
     "src/lib/service-presets.ts",

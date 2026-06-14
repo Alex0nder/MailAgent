@@ -285,7 +285,7 @@ Resend SDK, Stripe, crypto patterns expect Node APIs. Flag enabled in wrangler f
 | 5 | [src/services/*](../../src/services/) | Business logic |
 | 6 | [src/queue/consumer.ts](../../src/queue/consumer.ts) | Queue batch + DO notify |
 | 7 | [src/durable-objects/inbox-wait.ts](../../src/durable-objects/inbox-wait.ts) | SSE DO implementation |
-| 8 | [src/mcp/manifest.ts](../../src/mcp/manifest.ts) | 23 MCP tools, version |
+| 8 | [src/mcp/manifest.ts](../../src/mcp/manifest.ts) | 24 MCP tools, version |
 | 9 | [src/mcp/handlers.ts](../../src/mcp/handlers.ts) | Tool dispatch |
 | 10 | [src/routes/mcp-http.ts](../../src/routes/mcp-http.ts) | Remote MCP JSON-RPC |
 | 11 | [mcp/src/index.ts](../../mcp/src/index.ts) | stdio MCP server |
