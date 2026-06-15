@@ -1418,46 +1418,93 @@ h1 {
 
 /* —— Open source —— */
 .oss-section {
-  background: transparent;
+  padding-block: 74px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 42%),
+    transparent;
 }
 
 .oss-inner {
-  text-align: center;
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(360px, 1.05fr);
+  gap: clamp(32px, 5vw, 72px);
+  align-items: center;
+}
+
+.oss-copy {
+  max-width: 610px;
 }
 
 .oss-desc {
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: 40px;
-  max-width: 36rem;
+  margin-bottom: 28px;
+  max-width: 34rem;
 }
 
-.oss-list {
-  margin: 0 auto 28px;
-  padding: 0;
-  list-style: none;
-  max-width: 32rem;
-  text-align: left;
-  color: var(--text-muted);
-  font-size: 15px;
+.oss-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elevated);
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 22px 60px rgba(0, 0, 0, 0.32);
 }
 
-.oss-list li {
-  margin-bottom: 10px;
-  padding-left: 1.25rem;
-  position: relative;
+.oss-panel-row {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  gap: 6px 18px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
 }
 
-.oss-list li::before {
-  content: "✓";
-  position: absolute;
-  left: 0;
+.oss-panel-row:last-child {
+  border-bottom: 0;
+}
+
+.oss-panel-label {
+  grid-row: span 2;
+  font-size: 12px;
+  line-height: 1.45;
   color: var(--text-dim);
-  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.oss-panel-row strong {
+  min-width: 0;
+  font-size: 15px;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+.oss-panel-row span:last-child {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .oss-ctas {
-  justify-content: center;
+  justify-content: flex-start;
+}
+
+@media (max-width: 820px) {
+  .oss-section {
+    padding-block: 56px;
+  }
+
+  .oss-inner {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .oss-panel-row {
+    grid-template-columns: 1fr;
+  }
+
+  .oss-panel-label {
+    grid-row: auto;
+  }
 }
 
 /* —— Shared shell: mobile nav, docs sidebar, app tools —— */

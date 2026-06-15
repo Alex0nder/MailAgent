@@ -187,25 +187,40 @@
 
       <section id="open-source" class="page-section oss-section">
         <div class="section-inner oss-inner site-container">
-          <p class="section-label">Open source</p>
-          <h2 class="section-title">Use the hosted API, or run the whole stack yourself</h2>
-          <p class="section-desc oss-desc">
-            Full source on GitHub: Worker, MCP server, QA SDK, and docs. No black
-            box — deploy on your Cloudflare account with your Resend inbound domain.
-          </p>
-          <ul class="oss-list">
-            <li>MIT license — free to use, fork, and self-host</li>
-            <li>Same stack we run in production (Workers, Queues, Durable Objects, Neon)</li>
-            <li>Hosted API at <code>api.webmailagent.com</code> optional — ask for a key</li>
-          </ul>
-          <div class="hero-ctas oss-ctas">
-            <a
-              class="btn btn-primary"
-              href="https://github.com/Alex0nder/MailAgent"
-              rel="noopener noreferrer"
-              >View on GitHub</a
-            >
-            <a class="btn btn-outline" href="/docs/integrate.html">Integration guide</a>
+          <div class="oss-copy">
+            <p class="section-label">Open source</p>
+            <h2 class="section-title">Hosted API when you need speed. Self-host when you need control.</h2>
+            <p class="section-desc oss-desc">
+              MailAgent ships as a complete stack: Worker, MCP server, QA SDK,
+              docs, and deploy scripts. Use our API now, or run the same
+              architecture on your Cloudflare account.
+            </p>
+            <div class="hero-ctas oss-ctas">
+              <a
+                class="btn btn-primary"
+                href="https://github.com/Alex0nder/MailAgent"
+                rel="noopener noreferrer"
+                >View on GitHub</a
+              >
+              <a class="btn btn-outline" href="/docs/integrate.html">Integration guide</a>
+            </div>
+          </div>
+          <div class="oss-panel" aria-label="Open source details">
+            <div class="oss-panel-row">
+              <span class="oss-panel-label">License</span>
+              <strong>MIT</strong>
+              <span>free to use, fork, and self-host</span>
+            </div>
+            <div class="oss-panel-row">
+              <span class="oss-panel-label">Production stack</span>
+              <strong>Workers, Queues, Durable Objects, Neon</strong>
+              <span>the same pieces used by the hosted service</span>
+            </div>
+            <div class="oss-panel-row">
+              <span class="oss-panel-label">Hosted endpoint</span>
+              <strong><code>api.webmailagent.com</code></strong>
+              <span>optional API key for teams that do not want to operate infra</span>
+            </div>
           </div>
         </div>
       </section>
