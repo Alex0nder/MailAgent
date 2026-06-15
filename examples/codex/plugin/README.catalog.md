@@ -8,14 +8,14 @@ Bundled in [awesome-codex-plugins](https://github.com/hashgraph-online/awesome-c
 
 ```bash
 codex plugin marketplace add hashgraph-online/awesome-codex-plugins
-codex plugin install mailagent --source mailagent
+codex plugin add mailagent@hashgraph-online/awesome-codex-plugins
 ```
 
 Or from the MailAgent repo marketplace:
 
 ```bash
 codex plugin marketplace add Alex0nder/MailAgent
-codex plugin install mailagent --source mailagent
+codex plugin add mailagent@mailagent
 ```
 
 ## Setup

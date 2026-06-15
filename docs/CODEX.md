@@ -68,7 +68,7 @@ Repo structure: [examples/codex/plugin/](../examples/codex/plugin/)
 | 6 | Remote MCP + OAuth preset (`config.remote-oauth.toml.example`) | ✅ |
 | 7 | `AGENTS.md` one-pager | ✅ |
 | 8 | Playwright `global-setup` + attachment spec | ✅ |
-| 9 | Local plugin test in Codex CLI | manual (Codex not in CI) |
+| 9 | Local plugin test in Codex CLI | ✅ `codex plugin add mailagent@mailagent` |
 | 10 | Publish `@mailagent/agent@0.1.5` | manual (`npm run publish:agent`) |
 | 11 | Repo marketplace (`.agents/plugins/marketplace.json`) | ✅ |
 | 12 | `privacyPolicyURL` + `termsOfServiceURL` in plugin.json | ✅ |
@@ -78,7 +78,7 @@ Repo structure: [examples/codex/plugin/](../examples/codex/plugin/)
 
 ```bash
 codex plugin marketplace add Alex0nder/MailAgent
-codex plugin install mailagent --source mailagent
+codex plugin add mailagent@mailagent
 codex mcp list
 ```
 

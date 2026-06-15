@@ -11,7 +11,7 @@ Inspired by curated catalogs like [membranedev/application-skills](https://githu
 npx skills add Alex0nder/MailAgent --skill mailagent
 
 # Cursor — skill syncs to .cursor/skills/mailagent-mcp/ on npm run sync:skills
-# Codex — codex plugin marketplace add Alex0nder/MailAgent
+# Codex — codex plugin marketplace add Alex0nder/MailAgent && codex plugin add mailagent@mailagent
 ```
 
 Canonical source: [`skills/mailagent/SKILL.md`](../skills/mailagent/SKILL.md)

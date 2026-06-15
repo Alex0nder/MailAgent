@@ -44,7 +44,7 @@ npx skills add Alex0nder/MailAgent --skill mailagent
 
 ```bash
 codex plugin marketplace add Alex0nder/MailAgent
-codex plugin install mailagent --source mailagent
+codex plugin add mailagent@mailagent
 ```
 
 Guide: https://webmailagent.com/docs/codex.html

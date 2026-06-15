@@ -21,6 +21,10 @@ gh skill publish --tag skills-0.2.5   # release tag (published on MailAgent repo
 gh skill install Alex0nder/MailAgent mailagent --pin skills-0.2.5
 ```
 
+Current validation: `gh skill publish --dry-run` passes. Remaining warning is
+repository tag protection, which is recommended for immutable releases but does
+not block publishing.
+
 Staging entry for awesome-agent-skills PR:
 
 ```bash

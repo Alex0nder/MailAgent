@@ -11,7 +11,7 @@ What **only a human** can enable. Everything else runs without you.
 | MCP + REST verify | `MAILAGENT_API_KEY` in CI · `npm run smoke:agent` |
 | Agent skill from GitHub | `npx skills add Alex0nder/MailAgent --skill mailagent` |
 | Pinned skill release | `gh skill install Alex0nder/MailAgent mailagent --pin skills-0.2.5` |
-| Codex plugin (repo marketplace) | `codex plugin marketplace add Alex0nder/MailAgent` |
+| Codex plugin (repo marketplace) | `codex plugin marketplace add Alex0nder/MailAgent` → `codex plugin add mailagent@mailagent` |
 | npm packages | `@mailagent/mcp` · `@mailagent/agent` · `@mailagent/qa` |
 | Docs / privacy / terms / SLA draft | hosted on webmailagent.com |
 
@@ -117,7 +117,7 @@ npm run doctor:operator
 
 ```bash
 codex plugin marketplace add Alex0nder/MailAgent
-codex plugin install mailagent --source mailagent
+codex plugin add mailagent@mailagent
 ```
 
 Set `MAILAGENT_API_KEY` when prompted. Verify: `codex mcp list` → server `mailagent`.
@@ -142,6 +142,7 @@ Third-party catalogs: [CATALOG-SUBMIT.md](./CATALOG-SUBMIT.md) — PR [#195](htt
 **Not required for install** — skill ships from this repo. Hub import only adds search on [agentskillhub.dev](https://agentskillhub.dev); needs your browser login (`skhub login`) because the public analyze API returns GitHub 401.
 
 ```bash
+gh skill publish --dry-run
 skhub login && export SKILLHUB_TOKEN=… && npm run import:skill-hub
 ```
 

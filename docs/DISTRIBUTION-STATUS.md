@@ -20,7 +20,7 @@ Last automated check: CI `check:catalog-prs` (weekly) · discovery: `GET /v1/age
 |---------|---------|
 | Agent skill | `npx skills add Alex0nder/MailAgent --skill mailagent` |
 | Pinned release | `gh skill install Alex0nder/MailAgent mailagent --pin skills-0.2.5` |
-| Codex marketplace | `codex plugin marketplace add Alex0nder/MailAgent` → `codex plugin install mailagent` |
+| Codex marketplace | `codex plugin marketplace add Alex0nder/MailAgent` → `codex plugin add mailagent@mailagent` |
 | MCP npm | `npx -y -p @mailagent/mcp@latest mailagent-mcp` |
 | REST SDK | `npm i @mailagent/agent @mailagent/qa` |
 
@@ -39,8 +39,8 @@ npm run check:catalog-prs
 
 | Item | Blocker | Prep doc |
 |------|---------|----------|
-| Codex Plugin Directory | OpenAI self-serve | [CODEX-DIRECTORY-SUBMIT.md](./CODEX-DIRECTORY-SUBMIT.md) |
-| Agent Skill Hub search | Hub OAuth / their GitHub API | [SKILLS-SUBMIT.md](./SKILLS-SUBMIT.md) |
+| Codex Plugin Directory | OpenAI self-serve; tarball ready: `dist/mailagent-codex-plugin-0.2.5.tar.gz` | [CODEX-DIRECTORY-SUBMIT.md](./CODEX-DIRECTORY-SUBMIT.md) |
+| Agent Skill Hub search | Hub OAuth / `skhub login`; `gh skill publish --dry-run` passes | [SKILLS-SUBMIT.md](./SKILLS-SUBMIT.md) |
 | Stripe Pro + SLA live | Stripe account | [STRIPE-SETUP.md](./STRIPE-SETUP.md) |
 | Pentest report | Third-party vendor | [PENTEST-PREP.md](./PENTEST-PREP.md) |
 | SOC 2 Type II | Formal audit | [SOC2.md](./SOC2.md) |
