@@ -1,32 +1,6 @@
 /** Tab switcher for landing code panels */
 (function () {
   const PANEL_SAMPLES = {
-    hero: {
-      MCP: `<span class="t-cm">// mailagent_wait_and_extract — one shot</span>
-<span class="t-kw">await</span> <span class="t-fn">mailagent_wait_and_extract</span>({
-  <span class="t-key">service</span>: <span class="t-str">"github"</span>,
-  <span class="t-key">timeoutSeconds</span>: <span class="t-str">90</span>,
-  <span class="t-key">deleteAfter</span>: <span class="t-str">true</span>,
-});
-
-<span class="t-cm">// → { address, verification: { otp, links } }</span>`,
-      Playwright: `<span class="t-kw">import</span> { createMailAgentQa } <span class="t-kw">from</span> <span class="t-str">"@mailagent/qa"</span>;
-
-<span class="t-kw">const</span> mail = <span class="t-fn">createMailAgentQa</span>();
-<span class="t-kw">const</span> { address, id } = <span class="t-kw">await</span> mail.<span class="t-fn">createInbox</span>({
-  <span class="t-key">label</span>: <span class="t-str">"pw-0-signup"</span>,
-});
-<span class="t-cm">// page.fill email → mail.waitForVerification(id)</span>`,
-      API: `<span class="t-fn">POST</span> /v1/inboxes
-{ <span class="t-key">"service"</span>: <span class="t-str">"github"</span>, <span class="t-key">"ttlMinutes"</span>: <span class="t-str">15</span> }
-
-<span class="t-fn">GET</span> /v1/inboxes/:id/extract
-<span class="t-cm">// → { otp, links }</span>`,
-      CLI: `<span class="t-fn">node</span> mcp/dist/cli.js open \\
-  --service github --json
-
-<span class="t-cm"># stdout: inbox + verification</span>`,
-    },
     qa: {
       Playwright: `<span class="t-kw">import</span> { createMailAgentQa, MailAgentQa } <span class="t-kw">from</span> <span class="t-str">"@mailagent/qa"</span>;
 
@@ -48,7 +22,10 @@
     "timeoutSeconds": 120
   }'</span>
 
-<span class="t-cm">// → address, verification.otp, primaryLink</span>`,
+<span class="t-cm">// → address
+// → verification.otp
+// → verification.primaryLink
+// → verification.primaryButton</span>`,
     },
   };
 

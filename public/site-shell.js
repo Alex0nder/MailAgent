@@ -90,7 +90,7 @@
     const cta =
       mode === "app"
         ? `<a class="btn btn-sm btn-outline" href="/docs/">Docs</a>`
-        : `<a class="btn btn-sm btn-nav-cta" href="/docs/integrate.html">Get started</a>`;
+        : `<a class="btn btn-sm btn-nav-cta" href="/docs/qa.html">Start QA setup</a>`;
 
     const links = renderNavLinks();
 

@@ -13,10 +13,10 @@
       gtag("js", new Date());
       gtag("config", "G-41B4KG53D1");
     </script>
-    <title>MailAgent — Email verification for agents &amp; QA</title>
+    <title>MailAgent — Email verification for Playwright, Cypress, and AI agents</title>
     <meta
       name="description"
-      content="Open-source email verification for AI agents and QA. Self-host on Cloudflare or use the API — temporary inboxes, MCP, Playwright."
+      content="Disposable test inboxes for Playwright, Cypress, and AI agents. Verify OTPs and magic links in CI without shared Gmail or manual checks."
     />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -37,49 +37,49 @@
 
     <main class="landing">
       <div class="hero-block">
-      <section class="hero">
-        <div class="hero-glow" aria-hidden="true"></div>
+      <section class="hero hero-product">
+        <picture class="hero-media" aria-hidden="true">
+          <source srcset="/hero-ci-verification.webp" type="image/webp" />
+          <img src="/hero-ci-verification.png" alt="" loading="eager" />
+        </picture>
+        <div class="hero-scrim" aria-hidden="true"></div>
         <div class="hero-inner site-container">
           <div class="hero-copy">
             <div class="pill pill-oss">
               <span class="pill-dot"></span>
-              Open source. Free to self-host.
+              Open source · hosted API available
             </div>
-            <h1>Email verification API for agents &amp; QA</h1>
+            <h1>Email verification for CI and AI agents</h1>
             <p class="hero-lead">
-              Disposable inbox, SSE wait, OTP and magic links — one call from MCP,
-              REST, <code>@mailagent/qa</code> in Playwright, or
-              <code>mailagent-agent</code> on PyPI. Clone the repo,
-              self-host on Cloudflare, or use our hosted API.
+              Replace shared test inboxes and manual OTP checks with disposable
+              inboxes per run. MailAgent waits for the email, extracts OTPs,
+              magic links, and safe CTA buttons, then gives your test or agent
+              the next action.
             </p>
             <div class="hero-ctas">
+              <a class="btn btn-primary" href="/docs/qa.html">Start QA setup</a>
+              <a class="btn btn-outline" href="/docs/agents.html">Agent docs</a>
               <a
-                class="btn btn-primary"
+                class="btn btn-outline"
                 href="https://github.com/Alex0nder/MailAgent"
                 rel="noopener noreferrer"
-                >View on GitHub</a
+                >GitHub</a
               >
-              <a class="btn btn-outline" href="/docs/integrate.html">Self-host</a>
             </div>
-          </div>
-
-          <div class="code-panel" data-panel="hero" aria-label="Example MCP flow">
-            <div class="code-tabs">
-              <span class="code-tab active">MCP</span>
-              <span class="code-tab">Playwright</span>
-              <span class="code-tab">API</span>
-              <span class="code-tab">CLI</span>
-            </div>
-            <div class="code-body">
-              <pre><code><span class="t-cm">// mailagent_wait_and_extract — one shot</span>
-<span class="t-kw">await</span> <span class="t-fn">mailagent_wait_and_extract</span>({
-  <span class="t-key">service</span>: <span class="t-str">"github"</span>,
-  <span class="t-key">timeoutSeconds</span>: <span class="t-str">90</span>,
-  <span class="t-key">deleteAfter</span>: <span class="t-str">true</span>,
-});
-
-<span class="t-cm">// → { address, verification: { otp, links } }</span></code></pre>
-            </div>
+            <dl class="hero-proof">
+              <div>
+                <dt>26</dt>
+                <dd>MCP tools</dd>
+              </div>
+              <div>
+                <dt>1 call</dt>
+                <dd>create → wait → extract</dd>
+              </div>
+              <div>
+                <dt>0 SMTP</dt>
+                <dd>simulate in CI</dd>
+              </div>
+            </dl>
           </div>
         </div>
       </section>
@@ -172,7 +172,7 @@
       <section id="open-source" class="page-section oss-section">
         <div class="section-inner oss-inner site-container">
           <p class="section-label">Open source</p>
-          <h2 class="section-title">For everyone — run it yourself</h2>
+          <h2 class="section-title">Use the hosted API, or run the whole stack yourself</h2>
           <p class="section-desc oss-desc">
             Full source on GitHub: Worker, MCP server, QA SDK, and docs. No black
             box — deploy on your Cloudflare account with your Resend inbound domain.
@@ -196,11 +196,12 @@
 
       <section id="features" class="page-section">
         <div class="site-container">
-          <p class="section-label">Features</p>
-          <h2 class="section-title">Everything an agent needs to verify email</h2>
+          <p class="section-label">Output</p>
+          <h2 class="section-title">Return the action, not raw email markup</h2>
           <p class="section-desc">
-            Not a privacy burner for humans — programmatic inboxes with strict
-            sender allowlists and structured verification output.
+            Tests and agents get structured verification: OTP, magic link,
+            safe HTML CTA, confidence, alternatives, and a recovery path when
+            the email never arrives.
           </p>
 
           <div class="features-grid">
@@ -210,11 +211,10 @@
                   <path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z" />
                 </svg>
               </div>
-              <h3>SSE-first wait</h3>
+              <h3>Primary action</h3>
               <p>
-                Durable Object pushes new messages over
-                <code>/v1/inboxes/:id/events</code>. Poll fallback at 500ms when
-                needed.
+                <code>agent.primaryAction</code> tells the agent whether to enter
+                an OTP or open a magic link.
               </p>
             </article>
             <article class="feature-card">
@@ -223,10 +223,10 @@
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 </svg>
               </div>
-              <h3>Sender allowlist</h3>
+              <h3>Safe HTML buttons</h3>
               <p>
-                <code>expectFrom</code> rejects unexpected senders. Presets for
-                GitHub, Stripe, Auth0, Google, Dribbble.
+                <code>primaryButton</code> exposes buttons like “Verify email”
+                or “Reset password” without scraping raw HTML.
               </p>
             </article>
             <article class="feature-card">
@@ -236,10 +236,11 @@
                   <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
                 </svg>
               </div>
-              <h3>OTP + links</h3>
+              <h3>Confidence metadata</h3>
               <p>
-                Verification codes and magic links parsed at ingest — ready for
-                your agent without reading raw MIME.
+                Responses include <code>confidence</code>,
+                <code>matchedRule</code>, <code>reason</code>, and alternatives
+                for safer automation.
               </p>
             </article>
             <article class="feature-card">
@@ -250,10 +251,10 @@
                   <path d="M2 12l10 5 10-5" />
                 </svg>
               </div>
-              <h3>Queue + idempotency</h3>
+              <h3>Diagnose on timeout</h3>
               <p>
-                Webhook acks instantly; Resend events processed via Queues with
-                DLQ and deduped <code>provider_id</code>.
+                <code>diagnose</code> returns failure summary, recommended action,
+                and retry payloads for agents and CI logs.
               </p>
             </article>
             <article class="feature-card">
@@ -263,10 +264,10 @@
                   <path d="M12 6v6l4 2" />
                 </svg>
               </div>
-              <h3>TTL inboxes</h3>
+              <h3>Run timeline</h3>
               <p>
-                Short-lived addresses (default 30m). Hourly cron purge. Delete
-                after successful extract.
+                Trace inbox created, wait started, message received, extraction,
+                callback, notify, and cleanup events by <code>runId</code>.
               </p>
             </article>
             <article class="feature-card">
@@ -276,10 +277,10 @@
                   <path d="M12 19h8" />
                 </svg>
               </div>
-              <h3>API + MCP + CLI</h3>
+              <h3>Cleanup policies</h3>
               <p>
-                REST for backends, MCP tools for Cursor, JSON CLI for CI pipelines
-                — same flows everywhere.
+                Delete successful inboxes, keep failures for debugging, or clean
+                a whole CI run by <code>labelPrefix</code>.
               </p>
             </article>
             <article class="feature-card">
@@ -305,9 +306,10 @@
                   <path d="M10 9H8" />
                 </svg>
               </div>
-              <h3>Raw MIME in R2</h3>
+              <h3>Raw MIME + attachments</h3>
               <p>
-                Full <code>.eml</code> archived at ingest — debug beyond previews.
+                Full <code>.eml</code> and attachments are available when a preview
+                is not enough.
                 <a href="/docs/raw-mime.html">Guide →</a>
               </p>
             </article>
@@ -318,7 +320,7 @@
                   <path d="M7 11V7a5 5 0 0 1 9.9-1" />
                 </svg>
               </div>
-              <h3>MCP OAuth (Auth0)</h3>
+              <h3>MCP OAuth</h3>
               <p>
                 Browser login for remote MCP — no API key in client config.
                 <a href="/docs/oauth-idp.html">OIDC guide →</a>
@@ -348,8 +350,8 @@
           <h2 class="section-title">Stop fighting shared test inboxes</h2>
           <p class="section-desc">
             Each Playwright worker gets its own address. Filter by
-            <code>label</code>, narrow with <code>subjectContains</code>, optional
-            webhook when the letter lands — same API agents use.
+            <code>label</code>, narrow with <code>subjectContains</code>, keep
+            failed inboxes for debugging, and simulate email without SMTP in CI.
             <a href="/playwright-email-verification.html">Playwright guide →</a>
             · <a href="/mcp-signup-qa.html">MCP signup QA →</a>
           </p>
@@ -365,15 +367,15 @@
             <article class="qa-pain-card">
               <h3>Wrong email in the pile</h3>
               <p>
-                <code>subjectContains</code> and sender allowlists so you read the
-                signup OTP, not yesterday’s newsletter.
+                Service presets, <code>subjectContains</code>, and
+                <code>messageIndex</code> keep the test on the intended email.
               </p>
             </article>
             <article class="qa-pain-card">
               <h3>Leaked CI secrets</h3>
               <p>
-                Scoped keys with <code>labelPrefix=ci-</code> and read-only mode —
-                limit blast radius if a pipeline secret escapes.
+                Scoped keys with <code>labelPrefix=ci-</code> limit blast radius
+                if a pipeline secret escapes.
                 <a href="/docs/scoped-keys.html">Scoped keys →</a>
               </p>
             </article>
@@ -412,33 +414,34 @@
       <section id="mcp" class="page-section">
         <div class="site-container">
           <p class="section-label">MCP</p>
-          <h2 class="section-title">Tools your agent can call</h2>
+          <h2 class="section-title">Agent tools for signup, login, reset, and invites</h2>
           <p class="section-desc">
-            Add <code>mailagent</code> to Cursor MCP. The agent creates inboxes,
-            waits, and returns structured verification — no inbox UI required.
+            Add <code>mailagent</code> to Cursor or Codex. The agent gets an
+            inbox, submits the address, waits, and follows a structured
+            <code>primaryAction</code> instead of reading inbox UI.
           </p>
 
           <div class="tools-list">
             <div class="tool-row">
-              <span class="tool-name">mailagent_wait_and_extract</span>
-              <span class="tool-desc">Create → wait (SSE) → OTP + links → delete</span>
+              <span class="tool-name">mailagent_verify_signup</span>
+              <span class="tool-desc">Wait → extract → return agent.primaryAction</span>
               <span class="tool-badge">Recommended</span>
             </div>
             <div class="tool-row">
               <span class="tool-name">mailagent_create_inbox</span>
-              <span class="tool-desc">Temporary address with TTL and allowlist</span>
+              <span class="tool-desc">Temporary address with service preset, TTL, notifyEmail, cleanup</span>
             </div>
             <div class="tool-row">
-              <span class="tool-name">mailagent_wait_for_message</span>
-              <span class="tool-desc">Block until first allowed email (up to 120s)</span>
+              <span class="tool-name">mailagent_simulate_message</span>
+              <span class="tool-desc">Test OTP, magic_link, invite, and attachment scenarios without SMTP</span>
             </div>
             <div class="tool-row">
-              <span class="tool-name">mailagent_extract_verification</span>
-              <span class="tool-desc">OTP and links from latest message</span>
+              <span class="tool-name">mailagent_diagnose_inbox</span>
+              <span class="tool-desc">Explain timeouts and return retry payloads</span>
             </div>
             <div class="tool-row">
-              <span class="tool-name">mailagent_delete_inbox</span>
-              <span class="tool-desc">Early cleanup after signup completes</span>
+              <span class="tool-name">mailagent_get_run_timeline</span>
+              <span class="tool-desc">Trace an agent run from inbox creation to extraction</span>
             </div>
           </div>
         </div>
@@ -447,30 +450,30 @@
       <section id="how" class="page-section">
         <div class="site-container">
           <p class="section-label">How it works</p>
-          <h2 class="section-title">Three steps to verified signup</h2>
+          <h2 class="section-title">Three steps to a deterministic email test</h2>
           <div class="steps">
             <div class="step">
               <div class="step-num">01</div>
               <h3>Create inbox</h3>
               <p>
-                Agent calls MCP or API. You get an address on your
-                <code>INBOX_DOMAIN</code> and an inbox id.
+                Test or agent calls MCP/API. You get an isolated address and
+                optional label tied to the CI run.
               </p>
             </div>
             <div class="step">
               <div class="step-num">02</div>
               <h3>Submit on the service</h3>
               <p>
-                Use the address on GitHub, Stripe, Auth0, etc. Resend inbound
-                webhook enqueues the message.
+                Use the address in the target signup, login, reset, or invite
+                flow. Resend inbound webhook enqueues the message.
               </p>
             </div>
             <div class="step">
               <div class="step-num">03</div>
               <h3>Extract &amp; continue</h3>
               <p>
-                SSE delivers the event; OTP and links return to the agent. Inbox
-                deleted. Flow complete.
+                SSE delivers the event; OTP, magic link, or safe CTA returns to
+                the test. Successful inboxes can be deleted automatically.
               </p>
             </div>
           </div>
@@ -548,7 +551,7 @@
       <section id="docs" class="page-section">
         <div class="site-container">
           <p class="section-label">API</p>
-          <h2 class="section-title">Simple REST, Bearer auth</h2>
+          <h2 class="section-title">The response is already agent-readable</h2>
           <div class="code-panel">
             <div class="code-tabs">
               <span class="code-tab active">curl</span>
@@ -559,7 +562,10 @@
   -H <span class="t-str">"Authorization: Bearer $API_KEY"</span> \
   -d <span class="t-str">'{"service":"github","timeoutSeconds":90}'</span>
 
-<span class="t-cm"># → verification.otp, verification.primaryLink</span></code></pre>
+<span class="t-cm"># → verification.otp
+# → verification.primaryLink
+# → verification.primaryButton
+# → verification.confidence</span></code></pre>
             </div>
           </div>
           <p class="qa-docs-link">
