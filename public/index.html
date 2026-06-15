@@ -37,7 +37,7 @@
 
     <main class="landing">
       <div class="hero-block">
-      <section class="hero hero-vercel">
+      <section class="hero hero-split">
         <div class="hero-grid-bg" aria-hidden="true"></div>
         <div class="hero-inner site-container">
           <div class="hero-copy">
@@ -77,29 +77,24 @@
               </div>
             </dl>
           </div>
-
-          <div class="hero-terminal" aria-label="MailAgent verify flow">
-            <div class="terminal-command">
-              <span class="prompt">$</span>
-              <span>mailagent verify --service github --run ci-4821</span>
+          <div class="code-panel hero-code-panel" data-panel="hero" aria-label="MailAgent launch examples">
+            <div class="code-tabs">
+              <span class="code-tab active">MCP</span>
+              <span class="code-tab">Playwright</span>
+              <span class="code-tab">API</span>
+              <span class="code-tab">CLI</span>
             </div>
-            <div class="terminal-result-grid">
-              <div>
-                <span class="result-label">email</span>
-                <strong>ci-4821@inbox.webmailagent.com</strong>
-              </div>
-              <div>
-                <span class="result-label">primaryAction</span>
-                <strong>magic_link</strong>
-              </div>
-              <div>
-                <span class="result-label">button</span>
-                <strong>Verify email</strong>
-              </div>
-              <div>
-                <span class="result-label">confidence</span>
-                <strong>high</strong>
-              </div>
+            <div class="code-body">
+              <pre><code><span class="t-cm">// Cursor / Codex MCP</span>
+<span class="t-kw">await</span> <span class="t-fn">mailagent_verify_signup</span>({
+  <span class="t-key">service</span>: <span class="t-str">"github"</span>,
+  <span class="t-key">runId</span>: <span class="t-str">"ci-4821"</span>,
+  <span class="t-key">deleteAfterSuccess</span>: <span class="t-str">true</span>,
+});
+
+<span class="t-cm">// → agent.primaryAction
+// → verification.primaryButton
+// → confidence: "high"</span></code></pre>
             </div>
           </div>
         </div>

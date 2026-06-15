@@ -1,6 +1,43 @@
 /** Tab switcher for landing code panels */
 (function () {
   const PANEL_SAMPLES = {
+    hero: {
+      MCP: `<span class="t-cm">// Cursor / Codex MCP</span>
+<span class="t-kw">await</span> <span class="t-fn">mailagent_verify_signup</span>({
+  <span class="t-key">service</span>: <span class="t-str">"github"</span>,
+  <span class="t-key">runId</span>: <span class="t-str">"ci-4821"</span>,
+  <span class="t-key">deleteAfterSuccess</span>: <span class="t-str">true</span>,
+});
+
+<span class="t-cm">// → agent.primaryAction
+// → verification.primaryButton
+// → confidence: "high"</span>`,
+      Playwright: `<span class="t-kw">import</span> { createMailAgentQa, MailAgentQa } <span class="t-kw">from</span> <span class="t-str">"@mailagent/qa"</span>;
+
+<span class="t-kw">const</span> mail = <span class="t-fn">createMailAgentQa</span>();
+<span class="t-kw">const</span> inbox = <span class="t-kw">await</span> mail.<span class="t-fn">createInbox</span>({
+  <span class="t-key">label</span>: MailAgentQa.<span class="t-fn">runLabel</span>(<span class="t-str">"signup"</span>),
+  <span class="t-key">service</span>: <span class="t-str">"auth0"</span>,
+});
+
+<span class="t-cm">// fill signup form with inbox.address</span>
+<span class="t-kw">const</span> v = <span class="t-kw">await</span> mail.<span class="t-fn">waitForVerification</span>(inbox.id);`,
+      API: `<span class="t-fn">curl</span> -X POST https://api.webmailagent.com/v1/inboxes/open \\
+  -H <span class="t-str">"Authorization: Bearer $MAILAGENT_API_KEY"</span> \\
+  -H <span class="t-str">"Content-Type: application/json"</span> \\
+  -d <span class="t-str">'{
+    "service": "github",
+    "timeoutSeconds": 90,
+    "deleteAfterSuccess": true
+  }'</span>
+
+<span class="t-cm"># → verification.otp | primaryLink | primaryButton</span>`,
+      CLI: `<span class="t-fn">MAILAGENT_API_URL</span>=https://api.webmailagent.com \\
+<span class="t-fn">MAILAGENT_API_KEY</span>=ma_... \\
+  node mcp/dist/cli.js open --service github --json
+
+<span class="t-cm"># or: npm run wizard:qa-pilot</span>`,
+    },
     qa: {
       Playwright: `<span class="t-kw">import</span> { createMailAgentQa, MailAgentQa } <span class="t-kw">from</span> <span class="t-str">"@mailagent/qa"</span>;
 
