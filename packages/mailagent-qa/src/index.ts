@@ -192,6 +192,65 @@ export interface DebugContext {
   nextActions?: DiagnoseAction[];
 }
 
+export interface FailureArtifactOptions {
+  testName?: string;
+  runId?: string;
+  includeLinks?: boolean;
+  includeOtp?: boolean;
+}
+
+export interface MailAgentFailureArtifact {
+  schemaVersion: 1;
+  createdAt: string;
+  test?: {
+    name?: string;
+    runId?: string;
+  };
+  summary: {
+    inboxId: string;
+    address?: string;
+    label?: string | null;
+    failureCode?: DebugContext["failureSummary"] extends infer T
+      ? T extends { code: infer C }
+        ? C
+        : never
+      : never;
+    message: string;
+    confidence?: "high" | "medium" | "low";
+    recommendedAction?: Pick<DiagnoseAction, "type" | "confidence" | "label" | "reason">;
+    debugUiUrl: string;
+    apiMessagesUrl: string;
+  };
+  retry?: DebugContext["retry"];
+  troubleshooting: string[];
+  nextActions: Array<Pick<DiagnoseAction, "type" | "confidence" | "label" | "reason">>;
+  messages: Array<{
+    id?: string;
+    from?: string;
+    subject?: string;
+    receivedAt?: string;
+    hasOtp: boolean;
+    otp?: string | null;
+    linkCount: number;
+    links?: string[];
+    primaryLink?: string | null;
+    buttonCount: number;
+    primaryButton?: {
+      text: string;
+      kind: "button" | "link";
+      href?: string;
+      score: number;
+    } | null;
+    confidence?: "high" | "medium" | "low";
+    matchedRule?: string | null;
+    reason?: string;
+    hasRaw?: boolean;
+    attachmentCount?: number;
+    visibleTextPreview?: string;
+  }>;
+  callbacks: CallbackDelivery[];
+}
+
 export class MailAgentQa {
   private readonly base: string;
   private readonly apiKey: string;
@@ -257,7 +316,30 @@ export class MailAgentQa {
 
     if (body.status === 408) {
       const err = body.json as { hint?: string; address?: string; inboxId?: string };
-      throw new MailAgentTimeoutError(err.hint ?? "timeout", err);
+      const ctx = err.inboxId
+        ? await this.getDebugContext(err.inboxId, {
+            subjectContains: options.subjectContains,
+            messageIndex: options.messageIndex,
+            address: err.address,
+            label: options.label,
+          }).catch(() => null)
+        : null;
+      throw new MailAgentTimeoutError(err.hint ?? "timeout", {
+        ...err,
+        ...(ctx
+          ? {
+              messages: ctx.messages,
+              callbacks: ctx.callbacks,
+              troubleshooting: ctx.troubleshooting,
+              failureSummary: ctx.failureSummary,
+              recommendedAction: ctx.recommendedAction,
+              retry: ctx.retry,
+              nextActions: ctx.nextActions,
+              debugUiUrl: ctx.debugUiUrl,
+              failureArtifact: buildFailureArtifact(ctx),
+            }
+          : {}),
+      });
     }
     if (!body.ok) {
       throw new Error(`MailAgent open failed: ${body.status} ${JSON.stringify(body.json)}`);
@@ -303,6 +385,10 @@ export class MailAgentQa {
         ...body,
         messages: ctx?.messages ?? body.subjects ?? [],
         callbacks: ctx?.callbacks ?? [],
+        failureSummary: ctx?.failureSummary,
+        recommendedAction: ctx?.recommendedAction,
+        retry: ctx?.retry,
+        nextActions: ctx?.nextActions,
         troubleshooting:
           ctx?.troubleshooting ??
           timeoutTroubleshooting({
@@ -311,6 +397,7 @@ export class MailAgentQa {
             callbacks: ctx?.callbacks,
           }),
         debugUiUrl: this.debugUiUrl(inboxId),
+        failureArtifact: ctx ? buildFailureArtifact(ctx) : undefined,
         hint: (body.hint as string) ?? options?.subjectContains
           ? "Try broader subjectContains or check expectFrom/service allowlist."
           : "Check staging sends mail and Resend webhook is configured.",
@@ -790,6 +877,131 @@ export function formatAllureAttachment(ctx: DebugContext): {
   };
 }
 
+/** Safe CI artifact: summarizes diagnose without raw MIME or full links by default. */
+export function buildFailureArtifact(
+  ctx: DebugContext,
+  options: FailureArtifactOptions = {}
+): MailAgentFailureArtifact {
+  const recommended = ctx.recommendedAction
+    ? pickAction(ctx.recommendedAction)
+    : undefined;
+  const message =
+    ctx.failureSummary?.message ??
+    recommended?.reason ??
+    (ctx.messages.length
+      ? "Mail arrived, but verification did not complete."
+      : "No matching email was available before timeout.");
+
+  return {
+    schemaVersion: 1,
+    createdAt: new Date().toISOString(),
+    ...(options.testName || options.runId
+      ? { test: { name: options.testName, runId: options.runId } }
+      : {}),
+    summary: {
+      inboxId: ctx.inboxId,
+      address: ctx.address,
+      label: ctx.label,
+      failureCode: ctx.failureSummary?.code,
+      message,
+      confidence: ctx.failureSummary?.confidence,
+      recommendedAction: recommended,
+      debugUiUrl: ctx.debugUiUrl,
+      apiMessagesUrl: ctx.apiMessagesUrl,
+    },
+    retry: sanitizeRetry(ctx.retry, { includeOtp: options.includeOtp ?? false }),
+    troubleshooting: ctx.troubleshooting,
+    nextActions: (ctx.nextActions ?? []).map(pickAction),
+    messages: ctx.messages.map((messageRow) =>
+      artifactMessage(messageRow, {
+        includeLinks: options.includeLinks ?? false,
+        includeOtp: options.includeOtp ?? false,
+      })
+    ),
+    callbacks: ctx.callbacks,
+  };
+}
+
+/** Attachment for Playwright, Allure, ReportPortal, or upload-artifact. */
+export function formatFailureArtifactAttachment(
+  ctx: DebugContext,
+  options: FailureArtifactOptions = {}
+): {
+  name: string;
+  body: string;
+  contentType: string;
+} {
+  return {
+    name: "mailagent-failure.json",
+    contentType: "application/json",
+    body: JSON.stringify(buildFailureArtifact(ctx, options), null, 2),
+  };
+}
+
+/** Markdown for GitHub Actions step summary / PR comment snippets. */
+export function formatFailureMarkdownSummary(
+  ctx: DebugContext,
+  options: FailureArtifactOptions = {}
+): string {
+  const artifact = buildFailureArtifact(ctx, options);
+  const action = artifact.summary.recommendedAction;
+  const lines = [
+    "### MailAgent email debug",
+    "",
+    `- Inbox: \`${artifact.summary.inboxId}\`${artifact.summary.address ? ` (${artifact.summary.address})` : ""}`,
+    `- Failure: ${artifact.summary.failureCode ? `\`${artifact.summary.failureCode}\` ` : ""}${artifact.summary.message}`,
+    `- Messages seen: ${artifact.messages.length}`,
+    `- Callbacks: ${artifact.callbacks.length}`,
+    action
+      ? `- Recommended action: \`${action.type}\` (${action.confidence}) — ${action.label}`
+      : "- Recommended action: unavailable",
+    `- Debug UI: ${artifact.summary.debugUiUrl}`,
+  ];
+  if (artifact.retry?.wait?.path) {
+    lines.push(`- Retry wait: \`${artifact.retry.wait.method} ${artifact.retry.wait.path}\``);
+  }
+  if (artifact.troubleshooting.length) {
+    lines.push("", "Checklist:");
+    for (const step of artifact.troubleshooting.slice(0, 5)) {
+      lines.push(`- ${step}`);
+    }
+  }
+  return `${lines.join("\n")}\n`;
+}
+
+/** Write JSON and optional GitHub step-summary markdown to disk. */
+export async function writeFailureArtifact(
+  ctx: DebugContext,
+  options: FailureArtifactOptions & {
+    dir?: string;
+    filename?: string;
+    writeGitHubStepSummary?: boolean;
+  } = {}
+): Promise<{ path: string; stepSummaryPath?: string }> {
+  const fs = await import("node:fs/promises");
+  const path = await import("node:path");
+  const dir = options.dir ?? process.env.MAILAGENT_ARTIFACT_DIR ?? "test-results/mailagent";
+  const filename = options.filename ?? `${safeFilename(ctx.inboxId)}.mailagent-failure.json`;
+  await fs.mkdir(dir, { recursive: true });
+  const out = path.join(dir, filename);
+  await fs.writeFile(
+    out,
+    JSON.stringify(buildFailureArtifact(ctx, options), null, 2),
+    "utf8"
+  );
+
+  const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+  if (options.writeGitHubStepSummary && summaryPath) {
+    await fs.appendFile(summaryPath, `\n${formatFailureMarkdownSummary(ctx, options)}\n`, "utf8");
+  }
+
+  return {
+    path: out,
+    stepSummaryPath:
+      options.writeGitHubStepSummary && summaryPath ? summaryPath : undefined,
+  };
+}
+
 export class MailAgentTimeoutError extends Error {
   constructor(
     message: string,
@@ -798,6 +1010,87 @@ export class MailAgentTimeoutError extends Error {
     super(message);
     this.name = "MailAgentTimeoutError";
   }
+}
+
+function pickAction(action: DiagnoseAction): Pick<DiagnoseAction, "type" | "confidence" | "label" | "reason"> {
+  return {
+    type: action.type,
+    confidence: action.confidence,
+    label: action.label,
+    reason: action.reason,
+  };
+}
+
+function artifactMessage(
+  message: MessageSummary,
+  options: { includeLinks: boolean; includeOtp: boolean }
+): MailAgentFailureArtifact["messages"][number] {
+  const links = message.links ?? [];
+  const buttons = message.buttons ?? [];
+  return {
+    id: message.id,
+    from: message.from,
+    subject: message.subject,
+    receivedAt: message.receivedAt,
+    hasOtp: Boolean(message.otp),
+    ...(options.includeOtp ? { otp: message.otp ?? null } : {}),
+    linkCount: links.length,
+    ...(options.includeLinks ? { links } : {}),
+    primaryLink: options.includeLinks
+      ? message.primaryLink ?? null
+      : redactUrl(message.primaryLink),
+    buttonCount: buttons.length,
+    primaryButton: message.primaryButton
+      ? {
+          text: message.primaryButton.text,
+          kind: message.primaryButton.kind,
+          href: options.includeLinks ? message.primaryButton.href : redactUrl(message.primaryButton.href) ?? undefined,
+          score: message.primaryButton.score,
+        }
+      : null,
+    confidence: message.confidence,
+    matchedRule: message.matchedRule,
+    reason: message.reason,
+    hasRaw: message.hasRaw,
+    attachmentCount: message.attachmentCount,
+    visibleTextPreview: truncate(message.visibleText, 2000),
+  };
+}
+
+function sanitizeRetry(
+  retry: DebugContext["retry"] | undefined,
+  options: { includeOtp: boolean }
+): DebugContext["retry"] | undefined {
+  if (!retry) return undefined;
+  return {
+    ...retry,
+    simulate: {
+      ...retry.simulate,
+      body: {
+        ...retry.simulate.body,
+        otp: options.includeOtp ? retry.simulate.body.otp : "[redacted-otp]",
+      },
+    },
+  };
+}
+
+function redactUrl(url?: string | null): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    return `${u.origin}${u.pathname ? "/..." : ""}`;
+  } catch {
+    return "[redacted-url]";
+  }
+}
+
+function truncate(value: string | undefined, max: number): string | undefined {
+  if (!value) return undefined;
+  return value.length > max ? `${value.slice(0, max)}...` : value;
+}
+
+function safeFilename(value: string): string {
+  return value.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(0, 120);
 }
 
 /** Checklist on timeout / email step failure */

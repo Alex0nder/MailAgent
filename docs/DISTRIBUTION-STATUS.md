@@ -12,7 +12,7 @@ Last automated check: CI `check:catalog-prs` (weekly) · discovery: `GET /v1/age
 | Cypress starter | [examples/qa-pilot-cypress-starter](../examples/qa-pilot-cypress-starter) |
 | 30-min guide | [QA-PILOT.md](./QA-PILOT.md) |
 | Validate key | `npm run wizard:qa-pilot:onboard` |
-| npm QA SDK | `@mailagent/qa@0.1.16` (`mailagentSimulateAndVerify` + notify helpers) |
+| npm QA SDK | `@mailagent/qa@0.1.17` (`mailagentSimulateAndVerify` + notify + CI failure artifact helpers) |
 
 ## Install (live)
 

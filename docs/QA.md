@@ -256,12 +256,24 @@ SDK: `mail.listMessages(inboxId, { subjectContains: "verify" })`.
 await mail.waitWithRetry(inbox.id, { subjectContains: "verify" }, 3);
 ```
 
-### Allure / reports
+### CI failure artifact / reports
 
 ```typescript
-import { formatAllureAttachment } from "@mailagent/qa";
+import {
+  formatFailureArtifactAttachment,
+  writeFailureArtifact,
+} from "@mailagent/qa";
+
 const ctx = await mail.getDebugContext(inbox.id);
-await testInfo.attach(...formatAllureAttachment(ctx));
+const artifact = formatFailureArtifactAttachment(ctx, {
+  testName: testInfo.title,
+  runId: process.env.GITHUB_RUN_ID,
+});
+await testInfo.attach(artifact.name, {
+  body: artifact.body,
+  contentType: artifact.contentType,
+});
+await writeFailureArtifact(ctx, { writeGitHubStepSummary: true });
 ```
 
 Example: [examples/playwright/allure-on-failure.example.ts](../examples/playwright/allure-on-failure.example.ts).

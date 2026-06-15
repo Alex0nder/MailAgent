@@ -62,7 +62,12 @@ curl -sS "$MAILAGENT_API_URL/v1/me" -H "Authorization: Bearer $KEY" | jq .
 ## SDK: automatic context
 
 ```typescript
-import { createMailAgentQa, formatAllureAttachment } from "@mailagent/qa";
+import {
+  createMailAgentQa,
+  formatFailureArtifactAttachment,
+  MailAgentTimeoutError,
+  writeFailureArtifact,
+} from "@mailagent/qa";
 
 try {
   await mail.waitForVerification(inboxId, { subjectContains: "verify" });
@@ -70,7 +75,10 @@ try {
   if (e instanceof MailAgentTimeoutError && e.details?.inboxId) {
     const ctx = await mail.getDebugContext(e.details.inboxId as string);
     console.error(ctx.troubleshooting.join("\n"));
-    // Allure: testInfo.attach(formatAllureAttachment(ctx));
+    // Playwright / Allure / ReportPortal:
+    const artifact = formatFailureArtifactAttachment(ctx);
+    // await testInfo.attach(artifact.name, { body: artifact.body, contentType: artifact.contentType });
+    await writeFailureArtifact(ctx, { writeGitHubStepSummary: true });
   }
   throw e;
 }

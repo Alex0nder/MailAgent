@@ -47,6 +47,25 @@ await notifySlackOnMailFailure(process.env.MAILAGENT_SLACK_WEBHOOK, [ctx], {
 });
 ```
 
+## Failure artifact
+
+For each failed email step, write a safe artifact that GitHub Actions can upload
+and append the human summary to the job page:
+
+```typescript
+import { writeFailureArtifact } from "@mailagent/qa";
+
+const ctx = await mail.getDebugContext(inbox.id, { subjectContains: "verify" });
+await writeFailureArtifact(ctx, {
+  testName: "signup email",
+  runId: process.env.GITHUB_RUN_ID,
+  writeGitHubStepSummary: true,
+});
+```
+
+Output defaults to `test-results/mailagent/<inbox>.mailagent-failure.json`.
+OTP values and full magic links are redacted unless explicitly enabled.
+
 ## PR comment
 
 On `pull_request` the same script posts a comment via `gh pr comment` if `GITHUB_TOKEN` / `GH_TOKEN` exists.
@@ -89,7 +108,9 @@ Attach artifact in workflow:
   if: failure()
   with:
     name: playwright-failure
-    path: test-results/
+    path: |
+      test-results/
+      test-results/mailagent/
 ```
 
 Artifact link can be added to PR body manually or extend `ci-mailagent-alerts.mjs`.

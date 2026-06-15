@@ -4,8 +4,9 @@
 import { test } from "@playwright/test";
 import {
   createMailAgentQa,
-  formatAllureAttachment,
+  formatFailureArtifactAttachment,
   MailAgentTimeoutError,
+  writeFailureArtifact,
 } from "@mailagent/qa";
 
 const mail = createMailAgentQa();
@@ -15,8 +16,16 @@ test.afterEach(async ({}, testInfo) => {
   if (!inboxId || testInfo.status === "passed") return;
 
   const ctx = await mail.getDebugContext(inboxId);
-  const att = formatAllureAttachment(ctx);
+  const att = formatFailureArtifactAttachment(ctx, {
+    testName: testInfo.title,
+    runId: process.env.GITHUB_RUN_ID,
+  });
   await testInfo.attach(att.name, { body: att.body, contentType: att.contentType });
+  await writeFailureArtifact(ctx, {
+    testName: testInfo.title,
+    runId: process.env.GITHUB_RUN_ID,
+    writeGitHubStepSummary: true,
+  });
 });
 
 test("signup with retry", async ({ page }) => {
