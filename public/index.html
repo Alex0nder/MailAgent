@@ -37,12 +37,8 @@
 
     <main class="landing">
       <div class="hero-block">
-      <section class="hero hero-product">
-        <picture class="hero-media" aria-hidden="true">
-          <source srcset="/hero-ci-verification.webp" type="image/webp" />
-          <img src="/hero-ci-verification.png" alt="" loading="eager" />
-        </picture>
-        <div class="hero-scrim" aria-hidden="true"></div>
+      <section class="hero hero-vercel">
+        <div class="hero-grid-bg" aria-hidden="true"></div>
         <div class="hero-inner site-container">
           <div class="hero-copy">
             <div class="pill pill-oss">
@@ -80,6 +76,31 @@
                 <dd>simulate in CI</dd>
               </div>
             </dl>
+          </div>
+
+          <div class="hero-terminal" aria-label="MailAgent verify flow">
+            <div class="terminal-command">
+              <span class="prompt">$</span>
+              <span>mailagent verify --service github --run ci-4821</span>
+            </div>
+            <div class="terminal-result-grid">
+              <div>
+                <span class="result-label">email</span>
+                <strong>ci-4821@inbox.webmailagent.com</strong>
+              </div>
+              <div>
+                <span class="result-label">primaryAction</span>
+                <strong>magic_link</strong>
+              </div>
+              <div>
+                <span class="result-label">button</span>
+                <strong>Verify email</strong>
+              </div>
+              <div>
+                <span class="result-label">confidence</span>
+                <strong>high</strong>
+              </div>
+            </div>
           </div>
         </div>
       </section>

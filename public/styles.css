@@ -293,38 +293,27 @@ main.landing > .cta-block {
   padding: var(--hero-top) 0 0;
 }
 
-.hero-product {
-  min-height: clamp(560px, 78svh, 720px);
+.hero-vercel {
+  min-height: clamp(560px, 72svh, 660px);
   display: flex;
   align-items: center;
   padding: 0;
   border-bottom: 1px solid var(--border);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.08), transparent 34%),
+    linear-gradient(180deg, #050505 0%, #000 72%);
 }
 
-.hero-media,
-.hero-media img,
-.hero-scrim {
+.hero-grid-bg {
   position: absolute;
   inset: 0;
-}
-
-.hero-media {
-  margin: 0;
-}
-
-.hero-media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center right;
-  opacity: 0.78;
-}
-
-.hero-scrim {
   pointer-events: none;
+  opacity: 0.42;
   background:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.96) 0%, rgba(0, 0, 0, 0.78) 42%, rgba(0, 0, 0, 0.3) 100%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0.86) 100%);
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.95), transparent 82%);
 }
 
 .hero-inner {
@@ -334,18 +323,30 @@ main.landing > .cta-block {
   align-items: start;
 }
 
-.hero-product .hero-inner {
-  display: block;
+.hero-vercel .hero-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   width: 100%;
-  padding-block: 72px;
+  padding-block: 64px 48px;
 }
 
-.hero-product .hero-copy {
-  max-width: 660px;
+.hero-vercel .hero-copy {
+  max-width: 780px;
+  text-align: center;
+}
+
+.hero-vercel .hero-lead {
+  max-width: 680px;
+  margin-inline: auto;
+}
+
+.hero-vercel .hero-ctas {
+  justify-content: center;
 }
 
 @media (min-width: 960px) {
-  .hero:not(.hero-product) .hero-inner {
+  .hero:not(.hero-vercel) .hero-inner {
     grid-template-columns: 1fr 1fr;
     gap: 64px;
   }
@@ -399,14 +400,14 @@ h1 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   max-width: 560px;
-  margin: 36px 0 0;
+  margin: 28px auto 0;
 }
 
 .hero-proof div {
   padding: 14px 16px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.46);
+  background: rgba(255, 255, 255, 0.025);
   backdrop-filter: blur(8px);
 }
 
@@ -424,25 +425,77 @@ h1 {
   line-height: 1.35;
 }
 
+.hero-terminal {
+  width: min(100%, 860px);
+  margin-top: 32px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: rgba(5, 5, 5, 0.86);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 24px 80px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+}
+
+.terminal-command {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 18px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+.prompt {
+  color: var(--text);
+}
+
+.terminal-result-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.terminal-result-grid div {
+  min-width: 0;
+  padding: 18px;
+  border-right: 1px solid var(--border);
+}
+
+.terminal-result-grid div:last-child {
+  border-right: 0;
+}
+
+.result-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.terminal-result-grid strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+}
+
 @media (max-width: 720px) {
-  .hero-product {
-    min-height: calc(100svh - var(--nav-h) - 56px);
-    align-items: end;
+  .hero-vercel {
+    min-height: auto;
   }
 
-  .hero-media img {
-    object-position: 62% center;
-    opacity: 0.48;
-  }
-
-  .hero-scrim {
-    background:
-      linear-gradient(180deg, rgba(0, 0, 0, 0.58) 0%, rgba(0, 0, 0, 0.94) 58%, rgba(0, 0, 0, 1) 100%),
-      linear-gradient(90deg, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.34));
-  }
-
-  .hero-product .hero-inner {
-    padding-block: 52px 34px;
+  .hero-vercel .hero-inner {
+    padding-block: 48px 30px;
   }
 
   .hero-proof {
@@ -461,6 +514,10 @@ h1 {
 
   .hero-proof dd {
     font-size: 11px;
+  }
+
+  .hero-terminal {
+    display: none;
   }
 }
 
