@@ -129,11 +129,12 @@ Example: [examples/codex/config.remote-oauth.toml.example](../examples/codex/con
 
 Flow templates: `GET /v1/agent/flows` lists signup, login 2FA, password reset, invite acceptance, and magic-link login templates with subject hints and recovery steps.
 
-1. `mailagent_create_inbox` or `mailagent_verify_signup` with `service: "github"` / `"auth0"`.
-2. Agent fills email on signup form.
-3. `mailagent_wait_and_extract` / `mailagent_wait_for_message` with `subjectContains`.
-4. OTP or `primaryLink` → next scenario step.
-5. `mailagent_delete_inbox` on cleanup.
+1. If sender/service is unclear, call `mailagent_suggest_preset` with sample `from` / `subject`.
+2. `mailagent_create_inbox` or `mailagent_verify_signup` with `service: "github"` / `"auth0"`; use returned `expectFrom` for custom senders.
+3. Agent fills email on signup form.
+4. `mailagent_wait_and_extract` / `mailagent_wait_for_message` with `subjectContains`.
+5. OTP or `primaryLink` → next scenario step.
+6. `mailagent_delete_inbox` on cleanup.
 
 Skill: see `examples/codex/plugin/skills/mailagent/SKILL.md`.
 

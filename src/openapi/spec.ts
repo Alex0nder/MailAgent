@@ -426,6 +426,47 @@ export const openApiSpec = {
         },
       },
     },
+    "/v1/agent/preset-advice": {
+      post: {
+        tags: ["meta"],
+        summary: "Suggest agent service preset and wait parameters from a sample auth email",
+        security: bearer,
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  service: { type: "string" },
+                  from: { type: "string" },
+                  subject: { type: "string" },
+                  text: { type: "string" },
+                  html: { type: "string" },
+                  flow: {
+                    type: "string",
+                    enum: [
+                      "signup",
+                      "login",
+                      "password_reset",
+                      "invite_accept",
+                      "magic_link_login",
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Recommended service, expectFrom, subjectContains, flow, extraction hints, and snippets",
+          },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "429": { $ref: "#/components/responses/RateLimited" },
+        },
+      },
+    },
     "/v1/stats": {
       get: {
         tags: ["meta"],

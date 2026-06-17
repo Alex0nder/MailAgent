@@ -10,7 +10,7 @@ homepage: https://webmailagent.com/docs/agents.html
 repository: https://github.com/Alex0nder/MailAgent
 metadata:
   author: mailagent
-  version: "0.2.5"
+  version: "0.2.6"
   categories: "Email, QA, Agents, MCP"
 ---
 
@@ -54,7 +54,7 @@ Guide: https://webmailagent.com/docs/codex.html
 ```bash
 export MAILAGENT_API_URL=https://api.webmailagent.com
 export MAILAGENT_API_KEY=ma_…
-npx -y -p @mailagent/mcp@0.2.5 mailagent-mcp
+npx -y -p @mailagent/mcp@0.2.6 mailagent-mcp
 ```
 
 Remote (no subprocess): `POST https://api.webmailagent.com/mcp` + Bearer token.
@@ -74,6 +74,8 @@ Remote (no subprocess): `POST https://api.webmailagent.com/mcp` + Bearer token.
 - `MAILAGENT_API_KEY` — [console dashboard](https://webmailagent.com/dashboard.html) team keys, or MailAgent repo `npm run issue:key:db` when self-hosting
 - MCP server `mailagent` connected (`codex mcp list` / Cursor MCP refresh)
 - Always set **`service`** preset or **`expectFrom`** (sender allowlist)
+
+If sender or subject is unclear, call **`mailagent_suggest_preset`** first with a sample `from` / `subject`. Use its returned `service`, or use returned `expectFrom` when `knownPreset=false`.
 
 ## Recommended flow
 
@@ -127,6 +129,7 @@ Console: `console-inbox.html` → notify relay log.
 
 | Tool | When |
 |------|------|
+| `mailagent_suggest_preset` | Unknown sender/service — get `service`, `expectFrom`, `subjectContains`, and `flow` |
 | `mailagent_verify_signup` | One-shot wait + extract + primaryAction |
 | `mailagent_create_inbox` | Need address before form submit |
 | `mailagent_wait_and_extract` | Raw verification object (no primaryAction) |
@@ -145,7 +148,7 @@ Console: `console-inbox.html` → notify relay log.
 | `callbackUrl` on create | Async CI — `waitForCallback` in QA SDK |
 | `notifyEmail` on create | Relay OTP to developer's real inbox |
 
-Full list: `GET https://api.webmailagent.com/v1/agent` → `mcpTools` (26 tools).
+Full list: `GET https://api.webmailagent.com/v1/agent` → `mcpTools` (27 tools).
 
 ## Email check (`mailagent_check_email`)
 
@@ -168,6 +171,8 @@ Docs: https://webmailagent.com/docs/agents.html · [docs/EMAIL-CHECK.md](https:/
 `mailagent_verify_signup` applies default `subjectContains` per service when omitted (e.g. `github` → `verify`, `gitlab` → `Confirm`). On timeout the response includes `debugUiUrl`.
 
 Recipes: `GET /v1/agent/recipes/github`
+
+Preset advice: `POST /v1/agent/preset-advice` or MCP `mailagent_suggest_preset`.
 
 ## Works with other agent skills
 

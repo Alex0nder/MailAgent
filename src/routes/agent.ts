@@ -14,6 +14,7 @@ import {
 import { scopeLabelForCreate, scopeWriteDenied } from "../lib/scope-guard";
 import { publicOriginFromUrl } from "../lib/public-origin";
 import { SERVICE_EXPECT_FROM } from "../lib/service-presets";
+import { suggestPreset, type PresetAdviceInput } from "../lib/preset-advisor";
 import { runAgentVerify } from "../services/agent-verify";
 import { listAgentRuns } from "../services/agent-runs";
 import {
@@ -79,6 +80,11 @@ agentRoutes.get("/", (c) => {
       rawMessage: {
         method: "GET",
         path: "/v1/inboxes/:id/messages/:messageId/raw",
+      },
+      presetAdvisor: {
+        method: "POST",
+        path: "/v1/agent/preset-advice",
+        note: "Suggest service, expectFrom, subjectContains, and flow from a sample auth email.",
       },
     },
     mcpTools: MCP_TOOL_NAMES,
@@ -161,6 +167,16 @@ agentRoutes.get("/flows/:flow", (c) => {
   const template = getAgentFlowTemplate(c.req.param("flow"));
   if (!template) return c.json({ error: "unknown_flow" }, 404);
   return c.json(template);
+});
+
+agentRoutes.post("/preset-advice", async (c) => {
+  let body: PresetAdviceInput = {};
+  try {
+    body = await c.req.json<PresetAdviceInput>();
+  } catch {
+    body = {};
+  }
+  return c.json(suggestPreset(body));
 });
 
 agentRoutes.get("/recipes/:service", (c) => {

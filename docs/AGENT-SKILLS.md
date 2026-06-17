@@ -34,11 +34,12 @@ npm run verify:skills
 Typical agent pipeline:
 
 ```
-1. mailagent_create_inbox (service: github)
-2. Browser: submit address on github.com/signup
-3. mailagent_verify_signup → primaryAction (OTP or link)
-4. Complete signup
-5. Membrane github skill → create issue, open PR, etc.
+1. mailagent_suggest_preset when sender/service is unclear
+2. mailagent_create_inbox (service: github, or expectFrom for custom sender)
+3. Browser: submit address on github.com/signup
+4. mailagent_verify_signup → primaryAction (OTP or link)
+5. Complete signup
+6. Membrane github skill → create issue, open PR, etc.
 ```
 
 ## Service recipes + post-signup
@@ -48,6 +49,15 @@ Presets align with common integration targets:
 ```bash
 curl -sS -H "Authorization: Bearer $MAILAGENT_API_KEY" \
   https://api.webmailagent.com/v1/agent/recipes/github | jq .
+```
+
+Unknown sender or auth provider:
+
+```bash
+curl -sS -X POST -H "Authorization: Bearer $MAILAGENT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"from":"Auth0 <no-reply@auth0.com>","subject":"Verify your email"}' \
+  https://api.webmailagent.com/v1/agent/preset-advice | jq .
 ```
 
 After verify, point the agent at the product API or a Membrane skill for the same service name (`github`, `stripe`, `auth0`, …).

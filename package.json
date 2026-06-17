@@ -49,6 +49,7 @@
     "publish:all": "npm run publish:check && npm run publish:mcp && npm run publish:qa && npm run publish:agent",
     "test:allowlist": "npx tsx scripts/test-allowlist.ts",
     "test:extract": "npx tsx scripts/test-extract.ts",
+    "test:preset-advisor": "npx tsx scripts/test-preset-advisor.ts",
     "test:contract:qa": "node scripts/contract-qa.mjs",
     "test:contract:qa:callback": "node scripts/contract-qa-callback.mjs",
     "test:contract:qa:notify": "node scripts/contract-qa-notify.mjs",

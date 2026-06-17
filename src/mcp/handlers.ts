@@ -11,6 +11,7 @@ import {
 import { parseCallbackUrl } from "../lib/callback-url";
 import { resolveExpectFrom, resolveTtlMinutes } from "../lib/service-presets";
 import { resolveAgentLabel } from "../lib/agent-recipes";
+import { suggestPreset, type PresetAdviceInput } from "../lib/preset-advisor";
 import { runAgentVerify } from "../services/agent-verify";
 import {
   getAgentRunSession,
@@ -117,6 +118,10 @@ export async function executeMcpTool(
   ctx?: McpToolContext
 ) {
   switch (name) {
+    case "mailagent_suggest_preset": {
+      return textResult(suggestPreset(args as PresetAdviceInput));
+    }
+
     case "mailagent_verify_signup": {
       const writeErr = scopeWriteError(auth.scope);
       if (writeErr) return textResult(writeErr, true);
@@ -132,6 +137,7 @@ export async function executeMcpTool(
       const result = await runAgentVerify(env, {
         inboxId: args.inboxId as string | undefined,
         service: args.service as string | undefined,
+        expectFrom: args.expectFrom as string | string[] | undefined,
         flow: args.flow as string | undefined,
         label: labelCheck.label ?? undefined,
         subjectContains: args.subjectContains as string | undefined,
@@ -222,6 +228,7 @@ export async function executeMcpTool(
         const apiBase = ctx?.apiBaseUrl?.replace(/\/$/, "") ?? "https://api.webmailagent.com";
         const v = await runAgentVerify(env, {
           service: args.service as string | undefined,
+          expectFrom: args.expectFrom as string | string[] | undefined,
           label: labelCheck.label ?? undefined,
           subjectContains: args.subjectContains as string | undefined,
           messageIndex: args.messageIndex as number | undefined,

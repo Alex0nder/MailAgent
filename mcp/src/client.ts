@@ -59,6 +59,13 @@ export class MailAgentClient {
     });
   }
 
+  suggestPreset(options: PresetAdviceInput) {
+    return this.request<PresetAdviceResponse>("/v1/agent/preset-advice", {
+      method: "POST",
+      body: JSON.stringify(options),
+    });
+  }
+
   createInbox(options?: CreateInboxOptions) {
     const body: Record<string, unknown> = {};
     if (options?.ttlMinutes !== undefined) body.ttlMinutes = options.ttlMinutes;
@@ -455,6 +462,31 @@ export interface EmailCheckResponse {
   };
   mx: { acceptsMail: boolean; records: string[] };
   hint?: string;
+}
+
+export interface PresetAdviceInput {
+  service?: string;
+  from?: string;
+  subject?: string;
+  text?: string;
+  html?: string;
+  flow?: "signup" | "login" | "password_reset" | "invite_accept" | "magic_link_login";
+}
+
+export interface PresetAdviceResponse {
+  service: string;
+  knownPreset: boolean;
+  confidence: "high" | "medium" | "low";
+  reason: string;
+  flow: "signup" | "login" | "password_reset";
+  flowTemplate: "signup" | "login_2fa" | "password_reset" | "invite_accept" | "magic_link_login";
+  expectFrom: string[];
+  subjectContains: string;
+  timeoutSeconds: number;
+  ttlMinutes?: number;
+  extraction: Record<string, unknown>;
+  snippets: Record<string, unknown>;
+  warnings: string[];
 }
 
 export interface CreateInboxOptions {

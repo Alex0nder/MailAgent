@@ -43,7 +43,7 @@ For Streamable HTTP without a local subprocess, see
 [OAuth IdP docs](https://webmailagent.com/docs/oauth-idp.html) and use `https://api.webmailagent.com/mcp`
 with a short-lived `mat_` bearer token.
 
-This bundle keeps stdio MCP via `npx -y -p @mailagent/mcp@0.2.5 mailagent-mcp`.
+This bundle keeps stdio MCP via `npx -y -p @mailagent/mcp@0.2.6 mailagent-mcp`.
 
 ## Install from GitHub marketplace
 

@@ -20,6 +20,40 @@ export const MCP_SERVER_INFO = {
 
 export const MCP_TOOLS = [
   {
+    name: "mailagent_suggest_preset",
+    description:
+      "Suggest service preset, expectFrom, subjectContains, flow, and snippets from a sample auth email From/Subject/body. Use before verify when sender or service is unclear.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        service: {
+          type: "string",
+          description: "Optional known service name; unknown values fall back to custom expectFrom.",
+        },
+        from: {
+          type: "string",
+          description: "Sample From header, e.g. Auth0 <no-reply@auth0.com>.",
+        },
+        subject: {
+          type: "string",
+          description: "Sample subject from the auth email.",
+        },
+        text: {
+          type: "string",
+          description: "Optional text body sample; do not include secrets unless needed.",
+        },
+        html: {
+          type: "string",
+          description: "Optional HTML body sample; tags are ignored for routing hints.",
+        },
+        flow: {
+          type: "string",
+          enum: ["signup", "login", "password_reset", "invite_accept", "magic_link_login"],
+        },
+      },
+    },
+  },
+  {
     name: "mailagent_verify_signup",
     description: verifySignupDesc,
     inputSchema: {
@@ -27,6 +61,13 @@ export const MCP_TOOLS = [
       properties: {
         inboxId: { type: "string", description: "Existing inbox after form submit" },
         service: { type: "string", enum: servicesEnum },
+        expectFrom: {
+          oneOf: [
+            { type: "string" },
+            { type: "array", items: { type: "string" } },
+          ],
+          description: "Custom sender allowlist when no service preset exists.",
+        },
         flow: {
           type: "string",
           enum: ["signup", "login", "password_reset"],
@@ -62,6 +103,13 @@ export const MCP_TOOLS = [
       type: "object",
       properties: {
         service: { type: "string", enum: servicesEnum },
+        expectFrom: {
+          oneOf: [
+            { type: "string" },
+            { type: "array", items: { type: "string" } },
+          ],
+          description: "Custom sender allowlist when no service preset exists.",
+        },
         runId: { type: "string" },
         label: { type: "string" },
         ttlMinutes: { type: "integer" },
@@ -96,6 +144,13 @@ export const MCP_TOOLS = [
       properties: {
         inboxId: { type: "string" },
         service: { type: "string", enum: servicesEnum },
+        expectFrom: {
+          oneOf: [
+            { type: "string" },
+            { type: "array", items: { type: "string" } },
+          ],
+          description: "Custom sender allowlist when no service preset exists.",
+        },
         runId: { type: "string" },
         subjectContains: { type: "string", description: subjectContainsDesc },
         messageIndex: {

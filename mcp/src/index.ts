@@ -27,6 +27,40 @@ const server = new McpServer({
 });
 
 server.registerTool(
+  "mailagent_suggest_preset",
+  {
+    description:
+      "Suggest service preset, expectFrom, subjectContains, flow, and snippets from a sample auth email From/Subject/body. Use before verify when sender or service is unclear.",
+    inputSchema: {
+      service: z
+        .string()
+        .optional()
+        .describe("Optional known service; unknown values fall back to custom expectFrom"),
+      from: z
+        .string()
+        .optional()
+        .describe("Sample From header, e.g. Auth0 <no-reply@auth0.com>"),
+      subject: z.string().optional().describe("Sample auth email subject"),
+      text: z
+        .string()
+        .optional()
+        .describe("Optional text body sample; avoid secrets unless needed"),
+      html: z
+        .string()
+        .optional()
+        .describe("Optional HTML body sample; tags are ignored for routing hints"),
+      flow: z
+        .enum(["signup", "login", "password_reset", "invite_accept", "magic_link_login"])
+        .optional(),
+    },
+  },
+  async (args) => {
+    const client = new MailAgentClient();
+    return toolText(await client.suggestPreset(args));
+  }
+);
+
+server.registerTool(
   "mailagent_create_inbox",
   {
     description:

@@ -1,6 +1,6 @@
 {
   "name": "mailagent",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Temporary inboxes for Codex OTP, magic links, and signup QA flows.",
   "author": {
     "name": "MailAgent",

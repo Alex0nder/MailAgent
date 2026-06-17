@@ -9,7 +9,7 @@ This doc is for **third-party curated lists** like [awesome-codex-plugins](https
 |---------|---------|
 | GitHub marketplace | `codex plugin marketplace add Alex0nder/MailAgent` |
 | Agent Skills | `npx skills add Alex0nder/MailAgent --skill mailagent` |
-| npm MCP | `npx -y -p @mailagent/mcp@0.2.5 mailagent-mcp` |
+| npm MCP | `npx -y -p @mailagent/mcp@0.2.6 mailagent-mcp` |
 
 Docs: https://webmailagent.com/docs/codex.html · https://webmailagent.com/docs/agents.html
 
@@ -47,7 +47,7 @@ Marketplace entry shape (for reference):
   "source": { "source": "local", "path": "./plugins/Alex0nder/mailagent" },
   "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
   "category": "Development & Workflow",
-  "description": "Temporary inboxes for Codex — OTP, magic links, signup QA, simulate-first autotests (23 MCP tools)."
+  "description": "Temporary inboxes for Codex — OTP, magic links, signup QA, simulate-first autotests (27 MCP tools)."
 }
 ```
 
@@ -60,7 +60,7 @@ Disposable inboxes for agent signup flows — OTP and magic link extraction via 
 
 - Repo: https://github.com/Alex0nder/MailAgent
 - Docs: https://webmailagent.com/docs/codex.html
-- MCP tools: 23 (verify_signup, simulate, diagnose, threads, domains, …)
+- MCP tools: 27 (suggest_preset, verify_signup, simulate, diagnose, threads, domains, …)
 - MIT license
 
 Install after merge:

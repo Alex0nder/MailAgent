@@ -158,7 +158,7 @@
       "question": "How does MCP integrate with MailAgent?",
       "domain": "product",
       "expected_cores": ["product-core", "technical-core"],
-      "gold": ["26 tools in src/mcp/manifest.ts", "stdio @mailagent/mcp and remote POST /mcp", "GET /v1/agent discovery"]
+      "gold": ["27 tools in src/mcp/manifest.ts", "stdio @mailagent/mcp and remote POST /mcp", "GET /v1/agent discovery"]
     },
     {
       "id": "MA15",

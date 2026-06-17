@@ -43,6 +43,14 @@ async function main() {
     console.error("mailagent_verify_signup missing from hub");
     process.exit(1);
   }
+  if (!hub.json.mcpTools.includes("mailagent_suggest_preset")) {
+    console.error("mailagent_suggest_preset missing from hub");
+    process.exit(1);
+  }
+  if (!hub.json.recommended?.presetAdvisor?.path) {
+    console.error("preset advisor discovery missing", hub.json.recommended);
+    process.exit(1);
+  }
   if (!hub.json.mcpTools.includes("mailagent_get_run_session")) {
     console.error("mailagent_get_run_session missing from hub");
     process.exit(1);
@@ -156,6 +164,29 @@ async function main() {
     }
     console.log("agent flow templates OK", flows.json.flows.length);
   }
+
+  const advice = await fetch(`${base}/v1/agent/preset-advice`, {
+    method: "POST",
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: "Auth0 <no-reply@auth0.com>",
+      subject: "Verify your email",
+    }),
+  });
+  const adviceJson = await advice.json();
+  if (
+    !advice.ok ||
+    adviceJson.service !== "auth0" ||
+    !adviceJson.knownPreset ||
+    !adviceJson.snippets?.verifySignup?.service
+  ) {
+    console.error("preset advisor failed", advice.status, adviceJson);
+    process.exit(1);
+  }
+  console.log("preset advisor OK", {
+    service: adviceJson.service,
+    subjectContains: adviceJson.subjectContains,
+  });
 
   console.log("agent hub OK", {
     tools: hub.json.mcpTools.length,
