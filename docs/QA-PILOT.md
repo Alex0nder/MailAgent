@@ -4,6 +4,8 @@ Connect a test repo (Playwright, Cypress, or curl) to hosted MailAgent in ~30 mi
 
 **Prerequisite:** API key — [dashboard](https://webmailagent.com/dashboard.html) or `npm run issue:pilot-key -- <slug>` (operators — [PILOT-ONBOARD.md](./PILOT-ONBOARD.md)).
 
+Handing this to another agent/session? Use the no-secret pack: [AGENT-HANDOFF.md](./AGENT-HANDOFF.md) or `npm run print:agent-handoff`.
+
 ## 0. Fastest path — copy starter (10 min)
 
 ```bash

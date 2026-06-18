@@ -30,6 +30,7 @@
     "wizard:stripe": "node scripts/wizard-stripe.mjs",
     "wizard:qa-pilot": "node scripts/wizard-qa-pilot.mjs",
     "wizard:qa-pilot:onboard": "node scripts/wizard-qa-pilot-onboard.mjs",
+    "print:agent-handoff": "node scripts/print-agent-handoff.mjs",
     "print:pilot-invite": "node scripts/print-pilot-invite.mjs",
     "setup:stripe-prod": "node scripts/setup-stripe-prod.mjs",
     "setup:oidc-prod": "node scripts/setup-oidc-prod.mjs",

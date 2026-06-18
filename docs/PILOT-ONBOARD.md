@@ -2,7 +2,9 @@
 
 Onboard an external test repo onto hosted MailAgent (Stripe on hold). Consumer guide: [QA-PILOT.md](./QA-PILOT.md). Candidate tracker: [PILOT-CANDIDATES.md](./PILOT-CANDIDATES.md).
 
-Current status: operator baseline is green as of 2026-06-14 (`wizard:qa-pilot:onboard` passed doctor, smoke, Playwright starter, and Cypress starter). The next step is external handoff: send the invite text plus the scoped key through a private channel.
+Current status: operator baseline is green as of 2026-06-14 (`wizard:qa-pilot:onboard` passed doctor, smoke, Playwright starter, and Cypress starter). The next step is external handoff: send the no-secret handoff text publicly if useful, then send the scoped key through a private channel only.
+
+Agent handoff pack: [AGENT-HANDOFF.md](./AGENT-HANDOFF.md) · `npm run print:agent-handoff`.
 
 ## Operator checklist
 
@@ -11,7 +13,7 @@ Current status: operator baseline is green as of 2026-06-14 (`wizard:qa-pilot:on
 | 1 | Baseline green | `npm run wizard:qa-pilot:onboard` |
 | 2 | Issue scoped pilot key | `npm run issue:pilot-key -- <pilot-slug>` (needs `DATABASE_URL`) |
 | 3 | Pick/contact candidate | [PILOT-CANDIDATES.md](./PILOT-CANDIDATES.md) → first message without key |
-| 4 | Send pilot package | `npm run print:pilot-invite -- external-pilot` → Slack/email |
+| 4 | Send no-secret handoff | `npm run print:agent-handoff` or `npm run print:pilot-invite -- external-pilot` → Slack/email/agent prompt |
 | 5 | They green CI | `npm test` in copied starter |
 | 6 | Staging E2E | `APP_SIGNUP_URL` + `service` preset |
 | 7 | Collect feedback | [Feedback](#feedback) → backlog v0.70 |
@@ -37,6 +39,8 @@ Public repo: issue keys **locally only** — do not print `ma_…` in GitHub Act
 Save the `ma_…` token once. Optional plan bump: `npm run team:plan -- TEAM_ID pro`.
 
 Dashboard alternative: [dashboard.html](https://webmailagent.com/dashboard.html) → team keys.
+
+There is no safe automatic broadcast of hosted keys to third-party agents. Public automation should stop at `AGENT-HANDOFF.md`; the key must be delivered through a private channel or created by the receiving team in their dashboard.
 
 ## Pilot invite (copy to external team)
 

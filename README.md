@@ -32,7 +32,7 @@ npm run doctor:qa
 npm run smoke:qa
 ```
 
-QA starter: [examples/qa-pilot-starter](./examples/qa-pilot-starter) · Cypress: [examples/qa-pilot-cypress-starter](./examples/qa-pilot-cypress-starter).
+QA starter: [examples/qa-pilot-starter](./examples/qa-pilot-starter) · Cypress: [examples/qa-pilot-cypress-starter](./examples/qa-pilot-cypress-starter) · agent handoff: [docs/AGENT-HANDOFF.md](./docs/AGENT-HANDOFF.md).
 
 ### Self-host setup
 
@@ -286,4 +286,5 @@ Details: [docs/CI.md](./docs/CI.md) · [docs/PUBLISH.md](./docs/PUBLISH.md)
 
 - Agent-native PBR is implemented: diagnose recovery, confidence metadata, flow templates, run timeline, cleanup policies, HTML action extraction.
 - QA pilot kit is ready; next non-code step is candidate outreach: [docs/PILOT-CANDIDATES.md](./docs/PILOT-CANDIDATES.md).
+- No-secret handoff for another agent/session: [docs/AGENT-HANDOFF.md](./docs/AGENT-HANDOFF.md) or `npm run print:agent-handoff`.
 - Stripe is on hold until tax/account setup is ready.
