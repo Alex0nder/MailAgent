@@ -47,6 +47,18 @@ async function main() {
     process.exit(1);
   }
 
+  const agentHub = await contractApi(base, headers, "/v1/agent");
+  for (const tool of [
+    "mailagent_workspace_summarize",
+    "mailagent_workspace_draft_reply",
+    "mailagent_workspace_suggest_reminders",
+  ]) {
+    if (!agentHub.json?.mcpTools?.includes(tool)) {
+      console.error(`agent hub missing ${tool}`, agentHub.json?.mcpTools);
+      process.exit(1);
+    }
+  }
+
   const summary = await contractApi(base, headers, "/v1/workspace/summarize", {
     method: "POST",
     body: JSON.stringify(sample),

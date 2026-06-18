@@ -101,6 +101,27 @@ export class MailAgentClient {
     );
   }
 
+  workspaceSummarize(options: WorkspaceSummarizeInput) {
+    return this.request<Record<string, unknown>>("/v1/workspace/summarize", {
+      method: "POST",
+      body: JSON.stringify(options),
+    });
+  }
+
+  workspaceDraftReply(options: WorkspaceDraftReplyInput) {
+    return this.request<Record<string, unknown>>("/v1/workspace/draft-reply", {
+      method: "POST",
+      body: JSON.stringify(options),
+    });
+  }
+
+  workspaceSuggestReminders(options: WorkspaceReminderInput) {
+    return this.request<Record<string, unknown>>("/v1/workspace/reminders/suggest", {
+      method: "POST",
+      body: JSON.stringify(options),
+    });
+  }
+
   createInbox(options?: CreateInboxOptions) {
     const body: Record<string, unknown> = {};
     if (options?.ttlMinutes !== undefined) body.ttlMinutes = options.ttlMinutes;
@@ -543,6 +564,32 @@ export interface AgentRunReportInput extends AgentAutopilotInput {
   step?: string;
   error?: string;
   result?: Record<string, unknown>;
+}
+
+export interface WorkspaceMailMessage {
+  id?: string;
+  from?: string;
+  to?: string[];
+  cc?: string[];
+  subject?: string;
+  text?: string;
+  receivedAt?: string;
+}
+
+export interface WorkspaceSummarizeInput {
+  threadId?: string;
+  goal?: string;
+  messages?: WorkspaceMailMessage[];
+}
+
+export interface WorkspaceDraftReplyInput extends WorkspaceSummarizeInput {
+  tone?: "concise" | "friendly" | "formal";
+  instruction?: string;
+}
+
+export interface WorkspaceReminderInput extends WorkspaceSummarizeInput {
+  now?: string;
+  timezone?: string;
 }
 
 export interface PresetAdviceResponse {

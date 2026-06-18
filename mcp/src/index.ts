@@ -61,6 +61,22 @@ const autopilotArgsSchema = {
   lastError: z.string().optional(),
 };
 
+const workspaceMessageSchema = z.object({
+  id: z.string().optional(),
+  from: z.string().optional(),
+  to: z.array(z.string()).optional(),
+  cc: z.array(z.string()).optional(),
+  subject: z.string().optional(),
+  text: z.string().optional(),
+  receivedAt: z.string().optional(),
+});
+
+const workspaceThreadArgsSchema = {
+  threadId: z.string().optional(),
+  goal: z.string().optional(),
+  messages: z.array(workspaceMessageSchema).optional(),
+};
+
 server.registerTool(
   "mailagent_issue_access",
   {
@@ -148,6 +164,53 @@ server.registerTool(
   async ({ runId, ...args }) => {
     const client = new MailAgentClient();
     return toolText(await client.reportRun(runId, args));
+  }
+);
+
+server.registerTool(
+  "mailagent_workspace_summarize",
+  {
+    description:
+      "Workspace Agent preview: summarize supplied mail/thread messages, action items, decisions, and open questions.",
+    inputSchema: workspaceThreadArgsSchema,
+  },
+  async (args) => {
+    const client = new MailAgentClient();
+    return toolText(await client.workspaceSummarize(args));
+  }
+);
+
+server.registerTool(
+  "mailagent_workspace_draft_reply",
+  {
+    description:
+      "Workspace Agent preview: draft a reply from supplied messages. Draft-only; never sends.",
+    inputSchema: {
+      ...workspaceThreadArgsSchema,
+      tone: z.enum(["concise", "friendly", "formal"]).optional(),
+      instruction: z.string().optional(),
+    },
+  },
+  async (args) => {
+    const client = new MailAgentClient();
+    return toolText(await client.workspaceDraftReply(args));
+  }
+);
+
+server.registerTool(
+  "mailagent_workspace_suggest_reminders",
+  {
+    description:
+      "Workspace Agent preview: suggest reminders/follow-ups from supplied messages. Does not create reminders yet.",
+    inputSchema: {
+      ...workspaceThreadArgsSchema,
+      now: z.string().optional(),
+      timezone: z.string().optional(),
+    },
+  },
+  async (args) => {
+    const client = new MailAgentClient();
+    return toolText(await client.workspaceSuggestReminders(args));
   }
 );
 

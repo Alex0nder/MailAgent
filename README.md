@@ -212,6 +212,9 @@ Globally for all projects: copy block to `~/.cursor/mcp.json` (absolute path to 
 | `mailagent_report_run` | Report progress/failure and get the next plan |
 | `mailagent_next_run` | Resume a run from saved state and get the next plan |
 | `mailagent_plan_next` | Autopilot planner: returns the next tool, payload, and recovery steps |
+| `mailagent_workspace_summarize` | Workspace preview: summarize supplied mail/thread messages |
+| `mailagent_workspace_draft_reply` | Workspace preview: draft reply only, never sends |
+| `mailagent_workspace_suggest_reminders` | Workspace preview: suggest reminders/follow-ups |
 | `mailagent_suggest_preset` | Suggest `service`, `expectFrom`, `subjectContains`, and `flow` from a sample auth email |
 | `mailagent_verify_signup` | **Preferred:** wait and return `agent.primaryAction` |
 | `mailagent_create_inbox` | Create inbox (`service`, `notifyEmail`, cleanup options) |
@@ -232,7 +235,7 @@ Globally for all projects: copy block to `~/.cursor/mcp.json` (absolute path to 
 | `mailagent_get_inbox` | Inbox status |
 | `mailagent_delete_inbox` | Delete early |
 
-Full current list: `GET /v1/agent` returns `mcpTools` (currently 32).
+Full current list: `GET /v1/agent` returns `mcpTools` (currently 35).
 
 Agent skill: [`.cursor/skills/mailagent-mcp/SKILL.md`](.cursor/skills/mailagent-mcp/SKILL.md)
 

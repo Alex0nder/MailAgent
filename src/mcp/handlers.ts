@@ -71,6 +71,14 @@ import {
 } from "../services/structured-extract";
 import { buildWaitTimeoutDebug, waitForMessage, type WaitProgressEvent } from "../services/wait";
 import { checkEmailAddress } from "../services/email-check";
+import {
+  draftWorkspaceReply,
+  suggestWorkspaceReminders,
+  summarizeWorkspaceThread,
+  type WorkspaceDraftReplyInput,
+  type WorkspaceReminderInput,
+  type WorkspaceSummarizeInput,
+} from "../services/workspace-agent";
 import type { McpProgressParams, McpToolContext } from "../mcp/progress";
 
 export type McpAuth = {
@@ -241,6 +249,18 @@ export async function executeMcpTool(
 
     case "mailagent_suggest_preset": {
       return textResult(suggestPreset(args as PresetAdviceInput));
+    }
+
+    case "mailagent_workspace_summarize": {
+      return textResult(await summarizeWorkspaceThread(env, args as WorkspaceSummarizeInput));
+    }
+
+    case "mailagent_workspace_draft_reply": {
+      return textResult(await draftWorkspaceReply(env, args as WorkspaceDraftReplyInput));
+    }
+
+    case "mailagent_workspace_suggest_reminders": {
+      return textResult(await suggestWorkspaceReminders(env, args as WorkspaceReminderInput));
     }
 
     case "mailagent_verify_signup": {

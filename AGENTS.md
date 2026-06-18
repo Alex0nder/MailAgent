@@ -61,9 +61,9 @@ curl -s -H "Authorization: Bearer $MAILAGENT_API_KEY" \
 
 Returns `mcpTools`, `auth.oidc`, `remoteMcp`, `docs`.
 
-## MCP tools (32)
+## MCP tools (35)
 
-`mailagent_issue_access` · `mailagent_start_run` · `mailagent_report_run` · `mailagent_next_run` · `mailagent_plan_next` · `mailagent_suggest_preset` · `mailagent_verify_signup` · `mailagent_create_inbox` · `mailagent_wait_for_message` · `mailagent_wait_and_extract` · `mailagent_extract_verification` · `mailagent_extract_structured` · `mailagent_list_messages` · `mailagent_get_raw_message` · `mailagent_list_attachments` · `mailagent_get_attachment` · `mailagent_check_email` · `mailagent_diagnose_inbox` · `mailagent_simulate_message` · `mailagent_send_message` · `mailagent_list_threads` · `mailagent_add_domain` · `mailagent_list_domains` · `mailagent_verify_domain` · `mailagent_search_messages` · `mailagent_list_inboxes` · `mailagent_get_inbox` · `mailagent_delete_inbox` · `mailagent_cleanup_inboxes` · `mailagent_get_run_session` · `mailagent_get_run_timeline` · `mailagent_patch_run_session`
+`mailagent_issue_access` · `mailagent_start_run` · `mailagent_report_run` · `mailagent_next_run` · `mailagent_plan_next` · `mailagent_workspace_summarize` · `mailagent_workspace_draft_reply` · `mailagent_workspace_suggest_reminders` · `mailagent_suggest_preset` · `mailagent_verify_signup` · `mailagent_create_inbox` · `mailagent_wait_for_message` · `mailagent_wait_and_extract` · `mailagent_extract_verification` · `mailagent_extract_structured` · `mailagent_list_messages` · `mailagent_get_raw_message` · `mailagent_list_attachments` · `mailagent_get_attachment` · `mailagent_check_email` · `mailagent_diagnose_inbox` · `mailagent_simulate_message` · `mailagent_send_message` · `mailagent_list_threads` · `mailagent_add_domain` · `mailagent_list_domains` · `mailagent_verify_domain` · `mailagent_search_messages` · `mailagent_list_inboxes` · `mailagent_get_inbox` · `mailagent_delete_inbox` · `mailagent_cleanup_inboxes` · `mailagent_get_run_session` · `mailagent_get_run_timeline` · `mailagent_patch_run_session`
 
 Source of truth: `src/mcp/manifest.ts` → `GET /v1/agent`.
 
@@ -92,7 +92,7 @@ After changing MCP tools, presets, migrations, or routes: `npm run sync:context-
 | Remote | `POST https://api.webmailagent.com/mcp` + Bearer |
 
 ```bash
-codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.9 mailagent-mcp
+codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.10 mailagent-mcp
 ```
 
 ## Agent Skills

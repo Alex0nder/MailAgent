@@ -10,7 +10,7 @@ homepage: https://webmailagent.com/docs/agents.html
 repository: https://github.com/Alex0nder/MailAgent
 metadata:
   author: mailagent
-  version: "0.2.9"
+  version: "0.2.10"
   categories: "Email, QA, Agents, MCP"
 ---
 
@@ -54,7 +54,7 @@ Guide: https://webmailagent.com/docs/codex.html
 ```bash
 export MAILAGENT_API_URL=https://api.webmailagent.com
 export MAILAGENT_API_KEY=ma_…
-npx -y -p @mailagent/mcp@0.2.9 mailagent-mcp
+npx -y -p @mailagent/mcp@0.2.10 mailagent-mcp
 ```
 
 Remote (no subprocess): `POST https://api.webmailagent.com/mcp` + Bearer token.
@@ -140,6 +140,9 @@ Console: `console-inbox.html` → notify relay log.
 | `mailagent_report_run` | Report progress/failure and get the next plan |
 | `mailagent_next_run` | Resume a run from saved state after context loss or errors |
 | `mailagent_plan_next` | Autopilot — choose the next MCP tool and ready payload from current state |
+| `mailagent_workspace_summarize` | Workspace preview — summarize supplied mail/thread messages |
+| `mailagent_workspace_draft_reply` | Workspace preview — draft reply only, never sends |
+| `mailagent_workspace_suggest_reminders` | Workspace preview — suggest reminders/follow-ups |
 | `mailagent_suggest_preset` | Unknown sender/service — get `service`, `expectFrom`, `subjectContains`, and `flow` |
 | `mailagent_verify_signup` | One-shot wait + extract + primaryAction |
 | `mailagent_create_inbox` | Need address before form submit |
@@ -159,7 +162,7 @@ Console: `console-inbox.html` → notify relay log.
 | `callbackUrl` on create | Async CI — `waitForCallback` in QA SDK |
 | `notifyEmail` on create | Relay OTP to developer's real inbox |
 
-Full list: `GET https://api.webmailagent.com/v1/agent` → `mcpTools` (32 tools).
+Full list: `GET https://api.webmailagent.com/v1/agent` → `mcpTools` (35 tools).
 
 ## Email check (`mailagent_check_email`)
 

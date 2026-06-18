@@ -12,6 +12,27 @@ const verifySignupDesc =
   "Preferred: wait for verification email and return agent.primaryAction (OTP or magic link). " +
   `Set service for allowlist. subjectContains hints: ${formatSubjectHintsForDocs(10)}. ` +
   "On timeout response includes debugUiUrl — open or call mailagent_diagnose_inbox.";
+const workspaceMessageSchema = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    from: { type: "string" },
+    to: { type: "array", items: { type: "string" } },
+    cc: { type: "array", items: { type: "string" } },
+    subject: { type: "string" },
+    text: { type: "string" },
+    receivedAt: { type: "string" },
+  },
+} as const;
+const workspaceThreadProps = {
+  threadId: { type: "string", description: "Optional source thread id" },
+  goal: { type: "string", description: "What the agent should optimize for" },
+  messages: {
+    type: "array",
+    items: workspaceMessageSchema,
+    description: "Supplied mail messages. Preview mode does not connect to Gmail yet.",
+  },
+} as const;
 
 export const MCP_SERVER_INFO = {
   name: "mailagent",
@@ -223,6 +244,41 @@ export const MCP_TOOLS = [
           type: "string",
           enum: ["signup", "login", "password_reset", "invite_accept", "magic_link_login"],
         },
+      },
+    },
+  },
+  {
+    name: "mailagent_workspace_summarize",
+    description:
+      "Workspace Agent preview: summarize supplied mail/thread messages, extract action items, decisions, and open questions. Uses DeepSeek/Qwen if configured, otherwise deterministic rules.",
+    inputSchema: {
+      type: "object",
+      properties: workspaceThreadProps,
+    },
+  },
+  {
+    name: "mailagent_workspace_draft_reply",
+    description:
+      "Workspace Agent preview: draft a reply from supplied messages. Draft-only; never sends and always requires approval.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        ...workspaceThreadProps,
+        tone: { type: "string", enum: ["concise", "friendly", "formal"] },
+        instruction: { type: "string", description: "Extra reply guidance" },
+      },
+    },
+  },
+  {
+    name: "mailagent_workspace_suggest_reminders",
+    description:
+      "Workspace Agent preview: suggest reminders/follow-ups from supplied mail messages. Does not create reminders yet.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        ...workspaceThreadProps,
+        now: { type: "string", description: "Current timestamp for due hints" },
+        timezone: { type: "string", description: "IANA timezone, e.g. Asia/Tbilisi" },
       },
     },
   },

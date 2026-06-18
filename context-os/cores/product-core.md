@@ -85,7 +85,7 @@ Welcome email часто приходит раньше verify → `subjectContai
 | 11 | `README.md` | API table |
 
 Sync markers (`<!-- sync:mcp-tools:start -->
-32 tools (MCP server `0.8.2`):
+35 tools (MCP server `0.8.2`):
 
 - `mailagent_issue_access`
 - `mailagent_plan_next`
@@ -93,6 +93,9 @@ Sync markers (`<!-- sync:mcp-tools:start -->
 - `mailagent_next_run`
 - `mailagent_report_run`
 - `mailagent_suggest_preset`
+- `mailagent_workspace_summarize`
+- `mailagent_workspace_draft_reply`
+- `mailagent_workspace_suggest_reminders`
 - `mailagent_verify_signup`
 - `mailagent_create_inbox`
 - `mailagent_wait_and_extract`
