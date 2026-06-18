@@ -27,7 +27,51 @@ export { InboxWait };
 
 const app = new Hono<{ Bindings: Env }>();
 
-app.use("*", cors());
+const ALLOWED_CORS_ORIGINS = new Set([
+  "https://webmailagent.com",
+  "https://www.webmailagent.com",
+  "https://api.webmailagent.com",
+  "http://127.0.0.1:8787",
+  "http://localhost:8787",
+  "http://127.0.0.1:4173",
+  "http://localhost:4173",
+]);
+
+app.use(
+  "*",
+  cors({
+    origin: (origin) => {
+      if (ALLOWED_CORS_ORIGINS.has(origin)) return origin;
+      try {
+        const url = new URL(origin);
+        if (
+          (url.hostname === "127.0.0.1" || url.hostname === "localhost") &&
+          (url.protocol === "http:" || url.protocol === "https:")
+        ) {
+          return origin;
+        }
+      } catch {
+        /* ignore invalid Origin */
+      }
+      return null;
+    },
+    allowHeaders: [
+      "Authorization",
+      "Content-Type",
+      "Accept",
+      "Mcp-Session-Id",
+      "MCP-Protocol-Version",
+    ],
+    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    exposeHeaders: [
+      "Mcp-Session-Id",
+      "X-RateLimit-Limit",
+      "X-RateLimit-Remaining",
+      "X-RateLimit-Reset",
+    ],
+    maxAge: 600,
+  })
+);
 
 app.route("/", healthRoutes);
 app.route("/webhooks", webhookRoutes);

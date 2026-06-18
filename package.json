@@ -111,7 +111,7 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
-    "hono": "^4.11.1",
+    "hono": "^4.12.26",
     "jose": "^6.2.3",
     "nanoid": "^5.1.6",
     "parse-otp-message": "^1.0.2",
@@ -121,9 +121,10 @@
     "@cloudflare/workers-types": "^4.20260120.0",
     "@playwright/test": "^1.51.0",
     "typescript": "^5.9.3",
-    "wrangler": "^4.100.0"
+    "wrangler": "^4.101.0"
   },
   "overrides": {
-    "esbuild": "^0.28.1"
+    "esbuild": "^0.28.1",
+    "ws": "^8.21.0"
   }
 }
