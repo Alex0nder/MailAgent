@@ -22,6 +22,7 @@ import { purgeExpired } from "./services/inbox";
 import { purgeExpiredAuditEvents } from "./services/audit-log";
 import { auditRoutes } from "./routes/audit";
 import { emailRoutes } from "./routes/emails";
+import { workspaceRoutes } from "./routes/workspace";
 
 export { InboxWait };
 
@@ -88,6 +89,7 @@ app.route("/v1/team", teamRoutes);
 app.route("/v1/domains", domainRoutes);
 app.route("/v1/emails", emailRoutes);
 app.route("/v1/agent", agentRoutes);
+app.route("/v1/workspace", workspaceRoutes);
 app.route("/v1/oauth", oauthTokenRoutes);
 app.route("/mcp", mcpHttpRoutes);
 app.route("/", wellKnownRoutes);

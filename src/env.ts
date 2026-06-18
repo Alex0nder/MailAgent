@@ -46,6 +46,20 @@ export interface Env {
   SEARCH_EMBED_MODEL?: string;
   /** LLM for structured extract (default @cf/meta/llama-3.1-8b-instruct) */
   EXTRACT_MODEL?: string;
+  /** Workspace Agent LLM provider: deepseek (default), qwen, custom */
+  WORKSPACE_LLM_PROVIDER?: string;
+  /** DeepSeek OpenAI-compatible API key */
+  DEEPSEEK_API_KEY?: string;
+  /** Qwen / DashScope OpenAI-compatible API key */
+  QWEN_API_KEY?: string;
+  /** DashScope API key alias for Qwen */
+  DASHSCOPE_API_KEY?: string;
+  /** Custom OpenAI-compatible LLM API key */
+  LLM_API_KEY?: string;
+  /** Custom OpenAI-compatible base URL */
+  LLM_BASE_URL?: string;
+  /** Workspace Agent model override */
+  LLM_MODEL?: string;
   /** Audit log retention in days (default 90, max 365) */
   AUDIT_RETENTION_DAYS?: string;
 }

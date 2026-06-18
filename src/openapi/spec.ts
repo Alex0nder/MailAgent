@@ -300,6 +300,19 @@ const domain = {
   },
 } as const;
 
+const workspaceMailMessage = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    from: { type: "string" },
+    to: { type: "array", items: { type: "string" } },
+    cc: { type: "array", items: { type: "string" } },
+    subject: { type: "string" },
+    text: { type: "string" },
+    receivedAt: { type: "string", format: "date-time" },
+  },
+} as const;
+
 export const openApiSpec = {
   openapi: "3.0.3",
   info: {
@@ -333,6 +346,7 @@ export const openApiSpec = {
       AgentRunSession: agentRunSession,
       AgentRunTimelineEvent: agentRunTimelineEvent,
       Domain: domain,
+      WorkspaceMailMessage: workspaceMailMessage,
     },
     responses: {
       Unauthorized: {
@@ -780,6 +794,94 @@ export const openApiSpec = {
           },
           "404": { $ref: "#/components/responses/NotFound" },
         },
+      },
+    },
+    "/v1/workspace": {
+      get: {
+        tags: ["meta"],
+        summary: "Workspace Agent preview discovery",
+        security: bearer,
+        responses: {
+          "200": { description: "Workspace Agent safety posture, model provider, and endpoints" },
+        },
+      },
+    },
+    "/v1/workspace/summarize": {
+      post: {
+        tags: ["meta"],
+        summary: "Summarize supplied workspace mail messages",
+        security: bearer,
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  threadId: { type: "string" },
+                  goal: { type: "string" },
+                  messages: {
+                    type: "array",
+                    items: { $ref: "#/components/schemas/WorkspaceMailMessage" },
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: { "200": { description: "Summary, action items, decisions, and open questions" } },
+      },
+    },
+    "/v1/workspace/draft-reply": {
+      post: {
+        tags: ["meta"],
+        summary: "Draft a reply without sending",
+        security: bearer,
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  threadId: { type: "string" },
+                  goal: { type: "string" },
+                  tone: { type: "string", enum: ["concise", "friendly", "formal"] },
+                  instruction: { type: "string" },
+                  messages: {
+                    type: "array",
+                    items: { $ref: "#/components/schemas/WorkspaceMailMessage" },
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: { "200": { description: "Draft text, risks/missing context, approval required" } },
+      },
+    },
+    "/v1/workspace/reminders/suggest": {
+      post: {
+        tags: ["meta"],
+        summary: "Suggest reminders and follow-ups from supplied messages",
+        security: bearer,
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  threadId: { type: "string" },
+                  now: { type: "string", format: "date-time" },
+                  timezone: { type: "string" },
+                  messages: {
+                    type: "array",
+                    items: { $ref: "#/components/schemas/WorkspaceMailMessage" },
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: { "200": { description: "Reminder/follow-up suggestions" } },
       },
     },
     "/v1/domains": {

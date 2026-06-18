@@ -4,6 +4,8 @@ Stripe **on hold** until tax/account setup is ready · QA pilot kit ready; candi
 
 Agent-native backlog: [AGENT-PBR.md](./AGENT-PBR.md).
 
+Workspace Agent backlog: [WORKSPACE-AGENT-PBR.md](./WORKSPACE-AGENT-PBR.md) — real inbox/calendar assistant direction. P0 starts with safe read-only/draft-only APIs and DeepSeek/Qwen-compatible LLM adapter.
+
 Context OS **done** for agents on repo ([skills/mailagent/SKILL.md](../skills/mailagent/SKILL.md) § Context OS).
 
 P0–P3 **done** (pilot #20 = human). Next: **P4** (console & SDK polish).
@@ -137,9 +139,10 @@ Spec: [AGENT-PBR.md](./AGENT-PBR.md)
 
 ## Current next work
 
-1. P3 #20 — identify/contact Pilot #1 candidate using [PILOT-CANDIDATES.md](./PILOT-CANDIDATES.md).
-2. After they accept, send `print:pilot-invite -- external-pilot` + scoped key out-of-band.
-3. Pilot #1 — external test repo copies starter, sets `MAILAGENT_API_KEY`, and gets green `npm test`.
-4. Pilot #1 — add staging `APP_SIGNUP_URL` + service preset, then collect feedback in [#5](https://github.com/Alex0nder/MailAgent/issues/5).
+1. Workspace Agent P0 — safe summaries, draft replies, and reminder suggestions for supplied mail payloads.
+2. P3 #20 — identify/contact Pilot #1 candidate using [PILOT-CANDIDATES.md](./PILOT-CANDIDATES.md).
+3. After they accept, send `print:pilot-invite -- external-pilot` + scoped key out-of-band.
+4. Pilot #1 — external test repo copies starter, sets `MAILAGENT_API_KEY`, and gets green `npm test`.
+5. Pilot #1 — add staging `APP_SIGNUP_URL` + service preset, then collect feedback in [#5](https://github.com/Alex0nder/MailAgent/issues/5).
 
 Track in [ROADMAP.md](./ROADMAP.md) § v0.69.

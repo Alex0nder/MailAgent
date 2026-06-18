@@ -21,6 +21,14 @@ apiMetaRoutes.get("/", (c) => {
       remoteMcp: "POST /mcp (JSON-RPC, Bearer)",
       docs: "https://webmailagent.com/docs/agents.html",
     },
+    workspaceAgent: {
+      hub: "GET /v1/workspace",
+      summarize: "POST /v1/workspace/summarize",
+      draftReply: "POST /v1/workspace/draft-reply",
+      reminders: "POST /v1/workspace/reminders/suggest",
+      status: "preview",
+      docs: "https://github.com/Alex0nder/MailAgent/blob/main/docs/WORKSPACE-AGENT-PBR.md",
+    },
     endpoints: {
       open: { method: "POST", path: "/v1/inboxes/open", note: "create + wait + extract (+ delete)" },
       listInboxes: { method: "GET", path: "/v1/inboxes?label=", note: "QA filter" },
@@ -88,6 +96,21 @@ apiMetaRoutes.get("/", (c) => {
         note: "preset 2fa|invoice|receipt or custom schema (AI)",
       },
       health: { method: "GET", path: "/health" },
+      workspaceSummarize: {
+        method: "POST",
+        path: "/v1/workspace/summarize",
+        note: "Workspace Agent preview: summarize supplied mail thread",
+      },
+      workspaceDraftReply: {
+        method: "POST",
+        path: "/v1/workspace/draft-reply",
+        note: "Workspace Agent preview: draft only, never sends",
+      },
+      workspaceReminderSuggest: {
+        method: "POST",
+        path: "/v1/workspace/reminders/suggest",
+        note: "Workspace Agent preview: suggest reminders/follow-ups",
+      },
     },
     services: Object.keys(SERVICE_EXPECT_FROM),
     mcpTools: MCP_TOOL_NAMES,

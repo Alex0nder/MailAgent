@@ -2,6 +2,8 @@
 
 Temporary inboxes for **AI agents** and **QA/E2E**: create an inbox, submit its address to a signup/login form, wait for OTP or magic link, and clean up automatically.
 
+Workspace Agent preview adds safe supplied-thread summaries, draft replies, and reminder suggestions without sending mail or writing calendar events.
+
 **Roadmap:** [docs/ROADMAP.md](./docs/ROADMAP.md)  
 **Your own agent without our API:** [docs/INTEGRATE.md](./docs/INTEGRATE.md) — self-host, MCP, REST.  
 **For QA:** [docs/QA.md](./docs/QA.md) — label, subjectContains, callback, Playwright.

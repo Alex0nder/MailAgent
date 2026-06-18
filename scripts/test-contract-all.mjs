@@ -16,6 +16,7 @@ const scripts = [
   "contract-qa.mjs",
   "contract-qa-agent.mjs",
   "contract-qa-agent-runs.mjs",
+  "contract-qa-workspace-agent.mjs",
   "contract-qa-agent-access.mjs",
   "contract-qa-session.mjs",
   "contract-qa-oidc.mjs",
