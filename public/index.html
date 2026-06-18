@@ -16,7 +16,7 @@
     <title>MailAgent — Email verification for Playwright, Cypress, and AI agents</title>
     <meta
       name="description"
-      content="Disposable test inboxes for Playwright, Cypress, and AI agents. Verify OTPs and magic links in CI without shared Gmail or manual checks."
+      content="Disposable test inboxes for Playwright, Cypress, and AI agents. Verify OTPs and magic links in CI, plan recovery steps, and mint scoped run keys without shared Gmail or manual checks."
     />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -50,7 +50,8 @@
               Replace shared test inboxes and manual OTP checks with disposable
               inboxes per run. MailAgent waits for the email, extracts OTPs,
               magic links, and safe CTA buttons, then gives your test or agent
-              the next action.
+              the next action. Agents can also mint short-lived scoped run keys
+              instead of asking humans for permanent secrets.
             </p>
             <div class="hero-ctas">
               <a class="btn btn-primary" href="/docs/qa.html">Start QA setup</a>
@@ -64,7 +65,7 @@
             </div>
             <dl class="hero-proof">
               <div>
-                <dt>26</dt>
+                <dt>29</dt>
                 <dd>MCP tools</dd>
               </div>
               <div>
@@ -321,9 +322,10 @@
                   <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
               </div>
-              <h3>Scoped API keys</h3>
+              <h3>Short-lived run keys</h3>
               <p>
-                <code>labelPrefix</code> and read-only keys for CI and agents —
+                <code>mailagent_issue_access</code> mints temporary scoped keys
+                for a single agent run.
                 <a href="/docs/scoped-keys.html">Guide →</a>
               </p>
             </article>
@@ -449,10 +451,22 @@
           <p class="section-desc">
             Add <code>mailagent</code> to Cursor or Codex. The agent gets an
             inbox, submits the address, waits, and follows a structured
-            <code>primaryAction</code> instead of reading inbox UI.
+            <code>primaryAction</code> instead of reading inbox UI. When it needs
+            a bounded handoff, it can mint a temporary scoped run key and ask
+            the planner for the next tool.
           </p>
 
           <div class="tools-list">
+            <div class="tool-row">
+              <span class="tool-name">mailagent_issue_access</span>
+              <span class="tool-desc">Short-lived scoped key for one autonomous run</span>
+              <span class="tool-badge">New</span>
+            </div>
+            <div class="tool-row">
+              <span class="tool-name">mailagent_plan_next</span>
+              <span class="tool-desc">Return the next MCP tool, payload, and recovery steps</span>
+              <span class="tool-badge">Autopilot</span>
+            </div>
             <div class="tool-row">
               <span class="tool-name">mailagent_verify_signup</span>
               <span class="tool-desc">Wait → extract → return agent.primaryAction</span>
