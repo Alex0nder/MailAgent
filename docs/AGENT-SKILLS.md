@@ -34,12 +34,13 @@ npm run verify:skills
 Typical agent pipeline:
 
 ```
-1. mailagent_suggest_preset when sender/service is unclear
-2. mailagent_create_inbox (service: github, or expectFrom for custom sender)
-3. Browser: submit address on github.com/signup
-4. mailagent_verify_signup → primaryAction (OTP or link)
-5. Complete signup
-6. Membrane github skill → create issue, open PR, etc.
+1. mailagent_plan_next when the agent needs the next tool + payload
+2. mailagent_suggest_preset when sender/service is unclear
+3. mailagent_create_inbox (service: github, or expectFrom for custom sender)
+4. Browser: submit address on github.com/signup
+5. mailagent_verify_signup → primaryAction (OTP or link)
+6. Complete signup
+7. Membrane github skill → create issue, open PR, etc.
 ```
 
 ## Service recipes + post-signup

@@ -15,7 +15,12 @@ import { scopeLabelForCreate, scopeWriteDenied } from "../lib/scope-guard";
 import { publicOriginFromUrl } from "../lib/public-origin";
 import { SERVICE_EXPECT_FROM } from "../lib/service-presets";
 import { suggestPreset, type PresetAdviceInput } from "../lib/preset-advisor";
+import {
+  buildAgentAutopilotPlan,
+  type AgentAutopilotInput,
+} from "../lib/agent-autopilot";
 import { runAgentVerify } from "../services/agent-verify";
+import { buildInboxDiagnose } from "../services/inbox-diagnose";
 import { listAgentRuns } from "../services/agent-runs";
 import {
   getAgentRunSession,
@@ -85,6 +90,11 @@ agentRoutes.get("/", (c) => {
         method: "POST",
         path: "/v1/agent/preset-advice",
         note: "Suggest service, expectFrom, subjectContains, and flow from a sample auth email.",
+      },
+      autopilot: {
+        method: "POST",
+        path: "/v1/agent/autopilot",
+        note: "Return the next best agent action and ready MCP/REST payloads.",
       },
     },
     mcpTools: MCP_TOOL_NAMES,
@@ -177,6 +187,27 @@ agentRoutes.post("/preset-advice", async (c) => {
     body = {};
   }
   return c.json(suggestPreset(body));
+});
+
+agentRoutes.post("/autopilot", async (c) => {
+  let body: AgentAutopilotInput = {};
+  try {
+    body = await c.req.json<AgentAutopilotInput>();
+  } catch {
+    body = {};
+  }
+  const status = body.status?.trim().toLowerCase();
+  const shouldDiagnose =
+    Boolean(body.inboxId) && (status === "timeout" || status === "failed");
+  const diagnose = shouldDiagnose
+    ? await buildInboxDiagnose(c.env, body.inboxId!, {
+        subjectContains: body.subjectContains,
+        messageIndex: body.messageIndex,
+        apiBaseUrl: publicOriginFromUrl(c.req.url),
+        apiKeyHint: c.get("apiKeyHint"),
+      })
+    : null;
+  return c.json(buildAgentAutopilotPlan(body, diagnose));
 });
 
 agentRoutes.get("/recipes/:service", (c) => {

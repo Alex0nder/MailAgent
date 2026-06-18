@@ -66,6 +66,13 @@ export class MailAgentClient {
     });
   }
 
+  planNext(options: AgentAutopilotInput) {
+    return this.request<Record<string, unknown>>("/v1/agent/autopilot", {
+      method: "POST",
+      body: JSON.stringify(options),
+    });
+  }
+
   createInbox(options?: CreateInboxOptions) {
     const body: Record<string, unknown> = {};
     if (options?.ttlMinutes !== undefined) body.ttlMinutes = options.ttlMinutes;
@@ -471,6 +478,20 @@ export interface PresetAdviceInput {
   text?: string;
   html?: string;
   flow?: "signup" | "login" | "password_reset" | "invite_accept" | "magic_link_login";
+}
+
+export interface AgentAutopilotInput extends PresetAdviceInput {
+  inboxId?: string;
+  status?: "start" | "address_ready" | "form_submitted" | "timeout" | "message_received" | "verified" | "failed";
+  runId?: string;
+  label?: string;
+  subjectContains?: string;
+  messageIndex?: number;
+  timeoutSeconds?: number;
+  deleteAfterSuccess?: boolean;
+  keepOnFailure?: boolean;
+  allowSimulate?: boolean;
+  lastError?: string;
 }
 
 export interface PresetAdviceResponse {

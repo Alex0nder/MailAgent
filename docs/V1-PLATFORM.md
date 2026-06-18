@@ -14,7 +14,7 @@ Goal: **full email API for agents** (inbound + outbound + threads) **plus** adva
 | Custom domains | ✅ API | ✅ |
 | Semantic search | ✅ | ✅ |
 | Document extraction | ✅ | ✅ |
-| MCP | ✅ | ✅ OAuth + 27 tools |
+| MCP | ✅ | ✅ OAuth + 28 tools |
 | SDK (TS/Python) | ✅ | ✅ TS SDKs + Python + MCP |
 | Enterprise / SOC 2 | ✅ | ✅ audit log + retention |
 | **Open source** | ❌ | ✅ MIT |
@@ -107,7 +107,7 @@ Goal: **full email API for agents** (inbound + outbound + threads) **plus** adva
 
 ## Next step
 
-**v1.0 baseline complete** — API, MCP, QA starters, `@mailagent/mcp@0.2.6`, `@mailagent/agent@0.1.13`, `@mailagent/qa@0.1.17`, PyPI `mailagent-agent@0.1.0`.
+**v1.0 baseline complete** — API, MCP, QA starters, `@mailagent/mcp@0.2.7`, `@mailagent/agent@0.1.13`, `@mailagent/qa@0.1.17`, PyPI `mailagent-agent@0.1.0`.
 **Waiting on external:** catalog PR merge · first external QA pilot feedback · Stripe · Codex Directory · SOC 2.  
 **New repo work:** product features from pilot feedback when issue [#5](https://github.com/Alex0nder/MailAgent/issues/5) has data.  
 Discovery: `GET /v1/agent` → `packages` · `distribution` · [DISTRIBUTION-STATUS.md](./DISTRIBUTION-STATUS.md).

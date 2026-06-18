@@ -19,8 +19,9 @@ Agent task:
 2. Read https://github.com/Alex0nder/MailAgent/blob/main/docs/QA-PILOT.md
 3. Use MailAgent for disposable signup/login/password-reset inboxes.
 4. Do not use Gmail/shared inboxes for OTP checks.
-5. If sender/subject is unclear, call mailagent_suggest_preset before verify.
-6. On timeout, call mailagent_diagnose_inbox before retrying.
+5. If unsure what to do next, call mailagent_plan_next.
+6. If sender/subject is unclear, call mailagent_suggest_preset before verify.
+7. On timeout, call mailagent_plan_next with status=timeout or call mailagent_diagnose_inbox before retrying.
 `;
 
 const blocks = {
@@ -46,10 +47,10 @@ MCP path:
 
 export MAILAGENT_API_URL=https://api.webmailagent.com
 export MAILAGENT_API_KEY=<provided privately>
-npx -y -p @mailagent/mcp@0.2.6 mailagent-mcp
+npx -y -p @mailagent/mcp@0.2.7 mailagent-mcp
 
 Codex local:
-codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.6 mailagent-mcp
+codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.7 mailagent-mcp
 
 Remote MCP:
 POST https://api.webmailagent.com/mcp

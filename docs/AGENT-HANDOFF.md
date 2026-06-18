@@ -9,6 +9,7 @@ What can be automated:
 - wait for OTP or magic links;
 - diagnose failures;
 - run simulate-first QA tests;
+- ask for the next best tool/payload with `mailagent_plan_next`;
 - choose presets with `mailagent_suggest_preset`;
 - clean up test inboxes.
 
@@ -35,7 +36,7 @@ Setup:
 1. Read https://github.com/Alex0nder/MailAgent/blob/main/AGENTS.md
 2. Read https://github.com/Alex0nder/MailAgent/blob/main/docs/QA-PILOT.md
 3. If using Codex/Cursor MCP:
-   npx -y -p @mailagent/mcp@0.2.6 mailagent-mcp
+   npx -y -p @mailagent/mcp@0.2.7 mailagent-mcp
 4. Set:
    MAILAGENT_API_URL=https://api.webmailagent.com
    MAILAGENT_API_KEY=<provided privately>
@@ -45,8 +46,9 @@ Setup:
 Preferred flow:
 - create inbox -> submit inbox.address in the app -> verify with inboxId
 - use service preset when known, e.g. auth0, clerk, supabase, github
+- when unsure what to do next, call mailagent_plan_next
 - when sender/subject is unclear, call mailagent_suggest_preset first
-- on timeout, call mailagent_diagnose_inbox before retrying
+- on timeout, call mailagent_plan_next with status=timeout or call mailagent_diagnose_inbox before retrying
 - keep failed inboxes while debugging; delete successful runs
 
 Pilot starter:
@@ -98,13 +100,13 @@ npm test
 ```bash
 export MAILAGENT_API_URL=https://api.webmailagent.com
 export MAILAGENT_API_KEY=<provided privately>
-npx -y -p @mailagent/mcp@0.2.6 mailagent-mcp
+npx -y -p @mailagent/mcp@0.2.7 mailagent-mcp
 ```
 
 Codex local:
 
 ```bash
-codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.6 mailagent-mcp
+codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.7 mailagent-mcp
 ```
 
 Remote MCP:
@@ -118,6 +120,7 @@ Authorization: Bearer <MAILAGENT_API_KEY or mat_ token>
 
 | Situation | Use |
 |-----------|-----|
+| Unsure what to do next | `mailagent_plan_next` |
 | Unknown sender/service | `mailagent_suggest_preset` |
 | Browser signup | `mailagent_create_inbox` -> form -> `mailagent_verify_signup` |
 | One-shot smoke | `mailagent_verify_signup` without `inboxId` |

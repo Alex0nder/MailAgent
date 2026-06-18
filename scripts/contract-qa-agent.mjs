@@ -47,8 +47,16 @@ async function main() {
     console.error("mailagent_suggest_preset missing from hub");
     process.exit(1);
   }
+  if (!hub.json.mcpTools.includes("mailagent_plan_next")) {
+    console.error("mailagent_plan_next missing from hub");
+    process.exit(1);
+  }
   if (!hub.json.recommended?.presetAdvisor?.path) {
     console.error("preset advisor discovery missing", hub.json.recommended);
+    process.exit(1);
+  }
+  if (!hub.json.recommended?.autopilot?.path) {
+    console.error("autopilot discovery missing", hub.json.recommended);
     process.exit(1);
   }
   if (!hub.json.mcpTools.includes("mailagent_get_run_session")) {
@@ -186,6 +194,30 @@ async function main() {
   console.log("preset advisor OK", {
     service: adviceJson.service,
     subjectContains: adviceJson.subjectContains,
+  });
+
+  const autopilot = await fetch(`${base}/v1/agent/autopilot`, {
+    method: "POST",
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: "Auth0 <no-reply@auth0.com>",
+      subject: "Verify your email",
+      runId: "contract-autopilot",
+    }),
+  });
+  const autopilotJson = await autopilot.json();
+  if (
+    !autopilot.ok ||
+    autopilotJson.nextTool !== "mailagent_create_inbox" ||
+    autopilotJson.mode !== "create_inbox" ||
+    autopilotJson.payloads?.verifySignup?.inboxId !== "<created inbox id>"
+  ) {
+    console.error("autopilot planner failed", autopilot.status, autopilotJson);
+    process.exit(1);
+  }
+  console.log("autopilot planner OK", {
+    nextTool: autopilotJson.nextTool,
+    service: autopilotJson.presetAdvice?.service,
   });
 
   console.log("agent hub OK", {

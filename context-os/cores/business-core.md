@@ -59,7 +59,7 @@ Persona (QA) ──uses── @mailagent/qa / POST /v1/inboxes/open
 | v0.1 | **Agent-first + QA-first**, не consumer email | Privacy burner SaaS | Программные inbox с allowlist; OTP/magic link extract; MCP/REST |
 | v0.2 | **Cloudflare Workers** hosted + self-host MIT | VPS + SMTP server | Edge, Queues, DO для SSE; Resend inbound без своего MX |
 | v0.3 | **Resend inbound** вместо собственного SMTP | Mailgun inbound, custom Postfix | Быстрый webhook → queue; enterprise = dedicated Resend per team |
-| v0.4+ | **MCP как primary agent surface** (27 tools) | Только REST | Cursor/Codex/remote MCP; discovery `GET /v1/agent` |
+| v0.4+ | **MCP как primary agent surface** (28 tools) | Только REST | Cursor/Codex/remote MCP; discovery `GET /v1/agent` |
 | v0.5 | **Service presets** (`service: auth0`) | Только ручной `expectFrom` | 25 пресетов allowlist + subject hints для agents |
 | v0.6 | **`POST /v1/inboxes/open`** one-shot | Только create + wait отдельно | CI one-liner; меньше flaky race между create и submit |
 | v0.7 | **Simulate** (`POST …/simulate`) для contract tests | Real SMTP в CI | Без DATABASE_URL в gate нельзя; simulate = idempotent QA |
@@ -579,7 +579,7 @@ Publish: tag `v*` → `.github/workflows/publish-packages.yml`.
 | Client | Config |
 |--------|--------|
 | Cursor | `.cursor/mcp.json` → `node mcp/dist/index.js` or npx |
-| Codex | `codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.6 mailagent-mcp` |
+| Codex | `codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.7 mailagent-mcp` |
 | Any HTTP client | Remote MCP JSON-RPC at `/mcp` |
 | OAuth MCP | `GET /mcp/auth`, `POST /v1/oauth/token` |
 

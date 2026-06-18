@@ -12,6 +12,10 @@ import { parseCallbackUrl } from "../lib/callback-url";
 import { resolveExpectFrom, resolveTtlMinutes } from "../lib/service-presets";
 import { resolveAgentLabel } from "../lib/agent-recipes";
 import { suggestPreset, type PresetAdviceInput } from "../lib/preset-advisor";
+import {
+  buildAgentAutopilotPlan,
+  type AgentAutopilotInput,
+} from "../lib/agent-autopilot";
 import { runAgentVerify } from "../services/agent-verify";
 import {
   getAgentRunSession,
@@ -118,6 +122,30 @@ export async function executeMcpTool(
   ctx?: McpToolContext
 ) {
   switch (name) {
+    case "mailagent_plan_next": {
+      const input = args as AgentAutopilotInput;
+      const status = input.status?.trim().toLowerCase();
+      const shouldDiagnose =
+        Boolean(input.inboxId) && (status === "timeout" || status === "failed");
+      if (shouldDiagnose) {
+        const inbox = await getInbox(env, input.inboxId!, {
+          apiKeyHint: auth.apiKeyHint,
+        });
+        if (!inbox || !assertInboxAccessible(auth.scope, inbox).ok) {
+          return textResult({ error: "inbox_not_found" }, true);
+        }
+        const apiBase = ctx?.apiBaseUrl?.replace(/\/$/, "") ?? "https://api.webmailagent.com";
+        const diagnose = await buildInboxDiagnose(env, input.inboxId!, {
+          subjectContains: input.subjectContains,
+          messageIndex: input.messageIndex,
+          apiBaseUrl: apiBase,
+          apiKeyHint: auth.apiKeyHint,
+        });
+        return textResult(buildAgentAutopilotPlan(input, diagnose));
+      }
+      return textResult(buildAgentAutopilotPlan(input));
+    }
+
     case "mailagent_suggest_preset": {
       return textResult(suggestPreset(args as PresetAdviceInput));
     }

@@ -25,15 +25,16 @@ The plugin launches the published npm stdio package via `scripts/run-mailagent-m
 codex mcp list
 ```
 
-Expected: `mailagent` server with `mailagent_verify_signup` and `mailagent_create_inbox`.
+Expected: `mailagent` server with `mailagent_plan_next`, `mailagent_verify_signup`, and `mailagent_create_inbox`.
 
 ## Verify signup flow
 
-1. `mailagent_create_inbox` with `label` and `service`.
-2. Submit returned `address` in the signup form.
-3. `mailagent_wait_and_extract` with `inboxId` and `subjectContains`.
-4. Use `otp` or `primaryLink` to finish signup.
-5. `mailagent_delete_inbox` for cleanup.
+1. If unsure, call `mailagent_plan_next` and follow `nextTool` / `nextPayload`.
+2. `mailagent_create_inbox` with `label` and `service`.
+3. Submit returned `address` in the signup form.
+4. `mailagent_wait_and_extract` with `inboxId` and `subjectContains`.
+5. Use `otp` or `primaryLink` to finish signup.
+6. `mailagent_delete_inbox` for cleanup.
 
 If the form is already submitted, use `mailagent_verify_signup` to wait and extract in one call.
 
@@ -43,7 +44,7 @@ For Streamable HTTP without a local subprocess, see
 [OAuth IdP docs](https://webmailagent.com/docs/oauth-idp.html) and use `https://api.webmailagent.com/mcp`
 with a short-lived `mat_` bearer token.
 
-This bundle keeps stdio MCP via `npx -y -p @mailagent/mcp@0.2.6 mailagent-mcp`.
+This bundle keeps stdio MCP via `npx -y -p @mailagent/mcp@0.2.7 mailagent-mcp`.
 
 ## Install from GitHub marketplace
 

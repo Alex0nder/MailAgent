@@ -108,7 +108,8 @@
     "eval:context-os:ab-semantic": "node context-os/eval/run-eval.mjs --condition both --router semantic",
     "eval:context-os:aggregate": "node context-os/eval/aggregate.mjs",
     "eval:context-os:tokens": "node context-os/eval/tokens-report.mjs",
-    "eval:context-os:export": "node context-os/eval/export-results.mjs"
+    "eval:context-os:export": "node context-os/eval/export-results.mjs",
+    "test:agent-autopilot": "npx tsx scripts/test-agent-autopilot.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",

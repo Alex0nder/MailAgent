@@ -20,6 +20,47 @@ export const MCP_SERVER_INFO = {
 
 export const MCP_TOOLS = [
   {
+    name: "mailagent_plan_next",
+    description:
+      "Autopilot planner: given service/sender hints, inboxId, status, or timeout, return the next best MailAgent tool and ready payloads. Use when an agent is unsure what to do next.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        inboxId: { type: "string", description: "Existing inbox id, if already created" },
+        status: {
+          type: "string",
+          enum: [
+            "start",
+            "address_ready",
+            "form_submitted",
+            "timeout",
+            "message_received",
+            "verified",
+            "failed",
+          ],
+        },
+        service: { type: "string", description: "Known service preset, if any" },
+        from: { type: "string", description: "Sample From header for preset advice" },
+        subject: { type: "string", description: "Sample or expected subject" },
+        text: { type: "string", description: "Optional sample body text" },
+        html: { type: "string", description: "Optional sample HTML" },
+        flow: {
+          type: "string",
+          enum: ["signup", "login", "password_reset", "invite_accept", "magic_link_login"],
+        },
+        runId: { type: "string" },
+        label: { type: "string" },
+        subjectContains: { type: "string", description: subjectContainsDesc },
+        messageIndex: { type: "integer", minimum: 0 },
+        timeoutSeconds: { type: "integer", minimum: 5, maximum: 120 },
+        deleteAfterSuccess: { type: "boolean" },
+        keepOnFailure: { type: "boolean" },
+        allowSimulate: { type: "boolean" },
+        lastError: { type: "string" },
+      },
+    },
+  },
+  {
     name: "mailagent_suggest_preset",
     description:
       "Suggest service preset, expectFrom, subjectContains, flow, and snippets from a sample auth email From/Subject/body. Use before verify when sender or service is unclear.",

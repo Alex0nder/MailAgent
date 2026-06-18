@@ -2,8 +2,8 @@
 export const NPM_PACKAGES = {
   mcp: {
     name: "@mailagent/mcp",
-    version: "0.2.6",
-    install: "npx -y -p @mailagent/mcp@0.2.6 mailagent-mcp",
+    version: "0.2.7",
+    install: "npx -y -p @mailagent/mcp@0.2.7 mailagent-mcp",
   },
   qa: {
     name: "@mailagent/qa",

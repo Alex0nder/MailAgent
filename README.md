@@ -205,6 +205,7 @@ Globally for all projects: copy block to `~/.cursor/mcp.json` (absolute path to 
 
 | Tool | Purpose |
 |------|------------|
+| `mailagent_plan_next` | Autopilot planner: returns the next tool, payload, and recovery steps |
 | `mailagent_suggest_preset` | Suggest `service`, `expectFrom`, `subjectContains`, and `flow` from a sample auth email |
 | `mailagent_verify_signup` | **Preferred:** wait and return `agent.primaryAction` |
 | `mailagent_create_inbox` | Create inbox (`service`, `notifyEmail`, cleanup options) |
@@ -225,7 +226,7 @@ Globally for all projects: copy block to `~/.cursor/mcp.json` (absolute path to 
 | `mailagent_get_inbox` | Inbox status |
 | `mailagent_delete_inbox` | Delete early |
 
-Full current list: `GET /v1/agent` returns `mcpTools` (currently 27).
+Full current list: `GET /v1/agent` returns `mcpTools` (currently 28).
 
 Agent skill: [`.cursor/skills/mailagent-mcp/SKILL.md`](.cursor/skills/mailagent-mcp/SKILL.md)
 
@@ -245,7 +246,7 @@ node mcp/dist/cli.js wait <inboxId> --json
 
 `service` presets include `github`, `google`, `auth0`, `gitlab`, `bitbucket`, `stripe`, `vercel`, `supabase`, `clerk`, `discord`, `openai`, `resend`, `firebase`, and more. Discover the current list via `GET /v1/agent`.
 
-If sender or subject hints are unclear, call `POST /v1/agent/preset-advice` or MCP `mailagent_suggest_preset` with a sample `from` / `subject` first. It returns the recommended preset or custom `expectFrom` allowlist.
+If the next action is unclear, call `POST /v1/agent/autopilot` or MCP `mailagent_plan_next`; it returns `nextTool`, `nextPayload`, and recovery payloads. If sender or subject hints are unclear, call `POST /v1/agent/preset-advice` or MCP `mailagent_suggest_preset` with a sample `from` / `subject` first.
 
 ### One-shot (agent / CI)
 

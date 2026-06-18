@@ -27,6 +27,49 @@ const server = new McpServer({
 });
 
 server.registerTool(
+  "mailagent_plan_next",
+  {
+    description:
+      "Autopilot planner: return the next best MailAgent tool and ready payloads from current signup/login state. Use when unsure what to do next.",
+    inputSchema: {
+      inboxId: z.string().optional(),
+      status: z
+        .enum([
+          "start",
+          "address_ready",
+          "form_submitted",
+          "timeout",
+          "message_received",
+          "verified",
+          "failed",
+        ])
+        .optional(),
+      service: z.string().optional(),
+      from: z.string().optional(),
+      subject: z.string().optional(),
+      text: z.string().optional(),
+      html: z.string().optional(),
+      flow: z
+        .enum(["signup", "login", "password_reset", "invite_accept", "magic_link_login"])
+        .optional(),
+      runId: z.string().optional(),
+      label: z.string().optional(),
+      subjectContains: z.string().optional(),
+      messageIndex: z.number().int().min(0).optional(),
+      timeoutSeconds: z.number().int().min(5).max(120).optional(),
+      deleteAfterSuccess: z.boolean().optional(),
+      keepOnFailure: z.boolean().optional(),
+      allowSimulate: z.boolean().optional(),
+      lastError: z.string().optional(),
+    },
+  },
+  async (args) => {
+    const client = new MailAgentClient();
+    return toolText(await client.planNext(args));
+  }
+);
+
+server.registerTool(
   "mailagent_suggest_preset",
   {
     description:

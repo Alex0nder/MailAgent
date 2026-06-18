@@ -467,6 +467,69 @@ export const openApiSpec = {
         },
       },
     },
+    "/v1/agent/autopilot": {
+      post: {
+        tags: ["meta"],
+        summary: "Plan the next best agent action for signup/login email verification",
+        security: bearer,
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  inboxId: { type: "string" },
+                  status: {
+                    type: "string",
+                    enum: [
+                      "start",
+                      "address_ready",
+                      "form_submitted",
+                      "timeout",
+                      "message_received",
+                      "verified",
+                      "failed",
+                    ],
+                  },
+                  service: { type: "string" },
+                  from: { type: "string" },
+                  subject: { type: "string" },
+                  text: { type: "string" },
+                  html: { type: "string" },
+                  flow: {
+                    type: "string",
+                    enum: [
+                      "signup",
+                      "login",
+                      "password_reset",
+                      "invite_accept",
+                      "magic_link_login",
+                    ],
+                  },
+                  runId: { type: "string" },
+                  label: { type: "string" },
+                  subjectContains: { type: "string" },
+                  messageIndex: { type: "integer", minimum: 0 },
+                  timeoutSeconds: { type: "integer", minimum: 5, maximum: 120 },
+                  deleteAfterSuccess: { type: "boolean" },
+                  keepOnFailure: { type: "boolean" },
+                  allowSimulate: { type: "boolean" },
+                  lastError: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Autopilot plan with nextTool, nextPayload, steps, guardrails, preset advice, and optional diagnose recovery",
+          },
+          "401": { $ref: "#/components/responses/Unauthorized" },
+          "429": { $ref: "#/components/responses/RateLimited" },
+        },
+      },
+    },
     "/v1/stats": {
       get: {
         tags: ["meta"],
