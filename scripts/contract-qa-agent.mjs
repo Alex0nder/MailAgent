@@ -55,6 +55,16 @@ async function main() {
     console.error("mailagent_issue_access missing from hub");
     process.exit(1);
   }
+  for (const tool of [
+    "mailagent_start_run",
+    "mailagent_next_run",
+    "mailagent_report_run",
+  ]) {
+    if (!hub.json.mcpTools.includes(tool)) {
+      console.error(`${tool} missing from hub`);
+      process.exit(1);
+    }
+  }
   if (!hub.json.recommended?.presetAdvisor?.path) {
     console.error("preset advisor discovery missing", hub.json.recommended);
     process.exit(1);
@@ -78,6 +88,10 @@ async function main() {
   }
   if (!hub.json.runs?.session?.patch) {
     console.error("runs.session discovery missing", hub.json.runs);
+    process.exit(1);
+  }
+  if (!hub.json.runs?.start || !hub.json.runs?.next || !hub.json.runs?.report) {
+    console.error("runs workflow discovery missing", hub.json.runs);
     process.exit(1);
   }
   if (requireRunTimeline && !hub.json.runs?.timeline) {

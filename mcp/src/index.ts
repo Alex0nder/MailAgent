@@ -26,6 +26,41 @@ const server = new McpServer({
   version: "0.1.0",
 });
 
+const runStatusSchema = z
+  .enum([
+    "start",
+    "address_ready",
+    "form_submitted",
+    "timeout",
+    "message_received",
+    "verified",
+    "failed",
+  ])
+  .optional();
+
+const agentFlowSchema = z
+  .enum(["signup", "login", "password_reset", "invite_accept", "magic_link_login"])
+  .optional();
+
+const autopilotArgsSchema = {
+  inboxId: z.string().optional(),
+  status: runStatusSchema,
+  service: z.string().optional(),
+  from: z.string().optional(),
+  subject: z.string().optional(),
+  text: z.string().optional(),
+  html: z.string().optional(),
+  flow: agentFlowSchema,
+  label: z.string().optional(),
+  subjectContains: z.string().optional(),
+  messageIndex: z.number().int().min(0).optional(),
+  timeoutSeconds: z.number().int().min(5).max(120).optional(),
+  deleteAfterSuccess: z.boolean().optional(),
+  keepOnFailure: z.boolean().optional(),
+  allowSimulate: z.boolean().optional(),
+  lastError: z.string().optional(),
+};
+
 server.registerTool(
   "mailagent_issue_access",
   {
@@ -53,40 +88,66 @@ server.registerTool(
     description:
       "Autopilot planner: return the next best MailAgent tool and ready payloads from current signup/login state. Use when unsure what to do next.",
     inputSchema: {
-      inboxId: z.string().optional(),
-      status: z
-        .enum([
-          "start",
-          "address_ready",
-          "form_submitted",
-          "timeout",
-          "message_received",
-          "verified",
-          "failed",
-        ])
-        .optional(),
-      service: z.string().optional(),
-      from: z.string().optional(),
-      subject: z.string().optional(),
-      text: z.string().optional(),
-      html: z.string().optional(),
-      flow: z
-        .enum(["signup", "login", "password_reset", "invite_accept", "magic_link_login"])
-        .optional(),
+      ...autopilotArgsSchema,
       runId: z.string().optional(),
-      label: z.string().optional(),
-      subjectContains: z.string().optional(),
-      messageIndex: z.number().int().min(0).optional(),
-      timeoutSeconds: z.number().int().min(5).max(120).optional(),
-      deleteAfterSuccess: z.boolean().optional(),
-      keepOnFailure: z.boolean().optional(),
-      allowSimulate: z.boolean().optional(),
-      lastError: z.string().optional(),
     },
   },
   async (args) => {
     const client = new MailAgentClient();
     return toolText(await client.planNext(args));
+  }
+);
+
+server.registerTool(
+  "mailagent_start_run",
+  {
+    description:
+      "Start a server-side autonomous agent run session and return the first autopilot plan.",
+    inputSchema: {
+      ...autopilotArgsSchema,
+      runId: z.string().optional(),
+      appUrl: z.string().optional(),
+      notes: z.string().optional(),
+    },
+  },
+  async (args) => {
+    const client = new MailAgentClient();
+    return toolText(await client.startRun(args));
+  }
+);
+
+server.registerTool(
+  "mailagent_next_run",
+  {
+    description:
+      "Resume an agent run and return the next best tool/payload from saved session state.",
+    inputSchema: {
+      ...autopilotArgsSchema,
+      runId: z.string(),
+    },
+  },
+  async ({ runId, ...args }) => {
+    const client = new MailAgentClient();
+    return toolText(await client.nextRun(runId, args));
+  }
+);
+
+server.registerTool(
+  "mailagent_report_run",
+  {
+    description:
+      "Report run progress/failure, append a timeline step, update saved state, and return the next plan.",
+    inputSchema: {
+      ...autopilotArgsSchema,
+      runId: z.string(),
+      step: z.string().optional(),
+      error: z.string().optional(),
+      result: z.record(z.unknown()).optional(),
+    },
+  },
+  async ({ runId, ...args }) => {
+    const client = new MailAgentClient();
+    return toolText(await client.reportRun(runId, args));
   }
 );
 

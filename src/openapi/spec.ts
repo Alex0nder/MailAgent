@@ -606,6 +606,98 @@ export const openApiSpec = {
         },
       },
     },
+    "/v1/agent/runs/start": {
+      post: {
+        tags: ["meta"],
+        summary: "Start an autonomous agent run session and return first plan",
+        security: bearer,
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  runId: { type: "string" },
+                  appUrl: { type: "string" },
+                  notes: { type: "string" },
+                  service: { type: "string" },
+                  subject: { type: "string" },
+                  flow: { type: "string" },
+                  subjectContains: { type: "string" },
+                  timeoutSeconds: { type: "integer", minimum: 5, maximum: 120 },
+                  deleteAfterSuccess: { type: "boolean" },
+                  keepOnFailure: { type: "boolean" },
+                  allowSimulate: { type: "boolean" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "201": { description: "Run session, initial step, and autopilot plan" },
+          "400": { description: "invalid_run_id | state_too_large | invalid_step" },
+        },
+      },
+    },
+    "/v1/agent/runs/{runId}/next": {
+      post: {
+        tags: ["meta"],
+        summary: "Resume an agent run and return the next plan",
+        security: bearer,
+        parameters: [{ name: "runId", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  status: { type: "string" },
+                  inboxId: { type: "string" },
+                  service: { type: "string" },
+                  subjectContains: { type: "string" },
+                  lastError: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Run session and next autopilot plan" },
+          "400": { description: "invalid_run_id | state_too_large" },
+          "404": { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
+    "/v1/agent/runs/{runId}/report": {
+      post: {
+        tags: ["meta"],
+        summary: "Report agent run progress or failure and return the next plan",
+        security: bearer,
+        parameters: [{ name: "runId", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  status: { type: "string" },
+                  step: { type: "string" },
+                  error: { type: "string" },
+                  result: { type: "object", additionalProperties: true },
+                  inboxId: { type: "string" },
+                  service: { type: "string" },
+                  subjectContains: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Updated run session and next autopilot plan" },
+          "400": { description: "invalid_run_id | state_too_large | invalid_step" },
+        },
+      },
+    },
     "/v1/agent/runs/{runId}/session": {
       get: {
         tags: ["meta"],

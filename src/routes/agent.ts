@@ -28,6 +28,14 @@ import {
   patchAgentRunSession,
   sessionOwnerKey,
 } from "../services/agent-run-session";
+import {
+  nextAgentRun,
+  reportAgentRun,
+  startAgentRun,
+  type AgentRunNextInput,
+  type AgentRunReportInput,
+  type AgentRunStartInput,
+} from "../services/agent-run-workflow";
 import { validateRunId } from "../lib/validate-run-id";
 import { MCP_SERVER_INFO, MCP_TOOL_NAMES } from "../mcp/manifest";
 import { isOidcEnabled } from "../services/oidc-oauth";
@@ -114,6 +122,9 @@ agentRoutes.get("/", (c) => {
     runs: {
       list: "GET /v1/agent/runs",
       detail: "GET /v1/agent/runs/:runId (includes session)",
+      start: "POST /v1/agent/runs/start",
+      next: "POST /v1/agent/runs/:runId/next",
+      report: "POST /v1/agent/runs/:runId/report",
       session: {
         get: "GET /v1/agent/runs/:runId/session",
         patch: "PATCH /v1/agent/runs/:runId/session",
@@ -268,6 +279,101 @@ agentRoutes.get("/runs", async (c) => {
     label,
   });
   return c.json({ runs });
+});
+
+agentRoutes.post("/runs/start", async (c) => {
+  const writeErr = scopeWriteDenied(c);
+  if (writeErr) return writeErr;
+
+  let body: AgentRunStartInput = {};
+  try {
+    body = await c.req.json<AgentRunStartInput>();
+  } catch {
+    body = {};
+  }
+
+  try {
+    const result = await startAgentRun(
+      c.env,
+      {
+        ownerKey: sessionOwnerKey(c.get("teamId"), c.get("apiKeyHint")),
+        apiKeyHint: c.get("apiKeyHint"),
+        apiBaseUrl: publicOriginFromUrl(c.req.url),
+      },
+      body
+    );
+    if (!result.ok) return c.json({ error: result.error }, 400);
+    return c.json(result, 201);
+  } catch (e) {
+    if (e instanceof Error && e.message === "invalid_run_id") {
+      return c.json({ error: "invalid_run_id" }, 400);
+    }
+    throw e;
+  }
+});
+
+agentRoutes.post("/runs/:runId/next", async (c) => {
+  const writeErr = scopeWriteDenied(c);
+  if (writeErr) return writeErr;
+
+  let body: AgentRunNextInput = {};
+  try {
+    body = await c.req.json<AgentRunNextInput>();
+  } catch {
+    body = {};
+  }
+
+  try {
+    const result = await nextAgentRun(
+      c.env,
+      {
+        ownerKey: sessionOwnerKey(c.get("teamId"), c.get("apiKeyHint")),
+        apiKeyHint: c.get("apiKeyHint"),
+        apiBaseUrl: publicOriginFromUrl(c.req.url),
+      },
+      c.req.param("runId"),
+      body
+    );
+    if (!result.ok) return c.json({ error: result.error }, result.status);
+    return c.json(result);
+  } catch (e) {
+    if (e instanceof Error && e.message === "invalid_run_id") {
+      return c.json({ error: "invalid_run_id" }, 400);
+    }
+    throw e;
+  }
+});
+
+agentRoutes.post("/runs/:runId/report", async (c) => {
+  const writeErr = scopeWriteDenied(c);
+  if (writeErr) return writeErr;
+
+  let body: AgentRunReportInput = {};
+  try {
+    body = await c.req.json<AgentRunReportInput>();
+  } catch {
+    body = {};
+  }
+
+  try {
+    const result = await reportAgentRun(
+      c.env,
+      {
+        ownerKey: sessionOwnerKey(c.get("teamId"), c.get("apiKeyHint")),
+        apiKeyHint: c.get("apiKeyHint"),
+        apiBaseUrl: publicOriginFromUrl(c.req.url),
+      },
+      c.req.param("runId"),
+      body
+    );
+    if (!result.ok) return c.json({ error: result.error }, result.status);
+    return c.json(result);
+  } catch (e) {
+    if (e instanceof Error && e.message === "invalid_run_id") {
+      return c.json({ error: "invalid_run_id" }, 400);
+    }
+    throw e;
+  }
 });
 
 agentRoutes.get("/runs/:runId/session", async (c) => {

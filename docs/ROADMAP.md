@@ -215,7 +215,7 @@ Deploy on push `main`: [CI.md](./CI.md) — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_
 | `GET /v1/console/inboxes/:id` messages + threads + callbacks | ✅ |
 | `console-inbox.html` hosted inbox view | ✅ |
 | Codex plugin v0.2.3 + `npm run package:codex` tarball | ✅ |
-| Skill updated (21 MCP tools) | ✅ |
+| Skill updated (32 MCP tools) | ✅ |
 | `contract-qa-console-inbox` | ✅ |
 
 ### v0.27 Console send/reply + npm publish prep

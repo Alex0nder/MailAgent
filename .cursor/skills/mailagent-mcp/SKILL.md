@@ -10,7 +10,7 @@ homepage: https://webmailagent.com/docs/agents.html
 repository: https://github.com/Alex0nder/MailAgent
 metadata:
   author: mailagent
-  version: "0.2.8"
+  version: "0.2.9"
   categories: "Email, QA, Agents, MCP"
 ---
 
@@ -54,7 +54,7 @@ Guide: https://webmailagent.com/docs/codex.html
 ```bash
 export MAILAGENT_API_URL=https://api.webmailagent.com
 export MAILAGENT_API_KEY=ma_…
-npx -y -p @mailagent/mcp@0.2.8 mailagent-mcp
+npx -y -p @mailagent/mcp@0.2.9 mailagent-mcp
 ```
 
 Remote (no subprocess): `POST https://api.webmailagent.com/mcp` + Bearer token.
@@ -82,6 +82,8 @@ If sender or subject is unclear, call **`mailagent_suggest_preset`** with a samp
 ## Recommended flow
 
 If you have an unrestricted team key and need to hand a run to a sub-agent, call **`mailagent_issue_access`** first with `runId` or `labelPrefix`. Use the returned short-lived key only for that run; all inbox labels must start with the returned `labelPrefix`.
+
+For autonomous multi-step QA, call **`mailagent_start_run`** before browser work. Execute `plan.nextTool`, call **`mailagent_report_run`** after each form submit/wait/failure, and call **`mailagent_next_run`** to resume after context loss.
 
 **Primary:** `mailagent_verify_signup` → returns **`agent.primaryAction`** (`otp` | `magic_link`, `value`, `instruction`).
 
@@ -134,6 +136,9 @@ Console: `console-inbox.html` → notify relay log.
 | Tool | When |
 |------|------|
 | `mailagent_issue_access` | Team admin only — mint a short-lived scoped key for one autonomous agent run |
+| `mailagent_start_run` | Start server-side run state and get the first autopilot plan |
+| `mailagent_report_run` | Report progress/failure and get the next plan |
+| `mailagent_next_run` | Resume a run from saved state after context loss or errors |
 | `mailagent_plan_next` | Autopilot — choose the next MCP tool and ready payload from current state |
 | `mailagent_suggest_preset` | Unknown sender/service — get `service`, `expectFrom`, `subjectContains`, and `flow` |
 | `mailagent_verify_signup` | One-shot wait + extract + primaryAction |
@@ -154,7 +159,7 @@ Console: `console-inbox.html` → notify relay log.
 | `callbackUrl` on create | Async CI — `waitForCallback` in QA SDK |
 | `notifyEmail` on create | Relay OTP to developer's real inbox |
 
-Full list: `GET https://api.webmailagent.com/v1/agent` → `mcpTools` (29 tools).
+Full list: `GET https://api.webmailagent.com/v1/agent` → `mcpTools` (32 tools).
 
 ## Email check (`mailagent_check_email`)
 

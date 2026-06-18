@@ -10,6 +10,7 @@ What can be automated:
 - wait for OTP or magic links;
 - diagnose failures;
 - run simulate-first QA tests;
+- keep server-side run state and resume after context loss with `mailagent_start_run` / `mailagent_report_run` / `mailagent_next_run`;
 - ask for the next best tool/payload with `mailagent_plan_next`;
 - choose presets with `mailagent_suggest_preset`;
 - clean up test inboxes.
@@ -37,7 +38,7 @@ Setup:
 1. Read https://github.com/Alex0nder/MailAgent/blob/main/AGENTS.md
 2. Read https://github.com/Alex0nder/MailAgent/blob/main/docs/QA-PILOT.md
 3. If using Codex/Cursor MCP:
-   npx -y -p @mailagent/mcp@0.2.8 mailagent-mcp
+   npx -y -p @mailagent/mcp@0.2.9 mailagent-mcp
 4. Set:
    MAILAGENT_API_URL=https://api.webmailagent.com
    MAILAGENT_API_KEY=<provided privately>
@@ -45,6 +46,7 @@ Setup:
    npm run wizard:qa-pilot
 
 Preferred flow:
+- for autonomous multi-step browser work, start with mailagent_start_run, execute plan.nextTool, report each step with mailagent_report_run, resume with mailagent_next_run
 - create inbox -> submit inbox.address in the app -> verify with inboxId
 - use service preset when known, e.g. auth0, clerk, supabase, github
 - when unsure what to do next, call mailagent_plan_next
@@ -101,13 +103,13 @@ npm test
 ```bash
 export MAILAGENT_API_URL=https://api.webmailagent.com
 export MAILAGENT_API_KEY=<provided privately>
-npx -y -p @mailagent/mcp@0.2.8 mailagent-mcp
+npx -y -p @mailagent/mcp@0.2.9 mailagent-mcp
 ```
 
 Codex local:
 
 ```bash
-codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.8 mailagent-mcp
+codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.9 mailagent-mcp
 ```
 
 Remote MCP:
@@ -122,6 +124,7 @@ Authorization: Bearer <MAILAGENT_API_KEY or mat_ token>
 | Situation | Use |
 |-----------|-----|
 | Need isolated temporary access for a run | `mailagent_issue_access` with `runId` / `labelPrefix` |
+| Autonomous multi-step QA | `mailagent_start_run` -> execute `plan.nextTool` -> `mailagent_report_run` -> `mailagent_next_run` |
 | Unsure what to do next | `mailagent_plan_next` |
 | Unknown sender/service | `mailagent_suggest_preset` |
 | Browser signup | `mailagent_create_inbox` -> form -> `mailagent_verify_signup` |

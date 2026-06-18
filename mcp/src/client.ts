@@ -80,6 +80,27 @@ export class MailAgentClient {
     });
   }
 
+  startRun(options: AgentRunStartInput) {
+    return this.request<Record<string, unknown>>("/v1/agent/runs/start", {
+      method: "POST",
+      body: JSON.stringify(options),
+    });
+  }
+
+  nextRun(runId: string, options: AgentRunNextInput = {}) {
+    return this.request<Record<string, unknown>>(
+      `/v1/agent/runs/${encodeURIComponent(runId)}/next`,
+      { method: "POST", body: JSON.stringify(options) }
+    );
+  }
+
+  reportRun(runId: string, options: AgentRunReportInput = {}) {
+    return this.request<Record<string, unknown>>(
+      `/v1/agent/runs/${encodeURIComponent(runId)}/report`,
+      { method: "POST", body: JSON.stringify(options) }
+    );
+  }
+
   createInbox(options?: CreateInboxOptions) {
     const body: Record<string, unknown> = {};
     if (options?.ttlMinutes !== undefined) body.ttlMinutes = options.ttlMinutes;
@@ -509,6 +530,19 @@ export interface AgentAccessInput {
   readOnly?: boolean;
   service?: string;
   allowSimulate?: boolean;
+}
+
+export interface AgentRunStartInput extends AgentAutopilotInput {
+  appUrl?: string;
+  notes?: string;
+}
+
+export interface AgentRunNextInput extends AgentAutopilotInput {}
+
+export interface AgentRunReportInput extends AgentAutopilotInput {
+  step?: string;
+  error?: string;
+  result?: Record<string, unknown>;
 }
 
 export interface PresetAdviceResponse {

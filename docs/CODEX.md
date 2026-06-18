@@ -130,12 +130,13 @@ Example: [examples/codex/config.remote-oauth.toml.example](../examples/codex/con
 Flow templates: `GET /v1/agent/flows` lists signup, login 2FA, password reset, invite acceptance, and magic-link login templates with subject hints and recovery steps.
 
 1. If using an unrestricted team key and delegating a run, call `mailagent_issue_access` to mint a short-lived scoped run key.
-2. If the next step is unclear, call `mailagent_plan_next` and follow its `nextTool` / `nextPayload`.
-3. If sender/service is unclear, call `mailagent_suggest_preset` with sample `from` / `subject`.
-4. `mailagent_create_inbox` or `mailagent_verify_signup` with `service: "github"` / `"auth0"`; use returned `expectFrom` for custom senders.
-5. Agent fills email on signup form.
-6. `mailagent_wait_and_extract` / `mailagent_wait_for_message` with `subjectContains`.
-7. OTP or `primaryLink` → next scenario step.
+2. For autonomous browser work, call `mailagent_start_run`, execute `plan.nextTool`, then call `mailagent_report_run` after each submit/wait/failure.
+3. If context is lost or the next step is unclear, call `mailagent_next_run` (or `mailagent_plan_next` for stateless planning) and follow `nextTool` / `nextPayload`.
+4. If sender/service is unclear, call `mailagent_suggest_preset` with sample `from` / `subject`.
+5. `mailagent_create_inbox` or `mailagent_verify_signup` with `service: "github"` / `"auth0"`; use returned `expectFrom` for custom senders.
+6. Agent fills email on signup form.
+7. `mailagent_wait_and_extract` / `mailagent_wait_for_message` with `subjectContains`.
+8. OTP or `primaryLink` → next scenario step.
 8. `mailagent_delete_inbox` on cleanup.
 
 Skill: see `examples/codex/plugin/skills/mailagent/SKILL.md`.

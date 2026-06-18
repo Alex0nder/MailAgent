@@ -35,13 +35,15 @@ Typical agent pipeline:
 
 ```
 1. mailagent_issue_access when a team admin key should mint a short-lived scoped run key
-2. mailagent_plan_next when the agent needs the next tool + payload
-3. mailagent_suggest_preset when sender/service is unclear
-4. mailagent_create_inbox (service: github, or expectFrom for custom sender)
-5. Browser: submit address on github.com/signup
-6. mailagent_verify_signup → primaryAction (OTP or link)
-7. Complete signup
-8. Membrane github skill → create issue, open PR, etc.
+2. mailagent_start_run before browser work to create resumable state
+3. mailagent_report_run after each form submit, wait, timeout, or failure
+4. mailagent_next_run when the agent needs the next tool + payload from saved state
+5. mailagent_suggest_preset when sender/service is unclear
+6. mailagent_create_inbox (service: github, or expectFrom for custom sender)
+7. Browser: submit address on github.com/signup
+8. mailagent_verify_signup → primaryAction (OTP or link)
+9. Complete signup
+10. Membrane github skill → create issue, open PR, etc.
 ```
 
 ## Service recipes + post-signup

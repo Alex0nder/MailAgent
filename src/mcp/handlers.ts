@@ -16,6 +16,14 @@ import {
   buildAgentAutopilotPlan,
   type AgentAutopilotInput,
 } from "../lib/agent-autopilot";
+import {
+  nextAgentRun,
+  reportAgentRun,
+  startAgentRun,
+  type AgentRunNextInput,
+  type AgentRunReportInput,
+  type AgentRunStartInput,
+} from "../services/agent-run-workflow";
 import { issueAgentAccess, type AgentAccessInput } from "../services/agent-access";
 import { runAgentVerify } from "../services/agent-verify";
 import {
@@ -158,6 +166,77 @@ export async function executeMcpTool(
         return textResult(buildAgentAutopilotPlan(input, diagnose));
       }
       return textResult(buildAgentAutopilotPlan(input));
+    }
+
+    case "mailagent_start_run": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr) return textResult(writeErr, true);
+      try {
+        const apiBase = ctx?.apiBaseUrl?.replace(/\/$/, "") ?? "https://api.webmailagent.com";
+        const result = await startAgentRun(
+          env,
+          {
+            ownerKey: sessionOwnerKey(auth.teamId, auth.apiKeyHint),
+            apiKeyHint: auth.apiKeyHint,
+            apiBaseUrl: apiBase,
+          },
+          args as AgentRunStartInput
+        );
+        return textResult(result, !result.ok);
+      } catch (e) {
+        if (e instanceof Error && e.message === "invalid_run_id") {
+          return textResult({ error: "invalid_run_id" }, true);
+        }
+        throw e;
+      }
+    }
+
+    case "mailagent_next_run": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr) return textResult(writeErr, true);
+      try {
+        const apiBase = ctx?.apiBaseUrl?.replace(/\/$/, "") ?? "https://api.webmailagent.com";
+        const result = await nextAgentRun(
+          env,
+          {
+            ownerKey: sessionOwnerKey(auth.teamId, auth.apiKeyHint),
+            apiKeyHint: auth.apiKeyHint,
+            apiBaseUrl: apiBase,
+          },
+          args.runId as string,
+          args as AgentRunNextInput
+        );
+        return textResult(result, !result.ok);
+      } catch (e) {
+        if (e instanceof Error && e.message === "invalid_run_id") {
+          return textResult({ error: "invalid_run_id" }, true);
+        }
+        throw e;
+      }
+    }
+
+    case "mailagent_report_run": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr) return textResult(writeErr, true);
+      try {
+        const apiBase = ctx?.apiBaseUrl?.replace(/\/$/, "") ?? "https://api.webmailagent.com";
+        const result = await reportAgentRun(
+          env,
+          {
+            ownerKey: sessionOwnerKey(auth.teamId, auth.apiKeyHint),
+            apiKeyHint: auth.apiKeyHint,
+            apiBaseUrl: apiBase,
+          },
+          args.runId as string,
+          args as AgentRunReportInput
+        );
+        return textResult(result, !result.ok);
+      } catch (e) {
+        if (e instanceof Error && e.message === "invalid_run_id") {
+          return textResult({ error: "invalid_run_id" }, true);
+        }
+        throw e;
+      }
     }
 
     case "mailagent_suggest_preset": {
