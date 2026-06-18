@@ -122,6 +122,28 @@ export class MailAgentClient {
     });
   }
 
+  workspaceCreateReminder(options: WorkspaceReminderCreateInput) {
+    return this.request<Record<string, unknown>>("/v1/workspace/reminders", {
+      method: "POST",
+      body: JSON.stringify(options),
+    });
+  }
+
+  workspaceListReminders(options: { status?: "open" | "completed" | "all"; limit?: number } = {}) {
+    const q = new URLSearchParams();
+    if (options.status) q.set("status", options.status);
+    if (options.limit) q.set("limit", String(options.limit));
+    const suffix = q.size ? `?${q}` : "";
+    return this.request<Record<string, unknown>>(`/v1/workspace/reminders${suffix}`);
+  }
+
+  workspaceCompleteReminder(id: string) {
+    return this.request<Record<string, unknown>>(
+      `/v1/workspace/reminders/${encodeURIComponent(id)}/complete`,
+      { method: "PATCH", body: JSON.stringify({}) }
+    );
+  }
+
   createInbox(options?: CreateInboxOptions) {
     const body: Record<string, unknown> = {};
     if (options?.ttlMinutes !== undefined) body.ttlMinutes = options.ttlMinutes;
@@ -590,6 +612,16 @@ export interface WorkspaceDraftReplyInput extends WorkspaceSummarizeInput {
 export interface WorkspaceReminderInput extends WorkspaceSummarizeInput {
   now?: string;
   timezone?: string;
+}
+
+export interface WorkspaceReminderCreateInput {
+  title: string;
+  dueAt?: string;
+  dueHint?: string;
+  source?: string;
+  sourceThreadId?: string;
+  sourceMessageId?: string;
+  meta?: Record<string, unknown>;
 }
 
 export interface PresetAdviceResponse {

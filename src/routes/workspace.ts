@@ -4,7 +4,14 @@ import type { Env } from "../env";
 import type { ApiVariables } from "../lib/api-context";
 import { requireApiKey } from "../lib/auth";
 import { rateLimit } from "../lib/rate-limit";
+import { scopeWriteDenied } from "../lib/scope-guard";
 import { configuredWorkspaceProvider } from "../services/llm-provider";
+import {
+  completeWorkspaceReminder,
+  createWorkspaceReminder,
+  listWorkspaceReminders,
+  type WorkspaceReminderInput as WorkspaceReminderCreateInput,
+} from "../services/workspace-reminders";
 import {
   draftWorkspaceReply,
   suggestWorkspaceReminders,
@@ -39,6 +46,9 @@ workspaceRoutes.get("/", (c) => {
       summarize: "POST /v1/workspace/summarize",
       draftReply: "POST /v1/workspace/draft-reply",
       suggestReminders: "POST /v1/workspace/reminders/suggest",
+      createReminder: "POST /v1/workspace/reminders",
+      listReminders: "GET /v1/workspace/reminders",
+      completeReminder: "PATCH /v1/workspace/reminders/:id/complete",
     },
     roadmap: "https://github.com/Alex0nder/MailAgent/blob/main/docs/WORKSPACE-AGENT-PBR.md",
   });
@@ -72,4 +82,50 @@ workspaceRoutes.post("/reminders/suggest", async (c) => {
     body = {};
   }
   return c.json(await suggestWorkspaceReminders(c.env, body));
+});
+
+workspaceRoutes.get("/reminders", async (c) => {
+  const statusRaw = c.req.query("status")?.trim();
+  const status =
+    statusRaw === "completed" || statusRaw === "all" ? statusRaw : "open";
+  const limit = Number(c.req.query("limit") ?? 50);
+  const reminders = await listWorkspaceReminders(
+    c.env,
+    { teamId: c.get("teamId"), apiKeyHint: c.get("apiKeyHint") },
+    { status, limit }
+  );
+  return c.json({ reminders, count: reminders.length });
+});
+
+workspaceRoutes.post("/reminders", async (c) => {
+  const writeErr = scopeWriteDenied(c);
+  if (writeErr) return writeErr;
+
+  let body: WorkspaceReminderCreateInput = {};
+  try {
+    body = await c.req.json<WorkspaceReminderCreateInput>();
+  } catch {
+    body = {};
+  }
+
+  const result = await createWorkspaceReminder(
+    c.env,
+    { teamId: c.get("teamId"), apiKeyHint: c.get("apiKeyHint") },
+    body
+  );
+  if (!result.ok) return c.json({ error: result.error }, result.status);
+  return c.json(result.reminder, 201);
+});
+
+workspaceRoutes.patch("/reminders/:id/complete", async (c) => {
+  const writeErr = scopeWriteDenied(c);
+  if (writeErr) return writeErr;
+
+  const result = await completeWorkspaceReminder(
+    c.env,
+    { teamId: c.get("teamId"), apiKeyHint: c.get("apiKeyHint") },
+    c.req.param("id")
+  );
+  if (!result.ok) return c.json({ error: result.error }, result.status);
+  return c.json(result.reminder);
 });

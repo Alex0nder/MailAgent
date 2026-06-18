@@ -283,6 +283,48 @@ export const MCP_TOOLS = [
     },
   },
   {
+    name: "mailagent_workspace_create_reminder",
+    description:
+      "Workspace Agent preview: persist a reminder/follow-up. Does not send email or create calendar events.",
+    inputSchema: {
+      type: "object",
+      required: ["title"],
+      properties: {
+        title: { type: "string" },
+        dueAt: { type: "string", description: "ISO timestamp when known" },
+        dueHint: { type: "string", description: "Human due hint, e.g. tomorrow" },
+        source: { type: "string", description: "message, thread, manual, etc." },
+        sourceThreadId: { type: "string" },
+        sourceMessageId: { type: "string" },
+        meta: { type: "object" },
+      },
+    },
+  },
+  {
+    name: "mailagent_workspace_list_reminders",
+    description:
+      "Workspace Agent preview: list saved reminders/follow-ups for the current team or API key.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        status: { type: "string", enum: ["open", "completed", "all"] },
+        limit: { type: "integer", minimum: 1, maximum: 100 },
+      },
+    },
+  },
+  {
+    name: "mailagent_workspace_complete_reminder",
+    description:
+      "Workspace Agent preview: mark a saved reminder/follow-up as completed.",
+    inputSchema: {
+      type: "object",
+      required: ["id"],
+      properties: {
+        id: { type: "string" },
+      },
+    },
+  },
+  {
     name: "mailagent_verify_signup",
     description: verifySignupDesc,
     inputSchema: {

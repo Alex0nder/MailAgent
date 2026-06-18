@@ -111,6 +111,21 @@ apiMetaRoutes.get("/", (c) => {
         path: "/v1/workspace/reminders/suggest",
         note: "Workspace Agent preview: suggest reminders/follow-ups",
       },
+      workspaceReminderCreate: {
+        method: "POST",
+        path: "/v1/workspace/reminders",
+        note: "Workspace Agent preview: persist reminder/follow-up",
+      },
+      workspaceReminderList: {
+        method: "GET",
+        path: "/v1/workspace/reminders",
+        note: "Workspace Agent preview: list saved reminders/follow-ups",
+      },
+      workspaceReminderComplete: {
+        method: "PATCH",
+        path: "/v1/workspace/reminders/:id/complete",
+        note: "Workspace Agent preview: complete saved reminder/follow-up",
+      },
     },
     services: Object.keys(SERVICE_EXPECT_FROM),
     mcpTools: MCP_TOOL_NAMES,

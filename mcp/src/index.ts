@@ -215,6 +215,58 @@ server.registerTool(
 );
 
 server.registerTool(
+  "mailagent_workspace_create_reminder",
+  {
+    description:
+      "Workspace Agent preview: persist a reminder/follow-up. Does not send email or create calendar events.",
+    inputSchema: {
+      title: z.string(),
+      dueAt: z.string().optional(),
+      dueHint: z.string().optional(),
+      source: z.string().optional(),
+      sourceThreadId: z.string().optional(),
+      sourceMessageId: z.string().optional(),
+      meta: z.record(z.unknown()).optional(),
+    },
+  },
+  async (args) => {
+    const client = new MailAgentClient();
+    return toolText(await client.workspaceCreateReminder(args));
+  }
+);
+
+server.registerTool(
+  "mailagent_workspace_list_reminders",
+  {
+    description:
+      "Workspace Agent preview: list saved reminders/follow-ups for the current team or API key.",
+    inputSchema: {
+      status: z.enum(["open", "completed", "all"]).optional(),
+      limit: z.number().int().min(1).max(100).optional(),
+    },
+  },
+  async (args) => {
+    const client = new MailAgentClient();
+    return toolText(await client.workspaceListReminders(args));
+  }
+);
+
+server.registerTool(
+  "mailagent_workspace_complete_reminder",
+  {
+    description:
+      "Workspace Agent preview: mark a saved reminder/follow-up as completed.",
+    inputSchema: {
+      id: z.string(),
+    },
+  },
+  async ({ id }) => {
+    const client = new MailAgentClient();
+    return toolText(await client.workspaceCompleteReminder(id));
+  }
+);
+
+server.registerTool(
   "mailagent_suggest_preset",
   {
     description:

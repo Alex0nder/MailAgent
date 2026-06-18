@@ -9,7 +9,7 @@ This doc is for **third-party curated lists** like [awesome-codex-plugins](https
 |---------|---------|
 | GitHub marketplace | `codex plugin marketplace add Alex0nder/MailAgent` |
 | Agent Skills | `npx skills add Alex0nder/MailAgent --skill mailagent` |
-| npm MCP | `npx -y -p @mailagent/mcp@0.2.10 mailagent-mcp` |
+| npm MCP | `npx -y -p @mailagent/mcp@0.2.11 mailagent-mcp` |
 
 Docs: https://webmailagent.com/docs/codex.html · https://webmailagent.com/docs/agents.html
 
@@ -47,7 +47,7 @@ Marketplace entry shape (for reference):
   "source": { "source": "local", "path": "./plugins/Alex0nder/mailagent" },
   "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
   "category": "Development & Workflow",
-  "description": "Temporary inboxes for Codex — OTP, magic links, signup QA, simulate-first autotests (35 MCP tools)."
+  "description": "Temporary inboxes for Codex — OTP, magic links, signup QA, simulate-first autotests (38 MCP tools)."
 }
 ```
 

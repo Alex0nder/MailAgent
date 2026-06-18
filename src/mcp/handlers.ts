@@ -79,6 +79,12 @@ import {
   type WorkspaceReminderInput,
   type WorkspaceSummarizeInput,
 } from "../services/workspace-agent";
+import {
+  completeWorkspaceReminder,
+  createWorkspaceReminder,
+  listWorkspaceReminders,
+  type WorkspaceReminderInput as WorkspaceReminderCreateInput,
+} from "../services/workspace-reminders";
 import type { McpProgressParams, McpToolContext } from "../mcp/progress";
 
 export type McpAuth = {
@@ -261,6 +267,43 @@ export async function executeMcpTool(
 
     case "mailagent_workspace_suggest_reminders": {
       return textResult(await suggestWorkspaceReminders(env, args as WorkspaceReminderInput));
+    }
+
+    case "mailagent_workspace_create_reminder": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr) return textResult(writeErr, true);
+      const result = await createWorkspaceReminder(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        args as WorkspaceReminderCreateInput
+      );
+      return textResult(result.ok ? result.reminder : { error: result.error }, !result.ok);
+    }
+
+    case "mailagent_workspace_list_reminders": {
+      const reminders = await listWorkspaceReminders(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        {
+          status:
+            args.status === "completed" || args.status === "all"
+              ? args.status
+              : "open",
+          limit: Number(args.limit ?? 50),
+        }
+      );
+      return textResult({ reminders, count: reminders.length });
+    }
+
+    case "mailagent_workspace_complete_reminder": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr) return textResult(writeErr, true);
+      const result = await completeWorkspaceReminder(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        args.id as string
+      );
+      return textResult(result.ok ? result.reminder : { error: result.error }, !result.ok);
     }
 
     case "mailagent_verify_signup": {

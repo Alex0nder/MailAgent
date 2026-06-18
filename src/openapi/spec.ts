@@ -884,6 +884,58 @@ export const openApiSpec = {
         responses: { "200": { description: "Reminder/follow-up suggestions" } },
       },
     },
+    "/v1/workspace/reminders": {
+      get: {
+        tags: ["meta"],
+        summary: "List saved Workspace Agent reminders/follow-ups",
+        security: bearer,
+        parameters: [
+          { name: "status", in: "query", schema: { type: "string", enum: ["open", "completed", "all"] } },
+          { name: "limit", in: "query", schema: { type: "integer", minimum: 1, maximum: 100 } },
+        ],
+        responses: { "200": { description: "Saved reminders/follow-ups" } },
+      },
+      post: {
+        tags: ["meta"],
+        summary: "Create a Workspace Agent reminder/follow-up",
+        security: bearer,
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["title"],
+                properties: {
+                  title: { type: "string" },
+                  dueAt: { type: "string", format: "date-time" },
+                  dueHint: { type: "string" },
+                  source: { type: "string" },
+                  sourceThreadId: { type: "string" },
+                  sourceMessageId: { type: "string" },
+                  meta: { type: "object", additionalProperties: true },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "201": { description: "Created reminder/follow-up" },
+          "400": { description: "title_required | invalid_due_at" },
+        },
+      },
+    },
+    "/v1/workspace/reminders/{id}/complete": {
+      patch: {
+        tags: ["meta"],
+        summary: "Mark a Workspace Agent reminder/follow-up as completed",
+        security: bearer,
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Completed reminder/follow-up" },
+          "404": { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
     "/v1/domains": {
       get: {
         tags: ["domains"],

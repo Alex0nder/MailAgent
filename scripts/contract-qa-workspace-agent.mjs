@@ -52,6 +52,9 @@ async function main() {
     "mailagent_workspace_summarize",
     "mailagent_workspace_draft_reply",
     "mailagent_workspace_suggest_reminders",
+    "mailagent_workspace_create_reminder",
+    "mailagent_workspace_list_reminders",
+    "mailagent_workspace_complete_reminder",
   ]) {
     if (!agentHub.json?.mcpTools?.includes(tool)) {
       console.error(`agent hub missing ${tool}`, agentHub.json?.mcpTools);
@@ -96,9 +99,45 @@ async function main() {
     process.exit(1);
   }
 
+  const created = await contractApi(base, headers, "/v1/workspace/reminders", {
+    method: "POST",
+    body: JSON.stringify({
+      title: `Follow up contract ${Date.now()}`,
+      dueHint: "tomorrow",
+      source: "contract",
+      sourceThreadId: sample.threadId,
+      meta: { contract: true },
+    }),
+  });
+  if (created.status !== 201 || !created.json?.id || created.json?.status !== "open") {
+    console.error("workspace create reminder failed", created.status, created.json);
+    process.exit(1);
+  }
+
+  const listed = await contractApi(base, headers, "/v1/workspace/reminders?status=open&limit=20");
+  if (
+    !listed.ok ||
+    !listed.json?.reminders?.some((r) => r.id === created.json.id)
+  ) {
+    console.error("workspace list reminders failed", listed.status, listed.json);
+    process.exit(1);
+  }
+
+  const completed = await contractApi(
+    base,
+    headers,
+    `/v1/workspace/reminders/${encodeURIComponent(created.json.id)}/complete`,
+    { method: "PATCH", body: JSON.stringify({}) }
+  );
+  if (!completed.ok || completed.json?.status !== "completed" || !completed.json?.completedAt) {
+    console.error("workspace complete reminder failed", completed.status, completed.json);
+    process.exit(1);
+  }
+
   console.log("contract-qa-workspace-agent OK", {
     mode: summary.json.mode,
     reminders: reminders.json.reminders.length,
+    persistedReminder: completed.json.id,
   });
 }
 
