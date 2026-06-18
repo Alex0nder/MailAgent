@@ -115,7 +115,7 @@ curl -X DELETE "$MAILAGENT_API_URL/v1/inboxes?labelPrefix=ci-$GITHUB_RUN_ID" \
 - [QA-CI-ALERTS.md](./QA-CI-ALERTS.md) — Slack webhook, PR comment on failure
 - Contract test without SMTP: `npm run test:contract:qa` (`MAILAGENT_API_KEY` only; `POST …/simulate` → wait/extract + `messageIndex`)
 - Simulate without Resend: [QA-SIMULATE.md](./QA-SIMULATE.md) · `mail.simulateAndVerify()`
-- Callback contract: `npm run test:contract:qa:callback` — simulate + `POST` to `callbackUrl` (default `https://httpbin.org/post`), poll `GET …/callbacks`
+- Callback contract: `npm run test:contract:qa:callback` — simulate + `POST` to `callbackUrl` (default `https://httpbin.org/post`), poll `GET …/callbacks`. Set `CONTRACT_CALLBACK_URL` to make non-2xx callback delivery fail the gate.
 - Attachments contract: `npm run test:contract:qa:attachments` — simulate + `--with-attachment=…`, list/meta without Resend
 - Simulate with callback: `node scripts/simulate-inbound.mjs <inboxId> <otp> <from> --fire-callback`
 - Simulate with attachment: `… --with-attachment=invoice.pdf`
