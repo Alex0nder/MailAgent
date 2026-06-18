@@ -191,6 +191,7 @@ export async function executeMcpTool(
           env,
           {
             ownerKey: sessionOwnerKey(auth.teamId, auth.apiKeyHint),
+            teamId: auth.teamId,
             apiKeyHint: auth.apiKeyHint,
             apiBaseUrl: apiBase,
           },
@@ -214,6 +215,7 @@ export async function executeMcpTool(
           env,
           {
             ownerKey: sessionOwnerKey(auth.teamId, auth.apiKeyHint),
+            teamId: auth.teamId,
             apiKeyHint: auth.apiKeyHint,
             apiBaseUrl: apiBase,
           },
@@ -238,6 +240,7 @@ export async function executeMcpTool(
           env,
           {
             ownerKey: sessionOwnerKey(auth.teamId, auth.apiKeyHint),
+            teamId: auth.teamId,
             apiKeyHint: auth.apiKeyHint,
             apiBaseUrl: apiBase,
           },

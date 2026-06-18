@@ -529,6 +529,24 @@ export const openApiSpec = {
                   keepOnFailure: { type: "boolean" },
                   allowSimulate: { type: "boolean" },
                   lastError: { type: "string" },
+                  openReminders: {
+                    type: "array",
+                    description:
+                      "Optional Workspace reminder queue. If no inbox flow is active, planner returns a follow-up draft action.",
+                    items: {
+                      type: "object",
+                      properties: {
+                        id: { type: "string" },
+                        title: { type: "string" },
+                        dueAt: { type: "string" },
+                        dueHint: { type: "string" },
+                        sourceThreadId: { type: "string" },
+                        sourceMessageId: { type: "string" },
+                        status: { type: "string" },
+                        meta: { type: "object", additionalProperties: true },
+                      },
+                    },
+                  },
                 },
               },
             },

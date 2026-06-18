@@ -85,6 +85,30 @@ function main() {
   assert(recover.payloads.simulateMessage?.otp === "482910", "simulate fallback payload");
   assert(recover.diagnose?.failureSummary.code === "no_messages", "diagnose included");
 
+  const workspace = buildAgentAutopilotPlan({
+    openReminders: [
+      {
+        id: "wr_1",
+        title: "Follow up with finance",
+        dueHint: "today",
+        sourceThreadId: "thread_1",
+        sourceMessageId: "msg_1",
+        status: "open",
+        meta: {
+          sourceMessage: {
+            from: "finance@example.test",
+            subject: "Invoice status",
+            text: "Can you send an update?",
+          },
+        },
+      },
+    ],
+  });
+  assert(workspace.mode === "workspace_followup", "workspace reminder plans follow-up");
+  assert(workspace.nextTool === "mailagent_workspace_draft_reply", "workspace next tool");
+  assert(workspace.workspace?.reminder?.id === "wr_1", "workspace reminder included");
+  assert(workspace.nextPayload.threadId === "thread_1", "workspace thread payload");
+
   const done = buildAgentAutopilotPlan({
     status: "verified",
     runId: "agent-run-1",

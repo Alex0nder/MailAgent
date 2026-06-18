@@ -15,6 +15,7 @@ if (!headers) {
 }
 
 const runId = `contract-run-${Date.now()}`;
+const workspaceRunId = `${runId}-workspace`;
 
 async function main() {
   console.log("contract-qa-agent-runs →", base, "runId:", runId);
@@ -103,6 +104,56 @@ async function main() {
     process.exit(1);
   }
   console.log("run next OK", next.json.plan.nextTool);
+
+  const reminder = await contractApi(base, headers, "/v1/workspace/reminders", {
+    method: "POST",
+    body: JSON.stringify({
+      title: `Contract follow-up ${Date.now()}`,
+      dueHint: "today",
+      source: "contract-agent-run",
+      sourceThreadId: `thread-${runId}`,
+      sourceMessageId: `msg-${runId}`,
+      meta: {
+        sourceMessage: {
+          from: "customer@example.test",
+          subject: "Contract follow-up",
+          text: "Please send the status update.",
+        },
+      },
+    }),
+  });
+  if (reminder.status !== 201 || !reminder.json?.id) {
+    console.error("workspace reminder seed failed", reminder.status, reminder.json);
+    process.exit(1);
+  }
+
+  const workspaceStarted = await contractApi(base, headers, "/v1/agent/runs/start", {
+    method: "POST",
+    body: JSON.stringify({
+      runId: workspaceRunId,
+      notes: "Pick next workspace follow-up",
+    }),
+  });
+  if (
+    workspaceStarted.status !== 201 ||
+    workspaceStarted.json?.plan?.nextTool !== "mailagent_workspace_draft_reply" ||
+    workspaceStarted.json?.plan?.workspace?.reminder?.id !== reminder.json.id
+  ) {
+    console.error("workspace reminder planning failed", workspaceStarted.status, workspaceStarted.json);
+    process.exit(1);
+  }
+  console.log("workspace reminder planning OK", workspaceStarted.json.plan.nextTool);
+
+  const completedReminder = await contractApi(
+    base,
+    headers,
+    `/v1/workspace/reminders/${encodeURIComponent(reminder.json.id)}/complete`,
+    { method: "PATCH", body: JSON.stringify({}) }
+  );
+  if (!completedReminder.ok || completedReminder.json?.status !== "completed") {
+    console.error("workspace reminder cleanup failed", completedReminder.status, completedReminder.json);
+    process.exit(1);
+  }
 
   const session = await contractApi(
     base,

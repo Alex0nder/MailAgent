@@ -55,6 +55,10 @@ function cleanDueAt(value?: string): string | null | "invalid" {
 }
 
 function formatWorkspaceReminder(row: WorkspaceReminderRow) {
+  const meta =
+    row.meta && typeof row.meta === "object" && !Array.isArray(row.meta)
+      ? (row.meta as Record<string, unknown>)
+      : {};
   return {
     id: row.id,
     title: row.title,
@@ -64,7 +68,7 @@ function formatWorkspaceReminder(row: WorkspaceReminderRow) {
     sourceThreadId: row.source_thread_id,
     sourceMessageId: row.source_message_id,
     status: row.status,
-    meta: row.meta ?? {},
+    meta,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     completedAt: row.completed_at,

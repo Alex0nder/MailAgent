@@ -22,10 +22,11 @@ export type AgentAutopilotInput = PresetAdviceInput & {
   allowSimulate?: boolean;
   status?: AgentAutopilotStatus | string;
   lastError?: string;
+  openReminders?: AgentAutopilotReminder[];
 };
 
 export interface AgentAutopilotPlan {
-  mode: "create_inbox" | "verify" | "recover" | "extract" | "done";
+  mode: "create_inbox" | "verify" | "recover" | "extract" | "workspace_followup" | "done";
   confidence: "high" | "medium" | "low";
   summary: string;
   nextTool: string;
@@ -42,6 +43,10 @@ export interface AgentAutopilotPlan {
   guardrails: string[];
   stopWhen: string[];
   presetAdvice: ReturnType<typeof suggestPreset>;
+  workspace?: {
+    reminder?: AgentAutopilotReminder;
+    openReminderCount: number;
+  };
   diagnose?: {
     failureSummary: InboxDiagnoseResult["failureSummary"];
     recommendedAction: InboxDiagnoseResult["recommendedAction"];
@@ -49,6 +54,18 @@ export interface AgentAutopilotPlan {
     debugUiUrl: string;
   };
 }
+
+export type AgentAutopilotReminder = {
+  id?: string;
+  title?: string;
+  dueAt?: string | null;
+  dueHint?: string | null;
+  source?: string | null;
+  sourceThreadId?: string | null;
+  sourceMessageId?: string | null;
+  status?: string;
+  meta?: Record<string, unknown>;
+};
 
 function cleanString(value?: string): string | undefined {
   const trimmed = value?.trim();
@@ -138,6 +155,44 @@ function actionToPayload(
   return baseVerifyPayload(input, advice);
 }
 
+function openReminderQueue(input: AgentAutopilotInput): AgentAutopilotReminder[] {
+  return Array.isArray(input.openReminders)
+    ? input.openReminders.filter((item) => item?.status !== "completed")
+    : [];
+}
+
+function reminderDraftPayload(reminder: AgentAutopilotReminder): Record<string, unknown> {
+  const meta = reminder.meta ?? {};
+  const sourceMessage =
+    typeof meta.sourceMessage === "object" && meta.sourceMessage
+      ? (meta.sourceMessage as Record<string, unknown>)
+      : {};
+  return {
+    goal: reminder.title ?? "Follow up on this thread",
+    ...(reminder.sourceThreadId ? { threadId: reminder.sourceThreadId } : {}),
+    messages: [
+      {
+        ...(reminder.sourceMessageId ? { id: reminder.sourceMessageId } : {}),
+        ...(typeof sourceMessage.from === "string" ? { from: sourceMessage.from } : {}),
+        subject:
+          typeof sourceMessage.subject === "string"
+            ? sourceMessage.subject
+            : reminder.title ?? "Follow-up",
+        text:
+          typeof sourceMessage.text === "string"
+            ? sourceMessage.text
+            : [
+                reminder.title,
+                reminder.dueHint ? `Due: ${reminder.dueHint}` : null,
+                reminder.dueAt ? `Due at: ${reminder.dueAt}` : null,
+              ]
+                .filter(Boolean)
+                .join("\n"),
+      },
+    ],
+  };
+}
+
 export function buildAgentAutopilotPlan(
   input: AgentAutopilotInput = {},
   diagnose?: InboxDiagnoseResult | null
@@ -146,6 +201,7 @@ export function buildAgentAutopilotPlan(
   const createInbox = baseCreatePayload(input, presetAdvice.knownPreset, presetAdvice);
   const verifySignup = baseVerifyPayload(input, presetAdvice);
   const status = statusOf(input);
+  const reminders = openReminderQueue(input);
   const guardrails = [
     "Never use Gmail or a shared human mailbox for OTP checks.",
     "Do not call mailagent_check_email on MailAgent temporary inboxes.",
@@ -174,6 +230,36 @@ export function buildAgentAutopilotPlan(
       guardrails,
       stopWhen,
       presetAdvice,
+    };
+  }
+
+  if (!input.inboxId && reminders.length > 0) {
+    const reminder = reminders[0]!;
+    return {
+      mode: "workspace_followup",
+      confidence: reminder.sourceThreadId || reminder.sourceMessageId ? "medium" : "low",
+      summary: "Open Workspace reminder found; draft the next follow-up without asking the operator to remember it.",
+      nextTool: "mailagent_workspace_draft_reply",
+      nextPayload: reminderDraftPayload(reminder),
+      steps: [
+        "Draft a follow-up from the reminder context.",
+        "Review the draft against the current app or mailbox context.",
+        "After the action is completed, call mailagent_workspace_complete_reminder with the reminder id.",
+      ],
+      payloads: {},
+      guardrails: [
+        ...guardrails,
+        "Do not send the draft automatically until a mail/calendar connector explicitly supports safe send semantics.",
+      ],
+      stopWhen: [
+        "A draft reply or next action is prepared for the open reminder.",
+        "The reminder is no longer actionable or must be completed manually.",
+      ],
+      presetAdvice,
+      workspace: {
+        reminder,
+        openReminderCount: reminders.length,
+      },
     };
   }
 

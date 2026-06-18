@@ -11,6 +11,7 @@ import {
   type AgentRunSession,
 } from "./agent-run-session";
 import { buildInboxDiagnose } from "./inbox-diagnose";
+import { listWorkspaceReminders } from "./workspace-reminders";
 
 export type AgentRunStartInput = AgentAutopilotInput & {
   runId?: string;
@@ -31,6 +32,7 @@ export type AgentRunNextInput = AgentAutopilotInput & {
 
 export type AgentRunWorkflowAuth = {
   ownerKey: string;
+  teamId: string | null;
   apiKeyHint: string;
   apiBaseUrl: string;
 };
@@ -74,7 +76,19 @@ function stateFromInput(input: AgentAutopilotInput): Record<string, unknown> {
     ...(input.keepOnFailure !== undefined ? { keepOnFailure: input.keepOnFailure } : {}),
     ...(input.allowSimulate !== undefined ? { allowSimulate: input.allowSimulate } : {}),
     ...(cleanString(input.lastError) ? { lastError: cleanString(input.lastError) } : {}),
+    ...(Array.isArray(input.openReminders) ? { openReminders: input.openReminders } : {}),
   };
+}
+
+function hasSignupPlannerHints(input: AgentAutopilotInput): boolean {
+  return Boolean(
+    cleanString(input.service) ||
+      cleanString(input.from) ||
+      cleanString(input.subject) ||
+      cleanString(input.text) ||
+      cleanString(input.html) ||
+      cleanString(input.flow)
+  );
 }
 
 function autopilotInputFromState(
@@ -209,5 +223,19 @@ async function buildNextPlan(
         apiKeyHint: auth.apiKeyHint,
       })
     : null;
+  if (
+    !input.inboxId &&
+    !Array.isArray(input.openReminders) &&
+    !hasSignupPlannerHints(input)
+  ) {
+    const reminders = await listWorkspaceReminders(
+      env,
+      { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+      { status: "open", limit: 5 }
+    );
+    if (reminders.length > 0) {
+      input.openReminders = reminders;
+    }
+  }
   return buildAgentAutopilotPlan(input, diagnose);
 }

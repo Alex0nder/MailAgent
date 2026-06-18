@@ -297,6 +297,7 @@ agentRoutes.post("/runs/start", async (c) => {
       c.env,
       {
         ownerKey: sessionOwnerKey(c.get("teamId"), c.get("apiKeyHint")),
+        teamId: c.get("teamId"),
         apiKeyHint: c.get("apiKeyHint"),
         apiBaseUrl: publicOriginFromUrl(c.req.url),
       },
@@ -328,6 +329,7 @@ agentRoutes.post("/runs/:runId/next", async (c) => {
       c.env,
       {
         ownerKey: sessionOwnerKey(c.get("teamId"), c.get("apiKeyHint")),
+        teamId: c.get("teamId"),
         apiKeyHint: c.get("apiKeyHint"),
         apiBaseUrl: publicOriginFromUrl(c.req.url),
       },
@@ -360,6 +362,7 @@ agentRoutes.post("/runs/:runId/report", async (c) => {
       c.env,
       {
         ownerKey: sessionOwnerKey(c.get("teamId"), c.get("apiKeyHint")),
+        teamId: c.get("teamId"),
         apiKeyHint: c.get("apiKeyHint"),
         apiBaseUrl: publicOriginFromUrl(c.req.url),
       },

@@ -98,6 +98,24 @@ export const MCP_TOOLS = [
         keepOnFailure: { type: "boolean" },
         allowSimulate: { type: "boolean" },
         lastError: { type: "string" },
+        openReminders: {
+          type: "array",
+          description:
+            "Optional Workspace Agent reminder queue. When no inbox flow is active, planner drafts the next follow-up.",
+          items: {
+            type: "object",
+            properties: {
+              id: { type: "string" },
+              title: { type: "string" },
+              dueAt: { type: "string" },
+              dueHint: { type: "string" },
+              sourceThreadId: { type: "string" },
+              sourceMessageId: { type: "string" },
+              status: { type: "string" },
+              meta: { type: "object" },
+            },
+          },
+        },
       },
     },
   },

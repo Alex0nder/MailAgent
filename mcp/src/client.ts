@@ -563,6 +563,19 @@ export interface AgentAutopilotInput extends PresetAdviceInput {
   keepOnFailure?: boolean;
   allowSimulate?: boolean;
   lastError?: string;
+  openReminders?: AgentAutopilotReminder[];
+}
+
+export interface AgentAutopilotReminder {
+  id?: string;
+  title?: string;
+  dueAt?: string | null;
+  dueHint?: string | null;
+  source?: string | null;
+  sourceThreadId?: string | null;
+  sourceMessageId?: string | null;
+  status?: string;
+  meta?: Record<string, unknown>;
 }
 
 export interface AgentAccessInput {

@@ -59,6 +59,21 @@ const autopilotArgsSchema = {
   keepOnFailure: z.boolean().optional(),
   allowSimulate: z.boolean().optional(),
   lastError: z.string().optional(),
+  openReminders: z
+    .array(
+      z.object({
+        id: z.string().optional(),
+        title: z.string().optional(),
+        dueAt: z.string().nullable().optional(),
+        dueHint: z.string().nullable().optional(),
+        source: z.string().nullable().optional(),
+        sourceThreadId: z.string().nullable().optional(),
+        sourceMessageId: z.string().nullable().optional(),
+        status: z.string().optional(),
+        meta: z.record(z.unknown()).optional(),
+      })
+    )
+    .optional(),
 };
 
 const workspaceMessageSchema = z.object({

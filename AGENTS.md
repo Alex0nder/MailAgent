@@ -92,7 +92,7 @@ After changing MCP tools, presets, migrations, or routes: `npm run sync:context-
 | Remote | `POST https://api.webmailagent.com/mcp` + Bearer |
 
 ```bash
-codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.11 mailagent-mcp
+codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.12 mailagent-mcp
 ```
 
 ## Agent Skills

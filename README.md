@@ -256,7 +256,7 @@ node mcp/dist/cli.js wait <inboxId> --json
 
 `service` presets include `github`, `google`, `auth0`, `gitlab`, `bitbucket`, `stripe`, `vercel`, `supabase`, `clerk`, `discord`, `openai`, `resend`, `firebase`, and more. Discover the current list via `GET /v1/agent`.
 
-For autonomous browser/QA runs, call `POST /v1/agent/runs/start` or MCP `mailagent_start_run`, execute `plan.nextTool`, then call `mailagent_report_run` after each step. If the agent loses context, `mailagent_next_run` resumes from saved state.
+For autonomous browser/QA runs, call `POST /v1/agent/runs/start` or MCP `mailagent_start_run`, execute `plan.nextTool`, then call `mailagent_report_run` after each step. If the agent loses context, `mailagent_next_run` resumes from saved state. When there is no active inbox flow, run planning also checks open Workspace reminders and can return a follow-up draft action.
 
 If the next action is unclear, call `POST /v1/agent/autopilot` or MCP `mailagent_plan_next`; it returns `nextTool`, `nextPayload`, and recovery payloads. If sender or subject hints are unclear, call `POST /v1/agent/preset-advice` or MCP `mailagent_suggest_preset` with a sample `from` / `subject` first.
 

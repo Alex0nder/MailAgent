@@ -10,7 +10,7 @@ homepage: https://webmailagent.com/docs/agents.html
 repository: https://github.com/Alex0nder/MailAgent
 metadata:
   author: mailagent
-  version: "0.2.11"
+  version: "0.2.12"
   categories: "Email, QA, Agents, MCP"
 ---
 
@@ -54,7 +54,7 @@ Guide: https://webmailagent.com/docs/codex.html
 ```bash
 export MAILAGENT_API_URL=https://api.webmailagent.com
 export MAILAGENT_API_KEY=ma_…
-npx -y -p @mailagent/mcp@0.2.11 mailagent-mcp
+npx -y -p @mailagent/mcp@0.2.12 mailagent-mcp
 ```
 
 Remote (no subprocess): `POST https://api.webmailagent.com/mcp` + Bearer token.

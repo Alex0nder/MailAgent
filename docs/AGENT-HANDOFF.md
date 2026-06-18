@@ -38,7 +38,7 @@ Setup:
 1. Read https://github.com/Alex0nder/MailAgent/blob/main/AGENTS.md
 2. Read https://github.com/Alex0nder/MailAgent/blob/main/docs/QA-PILOT.md
 3. If using Codex/Cursor MCP:
-   npx -y -p @mailagent/mcp@0.2.11 mailagent-mcp
+   npx -y -p @mailagent/mcp@0.2.12 mailagent-mcp
 4. Set:
    MAILAGENT_API_URL=https://api.webmailagent.com
    MAILAGENT_API_KEY=<provided privately>
@@ -103,13 +103,13 @@ npm test
 ```bash
 export MAILAGENT_API_URL=https://api.webmailagent.com
 export MAILAGENT_API_KEY=<provided privately>
-npx -y -p @mailagent/mcp@0.2.11 mailagent-mcp
+npx -y -p @mailagent/mcp@0.2.12 mailagent-mcp
 ```
 
 Codex local:
 
 ```bash
-codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.11 mailagent-mcp
+codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.12 mailagent-mcp
 ```
 
 Remote MCP:
@@ -126,6 +126,7 @@ Authorization: Bearer <MAILAGENT_API_KEY or mat_ token>
 | Need isolated temporary access for a run | `mailagent_issue_access` with `runId` / `labelPrefix` |
 | Autonomous multi-step QA | `mailagent_start_run` -> execute `plan.nextTool` -> `mailagent_report_run` -> `mailagent_next_run` |
 | Unsure what to do next | `mailagent_plan_next` |
+| Pick next saved follow-up | `mailagent_next_run` with no active inbox flow; planner checks open Workspace reminders |
 | Unknown sender/service | `mailagent_suggest_preset` |
 | Browser signup | `mailagent_create_inbox` -> form -> `mailagent_verify_signup` |
 | One-shot smoke | `mailagent_verify_signup` without `inboxId` |
