@@ -160,17 +160,17 @@
     "duplicateDocs": "audit/duplicate-docs.md"
   },
   "stats": {
-    "mcpTools": 28,
-    "dbMigrations": 19,
+    "mcpTools": 29,
+    "dbMigrations": 20,
     "docsMd": 51,
-    "srcTsFiles": 97,
+    "srcTsFiles": 98,
     "npmPackages": 3,
     "githubWorkflows": 7,
     "servicePresets": 25
   },
-  "sourceCommit": "68b8666a9b214b27225d5100d8bfdf1e8514ef03",
-  "sourceCommitShort": "68b8666",
-  "syncedAt": "2026-06-18T08:10:22.182Z",
+  "sourceCommit": "312276962f8ea8c50b44581798bba0a783b055d9",
+  "sourceCommitShort": "3122769",
+  "syncedAt": "2026-06-18T08:32:47.530Z",
   "syncSources": [
     "src/mcp/manifest.ts",
     "src/lib/service-presets.ts",

@@ -530,6 +530,43 @@ export const openApiSpec = {
         },
       },
     },
+    "/v1/agent/access": {
+      post: {
+        tags: ["meta"],
+        summary: "Issue a short-lived scoped key for one autonomous agent run",
+        security: bearer,
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  purpose: { type: "string", maxLength: 64 },
+                  runId: { type: "string" },
+                  labelPrefix: {
+                    type: "string",
+                    description: "Access boundary for created inbox labels; generated from runId if omitted",
+                  },
+                  ttlMinutes: { type: "integer", minimum: 5, maximum: 1440, default: 240 },
+                  readOnly: { type: "boolean", default: false },
+                  service: { type: "string" },
+                  allowSimulate: { type: "boolean", default: true },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "201": {
+            description:
+              "One-time API key, expiry, labelPrefix policy, environment block, and next planner payload",
+          },
+          "400": { description: "invalid_label_prefix" },
+          "403": { description: "team_required or scope_admin_required" },
+          "429": { $ref: "#/components/responses/RateLimited" },
+        },
+      },
+    },
     "/v1/stats": {
       get: {
         tags: ["meta"],

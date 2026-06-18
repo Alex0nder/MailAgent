@@ -205,6 +205,7 @@ Globally for all projects: copy block to `~/.cursor/mcp.json` (absolute path to 
 
 | Tool | Purpose |
 |------|------------|
+| `mailagent_issue_access` | Issue short-lived scoped key for one autonomous agent run |
 | `mailagent_plan_next` | Autopilot planner: returns the next tool, payload, and recovery steps |
 | `mailagent_suggest_preset` | Suggest `service`, `expectFrom`, `subjectContains`, and `flow` from a sample auth email |
 | `mailagent_verify_signup` | **Preferred:** wait and return `agent.primaryAction` |
@@ -226,7 +227,7 @@ Globally for all projects: copy block to `~/.cursor/mcp.json` (absolute path to 
 | `mailagent_get_inbox` | Inbox status |
 | `mailagent_delete_inbox` | Delete early |
 
-Full current list: `GET /v1/agent` returns `mcpTools` (currently 28).
+Full current list: `GET /v1/agent` returns `mcpTools` (currently 29).
 
 Agent skill: [`.cursor/skills/mailagent-mcp/SKILL.md`](.cursor/skills/mailagent-mcp/SKILL.md)
 

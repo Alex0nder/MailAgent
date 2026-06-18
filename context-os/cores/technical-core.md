@@ -171,7 +171,7 @@ Fallback wait: `GET /v1/inboxes/:id/wait` — server poll every 500ms (`src/serv
 | remote HTTP | `POST /mcp` JSON-RPC | `src/routes/mcp-http.ts` |
 | discovery | `GET /v1/agent` | tools, recipes, docs links |
 
-Manifest: `src/mcp/manifest.ts` — **28 tools**, version `0.8.2`. Handlers: `src/mcp/handlers.ts`, session state: `src/mcp/session.ts`.
+Manifest: `src/mcp/manifest.ts` — **29 tools**, version `0.8.2`. Handlers: `src/mcp/handlers.ts`, session state: `src/mcp/session.ts`.
 
 OAuth for browser MCP: `/.well-known/oauth-authorization-server`, `/v1/oauth/*`, stateless `mat_` JWT (`src/lib/mcp-jwt.ts`).
 
@@ -563,7 +563,7 @@ Local `wrangler dev` needs cloudflared/ngrok exposing `/webhooks/resend` — Res
 ```bash
 node mcp/dist/index.js
 # or
-npx -y -p @mailagent/mcp@0.2.7 mailagent-mcp
+npx -y -p @mailagent/mcp@0.2.8 mailagent-mcp
 ```
 
 Calls REST API with `MAILAGENT_API_URL` + `MAILAGENT_API_KEY` from env.
@@ -593,7 +593,7 @@ Returns `mcpTools`, `auth.oidc`, `remoteMcp`, `docs`.
 
 ### Tool count sync
 
-28 tools in `src/mcp/manifest.ts`. After changes run `npm run sync:context-os` and update AGENTS.md markers.
+29 tools in `src/mcp/manifest.ts`. After changes run `npm run sync:context-os` and update AGENTS.md markers.
 
 ---
 

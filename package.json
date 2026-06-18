@@ -66,6 +66,7 @@
     "test:contract:qa:console-inbox": "node scripts/contract-qa-console-inbox.mjs",
     "test:contract:qa:team-keys": "node scripts/contract-qa-team-keys.mjs",
     "test:contract:qa:agent": "node scripts/contract-qa-agent.mjs",
+    "test:contract:qa:agent-access": "node scripts/contract-qa-agent-access.mjs",
     "test:contract:qa:oidc": "MAILAGENT_API_URL=https://api.webmailagent.com node scripts/contract-qa-oidc.mjs",
     "test:contract:qa:billing": "MAILAGENT_API_URL=https://api.webmailagent.com node scripts/contract-qa-billing.mjs",
     "test:contract:qa:session": "node scripts/contract-qa-session.mjs",

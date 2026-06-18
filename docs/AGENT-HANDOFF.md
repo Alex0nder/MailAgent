@@ -5,6 +5,7 @@ Use this when handing MailAgent to another AI agent, QA bot, Cursor/Codex sessio
 What can be automated:
 
 - install/use the MailAgent MCP tools;
+- mint short-lived scoped keys with `mailagent_issue_access` when an unrestricted team key is already available;
 - create disposable inboxes;
 - wait for OTP or magic links;
 - diagnose failures;
@@ -36,7 +37,7 @@ Setup:
 1. Read https://github.com/Alex0nder/MailAgent/blob/main/AGENTS.md
 2. Read https://github.com/Alex0nder/MailAgent/blob/main/docs/QA-PILOT.md
 3. If using Codex/Cursor MCP:
-   npx -y -p @mailagent/mcp@0.2.7 mailagent-mcp
+   npx -y -p @mailagent/mcp@0.2.8 mailagent-mcp
 4. Set:
    MAILAGENT_API_URL=https://api.webmailagent.com
    MAILAGENT_API_KEY=<provided privately>
@@ -100,13 +101,13 @@ npm test
 ```bash
 export MAILAGENT_API_URL=https://api.webmailagent.com
 export MAILAGENT_API_KEY=<provided privately>
-npx -y -p @mailagent/mcp@0.2.7 mailagent-mcp
+npx -y -p @mailagent/mcp@0.2.8 mailagent-mcp
 ```
 
 Codex local:
 
 ```bash
-codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.7 mailagent-mcp
+codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.8 mailagent-mcp
 ```
 
 Remote MCP:
@@ -120,6 +121,7 @@ Authorization: Bearer <MAILAGENT_API_KEY or mat_ token>
 
 | Situation | Use |
 |-----------|-----|
+| Need isolated temporary access for a run | `mailagent_issue_access` with `runId` / `labelPrefix` |
 | Unsure what to do next | `mailagent_plan_next` |
 | Unknown sender/service | `mailagent_suggest_preset` |
 | Browser signup | `mailagent_create_inbox` -> form -> `mailagent_verify_signup` |

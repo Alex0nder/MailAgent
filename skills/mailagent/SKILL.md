@@ -10,7 +10,7 @@ homepage: https://webmailagent.com/docs/agents.html
 repository: https://github.com/Alex0nder/MailAgent
 metadata:
   author: mailagent
-  version: "0.2.7"
+  version: "0.2.8"
   categories: "Email, QA, Agents, MCP"
 ---
 
@@ -54,7 +54,7 @@ Guide: https://webmailagent.com/docs/codex.html
 ```bash
 export MAILAGENT_API_URL=https://api.webmailagent.com
 export MAILAGENT_API_KEY=ma_…
-npx -y -p @mailagent/mcp@0.2.7 mailagent-mcp
+npx -y -p @mailagent/mcp@0.2.8 mailagent-mcp
 ```
 
 Remote (no subprocess): `POST https://api.webmailagent.com/mcp` + Bearer token.
@@ -80,6 +80,8 @@ If you are unsure what to do next, call **`mailagent_plan_next`** first. It retu
 If sender or subject is unclear, call **`mailagent_suggest_preset`** with a sample `from` / `subject`. Use its returned `service`, or use returned `expectFrom` when `knownPreset=false`.
 
 ## Recommended flow
+
+If you have an unrestricted team key and need to hand a run to a sub-agent, call **`mailagent_issue_access`** first with `runId` or `labelPrefix`. Use the returned short-lived key only for that run; all inbox labels must start with the returned `labelPrefix`.
 
 **Primary:** `mailagent_verify_signup` → returns **`agent.primaryAction`** (`otp` | `magic_link`, `value`, `instruction`).
 
@@ -131,6 +133,7 @@ Console: `console-inbox.html` → notify relay log.
 
 | Tool | When |
 |------|------|
+| `mailagent_issue_access` | Team admin only — mint a short-lived scoped key for one autonomous agent run |
 | `mailagent_plan_next` | Autopilot — choose the next MCP tool and ready payload from current state |
 | `mailagent_suggest_preset` | Unknown sender/service — get `service`, `expectFrom`, `subjectContains`, and `flow` |
 | `mailagent_verify_signup` | One-shot wait + extract + primaryAction |
@@ -151,7 +154,7 @@ Console: `console-inbox.html` → notify relay log.
 | `callbackUrl` on create | Async CI — `waitForCallback` in QA SDK |
 | `notifyEmail` on create | Relay OTP to developer's real inbox |
 
-Full list: `GET https://api.webmailagent.com/v1/agent` → `mcpTools` (28 tools).
+Full list: `GET https://api.webmailagent.com/v1/agent` → `mcpTools` (29 tools).
 
 ## Email check (`mailagent_check_email`)
 

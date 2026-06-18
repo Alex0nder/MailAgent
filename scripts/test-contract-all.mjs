@@ -15,6 +15,7 @@ const prodEnv = {
 const scripts = [
   "contract-qa.mjs",
   "contract-qa-agent.mjs",
+  "contract-qa-agent-access.mjs",
   "contract-qa-session.mjs",
   "contract-qa-oidc.mjs",
   "contract-qa-billing.mjs",

@@ -27,6 +27,27 @@ const server = new McpServer({
 });
 
 server.registerTool(
+  "mailagent_issue_access",
+  {
+    description:
+      "Issue a short-lived scoped API key for one autonomous MailAgent run. Requires an unrestricted DB team key.",
+    inputSchema: {
+      purpose: z.string().optional(),
+      runId: z.string().optional(),
+      labelPrefix: z.string().optional(),
+      ttlMinutes: z.number().int().min(5).max(1440).optional(),
+      readOnly: z.boolean().optional(),
+      service: z.string().optional(),
+      allowSimulate: z.boolean().optional(),
+    },
+  },
+  async (args) => {
+    const client = new MailAgentClient();
+    return toolText(await client.issueAccess(args));
+  }
+);
+
+server.registerTool(
   "mailagent_plan_next",
   {
     description:

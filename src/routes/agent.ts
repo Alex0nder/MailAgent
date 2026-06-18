@@ -19,6 +19,7 @@ import {
   buildAgentAutopilotPlan,
   type AgentAutopilotInput,
 } from "../lib/agent-autopilot";
+import { issueAgentAccess, type AgentAccessInput } from "../services/agent-access";
 import { runAgentVerify } from "../services/agent-verify";
 import { buildInboxDiagnose } from "../services/inbox-diagnose";
 import { listAgentRuns } from "../services/agent-runs";
@@ -95,6 +96,11 @@ agentRoutes.get("/", (c) => {
         method: "POST",
         path: "/v1/agent/autopilot",
         note: "Return the next best agent action and ready MCP/REST payloads.",
+      },
+      accessBroker: {
+        method: "POST",
+        path: "/v1/agent/access",
+        note: "Issue a short-lived scoped key for one autonomous agent run (team admin key required).",
       },
     },
     mcpTools: MCP_TOOL_NAMES,
@@ -208,6 +214,36 @@ agentRoutes.post("/autopilot", async (c) => {
       })
     : null;
   return c.json(buildAgentAutopilotPlan(body, diagnose));
+});
+
+agentRoutes.post("/access", async (c) => {
+  let body: AgentAccessInput = {};
+  try {
+    body = await c.req.json<AgentAccessInput>();
+  } catch {
+    body = {};
+  }
+
+  const result = await issueAgentAccess(
+    c.env,
+    {
+      teamId: c.get("teamId"),
+      plan: c.get("apiPlan"),
+      scope: c.get("apiKeyScope"),
+    },
+    body
+  );
+  if (!result.ok) {
+    return c.json(
+      {
+        error: result.error,
+        ...(result.hint ? { hint: result.hint } : {}),
+        ...(result.max ? { max: result.max } : {}),
+      },
+      result.status
+    );
+  }
+  return c.json(result, 201);
 });
 
 agentRoutes.get("/recipes/:service", (c) => {

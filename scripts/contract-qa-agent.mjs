@@ -51,12 +51,20 @@ async function main() {
     console.error("mailagent_plan_next missing from hub");
     process.exit(1);
   }
+  if (!hub.json.mcpTools.includes("mailagent_issue_access")) {
+    console.error("mailagent_issue_access missing from hub");
+    process.exit(1);
+  }
   if (!hub.json.recommended?.presetAdvisor?.path) {
     console.error("preset advisor discovery missing", hub.json.recommended);
     process.exit(1);
   }
   if (!hub.json.recommended?.autopilot?.path) {
     console.error("autopilot discovery missing", hub.json.recommended);
+    process.exit(1);
+  }
+  if (!hub.json.recommended?.accessBroker?.path) {
+    console.error("agent access broker discovery missing", hub.json.recommended);
     process.exit(1);
   }
   if (!hub.json.mcpTools.includes("mailagent_get_run_session")) {

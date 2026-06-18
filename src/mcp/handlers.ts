@@ -16,6 +16,7 @@ import {
   buildAgentAutopilotPlan,
   type AgentAutopilotInput,
 } from "../lib/agent-autopilot";
+import { issueAgentAccess, type AgentAccessInput } from "../services/agent-access";
 import { runAgentVerify } from "../services/agent-verify";
 import {
   getAgentRunSession,
@@ -122,6 +123,19 @@ export async function executeMcpTool(
   ctx?: McpToolContext
 ) {
   switch (name) {
+    case "mailagent_issue_access": {
+      const result = await issueAgentAccess(
+        env,
+        {
+          teamId: auth.teamId,
+          plan: auth.plan,
+          scope: auth.scope,
+        },
+        args as AgentAccessInput
+      );
+      return textResult(result, !result.ok);
+    }
+
     case "mailagent_plan_next": {
       const input = args as AgentAutopilotInput;
       const status = input.status?.trim().toLowerCase();

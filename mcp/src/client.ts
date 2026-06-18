@@ -73,6 +73,13 @@ export class MailAgentClient {
     });
   }
 
+  issueAccess(options: AgentAccessInput) {
+    return this.request<Record<string, unknown>>("/v1/agent/access", {
+      method: "POST",
+      body: JSON.stringify(options),
+    });
+  }
+
   createInbox(options?: CreateInboxOptions) {
     const body: Record<string, unknown> = {};
     if (options?.ttlMinutes !== undefined) body.ttlMinutes = options.ttlMinutes;
@@ -492,6 +499,16 @@ export interface AgentAutopilotInput extends PresetAdviceInput {
   keepOnFailure?: boolean;
   allowSimulate?: boolean;
   lastError?: string;
+}
+
+export interface AgentAccessInput {
+  purpose?: string;
+  runId?: string;
+  labelPrefix?: string;
+  ttlMinutes?: number;
+  readOnly?: boolean;
+  service?: string;
+  allowSimulate?: boolean;
 }
 
 export interface PresetAdviceResponse {

@@ -83,6 +83,7 @@ teamRoutes.get("/", async (c) => {
       hint: k.key_hint,
       label: k.label,
       createdAt: k.created_at,
+      expiresAt: k.expires_at,
       current: k.id === c.get("apiKeyId"),
       scope: {
         labelPrefix: k.scope_label_prefix,

@@ -1,6 +1,6 @@
 {
   "name": "@mailagent/mcp",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "MailAgent MCP server (stdio) for Cursor and AI agents — email verification inboxes",
   "type": "module",
   "license": "MIT",

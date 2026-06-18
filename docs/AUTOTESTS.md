@@ -69,6 +69,7 @@ Run a **narrow** script after changes in a specific area:
 |--------|------------|--------|
 | `contract-qa.mjs` | `test:contract:qa` | create → simulate OTP → wait → extract |
 | `contract-qa-agent.mjs` | `test:contract:qa:agent` | `GET /v1/agent`, `/v1/me`, `/mcp/auth` |
+| `contract-qa-agent-access.mjs` | `test:contract:qa:agent-access` | short-lived scoped key broker |
 | `contract-qa-callback.mjs` | `test:contract:qa:callback` | webhook callback after simulate; set `CONTRACT_CALLBACK_URL` for strict non-2xx failure |
 | `contract-qa-attachments.mjs` | `test:contract:qa:attachments` | attachments + raw MIME |
 | `contract-qa-threads.mjs` | `test:contract:qa:threads` | threads / reply grouping |

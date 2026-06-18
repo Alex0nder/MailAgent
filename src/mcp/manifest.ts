@@ -20,6 +20,26 @@ export const MCP_SERVER_INFO = {
 
 export const MCP_TOOLS = [
   {
+    name: "mailagent_issue_access",
+    description:
+      "Issue a short-lived scoped MailAgent API key for one autonomous agent run. Requires an unrestricted DB team key; returns the key once, expiry, labelPrefix policy, and next planner payload.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        purpose: { type: "string", description: "Short reason/label for the access grant" },
+        runId: { type: "string", description: "Agent or CI run id used to derive labelPrefix" },
+        labelPrefix: {
+          type: "string",
+          description: "Required access boundary for created inbox labels; generated from runId if omitted",
+        },
+        ttlMinutes: { type: "integer", minimum: 5, maximum: 1440, default: 240 },
+        readOnly: { type: "boolean", default: false },
+        service: { type: "string", description: "Optional service preset for returned next payload" },
+        allowSimulate: { type: "boolean", default: true },
+      },
+    },
+  },
+  {
     name: "mailagent_plan_next",
     description:
       "Autopilot planner: given service/sender hints, inboxId, status, or timeout, return the next best MailAgent tool and ready payloads. Use when an agent is unsure what to do next.",

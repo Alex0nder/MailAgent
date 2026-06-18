@@ -368,7 +368,7 @@ Domain scope: `teamId` + `apiKeyHint` + `plan` через `domainScope(c)`.
 
 **JSON-RPC methods:**
 - `initialize` → capabilities + `Mcp-Session-Id` header
-- `tools/list` → 28 tools from `MCP_TOOLS`
+- `tools/list` → 29 tools from `MCP_TOOLS`
 - `tools/call` → `executeMcpTool()` → REST-equivalent logic
 - `ping` → `{}`
 - `notifications/*` → 204 no content
@@ -662,7 +662,7 @@ npm run test:contract:qa
 - stdio: `node mcp/dist/index.js` (Cursor `.cursor/mcp.json`)
 - remote: `POST https://api.webmailagent.com/mcp` + Bearer
 
-**27 MCP tools** — полный список в `src/mcp/manifest.ts` (`MCP_TOOL_NAMES`), отражён в `GET /v1/agent` → `mcpTools`. Mount order Hono → `worker-core.md`.
+**29 MCP tools** — полный список в `src/mcp/manifest.ts` (`MCP_TOOL_NAMES`), отражён в `GET /v1/agent` → `mcpTools`. Mount order Hono → `worker-core.md`.
 
 ---
 

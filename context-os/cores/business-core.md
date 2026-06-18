@@ -59,7 +59,7 @@ Persona (QA) ──uses── @mailagent/qa / POST /v1/inboxes/open
 | v0.1 | **Agent-first + QA-first**, не consumer email | Privacy burner SaaS | Программные inbox с allowlist; OTP/magic link extract; MCP/REST |
 | v0.2 | **Cloudflare Workers** hosted + self-host MIT | VPS + SMTP server | Edge, Queues, DO для SSE; Resend inbound без своего MX |
 | v0.3 | **Resend inbound** вместо собственного SMTP | Mailgun inbound, custom Postfix | Быстрый webhook → queue; enterprise = dedicated Resend per team |
-| v0.4+ | **MCP как primary agent surface** (28 tools) | Только REST | Cursor/Codex/remote MCP; discovery `GET /v1/agent` |
+| v0.4+ | **MCP как primary agent surface** (29 tools) | Только REST | Cursor/Codex/remote MCP; discovery `GET /v1/agent` |
 | v0.5 | **Service presets** (`service: auth0`) | Только ручной `expectFrom` | 25 пресетов allowlist + subject hints для agents |
 | v0.6 | **`POST /v1/inboxes/open`** one-shot | Только create + wait отдельно | CI one-liner; меньше flaky race между create и submit |
 | v0.7 | **Simulate** (`POST …/simulate`) для contract tests | Real SMTP в CI | Без DATABASE_URL в gate нельзя; simulate = idempotent QA |
@@ -121,7 +121,7 @@ Stripe checkout **только free → pro** (`canUpgradeViaStripe`). Enterpris
 
 1. MailAgent даёт **disposable inbox на один тест или один agent run** с API/MCP, а не общий ящик на команду.
 2. Inbound через **Resend webhook → queue → Neon**; клиент получает **OTP и primaryLink** через REST, SSE или callback.
-3. **27 MCP tools**, Agent Skills, npm SDK — агент проходит signup verification **без human OTP check**; QA использует `@mailagent/qa` и `POST /v1/inboxes/open` в CI.
+3. **29 MCP tools**, Agent Skills, npm SDK — агент проходит signup verification **без human OTP check**; QA использует `@mailagent/qa` и `POST /v1/inboxes/open` в CI.
 
 ### Prod URLs
 
@@ -162,7 +162,7 @@ Stripe checkout **только free → pro** (`canUpgradeViaStripe`). Enterpris
 | 4 | **Парсинг HTML** | Regex по body, ломается на шаблонах | `verification.otp`, `primaryLink` | extract at ingest, `GET …/extract` |
 | 5 | **Debug после fail** | «Не знаем, что в inbox» | List messages, diagnose, debug UI URL | `GET …/messages`, `mailagent_diagnose_inbox` |
 | 6 | **Staging vs prod mail** | Письмо не от того From | `service` preset или `expectFrom` allowlist | `SERVICE_EXPECT_FROM` in presets |
-| 7 | **Agent без MCP** | Agent не знает как ждать почту | 27 MCP tools + Skill | `@mailagent/mcp`, remote `/mcp` |
+| 7 | **Agent без MCP** | Agent не знает как ждать почту | 29 MCP tools + Skill | `@mailagent/mcp`, remote `/mcp` |
 | 8 | **Human OTP bottleneck** | Человек копирует код из письма | Autonomous verify flow | `mailagent_verify_signup`, `test:prod` |
 | 9 | **CI без real SMTP** | Staging не шлёт mail | Simulate inject | `POST …/simulate`, contract tests |
 | 10 | **Quota surprises** | 429 mid-suite | Documented plan limits + headers | `X-RateLimit-*`, `PLAN_LIMITS` |
@@ -523,7 +523,7 @@ Public: https://webmailagent.com/docs/sla.html
 | Dimension | Classic email testing SaaS | MailAgent |
 |-----------|---------------------------|-----------|
 | Primary ICP | QA teams | **QA + AI agents** (MCP-native) |
-| Agent integration | REST SDK | **27 MCP tools**, Skills, remote MCP |
+| Agent integration | REST SDK | **29 MCP tools**, Skills, remote MCP |
 | CI without SMTP | Varies | **`simulate`** + contract tests |
 | Self-host | Usually no | **MIT self-host** |
 | OAuth MCP | Rare | `mat_` JWT, OIDC browser login |
@@ -579,7 +579,7 @@ Publish: tag `v*` → `.github/workflows/publish-packages.yml`.
 | Client | Config |
 |--------|--------|
 | Cursor | `.cursor/mcp.json` → `node mcp/dist/index.js` or npx |
-| Codex | `codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.7 mailagent-mcp` |
+| Codex | `codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.8 mailagent-mcp` |
 | Any HTTP client | Remote MCP JSON-RPC at `/mcp` |
 | OAuth MCP | `GET /mcp/auth`, `POST /v1/oauth/token` |
 

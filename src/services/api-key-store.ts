@@ -70,6 +70,8 @@ async function lookupKeyByHash(env: Env, hash: string) {
     FROM api_keys k
     JOIN teams t ON t.id = k.team_id
     WHERE k.key_hash = ${hash}
+      AND k.revoked_at IS NULL
+      AND (k.expires_at IS NULL OR k.expires_at > NOW())
     LIMIT 1
   `) as {
     id: string;
@@ -146,6 +148,8 @@ export interface TeamKeyRow {
   key_hint: string;
   label: string | null;
   created_at: string;
+  expires_at: string | null;
+  revoked_at: string | null;
   scope_label_prefix: string | null;
   scope_read_only: boolean;
 }
@@ -189,9 +193,10 @@ export async function listTeamKeys(
 ): Promise<TeamKeyRow[]> {
   const sql = getDb(env);
   return (await sql`
-    SELECT id, key_hint, label, created_at, scope_label_prefix, scope_read_only
+    SELECT id, key_hint, label, created_at, expires_at, revoked_at, scope_label_prefix, scope_read_only
     FROM api_keys
     WHERE team_id = ${teamId}
+      AND revoked_at IS NULL
     ORDER BY created_at ASC
   `) as TeamKeyRow[];
 }
@@ -203,6 +208,7 @@ export async function addTeamKey(
     token: string;
     label?: string;
     scope?: { labelPrefix?: string | null; readOnly?: boolean };
+    expiresAt?: string | null;
   }
 ): Promise<{ apiKeyId: string; hint: string }> {
   const sql = getDb(env);
@@ -212,8 +218,8 @@ export async function addTeamKey(
   const scopePrefix = input.scope?.labelPrefix?.trim().slice(0, 64) || null;
   const scopeReadOnly = input.scope?.readOnly ?? false;
   await sql`
-    INSERT INTO api_keys (id, team_id, key_hash, key_hint, label, scope_label_prefix, scope_read_only)
-    VALUES (${apiKeyId}, ${teamId}, ${hash}, ${hint}, ${input.label ?? null}, ${scopePrefix}, ${scopeReadOnly})
+    INSERT INTO api_keys (id, team_id, key_hash, key_hint, label, scope_label_prefix, scope_read_only, expires_at)
+    VALUES (${apiKeyId}, ${teamId}, ${hash}, ${hint}, ${input.label ?? null}, ${scopePrefix}, ${scopeReadOnly}, ${input.expiresAt ?? null})
   `;
   return { apiKeyId, hint };
 }
@@ -235,6 +241,13 @@ export async function revokeTeamKey(
 }
 
 export async function countTeamKeys(env: Env, teamId: string): Promise<number> {
-  const keys = await listTeamKeys(env, teamId);
-  return keys.length;
+  const sql = getDb(env);
+  const rows = (await sql`
+    SELECT COUNT(*)::int AS count
+    FROM api_keys
+    WHERE team_id = ${teamId}
+      AND revoked_at IS NULL
+      AND (expires_at IS NULL OR expires_at > NOW())
+  `) as { count: number }[];
+  return rows[0]?.count ?? 0;
 }
