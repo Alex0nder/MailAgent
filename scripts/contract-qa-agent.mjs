@@ -247,6 +247,64 @@ async function main() {
     service: autopilotJson.presetAdvice?.service,
   });
 
+  const workspaceAutopilot = await fetch(`${base}/v1/agent/autopilot`, {
+    method: "POST",
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      openReminders: [
+        { id: "wr_contract_done", title: "Already drafted", status: "open" },
+        { id: "wr_contract_next", title: "Next untouched follow-up", status: "open" },
+      ],
+      workspaceActions: [
+        {
+          reminderId: "wr_contract_done",
+          actionType: "draft_prepared",
+          title: "Draft prepared",
+          status: "done",
+        },
+      ],
+    }),
+  });
+  const workspaceAutopilotJson = await workspaceAutopilot.json();
+  if (
+    !workspaceAutopilot.ok ||
+    workspaceAutopilotJson.mode !== "workspace_followup" ||
+    workspaceAutopilotJson.workspace?.reminder?.id !== "wr_contract_next"
+  ) {
+    console.error(
+      "workspace action deduplication failed",
+      workspaceAutopilot.status,
+      workspaceAutopilotJson
+    );
+    process.exit(1);
+  }
+
+  const workspaceWaiting = await fetch(`${base}/v1/agent/autopilot`, {
+    method: "POST",
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      openReminders: [{ id: "wr_contract_done", title: "Already drafted", status: "open" }],
+      workspaceActions: [
+        {
+          reminderId: "wr_contract_done",
+          actionType: "draft_prepared",
+          title: "Draft prepared",
+          status: "done",
+        },
+      ],
+    }),
+  });
+  const workspaceWaitingJson = await workspaceWaiting.json();
+  if (
+    !workspaceWaiting.ok ||
+    workspaceWaitingJson.mode !== "workspace_waiting" ||
+    workspaceWaitingJson.nextTool !== "mailagent_workspace_list_actions"
+  ) {
+    console.error("workspace duplicate suppression failed", workspaceWaiting.status, workspaceWaitingJson);
+    process.exit(1);
+  }
+  console.log("workspace action-aware planner OK");
+
   console.log("agent hub OK", {
     tools: hub.json.mcpTools.length,
     services: services.length,

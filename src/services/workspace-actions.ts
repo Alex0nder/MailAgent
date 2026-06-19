@@ -153,7 +153,7 @@ export async function listWorkspaceActions(
                note, status, meta, created_at
         FROM workspace_actions
         WHERE owner_key = ${ownerKey} AND reminder_id = ${reminderId}
-        ORDER BY created_at DESC
+        ORDER BY created_at DESC, id DESC
         LIMIT ${limit}
       `) as WorkspaceActionRow[])
     : threadId
@@ -162,7 +162,7 @@ export async function listWorkspaceActions(
                  note, status, meta, created_at
           FROM workspace_actions
           WHERE owner_key = ${ownerKey} AND thread_id = ${threadId}
-          ORDER BY created_at DESC
+          ORDER BY created_at DESC, id DESC
           LIMIT ${limit}
         `) as WorkspaceActionRow[])
       : ((await sql`
@@ -170,7 +170,7 @@ export async function listWorkspaceActions(
                  note, status, meta, created_at
           FROM workspace_actions
           WHERE owner_key = ${ownerKey}
-          ORDER BY created_at DESC
+          ORDER BY created_at DESC, id DESC
           LIMIT ${limit}
         `) as WorkspaceActionRow[]);
 

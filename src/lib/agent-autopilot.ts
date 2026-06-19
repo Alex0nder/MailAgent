@@ -23,10 +23,18 @@ export type AgentAutopilotInput = PresetAdviceInput & {
   status?: AgentAutopilotStatus | string;
   lastError?: string;
   openReminders?: AgentAutopilotReminder[];
+  workspaceActions?: AgentAutopilotAction[];
 };
 
 export interface AgentAutopilotPlan {
-  mode: "create_inbox" | "verify" | "recover" | "extract" | "workspace_followup" | "done";
+  mode:
+    | "create_inbox"
+    | "verify"
+    | "recover"
+    | "extract"
+    | "workspace_followup"
+    | "workspace_waiting"
+    | "done";
   confidence: "high" | "medium" | "low";
   summary: string;
   nextTool: string;
@@ -45,7 +53,9 @@ export interface AgentAutopilotPlan {
   presetAdvice: ReturnType<typeof suggestPreset>;
   workspace?: {
     reminder?: AgentAutopilotReminder;
+    latestAction?: AgentAutopilotAction;
     openReminderCount: number;
+    actionableReminderCount?: number;
   };
   diagnose?: {
     failureSummary: InboxDiagnoseResult["failureSummary"];
@@ -64,6 +74,19 @@ export type AgentAutopilotReminder = {
   sourceThreadId?: string | null;
   sourceMessageId?: string | null;
   status?: string;
+  meta?: Record<string, unknown>;
+};
+
+export type AgentAutopilotAction = {
+  id?: string;
+  reminderId?: string | null;
+  threadId?: string | null;
+  messageId?: string | null;
+  actionType?: "draft_prepared" | "waiting" | "completed" | "blocked" | "note" | string;
+  title?: string;
+  note?: string | null;
+  status?: "done" | "waiting" | "blocked" | string;
+  createdAt?: string;
   meta?: Record<string, unknown>;
 };
 
@@ -161,6 +184,20 @@ function openReminderQueue(input: AgentAutopilotInput): AgentAutopilotReminder[]
     : [];
 }
 
+function latestProgressByReminder(input: AgentAutopilotInput): Map<string, AgentAutopilotAction> {
+  const latest = new Map<string, AgentAutopilotAction>();
+  const progressTypes = new Set(["draft_prepared", "waiting", "completed", "blocked"]);
+  if (!Array.isArray(input.workspaceActions)) return latest;
+  for (const action of input.workspaceActions) {
+    const reminderId = cleanString(action?.reminderId ?? undefined);
+    if (!reminderId || latest.has(reminderId) || !progressTypes.has(action.actionType ?? "")) {
+      continue;
+    }
+    latest.set(reminderId, action);
+  }
+  return latest;
+}
+
 function reminderDraftPayload(reminder: AgentAutopilotReminder): Record<string, unknown> {
   const meta = reminder.meta ?? {};
   const sourceMessage =
@@ -202,6 +239,10 @@ export function buildAgentAutopilotPlan(
   const verifySignup = baseVerifyPayload(input, presetAdvice);
   const status = statusOf(input);
   const reminders = openReminderQueue(input);
+  const progressByReminder = latestProgressByReminder(input);
+  const actionableReminders = reminders.filter(
+    (reminder) => !reminder.id || !progressByReminder.has(reminder.id)
+  );
   const guardrails = [
     "Never use Gmail or a shared human mailbox for OTP checks.",
     "Do not call mailagent_check_email on MailAgent temporary inboxes.",
@@ -233,8 +274,8 @@ export function buildAgentAutopilotPlan(
     };
   }
 
-  if (!input.inboxId && reminders.length > 0) {
-    const reminder = reminders[0]!;
+  if (!input.inboxId && actionableReminders.length > 0) {
+    const reminder = actionableReminders[0]!;
     return {
       mode: "workspace_followup",
       confidence: reminder.sourceThreadId || reminder.sourceMessageId ? "medium" : "low",
@@ -260,6 +301,44 @@ export function buildAgentAutopilotPlan(
       workspace: {
         reminder,
         openReminderCount: reminders.length,
+        actionableReminderCount: actionableReminders.length,
+      },
+    };
+  }
+
+  if (!input.inboxId && reminders.length > 0) {
+    const reminder = reminders[0]!;
+    const latestAction = reminder.id ? progressByReminder.get(reminder.id) : undefined;
+    return {
+      mode: "workspace_waiting",
+      confidence: "high",
+      summary:
+        "Every open Workspace reminder already has progress recorded; inspect history instead of repeating work.",
+      nextTool: "mailagent_workspace_list_actions",
+      nextPayload: {
+        ...(reminder.id ? { reminderId: reminder.id } : {}),
+        limit: 10,
+      },
+      steps: [
+        "Inspect the latest action history for the open reminder.",
+        "Resume only when new context changes the required action.",
+        "Complete stale reminders whose latest action is completed.",
+      ],
+      payloads: {},
+      guardrails: [
+        ...guardrails,
+        "Do not prepare another draft while draft_prepared, waiting, completed, or blocked progress is recorded.",
+      ],
+      stopWhen: [
+        "All open reminders are waiting, blocked, completed, or already have a prepared draft.",
+        "A new unprocessed reminder appears.",
+      ],
+      presetAdvice,
+      workspace: {
+        reminder,
+        ...(latestAction ? { latestAction } : {}),
+        openReminderCount: reminders.length,
+        actionableReminderCount: 0,
       },
     };
   }

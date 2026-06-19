@@ -109,6 +109,50 @@ function main() {
   assert(workspace.workspace?.reminder?.id === "wr_1", "workspace reminder included");
   assert(workspace.nextPayload.threadId === "thread_1", "workspace thread payload");
 
+  const nextWorkspace = buildAgentAutopilotPlan({
+    openReminders: [
+      { id: "wr_1", title: "Already drafted", status: "open" },
+      { id: "wr_2", title: "Untouched follow-up", status: "open" },
+    ],
+    workspaceActions: [
+      {
+        reminderId: "wr_1",
+        actionType: "draft_prepared",
+        status: "done",
+        title: "Draft prepared",
+      },
+    ],
+  });
+  assert(nextWorkspace.mode === "workspace_followup", "processed reminder is skipped");
+  assert(nextWorkspace.workspace?.reminder?.id === "wr_2", "next untouched reminder selected");
+
+  const waitingWorkspace = buildAgentAutopilotPlan({
+    openReminders: [{ id: "wr_1", title: "Already drafted", status: "open" }],
+    workspaceActions: [
+      {
+        reminderId: "wr_1",
+        actionType: "note",
+        status: "done",
+        title: "Extra context",
+      },
+      {
+        reminderId: "wr_1",
+        actionType: "draft_prepared",
+        status: "done",
+        title: "Draft prepared",
+      },
+    ],
+  });
+  assert(waitingWorkspace.mode === "workspace_waiting", "duplicate draft is suppressed");
+  assert(
+    waitingWorkspace.nextTool === "mailagent_workspace_list_actions",
+    "waiting workspace inspects history"
+  );
+  assert(
+    waitingWorkspace.workspace?.latestAction?.actionType === "draft_prepared",
+    "notes do not hide latest progress"
+  );
+
   const done = buildAgentAutopilotPlan({
     status: "verified",
     runId: "agent-run-1",

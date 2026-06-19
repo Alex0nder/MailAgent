@@ -484,7 +484,7 @@ export const openApiSpec = {
     "/v1/agent/autopilot": {
       post: {
         tags: ["meta"],
-        summary: "Plan the next best agent action for signup/login email verification",
+        summary: "Plan the next best agent action for email verification or Workspace follow-up",
         security: bearer,
         requestBody: {
           content: {
@@ -543,6 +543,29 @@ export const openApiSpec = {
                         sourceThreadId: { type: "string" },
                         sourceMessageId: { type: "string" },
                         status: { type: "string" },
+                        meta: { type: "object", additionalProperties: true },
+                      },
+                    },
+                  },
+                  workspaceActions: {
+                    type: "array",
+                    description:
+                      "Recent Workspace action history, newest first. Prevents duplicate drafts and completed work.",
+                    items: {
+                      type: "object",
+                      properties: {
+                        id: { type: "string" },
+                        reminderId: { type: "string" },
+                        threadId: { type: "string" },
+                        messageId: { type: "string" },
+                        actionType: {
+                          type: "string",
+                          enum: ["draft_prepared", "waiting", "completed", "blocked", "note"],
+                        },
+                        title: { type: "string" },
+                        note: { type: "string" },
+                        status: { type: "string", enum: ["done", "waiting", "blocked"] },
+                        createdAt: { type: "string" },
                         meta: { type: "object", additionalProperties: true },
                       },
                     },

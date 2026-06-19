@@ -127,6 +127,35 @@ async function main() {
     process.exit(1);
   }
 
+  const processedReminder = await contractApi(base, headers, "/v1/workspace/reminders", {
+    method: "POST",
+    body: JSON.stringify({
+      title: `Already drafted follow-up ${Date.now()}`,
+      dueHint: "today",
+      source: "contract-agent-run",
+      sourceThreadId: `thread-processed-${runId}`,
+    }),
+  });
+  if (processedReminder.status !== 201 || !processedReminder.json?.id) {
+    console.error("processed reminder seed failed", processedReminder.status, processedReminder.json);
+    process.exit(1);
+  }
+
+  const processedAction = await contractApi(base, headers, "/v1/workspace/actions", {
+    method: "POST",
+    body: JSON.stringify({
+      reminderId: processedReminder.json.id,
+      threadId: `thread-processed-${runId}`,
+      actionType: "draft_prepared",
+      title: "Contract draft already prepared",
+      status: "done",
+    }),
+  });
+  if (processedAction.status !== 201 || processedAction.json?.actionType !== "draft_prepared") {
+    console.error("processed reminder action seed failed", processedAction.status, processedAction.json);
+    process.exit(1);
+  }
+
   const workspaceStarted = await contractApi(base, headers, "/v1/agent/runs/start", {
     method: "POST",
     body: JSON.stringify({
@@ -143,6 +172,21 @@ async function main() {
     process.exit(1);
   }
   console.log("workspace reminder planning OK", workspaceStarted.json.plan.nextTool);
+
+  const completedProcessedReminder = await contractApi(
+    base,
+    headers,
+    `/v1/workspace/reminders/${encodeURIComponent(processedReminder.json.id)}/complete`,
+    { method: "PATCH", body: JSON.stringify({}) }
+  );
+  if (!completedProcessedReminder.ok || completedProcessedReminder.json?.status !== "completed") {
+    console.error(
+      "processed reminder cleanup failed",
+      completedProcessedReminder.status,
+      completedProcessedReminder.json
+    );
+    process.exit(1);
+  }
 
   const completedReminder = await contractApi(
     base,

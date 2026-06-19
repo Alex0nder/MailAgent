@@ -2,7 +2,7 @@
 
 Temporary inboxes for **AI agents** and **QA/E2E**: create an inbox, submit its address to a signup/login form, wait for OTP or magic link, and clean up automatically.
 
-Workspace Agent preview adds safe supplied-thread summaries, draft replies, and reminder suggestions without sending mail or writing calendar events.
+Workspace Agent preview adds safe supplied-thread summaries, draft replies, reminder suggestions, and persistent action history without sending mail or writing calendar events. Run planning uses that history to avoid repeating drafts or completed work.
 
 **Roadmap:** [docs/ROADMAP.md](./docs/ROADMAP.md)  
 **Your own agent without our API:** [docs/INTEGRATE.md](./docs/INTEGRATE.md) — self-host, MCP, REST.  
@@ -257,7 +257,7 @@ node mcp/dist/cli.js wait <inboxId> --json
 
 `service` presets include `github`, `google`, `auth0`, `gitlab`, `bitbucket`, `stripe`, `vercel`, `supabase`, `clerk`, `discord`, `openai`, `resend`, `firebase`, and more. Discover the current list via `GET /v1/agent`.
 
-For autonomous browser/QA runs, call `POST /v1/agent/runs/start` or MCP `mailagent_start_run`, execute `plan.nextTool`, then call `mailagent_report_run` after each step. If the agent loses context, `mailagent_next_run` resumes from saved state. When there is no active inbox flow, run planning also checks open Workspace reminders and can return a follow-up draft action.
+For autonomous browser/QA runs, call `POST /v1/agent/runs/start` or MCP `mailagent_start_run`, execute `plan.nextTool`, then call `mailagent_report_run` after each step. If the agent loses context, `mailagent_next_run` resumes from saved state. When there is no active inbox flow, run planning checks open Workspace reminders and action history: it selects the next untouched follow-up or returns `workspace_waiting` instead of preparing a duplicate draft.
 
 If the next action is unclear, call `POST /v1/agent/autopilot` or MCP `mailagent_plan_next`; it returns `nextTool`, `nextPayload`, and recovery payloads. If sender or subject hints are unclear, call `POST /v1/agent/preset-advice` or MCP `mailagent_suggest_preset` with a sample `from` / `subject` first.
 

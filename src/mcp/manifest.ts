@@ -116,6 +116,29 @@ export const MCP_TOOLS = [
             },
           },
         },
+        workspaceActions: {
+          type: "array",
+          description:
+            "Recent Workspace action history, newest first. Used to avoid repeating drafts or completed work.",
+          items: {
+            type: "object",
+            properties: {
+              id: { type: "string" },
+              reminderId: { type: "string" },
+              threadId: { type: "string" },
+              messageId: { type: "string" },
+              actionType: {
+                type: "string",
+                enum: ["draft_prepared", "waiting", "completed", "blocked", "note"],
+              },
+              title: { type: "string" },
+              note: { type: "string" },
+              status: { type: "string", enum: ["done", "waiting", "blocked"] },
+              createdAt: { type: "string" },
+              meta: { type: "object" },
+            },
+          },
+        },
       },
     },
   },

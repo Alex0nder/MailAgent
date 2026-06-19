@@ -11,6 +11,7 @@ import {
   type AgentRunSession,
 } from "./agent-run-session";
 import { buildInboxDiagnose } from "./inbox-diagnose";
+import { listWorkspaceActions } from "./workspace-actions";
 import { listWorkspaceReminders } from "./workspace-reminders";
 
 export type AgentRunStartInput = AgentAutopilotInput & {
@@ -223,19 +224,26 @@ async function buildNextPlan(
         apiKeyHint: auth.apiKeyHint,
       })
     : null;
-  if (
-    !input.inboxId &&
-    !Array.isArray(input.openReminders) &&
-    !hasSignupPlannerHints(input)
-  ) {
+  if (!input.inboxId && !hasSignupPlannerHints(input)) {
     const reminders = await listWorkspaceReminders(
       env,
       { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
       { status: "open", limit: 5 }
     );
-    if (reminders.length > 0) {
-      input.openReminders = reminders;
-    }
+    input.openReminders = reminders;
+    input.workspaceActions = (
+      await Promise.all(
+        reminders
+          .filter((reminder) => reminder.id)
+          .map((reminder) =>
+            listWorkspaceActions(
+              env,
+              { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+              { reminderId: reminder.id, limit: 10 }
+            )
+          )
+      )
+    ).flat();
   }
   return buildAgentAutopilotPlan(input, diagnose);
 }

@@ -10,7 +10,7 @@ homepage: https://webmailagent.com/docs/agents.html
 repository: https://github.com/Alex0nder/MailAgent
 metadata:
   author: mailagent
-  version: "0.2.13"
+  version: "0.2.14"
   categories: "Email, QA, Agents, MCP"
 ---
 
@@ -54,7 +54,7 @@ Guide: https://webmailagent.com/docs/codex.html
 ```bash
 export MAILAGENT_API_URL=https://api.webmailagent.com
 export MAILAGENT_API_KEY=ma_…
-npx -y -p @mailagent/mcp@0.2.13 mailagent-mcp
+npx -y -p @mailagent/mcp@0.2.14 mailagent-mcp
 ```
 
 Remote (no subprocess): `POST https://api.webmailagent.com/mcp` + Bearer token.
@@ -189,6 +189,8 @@ Docs: https://webmailagent.com/docs/agents.html · [docs/EMAIL-CHECK.md](https:/
 Recipes: `GET /v1/agent/recipes/github`
 
 Autopilot: `POST /v1/agent/autopilot` or MCP `mailagent_plan_next`.
+
+For Workspace follow-ups, pass recent `workspaceActions` with `openReminders` when using the stateless planner. Stateful runs load both automatically and return `workspace_waiting` rather than repeating recorded work.
 
 Preset advice: `POST /v1/agent/preset-advice` or MCP `mailagent_suggest_preset`.
 

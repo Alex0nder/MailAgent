@@ -13,4 +13,4 @@ fi
 : "${MAILAGENT_API_KEY:?Set MAILAGENT_API_KEY in env or .env at the plugin root}"
 export MAILAGENT_API_URL="${MAILAGENT_API_URL:-https://api.webmailagent.com}"
 
-exec npx -y -p @mailagent/mcp@0.2.13 mailagent-mcp
+exec npx -y -p @mailagent/mcp@0.2.14 mailagent-mcp

@@ -74,6 +74,24 @@ const autopilotArgsSchema = {
       })
     )
     .optional(),
+  workspaceActions: z
+    .array(
+      z.object({
+        id: z.string().optional(),
+        reminderId: z.string().nullable().optional(),
+        threadId: z.string().nullable().optional(),
+        messageId: z.string().nullable().optional(),
+        actionType: z
+          .enum(["draft_prepared", "waiting", "completed", "blocked", "note"])
+          .optional(),
+        title: z.string().optional(),
+        note: z.string().nullable().optional(),
+        status: z.enum(["done", "waiting", "blocked"]).optional(),
+        createdAt: z.string().optional(),
+        meta: z.record(z.unknown()).optional(),
+      })
+    )
+    .optional(),
 };
 
 const workspaceMessageSchema = z.object({

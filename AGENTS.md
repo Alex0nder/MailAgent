@@ -92,7 +92,7 @@ After changing MCP tools, presets, migrations, or routes: `npm run sync:context-
 | Remote | `POST https://api.webmailagent.com/mcp` + Bearer |
 
 ```bash
-codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.13 mailagent-mcp
+codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.14 mailagent-mcp
 ```
 
 ## Agent Skills
@@ -122,6 +122,8 @@ Guide: [docs/AGENT-SKILLS.md](docs/AGENT-SKILLS.md) · canonical: [skills/mailag
 5. Delete inbox when done.
 
 For autonomous multi-step runs: `mailagent_start_run` → execute `plan.nextTool` → `mailagent_report_run` after each browser/API step → `mailagent_next_run` to resume after errors or context loss.
+
+Workspace runs automatically compare open reminders with `mailagent_workspace_list_actions`. A reminder with `draft_prepared`, `waiting`, `completed`, or `blocked` progress is not drafted again; `workspace_waiting` means inspect history or wait for new context.
 
 On failure: `mailagent_diagnose_inbox` or `POST …/simulate` then retry.
 

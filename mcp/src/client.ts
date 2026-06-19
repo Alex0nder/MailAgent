@@ -580,6 +580,7 @@ export interface AgentAutopilotInput extends PresetAdviceInput {
   allowSimulate?: boolean;
   lastError?: string;
   openReminders?: AgentAutopilotReminder[];
+  workspaceActions?: AgentAutopilotAction[];
 }
 
 export interface AgentAutopilotReminder {
@@ -591,6 +592,19 @@ export interface AgentAutopilotReminder {
   sourceThreadId?: string | null;
   sourceMessageId?: string | null;
   status?: string;
+  meta?: Record<string, unknown>;
+}
+
+export interface AgentAutopilotAction {
+  id?: string;
+  reminderId?: string | null;
+  threadId?: string | null;
+  messageId?: string | null;
+  actionType?: "draft_prepared" | "waiting" | "completed" | "blocked" | "note";
+  title?: string;
+  note?: string | null;
+  status?: "done" | "waiting" | "blocked";
+  createdAt?: string;
   meta?: Record<string, unknown>;
 }
 
