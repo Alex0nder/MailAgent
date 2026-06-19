@@ -151,6 +151,42 @@ async function main() {
     console.error("workspace execution dry run failed", dryRun.status, dryRun.json);
     process.exit(1);
   }
+  if (policy.json.policy.mode === "draft_only") {
+    const idempotencyKey = `contract:workspace:${Date.now()}`;
+    const deniedExecution = await contractApi(base, headers, "/v1/workspace/execute-reply", {
+      method: "POST",
+      body: JSON.stringify({
+        inboxId: executionInbox.json.id,
+        messageId: executionMessage.json.messageId,
+        idempotencyKey,
+      }),
+    });
+    if (
+      !deniedExecution.ok ||
+      deniedExecution.json?.sent !== false ||
+      deniedExecution.json?.decision?.code !== "policy_draft_only" ||
+      deniedExecution.json?.execution?.status !== "denied"
+    ) {
+      console.error(
+        "workspace draft-only execution guard failed",
+        deniedExecution.status,
+        deniedExecution.json
+      );
+      process.exit(1);
+    }
+    const replay = await contractApi(base, headers, "/v1/workspace/execute-reply", {
+      method: "POST",
+      body: JSON.stringify({
+        inboxId: executionInbox.json.id,
+        messageId: executionMessage.json.messageId,
+        idempotencyKey,
+      }),
+    });
+    if (!replay.ok || replay.json?.replayed !== true || replay.json?.execution?.status !== "denied") {
+      console.error("workspace execution idempotency failed", replay.status, replay.json);
+      process.exit(1);
+    }
+  }
   await contractApi(base, headers, `/v1/inboxes/${encodeURIComponent(executionInbox.json.id)}`, {
     method: "DELETE",
   });
