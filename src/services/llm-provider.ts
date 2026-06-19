@@ -1,11 +1,30 @@
 /** OpenAI-compatible LLM adapter for DeepSeek/Qwen/custom providers. */
 import type { Env } from "../env";
 
-export type WorkspaceLlmTask = "summary" | "draft_reply" | "reminder_suggest";
+export type WorkspaceLlmTask = "summary" | "draft_reply" | "reminder_suggest" | "diagnostic";
+
+export type WorkspaceLlmAttempt = {
+  provider: string;
+  model: string;
+  error: "llm_not_configured" | "llm_request_failed" | "llm_invalid_json";
+};
 
 export type WorkspaceLlmResult =
-  | { ok: true; provider: string; model: string; json: Record<string, unknown> }
-  | { ok: false; provider: string; model: string; error: "llm_not_configured" | "llm_request_failed" | "llm_invalid_json"; detail?: string };
+  | {
+      ok: true;
+      provider: string;
+      model: string;
+      json: Record<string, unknown>;
+      attempts: WorkspaceLlmAttempt[];
+    }
+  | {
+      ok: false;
+      provider: string;
+      model: string;
+      error: "llm_not_configured" | "llm_request_failed" | "llm_invalid_json";
+      detail?: string;
+      attempts: WorkspaceLlmAttempt[];
+    };
 
 type ChatMessage = {
   role: "system" | "user";
@@ -23,15 +42,23 @@ const DEFAULT_BASE_URLS: Record<string, string> = {
   qwen: "https://dashscope.aliyuncs.com/compatible-mode/v1",
 };
 
-export function configuredWorkspaceProvider(env: Env): {
+export type WorkspaceProviderConfig = {
   provider: "deepseek" | "qwen" | "custom";
   baseUrl: string;
   apiKey?: string;
   model: string;
-} {
+};
+
+function primaryProvider(env: Env): WorkspaceProviderConfig["provider"] {
   const providerRaw = env.WORKSPACE_LLM_PROVIDER?.trim().toLowerCase() || "deepseek";
-  const provider =
-    providerRaw === "qwen" || providerRaw === "custom" ? providerRaw : "deepseek";
+  return providerRaw === "qwen" || providerRaw === "custom" ? providerRaw : "deepseek";
+}
+
+function providerConfig(
+  env: Env,
+  provider: WorkspaceProviderConfig["provider"],
+  isPrimary: boolean
+): WorkspaceProviderConfig {
   const apiKey =
     provider === "deepseek"
       ? env.DEEPSEEK_API_KEY
@@ -39,18 +66,57 @@ export function configuredWorkspaceProvider(env: Env): {
         ? env.QWEN_API_KEY || env.DASHSCOPE_API_KEY
         : env.LLM_API_KEY;
   const baseUrl =
-    env.LLM_BASE_URL?.trim() ||
+    (isPrimary ? env.LLM_BASE_URL?.trim() : undefined) ||
     (provider === "custom" ? "" : DEFAULT_BASE_URLS[provider]);
-  const model = env.LLM_MODEL?.trim() || DEFAULT_MODELS[provider];
+  const providerModel =
+    provider === "deepseek"
+      ? env.DEEPSEEK_MODEL
+      : provider === "qwen"
+        ? env.QWEN_MODEL
+        : undefined;
+  const model = providerModel?.trim() || (isPrimary ? env.LLM_MODEL?.trim() : undefined) || DEFAULT_MODELS[provider];
   return { provider, baseUrl: baseUrl.replace(/\/$/, ""), apiKey, model };
 }
 
+export function configuredWorkspaceProviders(env: Env): WorkspaceProviderConfig[] {
+  const primary = primaryProvider(env);
+  const order: WorkspaceProviderConfig["provider"][] =
+    primary === "deepseek"
+      ? ["deepseek", "qwen"]
+      : primary === "qwen"
+        ? ["qwen", "deepseek"]
+        : ["custom", "deepseek", "qwen"];
+  return order.map((provider, index) => providerConfig(env, provider, index === 0));
+}
+
+export function configuredWorkspaceProvider(env: Env): WorkspaceProviderConfig {
+  return configuredWorkspaceProviders(env)[0]!;
+}
+
 export function workspaceProviderInfo(env: Env) {
-  const configured = configuredWorkspaceProvider(env);
+  const providers = configuredWorkspaceProviders(env);
+  const configured = providers[0]!;
   return {
     provider: configured.provider,
     model: configured.model,
     configured: Boolean(configured.apiKey && configured.baseUrl),
+    fallbackEnabled: providers.length > 1,
+    providers: providers.map((provider, index) => ({
+      provider: provider.provider,
+      model: provider.model,
+      configured: Boolean(provider.apiKey && provider.baseUrl),
+      priority: index + 1,
+    })),
+  };
+}
+
+export function workspaceProviderResultInfo(env: Env, result: WorkspaceLlmResult) {
+  const readiness = workspaceProviderInfo(env);
+  return {
+    ...readiness,
+    selected: result.ok ? { provider: result.provider, model: result.model } : null,
+    fallbackUsed: result.ok && result.provider !== readiness.provider,
+    attempts: result.attempts,
   };
 }
 
@@ -68,13 +134,20 @@ export async function runWorkspaceLlmJson(
   task: WorkspaceLlmTask,
   payload: Record<string, unknown>
 ): Promise<WorkspaceLlmResult> {
-  const cfg = configuredWorkspaceProvider(env);
-  if (!cfg.apiKey || !cfg.baseUrl) {
+  const providers = configuredWorkspaceProviders(env);
+  const primary = providers[0]!;
+  const configured = providers.filter((provider) => provider.apiKey && provider.baseUrl);
+  if (!configured.length) {
     return {
       ok: false,
-      provider: cfg.provider,
-      model: cfg.model,
+      provider: primary.provider,
+      model: primary.model,
       error: "llm_not_configured",
+      attempts: providers.map((provider) => ({
+        provider: provider.provider,
+        model: provider.model,
+        error: "llm_not_configured",
+      })),
     };
   }
 
@@ -90,8 +163,11 @@ export async function runWorkspaceLlmJson(
     },
   ];
 
-  try {
-    const res = await fetch(`${cfg.baseUrl}/chat/completions`, {
+  const attempts: WorkspaceLlmAttempt[] = [];
+  let lastDetail: string | undefined;
+  for (const cfg of configured) {
+    try {
+      const res = await fetch(`${cfg.baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${cfg.apiKey}`,
@@ -104,42 +180,59 @@ export async function runWorkspaceLlmJson(
         response_format: { type: "json_object" },
       }),
     });
-    const text = await res.text();
-    if (!res.ok) {
-      return {
-        ok: false,
-        provider: cfg.provider,
-        model: cfg.model,
-        error: "llm_request_failed",
-        detail: text.slice(0, 500),
+      const text = await res.text();
+      if (!res.ok) {
+        attempts.push({ provider: cfg.provider, model: cfg.model, error: "llm_request_failed" });
+        lastDetail = text.slice(0, 500);
+        continue;
+      }
+      const body = JSON.parse(text) as {
+        choices?: { message?: { content?: string } }[];
       };
+      const content = body.choices?.[0]?.message?.content;
+      if (!content) {
+        attempts.push({ provider: cfg.provider, model: cfg.model, error: "llm_invalid_json" });
+        lastDetail = "empty_content";
+        continue;
+      }
+      try {
+        return {
+          ok: true,
+          provider: cfg.provider,
+          model: cfg.model,
+          json: JSON.parse(content) as Record<string, unknown>,
+          attempts,
+        };
+      } catch {
+        attempts.push({ provider: cfg.provider, model: cfg.model, error: "llm_invalid_json" });
+        lastDetail = "invalid_json_content";
+      }
+    } catch (e) {
+      attempts.push({ provider: cfg.provider, model: cfg.model, error: "llm_request_failed" });
+      lastDetail = e instanceof Error ? e.message : String(e);
     }
-    const body = JSON.parse(text) as {
-      choices?: { message?: { content?: string } }[];
-    };
-    const content = body.choices?.[0]?.message?.content;
-    if (!content) {
-      return {
-        ok: false,
-        provider: cfg.provider,
-        model: cfg.model,
-        error: "llm_invalid_json",
-        detail: "empty_content",
-      };
-    }
-    return {
-      ok: true,
-      provider: cfg.provider,
-      model: cfg.model,
-      json: JSON.parse(content) as Record<string, unknown>,
-    };
-  } catch (e) {
-    return {
-      ok: false,
-      provider: cfg.provider,
-      model: cfg.model,
-      error: "llm_request_failed",
-      detail: e instanceof Error ? e.message : String(e),
-    };
   }
+  const last = attempts[attempts.length - 1]!;
+  return {
+    ok: false,
+    provider: last.provider,
+    model: last.model,
+    error: last.error,
+    detail: lastDetail,
+    attempts,
+  };
+}
+
+export async function probeWorkspaceProviders(env: Env) {
+  const result = await runWorkspaceLlmJson(env, "diagnostic", {
+    instruction: "Return exactly the required JSON shape.",
+    requiredJsonShape: { ok: true },
+  });
+  return {
+    ok: result.ok,
+    selected: result.ok ? { provider: result.provider, model: result.model } : null,
+    error: result.ok ? null : result.error,
+    attempts: result.attempts,
+    readiness: workspaceProviderInfo(env),
+  };
 }

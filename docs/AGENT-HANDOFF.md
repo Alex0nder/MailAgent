@@ -38,7 +38,7 @@ Setup:
 1. Read https://github.com/Alex0nder/MailAgent/blob/main/AGENTS.md
 2. Read https://github.com/Alex0nder/MailAgent/blob/main/docs/QA-PILOT.md
 3. If using Codex/Cursor MCP:
-   npx -y -p @mailagent/mcp@0.2.15 mailagent-mcp
+   npx -y -p @mailagent/mcp@0.2.16 mailagent-mcp
 4. Set:
    MAILAGENT_API_URL=https://api.webmailagent.com
    MAILAGENT_API_KEY=<provided privately>
@@ -103,13 +103,13 @@ npm test
 ```bash
 export MAILAGENT_API_URL=https://api.webmailagent.com
 export MAILAGENT_API_KEY=<provided privately>
-npx -y -p @mailagent/mcp@0.2.15 mailagent-mcp
+npx -y -p @mailagent/mcp@0.2.16 mailagent-mcp
 ```
 
 Codex local:
 
 ```bash
-codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.15 mailagent-mcp
+codex mcp add mailagent -- npx -y -p @mailagent/mcp@0.2.16 mailagent-mcp
 ```
 
 Remote MCP:

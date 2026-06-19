@@ -1108,6 +1108,27 @@ export const openApiSpec = {
         },
       },
     },
+    "/v1/workspace/models": {
+      get: {
+        tags: ["meta"],
+        summary: "Read DeepSeek/Qwen readiness and fallback priority",
+        security: bearer,
+        responses: {
+          "200": { description: "Secret-free provider readiness metadata" },
+        },
+      },
+    },
+    "/v1/workspace/models/probe": {
+      post: {
+        tags: ["meta"],
+        summary: "Run an admin-only live Workspace model probe",
+        security: bearer,
+        responses: {
+          "200": { description: "Selected provider or machine-readable failed attempts" },
+          "403": { description: "Unrestricted admin key required" },
+        },
+      },
+    },
     "/v1/workspace/execute-reply": {
       post: {
         tags: ["meta"],

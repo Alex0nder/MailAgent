@@ -218,6 +218,7 @@ Globally for all projects: copy block to `~/.cursor/mcp.json` (absolute path to 
 | `mailagent_workspace_create_reminder` / `list_reminders` / `complete_reminder` | Workspace preview: persist and manage follow-ups |
 | `mailagent_workspace_log_action` / `list_actions` | Workspace preview: record and inspect agent action history |
 | `mailagent_workspace_get_policy` / `set_policy` | Read or configure admin-owned autonomy guardrails |
+| `mailagent_workspace_model_status` | Inspect DeepSeek/Qwen readiness and fallback priority |
 | `mailagent_workspace_execute_reply` | Dry-run or execute an idempotent policy-gated reply |
 | `mailagent_suggest_preset` | Suggest `service`, `expectFrom`, `subjectContains`, and `flow` from a sample auth email |
 | `mailagent_verify_signup` | **Preferred:** wait and return `agent.primaryAction` |
@@ -262,6 +263,8 @@ node mcp/dist/cli.js wait <inboxId> --json
 For autonomous browser/QA runs, call `POST /v1/agent/runs/start` or MCP `mailagent_start_run`, execute `plan.nextTool`, then call `mailagent_report_run` after each step. If the agent loses context, `mailagent_next_run` resumes from saved state. When there is no active inbox flow, run planning checks reminders, action history, and the stored autonomy policy: it can select a draft, execute a guarded reply, or return `workspace_waiting` without repeating work.
 
 Workspace autonomy guide: [docs/WORKSPACE-AUTONOMY.md](./docs/WORKSPACE-AUTONOMY.md).
+
+Workspace model routing uses the configured primary provider and automatically falls back between DeepSeek and Qwen. Check readiness with `GET /v1/workspace/models` or MCP `mailagent_workspace_model_status`; an unrestricted admin can run `POST /v1/workspace/models/probe`.
 
 If the next action is unclear, call `POST /v1/agent/autopilot` or MCP `mailagent_plan_next`; it returns `nextTool`, `nextPayload`, and recovery payloads. If sender or subject hints are unclear, call `POST /v1/agent/preset-advice` or MCP `mailagent_suggest_preset` with a sample `from` / `subject` first.
 

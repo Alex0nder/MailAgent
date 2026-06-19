@@ -9,7 +9,7 @@ This doc is for **third-party curated lists** like [awesome-codex-plugins](https
 |---------|---------|
 | GitHub marketplace | `codex plugin marketplace add Alex0nder/MailAgent` |
 | Agent Skills | `npx skills add Alex0nder/MailAgent --skill mailagent` |
-| npm MCP | `npx -y -p @mailagent/mcp@0.2.15 mailagent-mcp` |
+| npm MCP | `npx -y -p @mailagent/mcp@0.2.16 mailagent-mcp` |
 
 Docs: https://webmailagent.com/docs/codex.html · https://webmailagent.com/docs/agents.html
 

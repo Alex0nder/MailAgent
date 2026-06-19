@@ -164,6 +164,10 @@ export class MailAgentClient {
     return this.request<Record<string, unknown>>("/v1/workspace/policy");
   }
 
+  workspaceModelStatus() {
+    return this.request<Record<string, unknown>>("/v1/workspace/models");
+  }
+
   workspaceSetPolicy(options: WorkspaceAutonomyPolicyInput) {
     return this.request<Record<string, unknown>>("/v1/workspace/policy", {
       method: "PUT",

@@ -435,6 +435,12 @@ export const MCP_TOOLS = [
     inputSchema: { type: "object", properties: {} },
   },
   {
+    name: "mailagent_workspace_model_status",
+    description:
+      "Show DeepSeek/Qwen readiness and fallback priority without exposing API keys or provider base URLs.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
     name: "mailagent_workspace_set_policy",
     description:
       "Admin-only: configure Workspace Agent autonomy mode, recipient-domain allowlist, confidence threshold, and hourly send limit.",

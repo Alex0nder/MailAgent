@@ -63,6 +63,7 @@ async function main() {
     "mailagent_workspace_log_action",
     "mailagent_workspace_list_actions",
     "mailagent_workspace_get_policy",
+    "mailagent_workspace_model_status",
     "mailagent_workspace_set_policy",
     "mailagent_workspace_execute_reply",
   ]) {
@@ -70,6 +71,19 @@ async function main() {
       console.error(`agent hub missing ${tool}`, agentHub.json?.mcpTools);
       process.exit(1);
     }
+  }
+
+  const models = await contractApi(base, headers, "/v1/workspace/models");
+  if (
+    !models.ok ||
+    !Array.isArray(models.json?.readiness?.providers) ||
+    models.json.readiness.providers.length < 2 ||
+    models.json.readiness.providers.some(
+      (provider) => "apiKey" in provider || "baseUrl" in provider
+    )
+  ) {
+    console.error("workspace model readiness failed", models.status, models.json);
+    process.exit(1);
   }
 
   const summary = await contractApi(base, headers, "/v1/workspace/summarize", {

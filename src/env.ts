@@ -50,10 +50,14 @@ export interface Env {
   WORKSPACE_LLM_PROVIDER?: string;
   /** DeepSeek OpenAI-compatible API key */
   DEEPSEEK_API_KEY?: string;
+  /** DeepSeek model override */
+  DEEPSEEK_MODEL?: string;
   /** Qwen / DashScope OpenAI-compatible API key */
   QWEN_API_KEY?: string;
   /** DashScope API key alias for Qwen */
   DASHSCOPE_API_KEY?: string;
+  /** Qwen model override */
+  QWEN_MODEL?: string;
   /** Custom OpenAI-compatible LLM API key */
   LLM_API_KEY?: string;
   /** Custom OpenAI-compatible base URL */

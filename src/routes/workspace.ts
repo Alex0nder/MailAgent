@@ -7,7 +7,10 @@ import { rateLimit } from "../lib/rate-limit";
 import { scopeAdminDenied, scopeInboxDenied, scopeWriteDenied } from "../lib/scope-guard";
 import { auditRoute } from "../services/audit-log";
 import { getInbox } from "../services/inbox";
-import { configuredWorkspaceProvider } from "../services/llm-provider";
+import {
+  probeWorkspaceProviders,
+  workspaceProviderInfo,
+} from "../services/llm-provider";
 import {
   completeWorkspaceReminder,
   createWorkspaceReminder,
@@ -43,7 +46,7 @@ workspaceRoutes.use("*", requireApiKey);
 workspaceRoutes.use("*", rateLimit);
 
 workspaceRoutes.get("/", (c) => {
-  const provider = configuredWorkspaceProvider(c.env);
+  const provider = workspaceProviderInfo(c.env);
   return c.json({
     name: "MailAgent Workspace Agent",
     status: "autonomy_preview",
@@ -57,7 +60,8 @@ workspaceRoutes.get("/", (c) => {
     model: {
       provider: provider.provider,
       model: provider.model,
-      configured: Boolean(provider.apiKey && provider.baseUrl),
+      configured: provider.configured,
+      fallbackEnabled: provider.fallbackEnabled,
     },
     endpoints: {
       summarize: "POST /v1/workspace/summarize",
@@ -71,9 +75,21 @@ workspaceRoutes.get("/", (c) => {
       getPolicy: "GET /v1/workspace/policy",
       setPolicy: "PUT /v1/workspace/policy",
       executeReply: "POST /v1/workspace/execute-reply",
+      modelStatus: "GET /v1/workspace/models",
+      modelProbe: "POST /v1/workspace/models/probe",
     },
     roadmap: "https://github.com/Alex0nder/MailAgent/blob/main/docs/WORKSPACE-AGENT-PBR.md",
   });
+});
+
+workspaceRoutes.get("/models", (c) => {
+  return c.json({ readiness: workspaceProviderInfo(c.env) });
+});
+
+workspaceRoutes.post("/models/probe", async (c) => {
+  const adminErr = scopeAdminDenied(c);
+  if (adminErr) return adminErr;
+  return c.json(await probeWorkspaceProviders(c.env));
 });
 
 workspaceRoutes.get("/policy", async (c) => {

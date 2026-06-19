@@ -30,6 +30,12 @@ curl -X PUT "$MAILAGENT_API_URL/v1/workspace/policy" \
 
 MCP: `mailagent_workspace_get_policy` and admin-only `mailagent_workspace_set_policy`.
 
+## Model readiness
+
+`GET /v1/workspace/models` and MCP `mailagent_workspace_model_status` expose secret-free readiness and fallback priority. DeepSeek and Qwen automatically fall back to each other when both keys are configured. An unrestricted admin may run `POST /v1/workspace/models/probe` for a live JSON-completion check.
+
+Provider-specific model overrides: `DEEPSEEK_MODEL` and `QWEN_MODEL`. `LLM_MODEL` remains the primary/custom override.
+
 ## Execute
 
 Run a dry evaluation first:

@@ -729,6 +729,7 @@ Spec: [AGENT-PBR.md](./AGENT-PBR.md)
 | Planner selects guarded execution for stored mail context | ✅ |
 | Action/audit log and reminder completion after send | ✅ |
 | Public LLM provider metadata cannot expose API keys | ✅ |
+| DeepSeek/Qwen fallback + readiness/probe API | ✅ |
 
 Guide: [WORKSPACE-AUTONOMY.md](./WORKSPACE-AUTONOMY.md).
 

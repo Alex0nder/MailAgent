@@ -1,6 +1,10 @@
 /** Workspace Agent core: safe summaries, draft replies, and reminder suggestions. */
 import type { Env } from "../env";
-import { redactForLlm, runWorkspaceLlmJson, workspaceProviderInfo } from "./llm-provider";
+import {
+  redactForLlm,
+  runWorkspaceLlmJson,
+  workspaceProviderResultInfo,
+} from "./llm-provider";
 
 export type WorkspaceMailMessage = {
   id?: string;
@@ -140,7 +144,7 @@ export async function summarizeWorkspaceThread(env: Env, input: WorkspaceSummari
   });
   return {
     mode: llm.ok ? "llm" : "rules",
-    provider: workspaceProviderInfo(env),
+    provider: workspaceProviderResultInfo(env, llm),
     redaction: "enabled",
     ...(llm.ok ? llm.json : fallback),
     ...(llm.ok ? {} : { fallbackReason: llm.error }),
@@ -177,7 +181,7 @@ export async function draftWorkspaceReply(env: Env, input: WorkspaceDraftReplyIn
   const useLlm = llm.ok && Boolean(llmDraft);
   return {
     mode: useLlm ? "llm" : "rules",
-    provider: workspaceProviderInfo(env),
+    provider: workspaceProviderResultInfo(env, llm),
     redaction: "enabled",
     requiresApproval: true,
     sendAllowed: false,
@@ -205,7 +209,7 @@ export async function suggestWorkspaceReminders(env: Env, input: WorkspaceRemind
   });
   return {
     mode: llm.ok ? "llm" : "rules",
-    provider: workspaceProviderInfo(env),
+    provider: workspaceProviderResultInfo(env, llm),
     redaction: "enabled",
     ...(llm.ok ? llm.json : fallback),
     ...(llm.ok ? {} : { fallbackReason: llm.error }),

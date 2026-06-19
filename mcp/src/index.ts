@@ -380,6 +380,19 @@ server.registerTool(
 );
 
 server.registerTool(
+  "mailagent_workspace_model_status",
+  {
+    description:
+      "Show DeepSeek/Qwen readiness and fallback order without exposing secrets.",
+    inputSchema: {},
+  },
+  async () => {
+    const client = new MailAgentClient();
+    return toolText(await client.workspaceModelStatus());
+  }
+);
+
+server.registerTool(
   "mailagent_workspace_set_policy",
   {
     description:

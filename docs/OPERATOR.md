@@ -35,6 +35,8 @@ Optional (when needed):
 | Secret | When |
 |--------|------|
 | `OUTBOUND_FROM` | send/reply from console |
+| `DEEPSEEK_API_KEY` or `QWEN_API_KEY` | Workspace Agent LLM; required before autonomous replies |
+| `WORKSPACE_LLM_PROVIDER` | Primary model provider (`deepseek` default or `qwen`) |
 | `OIDC_*` | browser login for MCP ✅ prod |
 
 **Stripe (`STRIPE_*`)** — optional; prep done → [STRIPE-SETUP.md](./STRIPE-SETUP.md) · `npm run wizard:stripe`

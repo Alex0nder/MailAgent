@@ -26,6 +26,7 @@ import {
   type AgentRunStartInput,
 } from "../services/agent-run-workflow";
 import { issueAgentAccess, type AgentAccessInput } from "../services/agent-access";
+import { workspaceProviderInfo } from "../services/llm-provider";
 import { runAgentVerify } from "../services/agent-verify";
 import {
   getAgentRunSession,
@@ -368,6 +369,10 @@ export async function executeMcpTool(
           idempotencyRequired: true,
         },
       });
+    }
+
+    case "mailagent_workspace_model_status": {
+      return textResult({ readiness: workspaceProviderInfo(env) });
     }
 
     case "mailagent_workspace_set_policy": {
