@@ -129,7 +129,16 @@ export const MCP_TOOLS = [
               messageId: { type: "string" },
               actionType: {
                 type: "string",
-                enum: ["draft_prepared", "waiting", "completed", "blocked", "note"],
+                enum: [
+                  "draft_prepared",
+                  "waiting",
+                  "completed",
+                  "blocked",
+                  "sent",
+                  "send_denied",
+                  "send_failed",
+                  "note",
+                ],
               },
               title: { type: "string" },
               note: { type: "string" },
@@ -137,6 +146,16 @@ export const MCP_TOOLS = [
               createdAt: { type: "string" },
               meta: { type: "object" },
             },
+          },
+        },
+        workspacePolicy: {
+          type: "object",
+          description: "Optional Workspace autonomy policy for stateless planning.",
+          properties: {
+            mode: { type: "string", enum: ["draft_only", "auto_send_safe", "full_auto"] },
+            allowedRecipientDomains: { type: "array", items: { type: "string" } },
+            minConfidence: { type: "string", enum: ["low", "medium", "high"] },
+            maxSendsPerHour: { type: "integer", minimum: 1, maximum: 100 },
           },
         },
       },
@@ -376,7 +395,16 @@ export const MCP_TOOLS = [
         title: { type: "string" },
         actionType: {
           type: "string",
-          enum: ["draft_prepared", "waiting", "completed", "blocked", "note"],
+          enum: [
+            "draft_prepared",
+            "waiting",
+            "completed",
+            "blocked",
+            "sent",
+            "send_denied",
+            "send_failed",
+            "note",
+          ],
         },
         status: { type: "string", enum: ["done", "waiting", "blocked"] },
         note: { type: "string" },
@@ -397,6 +425,45 @@ export const MCP_TOOLS = [
         reminderId: { type: "string" },
         threadId: { type: "string" },
         limit: { type: "integer", minimum: 1, maximum: 100 },
+      },
+    },
+  },
+  {
+    name: "mailagent_workspace_get_policy",
+    description:
+      "Read the Workspace Agent autonomy policy. Default is draft_only; autonomous sends require an explicit admin policy.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "mailagent_workspace_set_policy",
+    description:
+      "Admin-only: configure Workspace Agent autonomy mode, recipient-domain allowlist, confidence threshold, and hourly send limit.",
+    inputSchema: {
+      type: "object",
+      required: ["mode"],
+      properties: {
+        mode: { type: "string", enum: ["draft_only", "auto_send_safe", "full_auto"] },
+        allowedRecipientDomains: { type: "array", items: { type: "string" } },
+        minConfidence: { type: "string", enum: ["low", "medium", "high"] },
+        maxSendsPerHour: { type: "integer", minimum: 1, maximum: 100 },
+      },
+    },
+  },
+  {
+    name: "mailagent_workspace_execute_reply",
+    description:
+      "Policy-gated autonomous reply. Loads a real inbound message, drafts with DeepSeek/Qwen, evaluates safety, and sends at most once. Use dryRun first; idempotencyKey is required for a real send.",
+    inputSchema: {
+      type: "object",
+      required: ["inboxId", "messageId"],
+      properties: {
+        inboxId: { type: "string" },
+        messageId: { type: "string", description: "Stored inbound message to reply to" },
+        reminderId: { type: "string" },
+        idempotencyKey: { type: "string", description: "Required unless dryRun=true" },
+        instruction: { type: "string", description: "Optional reply objective/context" },
+        tone: { type: "string", enum: ["concise", "friendly", "formal"] },
+        dryRun: { type: "boolean", description: "Evaluate and draft without sending" },
       },
     },
   },

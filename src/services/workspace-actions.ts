@@ -9,6 +9,9 @@ export type WorkspaceActionType =
   | "waiting"
   | "completed"
   | "blocked"
+  | "sent"
+  | "send_denied"
+  | "send_failed"
   | "note";
 
 export type WorkspaceActionStatus = "done" | "waiting" | "blocked";
@@ -42,6 +45,9 @@ const ACTION_TYPES = new Set<WorkspaceActionType>([
   "waiting",
   "completed",
   "blocked",
+  "sent",
+  "send_denied",
+  "send_failed",
   "note",
 ]);
 

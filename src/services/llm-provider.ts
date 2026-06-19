@@ -45,6 +45,15 @@ export function configuredWorkspaceProvider(env: Env): {
   return { provider, baseUrl: baseUrl.replace(/\/$/, ""), apiKey, model };
 }
 
+export function workspaceProviderInfo(env: Env) {
+  const configured = configuredWorkspaceProvider(env);
+  return {
+    provider: configured.provider,
+    model: configured.model,
+    configured: Boolean(configured.apiKey && configured.baseUrl),
+  };
+}
+
 export function redactForLlm(input: string): string {
   return input
     .replace(/\b(Bearer\s+)[A-Za-z0-9._~+/=-]{16,}/gi, "$1[REDACTED]")

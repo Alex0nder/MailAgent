@@ -1,6 +1,6 @@
 /** Workspace Agent core: safe summaries, draft replies, and reminder suggestions. */
 import type { Env } from "../env";
-import { configuredWorkspaceProvider, redactForLlm, runWorkspaceLlmJson } from "./llm-provider";
+import { redactForLlm, runWorkspaceLlmJson, workspaceProviderInfo } from "./llm-provider";
 
 export type WorkspaceMailMessage = {
   id?: string;
@@ -99,7 +99,16 @@ function fallbackDraft(messages: WorkspaceMailMessage[], input: WorkspaceDraftRe
   return {
     draft: body,
     tone,
+    confidence: "low" as const,
+    risks: ["Rule-based fallback was used because the configured LLM was unavailable."],
+    missingContext: [],
   };
+}
+
+function stringList(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string").slice(0, 10)
+    : [];
 }
 
 function fallbackReminders(messages: WorkspaceMailMessage[], now?: string) {
@@ -131,7 +140,7 @@ export async function summarizeWorkspaceThread(env: Env, input: WorkspaceSummari
   });
   return {
     mode: llm.ok ? "llm" : "rules",
-    provider: configuredWorkspaceProvider(env),
+    provider: workspaceProviderInfo(env),
     redaction: "enabled",
     ...(llm.ok ? llm.json : fallback),
     ...(llm.ok ? {} : { fallbackReason: llm.error }),
@@ -149,19 +158,35 @@ export async function draftWorkspaceReply(env: Env, input: WorkspaceDraftReplyIn
     messages,
     requiredJsonShape: {
       draft: "string",
+      confidence: "high | medium | low",
       risks: "string[]",
       missingContext: "string[]",
     },
     policy: "Draft only. Do not claim the message has been sent.",
   });
+  const llmDraft = llm.ok && typeof llm.json.draft === "string"
+    ? llm.json.draft.trim()
+    : "";
+  const risks = llm.ok ? stringList(llm.json.risks) : fallback.risks;
+  const missingContext = llm.ok ? stringList(llm.json.missingContext) : fallback.missingContext;
+  const rawConfidence = llm.ok ? llm.json.confidence : fallback.confidence;
+  const confidence: "high" | "medium" | "low" =
+    rawConfidence === "high" || rawConfidence === "medium" || rawConfidence === "low"
+      ? rawConfidence
+      : "low";
+  const useLlm = llm.ok && Boolean(llmDraft);
   return {
-    mode: llm.ok ? "llm" : "rules",
-    provider: configuredWorkspaceProvider(env),
+    mode: useLlm ? "llm" : "rules",
+    provider: workspaceProviderInfo(env),
     redaction: "enabled",
     requiresApproval: true,
     sendAllowed: false,
-    ...(llm.ok ? llm.json : fallback),
-    ...(llm.ok ? {} : { fallbackReason: llm.error }),
+    draft: useLlm ? llmDraft : fallback.draft,
+    tone: input.tone ?? "concise",
+    confidence: useLlm ? confidence : "low",
+    risks: useLlm ? risks : fallback.risks,
+    missingContext: useLlm ? missingContext : fallback.missingContext,
+    ...(useLlm ? {} : { fallbackReason: llm.ok ? "llm_invalid_draft" : llm.error }),
   };
 }
 
@@ -180,7 +205,7 @@ export async function suggestWorkspaceReminders(env: Env, input: WorkspaceRemind
   });
   return {
     mode: llm.ok ? "llm" : "rules",
-    provider: configuredWorkspaceProvider(env),
+    provider: workspaceProviderInfo(env),
     redaction: "enabled",
     ...(llm.ok ? llm.json : fallback),
     ...(llm.ok ? {} : { fallbackReason: llm.error }),

@@ -109,6 +109,30 @@ function main() {
   assert(workspace.workspace?.reminder?.id === "wr_1", "workspace reminder included");
   assert(workspace.nextPayload.threadId === "thread_1", "workspace thread payload");
 
+  const autonomousWorkspace = buildAgentAutopilotPlan({
+    runId: "workspace-run-1",
+    workspacePolicy: { mode: "auto_send_safe" },
+    openReminders: [
+      {
+        id: "wr_auto",
+        title: "Confirm QA completion",
+        sourceThreadId: "thread_auto",
+        sourceMessageId: "msg_auto",
+        status: "open",
+        meta: { inboxId: "inb_auto" },
+      },
+    ],
+  });
+  assert(
+    autonomousWorkspace.nextTool === "mailagent_workspace_execute_reply",
+    "autonomous policy executes stored reply"
+  );
+  assert(autonomousWorkspace.nextPayload.inboxId === "inb_auto", "execution uses stored inbox");
+  assert(
+    typeof autonomousWorkspace.nextPayload.idempotencyKey === "string",
+    "execution includes idempotency key"
+  );
+
   const nextWorkspace = buildAgentAutopilotPlan({
     openReminders: [
       { id: "wr_1", title: "Already drafted", status: "open" },

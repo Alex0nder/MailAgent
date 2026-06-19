@@ -7,6 +7,7 @@ import {
   assertLabelForCreate,
   assertWriteAllowed,
   effectiveLabelPrefix,
+  isRestrictedScope,
 } from "../lib/key-scope";
 import { parseCallbackUrl } from "../lib/callback-url";
 import { resolveExpectFrom, resolveTtlMinutes } from "../lib/service-presets";
@@ -90,6 +91,15 @@ import {
   logWorkspaceAction,
   type WorkspaceActionInput,
 } from "../services/workspace-actions";
+import {
+  getWorkspaceAutonomyPolicy,
+  setWorkspaceAutonomyPolicy,
+  type WorkspaceAutonomyPolicyInput,
+} from "../services/workspace-autonomy";
+import {
+  executeWorkspaceReply,
+  type WorkspaceExecuteReplyInput,
+} from "../services/workspace-execution";
 import type { McpProgressParams, McpToolContext } from "../mcp/progress";
 
 export type McpAuth = {
@@ -102,6 +112,12 @@ export type McpAuth = {
 function scopeWriteError(scope: ApiKeyScope) {
   const check = assertWriteAllowed(scope);
   return check.ok ? null : { error: check.error };
+}
+
+function scopeAdminError(scope: ApiKeyScope) {
+  return isRestrictedScope(scope)
+    ? { error: "scope_admin_required", hint: "Use an unrestricted team key" }
+    : null;
 }
 
 function textResult(data: unknown, isError = false) {
@@ -336,6 +352,50 @@ export async function executeMcpTool(
         }
       );
       return textResult({ actions, count: actions.length });
+    }
+
+    case "mailagent_workspace_get_policy": {
+      const policy = await getWorkspaceAutonomyPolicy(env, {
+        teamId: auth.teamId,
+        apiKeyHint: auth.apiKeyHint,
+      });
+      return textResult({
+        policy,
+        safety: {
+          defaultMode: "draft_only",
+          replyContextRequired: true,
+          ruleFallbackAutoSend: false,
+          idempotencyRequired: true,
+        },
+      });
+    }
+
+    case "mailagent_workspace_set_policy": {
+      const adminErr = scopeAdminError(auth.scope);
+      if (adminErr) return textResult(adminErr, true);
+      const result = await setWorkspaceAutonomyPolicy(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        args as WorkspaceAutonomyPolicyInput
+      );
+      return textResult(result.ok ? result.policy : { error: result.error }, !result.ok);
+    }
+
+    case "mailagent_workspace_execute_reply": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr) return textResult(writeErr, true);
+      const inbox = await getInbox(env, args.inboxId as string, {
+        apiKeyHint: auth.apiKeyHint,
+      });
+      if (!inbox || !assertInboxAccessible(auth.scope, inbox).ok) {
+        return textResult({ error: "inbox_not_found" }, true);
+      }
+      const result = await executeWorkspaceReply(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        args as WorkspaceExecuteReplyInput
+      );
+      return textResult(result.ok ? result : { error: result.error }, !result.ok);
     }
 
     case "mailagent_verify_signup": {

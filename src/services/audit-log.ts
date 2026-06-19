@@ -16,7 +16,9 @@ export type AuditAction =
   | "team.dedicated_resend.configured"
   | "team.dedicated_resend.cleared"
   | "team.webhook.configured"
-  | "team.webhook.cleared";
+  | "team.webhook.cleared"
+  | "workspace.policy_updated"
+  | "workspace.reply_sent";
 
 export type AuditContext = {
   teamId: string | null;

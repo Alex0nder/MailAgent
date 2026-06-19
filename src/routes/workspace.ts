@@ -4,7 +4,9 @@ import type { Env } from "../env";
 import type { ApiVariables } from "../lib/api-context";
 import { requireApiKey } from "../lib/auth";
 import { rateLimit } from "../lib/rate-limit";
-import { scopeWriteDenied } from "../lib/scope-guard";
+import { scopeAdminDenied, scopeInboxDenied, scopeWriteDenied } from "../lib/scope-guard";
+import { auditRoute } from "../services/audit-log";
+import { getInbox } from "../services/inbox";
 import { configuredWorkspaceProvider } from "../services/llm-provider";
 import {
   completeWorkspaceReminder,
@@ -17,6 +19,15 @@ import {
   logWorkspaceAction,
   type WorkspaceActionInput,
 } from "../services/workspace-actions";
+import {
+  getWorkspaceAutonomyPolicy,
+  setWorkspaceAutonomyPolicy,
+  type WorkspaceAutonomyPolicyInput,
+} from "../services/workspace-autonomy";
+import {
+  executeWorkspaceReply,
+  type WorkspaceExecuteReplyInput,
+} from "../services/workspace-execution";
 import {
   draftWorkspaceReply,
   suggestWorkspaceReminders,
@@ -35,12 +46,13 @@ workspaceRoutes.get("/", (c) => {
   const provider = configuredWorkspaceProvider(c.env);
   return c.json({
     name: "MailAgent Workspace Agent",
-    status: "preview",
+    status: "autonomy_preview",
     safety: {
       defaultMode: "read_only_and_draft_only",
-      sendAllowed: false,
+      sendAllowed: "policy_gated",
       calendarWriteAllowed: false,
       redaction: "enabled",
+      idempotency: "required_for_send",
     },
     model: {
       provider: provider.provider,
@@ -56,9 +68,85 @@ workspaceRoutes.get("/", (c) => {
       completeReminder: "PATCH /v1/workspace/reminders/:id/complete",
       logAction: "POST /v1/workspace/actions",
       listActions: "GET /v1/workspace/actions",
+      getPolicy: "GET /v1/workspace/policy",
+      setPolicy: "PUT /v1/workspace/policy",
+      executeReply: "POST /v1/workspace/execute-reply",
     },
     roadmap: "https://github.com/Alex0nder/MailAgent/blob/main/docs/WORKSPACE-AGENT-PBR.md",
   });
+});
+
+workspaceRoutes.get("/policy", async (c) => {
+  const policy = await getWorkspaceAutonomyPolicy(c.env, {
+    teamId: c.get("teamId"),
+    apiKeyHint: c.get("apiKeyHint"),
+  });
+  return c.json({
+    policy,
+    safety: {
+      defaultMode: "draft_only",
+      replyContextRequired: true,
+      ruleFallbackAutoSend: false,
+      idempotencyRequired: true,
+    },
+  });
+});
+
+workspaceRoutes.put("/policy", async (c) => {
+  const adminErr = scopeAdminDenied(c);
+  if (adminErr) return adminErr;
+  let body: WorkspaceAutonomyPolicyInput = {};
+  try {
+    body = await c.req.json<WorkspaceAutonomyPolicyInput>();
+  } catch {
+    return c.json({ error: "invalid_json" }, 400);
+  }
+  const result = await setWorkspaceAutonomyPolicy(
+    c.env,
+    { teamId: c.get("teamId"), apiKeyHint: c.get("apiKeyHint") },
+    body
+  );
+  if (!result.ok) return c.json({ error: result.error }, result.status);
+  auditRoute(c, {
+    action: "workspace.policy_updated",
+    resourceType: "workspace_policy",
+    meta: { mode: result.policy.mode },
+  });
+  return c.json(result.policy);
+});
+
+workspaceRoutes.post("/execute-reply", async (c) => {
+  const writeErr = scopeWriteDenied(c);
+  if (writeErr) return writeErr;
+  let body: WorkspaceExecuteReplyInput = {};
+  try {
+    body = await c.req.json<WorkspaceExecuteReplyInput>();
+  } catch {
+    return c.json({ error: "invalid_json" }, 400);
+  }
+  if (!body.inboxId || !body.messageId) {
+    return c.json({ error: "inbox_id_and_message_id_required" }, 400);
+  }
+  const inbox = body.inboxId
+    ? await getInbox(c.env, body.inboxId, { apiKeyHint: c.get("apiKeyHint") })
+    : null;
+  const inboxErr = scopeInboxDenied(c, inbox);
+  if (inboxErr) return inboxErr;
+  const result = await executeWorkspaceReply(
+    c.env,
+    { teamId: c.get("teamId"), apiKeyHint: c.get("apiKeyHint") },
+    body
+  );
+  if (!result.ok) return c.json({ error: result.error }, result.status);
+  if (result.sent) {
+    auditRoute(c, {
+      action: "workspace.reply_sent",
+      resourceType: "message",
+      resourceId: body.messageId,
+      meta: { inboxId: body.inboxId, reminderId: body.reminderId },
+    });
+  }
+  return c.json(result, result.sent ? 201 : 200);
 });
 
 workspaceRoutes.post("/summarize", async (c) => {

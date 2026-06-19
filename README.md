@@ -2,7 +2,7 @@
 
 Temporary inboxes for **AI agents** and **QA/E2E**: create an inbox, submit its address to a signup/login form, wait for OTP or magic link, and clean up automatically.
 
-Workspace Agent preview adds safe supplied-thread summaries, draft replies, reminder suggestions, and persistent action history without sending mail or writing calendar events. Run planning uses that history to avoid repeating drafts or completed work.
+Workspace Agent adds supplied-thread summaries, draft replies, reminders, persistent action history, and policy-gated idempotent replies from stored inbound messages. Sending is disabled by default; calendar writes remain disabled.
 
 **Roadmap:** [docs/ROADMAP.md](./docs/ROADMAP.md)  
 **Your own agent without our API:** [docs/INTEGRATE.md](./docs/INTEGRATE.md) — self-host, MCP, REST.  
@@ -217,6 +217,8 @@ Globally for all projects: copy block to `~/.cursor/mcp.json` (absolute path to 
 | `mailagent_workspace_suggest_reminders` | Workspace preview: suggest reminders/follow-ups |
 | `mailagent_workspace_create_reminder` / `list_reminders` / `complete_reminder` | Workspace preview: persist and manage follow-ups |
 | `mailagent_workspace_log_action` / `list_actions` | Workspace preview: record and inspect agent action history |
+| `mailagent_workspace_get_policy` / `set_policy` | Read or configure admin-owned autonomy guardrails |
+| `mailagent_workspace_execute_reply` | Dry-run or execute an idempotent policy-gated reply |
 | `mailagent_suggest_preset` | Suggest `service`, `expectFrom`, `subjectContains`, and `flow` from a sample auth email |
 | `mailagent_verify_signup` | **Preferred:** wait and return `agent.primaryAction` |
 | `mailagent_create_inbox` | Create inbox (`service`, `notifyEmail`, cleanup options) |
@@ -257,7 +259,9 @@ node mcp/dist/cli.js wait <inboxId> --json
 
 `service` presets include `github`, `google`, `auth0`, `gitlab`, `bitbucket`, `stripe`, `vercel`, `supabase`, `clerk`, `discord`, `openai`, `resend`, `firebase`, and more. Discover the current list via `GET /v1/agent`.
 
-For autonomous browser/QA runs, call `POST /v1/agent/runs/start` or MCP `mailagent_start_run`, execute `plan.nextTool`, then call `mailagent_report_run` after each step. If the agent loses context, `mailagent_next_run` resumes from saved state. When there is no active inbox flow, run planning checks open Workspace reminders and action history: it selects the next untouched follow-up or returns `workspace_waiting` instead of preparing a duplicate draft.
+For autonomous browser/QA runs, call `POST /v1/agent/runs/start` or MCP `mailagent_start_run`, execute `plan.nextTool`, then call `mailagent_report_run` after each step. If the agent loses context, `mailagent_next_run` resumes from saved state. When there is no active inbox flow, run planning checks reminders, action history, and the stored autonomy policy: it can select a draft, execute a guarded reply, or return `workspace_waiting` without repeating work.
+
+Workspace autonomy guide: [docs/WORKSPACE-AUTONOMY.md](./docs/WORKSPACE-AUTONOMY.md).
 
 If the next action is unclear, call `POST /v1/agent/autopilot` or MCP `mailagent_plan_next`; it returns `nextTool`, `nextPayload`, and recovery payloads. If sender or subject hints are unclear, call `POST /v1/agent/preset-advice` or MCP `mailagent_suggest_preset` with a sample `from` / `subject` first.
 

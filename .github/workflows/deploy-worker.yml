@@ -34,6 +34,8 @@ jobs:
 
       - run: npm ci
       - run: npm run check
+      - run: npm run test:agent-autopilot
+      - run: npm run test:workspace-autonomy
       - run: npm run verify:codex
 
       - name: Require Cloudflare secrets

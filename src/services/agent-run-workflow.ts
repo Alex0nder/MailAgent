@@ -12,6 +12,7 @@ import {
 } from "./agent-run-session";
 import { buildInboxDiagnose } from "./inbox-diagnose";
 import { listWorkspaceActions } from "./workspace-actions";
+import { getWorkspaceAutonomyPolicy } from "./workspace-autonomy";
 import { listWorkspaceReminders } from "./workspace-reminders";
 
 export type AgentRunStartInput = AgentAutopilotInput & {
@@ -244,6 +245,10 @@ async function buildNextPlan(
           )
       )
     ).flat();
+    input.workspacePolicy = await getWorkspaceAutonomyPolicy(env, {
+      teamId: auth.teamId,
+      apiKeyHint: auth.apiKeyHint,
+    });
   }
   return buildAgentAutopilotPlan(input, diagnose);
 }

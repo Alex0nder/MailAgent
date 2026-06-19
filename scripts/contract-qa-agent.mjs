@@ -305,6 +305,38 @@ async function main() {
   }
   console.log("workspace action-aware planner OK");
 
+  const autonomousWorkspace = await fetch(`${base}/v1/agent/autopilot`, {
+    method: "POST",
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      runId: "contract-workspace-autonomy",
+      workspacePolicy: { mode: "auto_send_safe" },
+      openReminders: [
+        {
+          id: "wr_contract_auto",
+          title: "Confirm QA completion",
+          sourceMessageId: "msg_contract_auto",
+          status: "open",
+          meta: { inboxId: "inb_contract_auto" },
+        },
+      ],
+    }),
+  });
+  const autonomousWorkspaceJson = await autonomousWorkspace.json();
+  if (
+    !autonomousWorkspace.ok ||
+    autonomousWorkspaceJson.nextTool !== "mailagent_workspace_execute_reply" ||
+    !autonomousWorkspaceJson.nextPayload?.idempotencyKey
+  ) {
+    console.error(
+      "workspace autonomous planning failed",
+      autonomousWorkspace.status,
+      autonomousWorkspaceJson
+    );
+    process.exit(1);
+  }
+  console.log("workspace autonomous planner OK");
+
   console.log("agent hub OK", {
     tools: hub.json.mcpTools.length,
     services: services.length,

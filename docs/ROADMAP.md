@@ -718,6 +718,20 @@ Spec: [AGENT-PBR.md](./AGENT-PBR.md)
 | Auto-cleanup policies | ✅ |
 | Agent-safe HTML action extraction | ✅ |
 
+### v0.84 — Workspace autonomy policies
+
+| Task | Status |
+|------|--------|
+| Admin policy: `draft_only`, `auto_send_safe`, `full_auto` | ✅ |
+| Recipient-domain, confidence, and hourly send guardrails | ✅ |
+| Idempotent `POST /v1/workspace/execute-reply` | ✅ |
+| MCP policy + execute tools | ✅ |
+| Planner selects guarded execution for stored mail context | ✅ |
+| Action/audit log and reminder completion after send | ✅ |
+| Public LLM provider metadata cannot expose API keys | ✅ |
+
+Guide: [WORKSPACE-AUTONOMY.md](./WORKSPACE-AUTONOMY.md).
+
 ### Deferred (not QA)
 
 - ~~Agent session memory / multi-step run state~~ ✅ v0.35

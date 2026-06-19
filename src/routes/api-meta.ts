@@ -27,7 +27,9 @@ apiMetaRoutes.get("/", (c) => {
       draftReply: "POST /v1/workspace/draft-reply",
       reminders: "POST /v1/workspace/reminders/suggest",
       actions: "POST /v1/workspace/actions",
-      status: "preview",
+      policy: "GET|PUT /v1/workspace/policy",
+      executeReply: "POST /v1/workspace/execute-reply",
+      status: "autonomy_preview",
       docs: "https://github.com/Alex0nder/MailAgent/blob/main/docs/WORKSPACE-AGENT-PBR.md",
     },
     endpoints: {
@@ -136,6 +138,16 @@ apiMetaRoutes.get("/", (c) => {
         method: "GET",
         path: "/v1/workspace/actions",
         note: "Workspace Agent preview: list logged actions by reminderId/threadId",
+      },
+      workspacePolicy: {
+        method: "GET|PUT",
+        path: "/v1/workspace/policy",
+        note: "Admin policy: draft_only, auto_send_safe, or full_auto",
+      },
+      workspaceExecuteReply: {
+        method: "POST",
+        path: "/v1/workspace/execute-reply",
+        note: "Policy-gated idempotent reply from a stored inbound message",
       },
     },
     services: Object.keys(SERVICE_EXPECT_FROM),

@@ -112,7 +112,8 @@
     "eval:context-os:aggregate": "node context-os/eval/aggregate.mjs",
     "eval:context-os:tokens": "node context-os/eval/tokens-report.mjs",
     "eval:context-os:export": "node context-os/eval/export-results.mjs",
-    "test:agent-autopilot": "npx tsx scripts/test-agent-autopilot.ts"
+    "test:agent-autopilot": "npx -y tsx@4.21.0 scripts/test-agent-autopilot.ts",
+    "test:workspace-autonomy": "npx -y tsx@4.21.0 scripts/test-workspace-autonomy.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",

@@ -10,7 +10,7 @@ homepage: https://webmailagent.com/docs/agents.html
 repository: https://github.com/Alex0nder/MailAgent
 metadata:
   author: mailagent
-  version: "0.2.14"
+  version: "0.2.15"
   categories: "Email, QA, Agents, MCP"
 ---
 
@@ -54,7 +54,7 @@ Guide: https://webmailagent.com/docs/codex.html
 ```bash
 export MAILAGENT_API_URL=https://api.webmailagent.com
 export MAILAGENT_API_KEY=ma_…
-npx -y -p @mailagent/mcp@0.2.14 mailagent-mcp
+npx -y -p @mailagent/mcp@0.2.15 mailagent-mcp
 ```
 
 Remote (no subprocess): `POST https://api.webmailagent.com/mcp` + Bearer token.
@@ -145,6 +145,8 @@ Console: `console-inbox.html` → notify relay log.
 | `mailagent_workspace_suggest_reminders` | Workspace preview — suggest reminders/follow-ups |
 | `mailagent_workspace_create_reminder` / `list_reminders` / `complete_reminder` | Workspace preview — persist and manage follow-ups |
 | `mailagent_workspace_log_action` / `list_actions` | Workspace preview — record draft/wait/completed/blocked history |
+| `mailagent_workspace_get_policy` / `set_policy` | Read or configure admin-owned autonomy guardrails |
+| `mailagent_workspace_execute_reply` | Dry-run or execute an idempotent policy-gated reply |
 | `mailagent_suggest_preset` | Unknown sender/service — get `service`, `expectFrom`, `subjectContains`, and `flow` |
 | `mailagent_verify_signup` | One-shot wait + extract + primaryAction |
 | `mailagent_create_inbox` | Need address before form submit |
@@ -164,7 +166,7 @@ Console: `console-inbox.html` → notify relay log.
 | `callbackUrl` on create | Async CI — `waitForCallback` in QA SDK |
 | `notifyEmail` on create | Relay OTP to developer's real inbox |
 
-Full list: `GET https://api.webmailagent.com/v1/agent` → `mcpTools` (40 tools).
+Full list: `GET https://api.webmailagent.com/v1/agent` → `mcpTools` (43 tools).
 
 ## Email check (`mailagent_check_email`)
 
@@ -191,6 +193,8 @@ Recipes: `GET /v1/agent/recipes/github`
 Autopilot: `POST /v1/agent/autopilot` or MCP `mailagent_plan_next`.
 
 For Workspace follow-ups, pass recent `workspaceActions` with `openReminders` when using the stateless planner. Stateful runs load both automatically and return `workspace_waiting` rather than repeating recorded work.
+
+Workspace autonomous replies are disabled by default. An unrestricted admin configures `mailagent_workspace_set_policy`; agents call `mailagent_workspace_execute_reply` with a stored inbound `messageId`. Use `dryRun=true` first and a stable `idempotencyKey` for real execution. Never bypass a denied decision with `mailagent_send_message`.
 
 Preset advice: `POST /v1/agent/preset-advice` or MCP `mailagent_suggest_preset`.
 

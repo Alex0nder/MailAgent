@@ -3,7 +3,7 @@
 MailAgent Core stays focused on QA inboxes, OTP, magic links, CI, and autonomous test agents.
 Workspace Agent is a new product layer for real work mail and calendar automation.
 
-Default posture: read-only or draft-only. No send, delete, archive, or calendar write without explicit operator approval and audit logs.
+Default posture: read-only or draft-only. Autonomous reply execution requires an explicit admin policy, immutable guardrails, idempotency, and audit logs. Calendar writes remain disabled.
 
 Preferred model providers: DeepSeek and Qwen through OpenAI-compatible chat completions.
 
@@ -22,12 +22,12 @@ An autonomous inbox and calendar agent for busy teams:
 
 | # | Feature | Status |
 |---|---------|--------|
-| 1 | Provider adapter for DeepSeek/Qwen/OpenAI-compatible chat completions | planned |
-| 2 | Redaction before LLM call (OTP, API keys, bearer tokens, card-like numbers) | planned |
-| 3 | `POST /v1/workspace/summarize` for supplied messages/thread | planned |
-| 4 | `POST /v1/workspace/draft-reply` returns draft only, never sends | planned |
-| 5 | `POST /v1/workspace/reminders/suggest` returns follow-up/reminder candidates | planned |
-| 6 | Contract tests with deterministic fallback when no LLM key is configured | planned |
+| 1 | Provider adapter for DeepSeek/Qwen/OpenAI-compatible chat completions | done |
+| 2 | Redaction before LLM call (OTP, API keys, bearer tokens, card-like numbers) | done |
+| 3 | `POST /v1/workspace/summarize` for supplied messages/thread | done |
+| 4 | `POST /v1/workspace/draft-reply` returns draft only, never sends | done |
+| 5 | `POST /v1/workspace/reminders/suggest` returns follow-up/reminder candidates | done |
+| 6 | Contract tests with deterministic fallback when no LLM key is configured | done |
 
 Done when: a QA/dev can paste a thread payload and get summary, action items, draft reply, and reminder suggestions without connecting Gmail.
 
@@ -59,10 +59,10 @@ Done when: the agent can propose meeting slots from calendar availability withou
 | # | Feature | Status |
 |---|---------|--------|
 | 16 | Draft creation in Gmail | backlog |
-| 17 | Send reply only after approval | backlog |
+| 17 | Policy-gated idempotent reply from a MailAgent inbox | done |
 | 18 | Create/update calendar events only after approval | backlog |
-| 19 | Audit log for every proposed and approved action | backlog |
-| 20 | Team kill switch for all write actions | backlog |
+| 19 | Audit/action log for policy, send, denial, and failure | done |
+| 20 | Team kill switch (`draft_only`) for all Workspace writes | done |
 
 Done when: a team can safely enable write actions with approval gates and auditability.
 
@@ -73,14 +73,14 @@ Done when: a team can safely enable write actions with approval gates and audita
 | 21 | Rule engine: invoices, support, meetings, follow-ups | backlog |
 | 22 | Scheduled reminders and monitors | backlog |
 | 23 | Slack/email digests | backlog |
-| 24 | Admin policy: allowed senders, labels, domains, time windows | backlog |
+| 24 | Admin policy: mode, recipient domains, confidence, hourly limit | done |
 
 Done when: teams can run low-risk automations without prompt-by-prompt babysitting.
 
 ## Non-Goals For MVP
 
 - No direct access to personal Gmail until P1.
-- No autonomous sending.
+- No autonomous sending unless an admin explicitly enables a persisted policy.
 - No calendar write.
 - No training on customer content.
 - No raw secrets in LLM prompts.

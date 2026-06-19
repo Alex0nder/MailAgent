@@ -560,7 +560,16 @@ export const openApiSpec = {
                         messageId: { type: "string" },
                         actionType: {
                           type: "string",
-                          enum: ["draft_prepared", "waiting", "completed", "blocked", "note"],
+                          enum: [
+                            "draft_prepared",
+                            "waiting",
+                            "completed",
+                            "blocked",
+                            "sent",
+                            "send_denied",
+                            "send_failed",
+                            "note",
+                          ],
                         },
                         title: { type: "string" },
                         note: { type: "string" },
@@ -568,6 +577,24 @@ export const openApiSpec = {
                         createdAt: { type: "string" },
                         meta: { type: "object", additionalProperties: true },
                       },
+                    },
+                  },
+                  workspacePolicy: {
+                    type: "object",
+                    properties: {
+                      mode: {
+                        type: "string",
+                        enum: ["draft_only", "auto_send_safe", "full_auto"],
+                      },
+                      allowedRecipientDomains: {
+                        type: "array",
+                        items: { type: "string" },
+                      },
+                      minConfidence: {
+                        type: "string",
+                        enum: ["low", "medium", "high"],
+                      },
+                      maxSendsPerHour: { type: "integer", minimum: 1, maximum: 100 },
                     },
                   },
                 },
@@ -840,7 +867,7 @@ export const openApiSpec = {
     "/v1/workspace": {
       get: {
         tags: ["meta"],
-        summary: "Workspace Agent preview discovery",
+        summary: "Workspace Agent autonomy discovery",
         security: bearer,
         responses: {
           "200": { description: "Workspace Agent safety posture, model provider, and endpoints" },
@@ -896,7 +923,12 @@ export const openApiSpec = {
             },
           },
         },
-        responses: { "200": { description: "Draft text, risks/missing context, approval required" } },
+        responses: {
+          "200": {
+            description:
+              "Draft text, confidence, risks/missing context, approval required, and public provider metadata",
+          },
+        },
       },
     },
     "/v1/workspace/reminders/suggest": {
@@ -1003,7 +1035,16 @@ export const openApiSpec = {
                   title: { type: "string" },
                   actionType: {
                     type: "string",
-                    enum: ["draft_prepared", "waiting", "completed", "blocked", "note"],
+                    enum: [
+                      "draft_prepared",
+                      "waiting",
+                      "completed",
+                      "blocked",
+                      "sent",
+                      "send_denied",
+                      "send_failed",
+                      "note",
+                    ],
                   },
                   status: { type: "string", enum: ["done", "waiting", "blocked"] },
                   note: { type: "string" },
@@ -1019,6 +1060,86 @@ export const openApiSpec = {
         responses: {
           "201": { description: "Logged Workspace action" },
           "400": { description: "title_required | invalid_action_type | invalid_status" },
+        },
+      },
+    },
+    "/v1/workspace/policy": {
+      get: {
+        tags: ["meta"],
+        summary: "Read Workspace Agent autonomy policy",
+        security: bearer,
+        responses: {
+          "200": { description: "Policy plus immutable safety constraints" },
+        },
+      },
+      put: {
+        tags: ["meta"],
+        summary: "Configure Workspace Agent autonomy policy (admin key required)",
+        security: bearer,
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["mode"],
+                properties: {
+                  mode: {
+                    type: "string",
+                    enum: ["draft_only", "auto_send_safe", "full_auto"],
+                  },
+                  allowedRecipientDomains: {
+                    type: "array",
+                    items: { type: "string" },
+                  },
+                  minConfidence: {
+                    type: "string",
+                    enum: ["low", "medium", "high"],
+                  },
+                  maxSendsPerHour: { type: "integer", minimum: 1, maximum: 100 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Updated policy" },
+          "400": { description: "Invalid policy" },
+          "403": { description: "Unrestricted admin key required" },
+        },
+      },
+    },
+    "/v1/workspace/execute-reply": {
+      post: {
+        tags: ["meta"],
+        summary: "Draft and policy-gate an autonomous reply to a stored inbound message",
+        security: bearer,
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["inboxId", "messageId"],
+                properties: {
+                  inboxId: { type: "string" },
+                  messageId: { type: "string" },
+                  reminderId: { type: "string" },
+                  idempotencyKey: {
+                    type: "string",
+                    description: "Required for a real send; prevents duplicate delivery",
+                  },
+                  instruction: { type: "string" },
+                  tone: { type: "string", enum: ["concise", "friendly", "formal"] },
+                  dryRun: { type: "boolean" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Dry run or policy-denied execution" },
+          "201": { description: "Reply sent exactly once and execution recorded" },
+          "400": { description: "Invalid execution request" },
+          "404": { $ref: "#/components/responses/NotFound" },
         },
       },
     },

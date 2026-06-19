@@ -24,6 +24,7 @@ export type AgentAutopilotInput = PresetAdviceInput & {
   lastError?: string;
   openReminders?: AgentAutopilotReminder[];
   workspaceActions?: AgentAutopilotAction[];
+  workspacePolicy?: AgentAutopilotWorkspacePolicy;
 };
 
 export interface AgentAutopilotPlan {
@@ -82,12 +83,28 @@ export type AgentAutopilotAction = {
   reminderId?: string | null;
   threadId?: string | null;
   messageId?: string | null;
-  actionType?: "draft_prepared" | "waiting" | "completed" | "blocked" | "note" | string;
+  actionType?:
+    | "draft_prepared"
+    | "waiting"
+    | "completed"
+    | "blocked"
+    | "sent"
+    | "send_denied"
+    | "send_failed"
+    | "note"
+    | string;
   title?: string;
   note?: string | null;
   status?: "done" | "waiting" | "blocked" | string;
   createdAt?: string;
   meta?: Record<string, unknown>;
+};
+
+export type AgentAutopilotWorkspacePolicy = {
+  mode?: "draft_only" | "auto_send_safe" | "full_auto" | string;
+  allowedRecipientDomains?: string[];
+  minConfidence?: "low" | "medium" | "high" | string;
+  maxSendsPerHour?: number;
 };
 
 function cleanString(value?: string): string | undefined {
@@ -186,7 +203,7 @@ function openReminderQueue(input: AgentAutopilotInput): AgentAutopilotReminder[]
 
 function latestProgressByReminder(input: AgentAutopilotInput): Map<string, AgentAutopilotAction> {
   const latest = new Map<string, AgentAutopilotAction>();
-  const progressTypes = new Set(["draft_prepared", "waiting", "completed", "blocked"]);
+  const progressTypes = new Set(["draft_prepared", "waiting", "completed", "blocked", "sent"]);
   if (!Array.isArray(input.workspaceActions)) return latest;
   for (const action of input.workspaceActions) {
     const reminderId = cleanString(action?.reminderId ?? undefined);
@@ -276,22 +293,50 @@ export function buildAgentAutopilotPlan(
 
   if (!input.inboxId && actionableReminders.length > 0) {
     const reminder = actionableReminders[0]!;
+    const reminderInboxId =
+      typeof reminder.meta?.inboxId === "string" ? reminder.meta.inboxId : undefined;
+    const autonomyEnabled =
+      input.workspacePolicy?.mode === "auto_send_safe" ||
+      input.workspacePolicy?.mode === "full_auto";
+    const executeReply = Boolean(
+      autonomyEnabled && reminderInboxId && reminder.sourceMessageId && reminder.id
+    );
     return {
       mode: "workspace_followup",
       confidence: reminder.sourceThreadId || reminder.sourceMessageId ? "medium" : "low",
-      summary: "Open Workspace reminder found; draft the next follow-up without asking the operator to remember it.",
-      nextTool: "mailagent_workspace_draft_reply",
-      nextPayload: reminderDraftPayload(reminder),
-      steps: [
-        "Draft a follow-up from the reminder context.",
-        "Call mailagent_workspace_log_action with actionType=draft_prepared and the reminder/thread ids.",
-        "Review the draft against the current app or mailbox context.",
-        "After the action is completed, log actionType=completed and call mailagent_workspace_complete_reminder.",
-      ],
+      summary: executeReply
+        ? "Open Workspace reminder has stored mail context and an autonomous policy; execute a policy-gated reply."
+        : "Open Workspace reminder found; draft the next follow-up without asking the operator to remember it.",
+      nextTool: executeReply
+        ? "mailagent_workspace_execute_reply"
+        : "mailagent_workspace_draft_reply",
+      nextPayload: executeReply
+        ? {
+            inboxId: reminderInboxId,
+            messageId: reminder.sourceMessageId,
+            reminderId: reminder.id,
+            idempotencyKey: `workspace:${cleanString(input.runId) ?? reminder.id}:${reminder.id}`,
+            instruction: reminder.title ?? "Reply to the open follow-up",
+          }
+        : reminderDraftPayload(reminder),
+      steps: executeReply
+        ? [
+            "Execute the reply through the stored autonomy policy.",
+            "Stop when policy denies the action; do not bypass confidence, domain, or rate limits.",
+            "On success the execution logs the send and completes the reminder automatically.",
+          ]
+        : [
+            "Draft a follow-up from the reminder context.",
+            "Call mailagent_workspace_log_action with actionType=draft_prepared and the reminder/thread ids.",
+            "Review the draft against the current app or mailbox context.",
+            "After the action is completed, log actionType=completed and call mailagent_workspace_complete_reminder.",
+          ],
       payloads: {},
       guardrails: [
         ...guardrails,
-        "Do not send the draft automatically until a mail/calendar connector explicitly supports safe send semantics.",
+        executeReply
+          ? "Only mailagent_workspace_execute_reply may auto-send; never bypass its stored policy."
+          : "Do not send the draft automatically until an autonomy policy and stored mail context are available.",
       ],
       stopWhen: [
         "A draft reply or next action is prepared for the open reminder.",

@@ -5,6 +5,7 @@ import {
   contractApi,
   contractBase,
   contractHeaders,
+  contractSimulate,
 } from "./lib/contract-api.mjs";
 
 const base = contractBase();
@@ -42,7 +43,11 @@ async function main() {
   console.log("contract-qa-workspace-agent →", base);
 
   const hub = await contractApi(base, headers, "/v1/workspace");
-  if (!hub.ok || hub.json?.safety?.sendAllowed !== false || !hub.json?.endpoints?.summarize) {
+  if (
+    !hub.ok ||
+    hub.json?.safety?.sendAllowed !== "policy_gated" ||
+    !hub.json?.endpoints?.executeReply
+  ) {
     console.error("workspace hub failed", hub.status, hub.json);
     process.exit(1);
   }
@@ -57,6 +62,9 @@ async function main() {
     "mailagent_workspace_complete_reminder",
     "mailagent_workspace_log_action",
     "mailagent_workspace_list_actions",
+    "mailagent_workspace_get_policy",
+    "mailagent_workspace_set_policy",
+    "mailagent_workspace_execute_reply",
   ]) {
     if (!agentHub.json?.mcpTools?.includes(tool)) {
       console.error(`agent hub missing ${tool}`, agentHub.json?.mcpTools);
@@ -77,6 +85,10 @@ async function main() {
     console.error("workspace summarize failed", summary.status, summary.json);
     process.exit(1);
   }
+  if ("apiKey" in (summary.json?.provider ?? {}) || "baseUrl" in (summary.json?.provider ?? {})) {
+    console.error("workspace provider metadata leaked private configuration", summary.json?.provider);
+    process.exit(1);
+  }
 
   const draft = await contractApi(base, headers, "/v1/workspace/draft-reply", {
     method: "POST",
@@ -91,6 +103,57 @@ async function main() {
     console.error("workspace draft failed", draft.status, draft.json);
     process.exit(1);
   }
+  if (
+    !["high", "medium", "low"].includes(draft.json?.confidence) ||
+    "apiKey" in (draft.json?.provider ?? {})
+  ) {
+    console.error("workspace draft safety metadata failed", draft.status, draft.json);
+    process.exit(1);
+  }
+
+  const policy = await contractApi(base, headers, "/v1/workspace/policy");
+  if (
+    !policy.ok ||
+    !["draft_only", "auto_send_safe", "full_auto"].includes(policy.json?.policy?.mode) ||
+    policy.json?.safety?.idempotencyRequired !== true
+  ) {
+    console.error("workspace autonomy policy failed", policy.status, policy.json);
+    process.exit(1);
+  }
+
+  const executionInbox = await contractApi(base, headers, "/v1/inboxes", {
+    method: "POST",
+    body: JSON.stringify({ label: `contract-autonomy-${Date.now()}`, ttlMinutes: 15 }),
+  });
+  if (!executionInbox.ok || !executionInbox.json?.id) {
+    console.error("workspace execution inbox failed", executionInbox.status, executionInbox.json);
+    process.exit(1);
+  }
+  const executionMessage = await contractSimulate(base, headers, executionInbox.json.id, {
+    from: "alice@example.com",
+    subject: "Workspace autonomy dry run",
+    text: "Please send a short confirmation that the QA review is complete.",
+  });
+  if (!executionMessage.ok || !executionMessage.json?.messageId) {
+    console.error("workspace execution message failed", executionMessage.status, executionMessage.json);
+    process.exit(1);
+  }
+  const dryRun = await contractApi(base, headers, "/v1/workspace/execute-reply", {
+    method: "POST",
+    body: JSON.stringify({
+      inboxId: executionInbox.json.id,
+      messageId: executionMessage.json.messageId,
+      instruction: "Confirm completion without making new commitments.",
+      dryRun: true,
+    }),
+  });
+  if (!dryRun.ok || dryRun.json?.sent !== false || !dryRun.json?.decision?.code) {
+    console.error("workspace execution dry run failed", dryRun.status, dryRun.json);
+    process.exit(1);
+  }
+  await contractApi(base, headers, `/v1/inboxes/${encodeURIComponent(executionInbox.json.id)}`, {
+    method: "DELETE",
+  });
 
   const reminders = await contractApi(base, headers, "/v1/workspace/reminders/suggest", {
     method: "POST",

@@ -160,6 +160,24 @@ export class MailAgentClient {
     return this.request<Record<string, unknown>>(`/v1/workspace/actions${suffix}`);
   }
 
+  workspaceGetPolicy() {
+    return this.request<Record<string, unknown>>("/v1/workspace/policy");
+  }
+
+  workspaceSetPolicy(options: WorkspaceAutonomyPolicyInput) {
+    return this.request<Record<string, unknown>>("/v1/workspace/policy", {
+      method: "PUT",
+      body: JSON.stringify(options),
+    });
+  }
+
+  workspaceExecuteReply(options: WorkspaceExecuteReplyInput) {
+    return this.request<Record<string, unknown>>("/v1/workspace/execute-reply", {
+      method: "POST",
+      body: JSON.stringify(options),
+    });
+  }
+
   createInbox(options?: CreateInboxOptions) {
     const body: Record<string, unknown> = {};
     if (options?.ttlMinutes !== undefined) body.ttlMinutes = options.ttlMinutes;
@@ -581,6 +599,7 @@ export interface AgentAutopilotInput extends PresetAdviceInput {
   lastError?: string;
   openReminders?: AgentAutopilotReminder[];
   workspaceActions?: AgentAutopilotAction[];
+  workspacePolicy?: WorkspaceAutonomyPolicyInput;
 }
 
 export interface AgentAutopilotReminder {
@@ -600,7 +619,15 @@ export interface AgentAutopilotAction {
   reminderId?: string | null;
   threadId?: string | null;
   messageId?: string | null;
-  actionType?: "draft_prepared" | "waiting" | "completed" | "blocked" | "note";
+  actionType?:
+    | "draft_prepared"
+    | "waiting"
+    | "completed"
+    | "blocked"
+    | "sent"
+    | "send_denied"
+    | "send_failed"
+    | "note";
   title?: string;
   note?: string | null;
   status?: "done" | "waiting" | "blocked";
@@ -669,13 +696,38 @@ export interface WorkspaceReminderCreateInput {
 
 export interface WorkspaceActionInput {
   title: string;
-  actionType?: "draft_prepared" | "waiting" | "completed" | "blocked" | "note";
+  actionType?:
+    | "draft_prepared"
+    | "waiting"
+    | "completed"
+    | "blocked"
+    | "sent"
+    | "send_denied"
+    | "send_failed"
+    | "note";
   status?: "done" | "waiting" | "blocked";
   note?: string;
   reminderId?: string;
   threadId?: string;
   messageId?: string;
   meta?: Record<string, unknown>;
+}
+
+export interface WorkspaceAutonomyPolicyInput {
+  mode: "draft_only" | "auto_send_safe" | "full_auto";
+  allowedRecipientDomains?: string[];
+  minConfidence?: "low" | "medium" | "high";
+  maxSendsPerHour?: number;
+}
+
+export interface WorkspaceExecuteReplyInput {
+  inboxId: string;
+  messageId: string;
+  reminderId?: string;
+  idempotencyKey?: string;
+  instruction?: string;
+  tone?: "concise" | "friendly" | "formal";
+  dryRun?: boolean;
 }
 
 export interface PresetAdviceResponse {

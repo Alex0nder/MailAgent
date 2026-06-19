@@ -82,7 +82,16 @@ const autopilotArgsSchema = {
         threadId: z.string().nullable().optional(),
         messageId: z.string().nullable().optional(),
         actionType: z
-          .enum(["draft_prepared", "waiting", "completed", "blocked", "note"])
+          .enum([
+            "draft_prepared",
+            "waiting",
+            "completed",
+            "blocked",
+            "sent",
+            "send_denied",
+            "send_failed",
+            "note",
+          ])
           .optional(),
         title: z.string().optional(),
         note: z.string().nullable().optional(),
@@ -91,6 +100,14 @@ const autopilotArgsSchema = {
         meta: z.record(z.unknown()).optional(),
       })
     )
+    .optional(),
+  workspacePolicy: z
+    .object({
+      mode: z.enum(["draft_only", "auto_send_safe", "full_auto"]),
+      allowedRecipientDomains: z.array(z.string()).optional(),
+      minConfidence: z.enum(["low", "medium", "high"]).optional(),
+      maxSendsPerHour: z.number().int().min(1).max(100).optional(),
+    })
     .optional(),
 };
 
@@ -307,7 +324,16 @@ server.registerTool(
     inputSchema: {
       title: z.string(),
       actionType: z
-        .enum(["draft_prepared", "waiting", "completed", "blocked", "note"])
+        .enum([
+          "draft_prepared",
+          "waiting",
+          "completed",
+          "blocked",
+          "sent",
+          "send_denied",
+          "send_failed",
+          "note",
+        ])
         .optional(),
       status: z.enum(["done", "waiting", "blocked"]).optional(),
       note: z.string().optional(),
@@ -337,6 +363,58 @@ server.registerTool(
   async (args) => {
     const client = new MailAgentClient();
     return toolText(await client.workspaceListActions(args));
+  }
+);
+
+server.registerTool(
+  "mailagent_workspace_get_policy",
+  {
+    description:
+      "Read the Workspace Agent autonomy policy. Default is draft_only.",
+    inputSchema: {},
+  },
+  async () => {
+    const client = new MailAgentClient();
+    return toolText(await client.workspaceGetPolicy());
+  }
+);
+
+server.registerTool(
+  "mailagent_workspace_set_policy",
+  {
+    description:
+      "Admin-only: configure policy-gated autonomous replies.",
+    inputSchema: {
+      mode: z.enum(["draft_only", "auto_send_safe", "full_auto"]),
+      allowedRecipientDomains: z.array(z.string()).optional(),
+      minConfidence: z.enum(["low", "medium", "high"]).optional(),
+      maxSendsPerHour: z.number().int().min(1).max(100).optional(),
+    },
+  },
+  async (args) => {
+    const client = new MailAgentClient();
+    return toolText(await client.workspaceSetPolicy(args));
+  }
+);
+
+server.registerTool(
+  "mailagent_workspace_execute_reply",
+  {
+    description:
+      "Policy-gated autonomous reply from a real inbound message. Use dryRun first; idempotencyKey is required to send.",
+    inputSchema: {
+      inboxId: z.string(),
+      messageId: z.string(),
+      reminderId: z.string().optional(),
+      idempotencyKey: z.string().optional(),
+      instruction: z.string().optional(),
+      tone: z.enum(["concise", "friendly", "formal"]).optional(),
+      dryRun: z.boolean().optional(),
+    },
+  },
+  async (args) => {
+    const client = new MailAgentClient();
+    return toolText(await client.workspaceExecuteReply(args));
   }
 );
 
