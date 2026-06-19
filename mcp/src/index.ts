@@ -282,6 +282,47 @@ server.registerTool(
 );
 
 server.registerTool(
+  "mailagent_workspace_log_action",
+  {
+    description:
+      "Workspace Agent preview: log what the agent did for a reminder/thread.",
+    inputSchema: {
+      title: z.string(),
+      actionType: z
+        .enum(["draft_prepared", "waiting", "completed", "blocked", "note"])
+        .optional(),
+      status: z.enum(["done", "waiting", "blocked"]).optional(),
+      note: z.string().optional(),
+      reminderId: z.string().optional(),
+      threadId: z.string().optional(),
+      messageId: z.string().optional(),
+      meta: z.record(z.unknown()).optional(),
+    },
+  },
+  async (args) => {
+    const client = new MailAgentClient();
+    return toolText(await client.workspaceLogAction(args));
+  }
+);
+
+server.registerTool(
+  "mailagent_workspace_list_actions",
+  {
+    description:
+      "Workspace Agent preview: list logged Workspace actions, optionally scoped by reminderId or threadId.",
+    inputSchema: {
+      reminderId: z.string().optional(),
+      threadId: z.string().optional(),
+      limit: z.number().int().min(1).max(100).optional(),
+    },
+  },
+  async (args) => {
+    const client = new MailAgentClient();
+    return toolText(await client.workspaceListActions(args));
+  }
+);
+
+server.registerTool(
   "mailagent_suggest_preset",
   {
     description:

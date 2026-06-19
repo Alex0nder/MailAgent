@@ -13,6 +13,11 @@ import {
   type WorkspaceReminderInput as WorkspaceReminderCreateInput,
 } from "../services/workspace-reminders";
 import {
+  listWorkspaceActions,
+  logWorkspaceAction,
+  type WorkspaceActionInput,
+} from "../services/workspace-actions";
+import {
   draftWorkspaceReply,
   suggestWorkspaceReminders,
   summarizeWorkspaceThread,
@@ -49,6 +54,8 @@ workspaceRoutes.get("/", (c) => {
       createReminder: "POST /v1/workspace/reminders",
       listReminders: "GET /v1/workspace/reminders",
       completeReminder: "PATCH /v1/workspace/reminders/:id/complete",
+      logAction: "POST /v1/workspace/actions",
+      listActions: "GET /v1/workspace/actions",
     },
     roadmap: "https://github.com/Alex0nder/MailAgent/blob/main/docs/WORKSPACE-AGENT-PBR.md",
   });
@@ -128,4 +135,37 @@ workspaceRoutes.patch("/reminders/:id/complete", async (c) => {
   );
   if (!result.ok) return c.json({ error: result.error }, result.status);
   return c.json(result.reminder);
+});
+
+workspaceRoutes.get("/actions", async (c) => {
+  const actions = await listWorkspaceActions(
+    c.env,
+    { teamId: c.get("teamId"), apiKeyHint: c.get("apiKeyHint") },
+    {
+      reminderId: c.req.query("reminderId") ?? undefined,
+      threadId: c.req.query("threadId") ?? undefined,
+      limit: Number(c.req.query("limit") ?? 50),
+    }
+  );
+  return c.json({ actions, count: actions.length });
+});
+
+workspaceRoutes.post("/actions", async (c) => {
+  const writeErr = scopeWriteDenied(c);
+  if (writeErr) return writeErr;
+
+  let body: WorkspaceActionInput = {};
+  try {
+    body = await c.req.json<WorkspaceActionInput>();
+  } catch {
+    body = {};
+  }
+
+  const result = await logWorkspaceAction(
+    c.env,
+    { teamId: c.get("teamId"), apiKeyHint: c.get("apiKeyHint") },
+    body
+  );
+  if (!result.ok) return c.json({ error: result.error }, result.status);
+  return c.json(result.action, 201);
 });

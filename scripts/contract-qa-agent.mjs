@@ -62,6 +62,8 @@ async function main() {
     "mailagent_workspace_summarize",
     "mailagent_workspace_draft_reply",
     "mailagent_workspace_suggest_reminders",
+    "mailagent_workspace_log_action",
+    "mailagent_workspace_list_actions",
   ]) {
     if (!hub.json.mcpTools.includes(tool)) {
       console.error(`${tool} missing from hub`);

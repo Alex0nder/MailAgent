@@ -55,6 +55,8 @@ async function main() {
     "mailagent_workspace_create_reminder",
     "mailagent_workspace_list_reminders",
     "mailagent_workspace_complete_reminder",
+    "mailagent_workspace_log_action",
+    "mailagent_workspace_list_actions",
   ]) {
     if (!agentHub.json?.mcpTools?.includes(tool)) {
       console.error(`agent hub missing ${tool}`, agentHub.json?.mcpTools);
@@ -123,6 +125,53 @@ async function main() {
     process.exit(1);
   }
 
+  const action = await contractApi(base, headers, "/v1/workspace/actions", {
+    method: "POST",
+    body: JSON.stringify({
+      title: "Draft prepared for contract follow-up",
+      actionType: "draft_prepared",
+      status: "done",
+      reminderId: created.json.id,
+      threadId: sample.threadId,
+      messageId: "m2",
+      note: "Contract verified that action log persists agent progress.",
+      meta: { contract: true },
+    }),
+  });
+  if (
+    action.status !== 201 ||
+    action.json?.reminderId !== created.json.id ||
+    action.json?.actionType !== "draft_prepared"
+  ) {
+    console.error("workspace log action failed", action.status, action.json);
+    process.exit(1);
+  }
+
+  const actions = await contractApi(
+    base,
+    headers,
+    `/v1/workspace/actions?reminderId=${encodeURIComponent(created.json.id)}&limit=10`
+  );
+  if (
+    !actions.ok ||
+    !actions.json?.actions?.some((item) => item.id === action.json.id)
+  ) {
+    console.error("workspace list actions failed", actions.status, actions.json);
+    process.exit(1);
+  }
+
+  const invalidAction = await contractApi(base, headers, "/v1/workspace/actions", {
+    method: "POST",
+    body: JSON.stringify({
+      title: "Invalid contract action",
+      actionType: "unknown_action",
+    }),
+  });
+  if (invalidAction.status !== 400 || invalidAction.json?.error !== "invalid_action_type") {
+    console.error("workspace action validation failed", invalidAction.status, invalidAction.json);
+    process.exit(1);
+  }
+
   const completed = await contractApi(
     base,
     headers,
@@ -138,6 +187,7 @@ async function main() {
     mode: summary.json.mode,
     reminders: reminders.json.reminders.length,
     persistedReminder: completed.json.id,
+    action: action.json.id,
   });
 }
 

@@ -216,6 +216,7 @@ Globally for all projects: copy block to `~/.cursor/mcp.json` (absolute path to 
 | `mailagent_workspace_draft_reply` | Workspace preview: draft reply only, never sends |
 | `mailagent_workspace_suggest_reminders` | Workspace preview: suggest reminders/follow-ups |
 | `mailagent_workspace_create_reminder` / `list_reminders` / `complete_reminder` | Workspace preview: persist and manage follow-ups |
+| `mailagent_workspace_log_action` / `list_actions` | Workspace preview: record and inspect agent action history |
 | `mailagent_suggest_preset` | Suggest `service`, `expectFrom`, `subjectContains`, and `flow` from a sample auth email |
 | `mailagent_verify_signup` | **Preferred:** wait and return `agent.primaryAction` |
 | `mailagent_create_inbox` | Create inbox (`service`, `notifyEmail`, cleanup options) |

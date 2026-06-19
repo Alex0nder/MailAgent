@@ -243,8 +243,9 @@ export function buildAgentAutopilotPlan(
       nextPayload: reminderDraftPayload(reminder),
       steps: [
         "Draft a follow-up from the reminder context.",
+        "Call mailagent_workspace_log_action with actionType=draft_prepared and the reminder/thread ids.",
         "Review the draft against the current app or mailbox context.",
-        "After the action is completed, call mailagent_workspace_complete_reminder with the reminder id.",
+        "After the action is completed, log actionType=completed and call mailagent_workspace_complete_reminder.",
       ],
       payloads: {},
       guardrails: [

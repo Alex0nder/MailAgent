@@ -85,6 +85,11 @@ import {
   listWorkspaceReminders,
   type WorkspaceReminderInput as WorkspaceReminderCreateInput,
 } from "../services/workspace-reminders";
+import {
+  listWorkspaceActions,
+  logWorkspaceAction,
+  type WorkspaceActionInput,
+} from "../services/workspace-actions";
 import type { McpProgressParams, McpToolContext } from "../mcp/progress";
 
 export type McpAuth = {
@@ -307,6 +312,30 @@ export async function executeMcpTool(
         args.id as string
       );
       return textResult(result.ok ? result.reminder : { error: result.error }, !result.ok);
+    }
+
+    case "mailagent_workspace_log_action": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr) return textResult(writeErr, true);
+      const result = await logWorkspaceAction(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        args as WorkspaceActionInput
+      );
+      return textResult(result.ok ? result.action : { error: result.error }, !result.ok);
+    }
+
+    case "mailagent_workspace_list_actions": {
+      const actions = await listWorkspaceActions(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        {
+          reminderId: args.reminderId as string | undefined,
+          threadId: args.threadId as string | undefined,
+          limit: Number(args.limit ?? 50),
+        }
+      );
+      return textResult({ actions, count: actions.length });
     }
 
     case "mailagent_verify_signup": {

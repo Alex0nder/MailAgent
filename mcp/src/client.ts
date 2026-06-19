@@ -144,6 +144,22 @@ export class MailAgentClient {
     );
   }
 
+  workspaceLogAction(options: WorkspaceActionInput) {
+    return this.request<Record<string, unknown>>("/v1/workspace/actions", {
+      method: "POST",
+      body: JSON.stringify(options),
+    });
+  }
+
+  workspaceListActions(options: { reminderId?: string; threadId?: string; limit?: number } = {}) {
+    const q = new URLSearchParams();
+    if (options.reminderId) q.set("reminderId", options.reminderId);
+    if (options.threadId) q.set("threadId", options.threadId);
+    if (options.limit) q.set("limit", String(options.limit));
+    const suffix = q.size ? `?${q}` : "";
+    return this.request<Record<string, unknown>>(`/v1/workspace/actions${suffix}`);
+  }
+
   createInbox(options?: CreateInboxOptions) {
     const body: Record<string, unknown> = {};
     if (options?.ttlMinutes !== undefined) body.ttlMinutes = options.ttlMinutes;
@@ -634,6 +650,17 @@ export interface WorkspaceReminderCreateInput {
   source?: string;
   sourceThreadId?: string;
   sourceMessageId?: string;
+  meta?: Record<string, unknown>;
+}
+
+export interface WorkspaceActionInput {
+  title: string;
+  actionType?: "draft_prepared" | "waiting" | "completed" | "blocked" | "note";
+  status?: "done" | "waiting" | "blocked";
+  note?: string;
+  reminderId?: string;
+  threadId?: string;
+  messageId?: string;
   meta?: Record<string, unknown>;
 }
 

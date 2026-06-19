@@ -954,6 +954,51 @@ export const openApiSpec = {
         },
       },
     },
+    "/v1/workspace/actions": {
+      get: {
+        tags: ["meta"],
+        summary: "List Workspace Agent action log entries",
+        security: bearer,
+        parameters: [
+          { name: "reminderId", in: "query", schema: { type: "string" } },
+          { name: "threadId", in: "query", schema: { type: "string" } },
+          { name: "limit", in: "query", schema: { type: "integer", minimum: 1, maximum: 100 } },
+        ],
+        responses: { "200": { description: "Workspace action log entries" } },
+      },
+      post: {
+        tags: ["meta"],
+        summary: "Log a Workspace Agent action",
+        security: bearer,
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["title"],
+                properties: {
+                  title: { type: "string" },
+                  actionType: {
+                    type: "string",
+                    enum: ["draft_prepared", "waiting", "completed", "blocked", "note"],
+                  },
+                  status: { type: "string", enum: ["done", "waiting", "blocked"] },
+                  note: { type: "string" },
+                  reminderId: { type: "string" },
+                  threadId: { type: "string" },
+                  messageId: { type: "string" },
+                  meta: { type: "object", additionalProperties: true },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "201": { description: "Logged Workspace action" },
+          "400": { description: "title_required | invalid_action_type | invalid_status" },
+        },
+      },
+    },
     "/v1/domains": {
       get: {
         tags: ["domains"],

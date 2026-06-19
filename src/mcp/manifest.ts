@@ -343,6 +343,41 @@ export const MCP_TOOLS = [
     },
   },
   {
+    name: "mailagent_workspace_log_action",
+    description:
+      "Workspace Agent preview: log what the agent did for a reminder/thread, e.g. draft prepared, waiting, completed, blocked, or note.",
+    inputSchema: {
+      type: "object",
+      required: ["title"],
+      properties: {
+        title: { type: "string" },
+        actionType: {
+          type: "string",
+          enum: ["draft_prepared", "waiting", "completed", "blocked", "note"],
+        },
+        status: { type: "string", enum: ["done", "waiting", "blocked"] },
+        note: { type: "string" },
+        reminderId: { type: "string" },
+        threadId: { type: "string" },
+        messageId: { type: "string" },
+        meta: { type: "object" },
+      },
+    },
+  },
+  {
+    name: "mailagent_workspace_list_actions",
+    description:
+      "Workspace Agent preview: list logged Workspace actions for the current team/key, optionally scoped by reminderId or threadId.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        reminderId: { type: "string" },
+        threadId: { type: "string" },
+        limit: { type: "integer", minimum: 1, maximum: 100 },
+      },
+    },
+  },
+  {
     name: "mailagent_verify_signup",
     description: verifySignupDesc,
     inputSchema: {
