@@ -13,8 +13,21 @@ export type WorkspaceMailMessage = {
   cc?: string[];
   subject?: string;
   text?: string;
-  receivedAt?: string;
+  receivedAt?: string | Date;
 };
+
+/** Neon may return timestamptz as Date; normalize before string ops. */
+function normalizeReceivedAt(value?: string | Date): string | undefined {
+  if (value == null) return undefined;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed || undefined;
+  }
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString();
+  }
+  return undefined;
+}
 
 export type WorkspaceSummarizeInput = {
   threadId?: string;
@@ -43,7 +56,7 @@ function normalizeMessages(input?: WorkspaceMailMessage[]): WorkspaceMailMessage
       cc: Array.isArray(m.cc) ? m.cc.slice(0, 10) : undefined,
       subject: m.subject?.trim(),
       text: m.text?.slice(0, 8000),
-      receivedAt: m.receivedAt?.trim(),
+      receivedAt: normalizeReceivedAt(m.receivedAt),
     }));
 }
 
