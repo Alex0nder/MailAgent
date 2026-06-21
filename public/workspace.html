@@ -22,7 +22,7 @@
       <article class="doc-content doc-content--wide">
         <h1>Workspace</h1>
         <p class="doc-lead">
-          Read-only Gmail threads, LLM summarize/draft, and open reminders.
+          Gmail triage, digest, automation rules, monitors, drafts, and reminders.
           <a href="/docs/agents.html">Agent docs →</a>
         </p>
 
@@ -43,9 +43,11 @@
     <script src="/console-ui.js"></script>
     <script src="/site-shell.js" defer></script>
     <script>
-      /** Workspace console — Gmail threads split-pane + draft/reminders. */
+      /** Workspace console — Inbox / Triage / Digest / Rules / Monitors. */
       const UI = () => window.MailAgentUI;
       const KEY = "mailagent_dashboard_key";
+      const COMPOSE_SCOPE = "gmail.compose";
+      const RULE_KINDS = ["invoice", "support", "meeting", "follow_up"];
       const baseEl = document.getElementById("base");
       const keyEl = document.getElementById("key");
       const out = document.getElementById("out");
@@ -53,16 +55,39 @@
 
       let accounts = [];
       let selectedAccountId = "";
+      let activeTab = "inbox";
       let threads = [];
       let selectedThreadId = "";
       let threadDetail = null;
       let reminders = [];
       let actions = [];
+      let triageData = null;
+      let digestData = null;
+      let suggestedReminders = [];
+      let triageLoading = false;
+      let digestLoading = false;
+      let draftBody = "";
+      let rulesStatus = null;
+      let rules = [];
+      let ruleEvalResult = null;
+      let rulesLoading = false;
+      let monitors = [];
+      let selectedMonitorId = "";
+      let monitorRuns = [];
+      let monitorsLoading = false;
 
       if (localStorage.getItem(KEY)) keyEl.value = localStorage.getItem(KEY);
 
       function esc(s) {
         return UI()?.esc(s) ?? String(s ?? "");
+      }
+
+      function selectedAccount() {
+        return accounts.find((a) => a.id === selectedAccountId) || null;
+      }
+
+      function accountHasCompose(account) {
+        return (account?.scopes || []).some((s) => s.includes(COMPOSE_SCOPE));
       }
 
       async function api(path, opts) {
@@ -118,6 +143,23 @@
           .join("")}</ul>`;
       }
 
+      function renderSuggestedReminders() {
+        if (!suggestedReminders.length) return "";
+        return `<h3 style="margin:8px 0 0;font-size:0.95rem">Suggested follow-ups</h3>
+          <ul class="workspace-suggest-list">${suggestedReminders
+            .map(
+              (r, i) => `<li>
+                <div>
+                  <strong>${esc(r.title)}</strong>
+                  ${r.dueHint ? `<span class="workspace-suggest-list__meta">${esc(r.dueHint)}</span>` : ""}
+                  ${r.reason ? `<span class="workspace-suggest-list__meta">${esc(r.reason)}</span>` : ""}
+                </div>
+                <button type="button" class="app-btn app-btn--ghost" data-create-reminder="${i}">Save</button>
+              </li>`
+            )
+            .join("")}</ul>`;
+      }
+
       function renderThreadMessages() {
         const msgs = threadDetail?.messages || [];
         if (!msgs.length) {
@@ -134,14 +176,232 @@
           .join("");
       }
 
-      function renderLayout() {
-        const accountOpts = accounts
+      function renderTriageThreadItem(thread) {
+        const threadId = thread.threadId || thread.id;
+        return `<li><button type="button" class="workspace-thread-item" data-open-thread="${esc(threadId)}">
+            <div>${esc(thread.subject || thread.snippet || threadId)}</div>
+            <div class="workspace-thread-item__snippet">${esc(thread.reason || thread.snippet || "")}</div>
+            <div class="workspace-thread-item__snippet">${UI().statusBadge(thread.confidence)} ${UI().statusBadge(thread.disposition)}</div>
+          </button></li>`;
+      }
+
+      function renderTriagePanel() {
+        if (triageLoading) {
+          return `<div class="workspace-empty-panel">Loading triage…</div>`;
+        }
+        if (!triageData) {
+          return `<div class="workspace-empty-panel">
+              <p>Scan unread threads and classify needs-reply vs waiting-on-them.</p>
+              <button type="button" class="app-btn" id="btn-load-triage">Run triage</button>
+            </div>`;
+        }
+        const needs = triageData.needsReply || [];
+        const waiting = triageData.waitingOnThem || [];
+        return `<p class="workspace-triage-meta">Scanned ${esc(triageData.scanned)} threads · ${esc(new Date(triageData.generatedAt).toLocaleString())}</p>
+          <div class="workspace-triage-grid">
+            <div class="workspace-triage-col">
+              <div class="workspace-triage-col__head">
+                <span>Needs reply</span>
+                ${UI().statusBadge(String(needs.length), needs.length)}
+              </div>
+              <ul class="workspace-thread-list">${needs.length ? needs.map(renderTriageThreadItem).join("") : '<li class="workspace-empty-panel">None</li>'}</ul>
+            </div>
+            <div class="workspace-triage-col">
+              <div class="workspace-triage-col__head">
+                <span>Waiting on them</span>
+                ${UI().statusBadge(String(waiting.length), waiting.length)}
+              </div>
+              <ul class="workspace-thread-list">${waiting.length ? waiting.map(renderTriageThreadItem).join("") : '<li class="workspace-empty-panel">None</li>'}</ul>
+            </div>
+          </div>`;
+      }
+
+      function renderDigestPanel() {
+        if (digestLoading) {
+          return `<div class="workspace-empty-panel">Building digest…</div>`;
+        }
+        if (!digestData) {
+          return `<div class="workspace-empty-panel">
+              <p>Daily summary of unread threads with action items.</p>
+              <button type="button" class="app-btn" id="btn-load-digest">Load digest</button>
+            </div>`;
+        }
+        const items = digestData.items || [];
+        if (!items.length) {
+          return `<p class="workspace-triage-meta">${esc(digestData.unreadCount ?? 0)} unread · ${esc(new Date(digestData.generatedAt).toLocaleString())}</p>
+            <div class="workspace-empty-panel">No digest items in the last ${esc(digestData.sinceHours ?? 24)}h.</div>`;
+        }
+        return `<p class="workspace-triage-meta">${esc(digestData.unreadCount ?? items.length)} unread · ${esc(digestData.needsReplyCount ?? 0)} need reply · ${esc(new Date(digestData.generatedAt).toLocaleString())}</p>
+          <div class="workspace-digest-list">${items
+            .map(
+              (item) => `<article class="workspace-digest-item">
+                <div class="workspace-digest-item__head">
+                  <div class="workspace-digest-item__subject">${esc(item.subject || item.threadId)}</div>
+                  <div>${UI().statusBadge(item.disposition)} ${UI().statusBadge(item.confidence)}</div>
+                </div>
+                <div class="console-meta">${esc(item.from || "—")}</div>
+                <p class="workspace-digest-item__summary">${esc(item.summary)}</p>
+                ${item.actionItems?.length ? `<ul class="workspace-digest-item__actions">${item.actionItems.map((a) => `<li>${esc(a)}</li>`).join("")}</ul>` : ""}
+                <button type="button" class="app-btn app-btn--ghost" data-open-thread="${esc(item.threadId)}">Open thread</button>
+              </article>`
+            )
+            .join("")}</div>`;
+      }
+
+      function renderRuleEvalHits() {
+        const hits = ruleEvalResult?.hits || [];
+        if (!hits.length) {
+          return `<p class="console-empty">No rule matches in the current scan.</p>`;
+        }
+        return `<ul class="workspace-hit-list">${hits
           .map(
-            (a) =>
-              `<option value="${esc(a.id)}"${a.id === selectedAccountId ? " selected" : ""}>${esc(a.email)}</option>`
+            (hit) => `<li>
+              <div><strong>${esc(hit.subject || hit.threadId)}</strong> ${UI().statusBadge(hit.match?.kind)} ${UI().statusBadge(hit.match?.confidence)}</div>
+              <div class="console-meta">${esc(hit.from || "—")} · ${esc(hit.match?.reason || "")}</div>
+              <div class="console-meta">${esc(hit.match?.suggestedAction || "")}</div>
+              <button type="button" class="app-btn app-btn--ghost" data-open-thread="${esc(hit.threadId)}">Open thread</button>
+            </li>`
           )
+          .join("")}</ul>`;
+      }
+
+      function renderRulesPanel() {
+        if (rulesLoading && !rules.length && !rulesStatus) {
+          return `<div class="workspace-empty-panel">Loading rules…</div>`;
+        }
+        const automationOn = rulesStatus?.automationEnabled;
+        const kindOpts = (rulesStatus?.ruleKinds || RULE_KINDS)
+          .map((k) => `<option value="${esc(k)}">${esc(k.replace("_", " "))}</option>`)
           .join("");
 
+        const rulesTable = rules.length
+          ? `<table class="workspace-data-table"><thead><tr><th>Name</th><th>Kind</th><th>Account</th><th></th></tr></thead><tbody>${rules
+              .map(
+                (rule) => `<tr>
+                  <td>${esc(rule.name)}</td>
+                  <td>${UI().statusBadge(rule.kind)}</td>
+                  <td class="console-meta">${esc(rule.gmailAccountId || rule.calendarAccountId || "—")}</td>
+                  <td><button type="button" class="app-btn app-btn--ghost" data-delete-rule="${esc(rule.id)}">Delete</button></td>
+                </tr>`
+              )
+              .join("")}</tbody></table>`
+          : `<p class="console-empty">No saved rules yet.</p>`;
+
+        return `<div class="workspace-panel-card">
+            <h3>Automation rules</h3>
+            <p class="console-meta">Policy automation: ${automationOn ? UI().statusBadge("ok", "enabled") : UI().statusBadge("warn", "disabled")} · ${esc(rules.length)} saved</p>
+            ${rulesTable}
+          </div>
+          <div class="workspace-panel-card">
+            <h3>Create rule</h3>
+            <div class="workspace-form-grid">
+              <label>Name<input id="rule-name" type="text" placeholder="Finance invoices" /></label>
+              <label>Kind<select id="rule-kind">${kindOpts}</select></label>
+            </div>
+            <button type="button" class="app-btn" id="btn-create-rule">Save rule</button>
+          </div>
+          <div class="workspace-panel-card">
+            <h3>Evaluate rules</h3>
+            <p class="console-meta">Scan unread Gmail threads against invoice / support / meeting / follow-up patterns.</p>
+            <div class="workspace-actions-row">
+              <button type="button" class="app-btn" id="btn-evaluate-rules">Run evaluation</button>
+            </div>
+            ${ruleEvalResult ? `<p class="workspace-triage-meta">Scanned ${esc(ruleEvalResult.scanned)} · ${esc(ruleEvalResult.hits?.length ?? 0)} hit(s) · ${esc(new Date(ruleEvalResult.generatedAt).toLocaleString())}</p>` : ""}
+            ${renderRuleEvalHits()}
+          </div>`;
+      }
+
+      function renderMonitorRuns() {
+        if (!selectedMonitorId) {
+          return `<p class="console-empty">Select a monitor to view run history.</p>`;
+        }
+        if (!monitorRuns.length) {
+          return `<p class="console-empty">No runs recorded yet.</p>`;
+        }
+        return `<table class="workspace-data-table"><thead><tr><th>When</th><th>Status</th><th>Delivery</th></tr></thead><tbody>${monitorRuns
+          .map((run) => {
+            const summary = run.summary && typeof run.summary === "object" ? run.summary : {};
+            const hits = summary.ruleHitCount ?? "—";
+            return `<tr>
+              <td>${esc(new Date(run.createdAt).toLocaleString())}</td>
+              <td>${UI().statusBadge(run.status)}</td>
+              <td class="console-meta">${esc(run.deliveredVia || "—")} · ${hits} hit(s) · ${run.deliveryOk ? "ok" : "failed"}</td>
+            </tr>`;
+          })
+          .join("")}</tbody></table>`;
+      }
+
+      function renderMonitorsPanel() {
+        if (monitorsLoading && !monitors.length) {
+          return `<div class="workspace-empty-panel">Loading monitors…</div>`;
+        }
+
+        const monitorRows = monitors.length
+          ? monitors
+              .map(
+                (m) => `<tr class="${m.id === selectedMonitorId ? "is-active" : ""}">
+                  <td><button type="button" class="app-btn app-btn--ghost" data-select-monitor="${esc(m.id)}">${esc(m.name)}</button></td>
+                  <td>${m.enabled ? UI().statusBadge("ok", "on") : UI().statusBadge("neutral", "off")}</td>
+                  <td class="console-meta">${esc(m.scheduleHours)}h</td>
+                  <td>${UI().statusBadge(m.lastStatus || "pending")}</td>
+                  <td class="workspace-actions-row">
+                    <button type="button" class="app-btn app-btn--ghost" data-run-monitor="${esc(m.id)}">Run</button>
+                    <button type="button" class="app-btn app-btn--ghost" data-delete-monitor="${esc(m.id)}">Delete</button>
+                  </td>
+                </tr>`
+              )
+              .join("")
+          : "";
+
+        const kindChecks = RULE_KINDS.map(
+          (k) =>
+            `<label><input type="checkbox" name="monitor-rule-kind" value="${esc(k)}" checked /> ${esc(k.replace("_", " "))}</label>`
+        ).join("");
+
+        return `<div class="workspace-monitor-layout">
+            <div>
+              <div class="workspace-panel-card">
+                <h3>Monitors</h3>
+                ${monitors.length
+                  ? `<table class="workspace-data-table"><thead><tr><th>Name</th><th>On</th><th>Every</th><th>Last</th><th></th></tr></thead><tbody>${monitorRows}</tbody></table>`
+                  : `<p class="console-empty">No monitors yet. Cron runs due monitors automatically.</p>`}
+              </div>
+              <div class="workspace-panel-card">
+                <h3>Create monitor</h3>
+                <div class="workspace-form-grid">
+                  <label>Name<input id="monitor-name" type="text" placeholder="Daily inbox digest" /></label>
+                  <label>Every (hours)<input id="monitor-hours" type="number" min="1" max="168" value="24" /></label>
+                  <label>Digest email<input id="monitor-email" type="email" placeholder="you@company.com" /></label>
+                </div>
+                <div class="workspace-rule-kinds">${kindChecks}</div>
+                <button type="button" class="app-btn" id="btn-create-monitor">Create monitor</button>
+              </div>
+            </div>
+            <div class="workspace-panel-card">
+              <h3>Run history</h3>
+              ${renderMonitorRuns()}
+            </div>
+          </div>`;
+      }
+
+      function renderActivePanel() {
+        switch (activeTab) {
+          case "inbox":
+            return renderInboxPanel();
+          case "triage":
+            return renderTriagePanel();
+          case "digest":
+            return renderDigestPanel();
+          case "rules":
+            return renderRulesPanel();
+          case "monitors":
+            return renderMonitorsPanel();
+          default:
+            return renderInboxPanel();
+        }
+      }
+
+      function renderInboxPanel() {
         const threadItems = threads
           .map(
             (t) => `<li><button type="button" class="workspace-thread-item${
@@ -153,13 +413,11 @@
           )
           .join("");
 
-        out.innerHTML = `<div class="workspace-actions-row" style="margin-bottom:12px">
-            <label for="gmail-account">Gmail account</label>
-            <select id="gmail-account">${accountOpts || '<option value="">—</option>'}</select>
-            <button type="button" class="app-btn app-btn--ghost" id="reload-threads">Refresh threads</button>
-            <a class="app-btn app-btn--ghost" id="gmail-connect" href="#">Connect Gmail</a>
-          </div>
-          <div class="workspace-layout">
+        const composeHint = accountHasCompose(selectedAccount())
+          ? ""
+          : `<button type="button" class="app-btn app-btn--ghost" id="gmail-connect-compose">Enable Gmail drafts</button>`;
+
+        return `<div class="workspace-layout">
             <div class="workspace-pane">
               <div class="workspace-pane__head">Threads</div>
               <ul class="workspace-thread-list">${threadItems || '<li class="inbox-detail__empty" style="padding:14px">No threads.</li>'}</ul>
@@ -173,7 +431,11 @@
                 <div class="workspace-actions-row">
                   <button type="button" class="app-btn" id="btn-summarize">Summarize</button>
                   <button type="button" class="app-btn app-btn--ghost" id="btn-draft">Draft reply</button>
+                  <button type="button" class="app-btn app-btn--ghost" id="btn-suggest-reminders">Suggest reminders</button>
+                  <button type="button" class="app-btn app-btn--ghost" id="btn-save-gmail-draft">Save to Gmail draft</button>
+                  ${composeHint}
                 </div>
+                <div id="suggest-reminders">${renderSuggestedReminders()}</div>
                 <h3 style="margin:8px 0 0;font-size:0.95rem">Open reminders</h3>
                 ${renderReminders()}
                 <h3 style="margin:8px 0 0;font-size:0.95rem">Recent actions</h3>
@@ -181,8 +443,68 @@
               </div>
             </div>
           </div>`;
+      }
+
+      function syncDraftFromDom() {
+        const el = document.getElementById("draft-body");
+        if (el) draftBody = el.value;
+      }
+
+      function renderLayout() {
+        syncDraftFromDom();
+        const accountOpts = accounts
+          .map(
+            (a) =>
+              `<option value="${esc(a.id)}"${a.id === selectedAccountId ? " selected" : ""}>${esc(a.email)}${accountHasCompose(a) ? "" : " (read-only)"}</option>`
+          )
+          .join("");
+
+        const tabs = [
+          { id: "inbox", label: "Inbox" },
+          { id: "triage", label: "Triage" },
+          { id: "digest", label: "Digest" },
+          { id: "rules", label: "Rules" },
+          { id: "monitors", label: "Monitors" },
+        ];
+
+        out.innerHTML = `<div class="workspace-toolbar">
+            <label for="gmail-account">Gmail</label>
+            <select id="gmail-account">${accountOpts || '<option value="">—</option>'}</select>
+            <button type="button" class="app-btn app-btn--ghost" id="reload-data">Refresh</button>
+            <a class="app-btn app-btn--ghost" id="gmail-connect" href="#">Connect Gmail</a>
+          </div>
+          <nav class="workspace-tabs" aria-label="Workspace views">
+            ${tabs
+              .map(
+                (t) =>
+                  `<button type="button" class="workspace-tab${t.id === activeTab ? " is-active" : ""}" data-tab="${t.id}">${t.label}</button>`
+              )
+              .join("")}
+          </nav>
+          <div id="workspace-panel">${renderActivePanel()}</div>`;
+
+        const draftEl = document.getElementById("draft-body");
+        if (draftEl) draftEl.value = draftBody;
 
         bindLayout();
+      }
+
+      function switchTab(tab) {
+        activeTab = tab;
+        renderLayout();
+        if (tab === "triage" && !triageData && !triageLoading) loadTriage();
+        if (tab === "digest" && !digestData && !digestLoading) loadDigest();
+        if (tab === "rules" && !rulesStatus && !rulesLoading) loadRules();
+        if (tab === "monitors" && !monitors.length && !monitorsLoading) loadMonitors();
+      }
+
+      async function openThread(threadId) {
+        if (!threadId) return;
+        activeTab = "inbox";
+        selectedThreadId = threadId;
+        suggestedReminders = [];
+        renderLayout();
+        await loadThread(threadId);
       }
 
       async function loadThread(threadId) {
@@ -196,8 +518,9 @@
           return;
         }
         threadDetail = r.json;
-        document.getElementById("thread-messages").innerHTML = renderThreadMessages();
-        out.querySelectorAll(".workspace-thread-item").forEach((btn) => {
+        const messagesEl = document.getElementById("thread-messages");
+        if (messagesEl) messagesEl.innerHTML = renderThreadMessages();
+        out.querySelectorAll(".workspace-thread-item[data-thread-id]").forEach((btn) => {
           btn.classList.toggle("is-active", btn.getAttribute("data-thread-id") === threadId);
         });
       }
@@ -217,7 +540,220 @@
           threadDetail = null;
         }
         renderLayout();
-        if (selectedThreadId) await loadThread(selectedThreadId);
+        if (selectedThreadId && activeTab === "inbox") await loadThread(selectedThreadId);
+      }
+
+      async function loadTriage() {
+        if (!selectedAccountId) return;
+        triageLoading = true;
+        if (activeTab === "triage") renderLayout();
+        const r = await api(
+          `/v1/workspace/gmail/triage?accountId=${encodeURIComponent(selectedAccountId)}&unreadOnly=true`
+        );
+        triageLoading = false;
+        if (!r.ok) {
+          await UI().alert({ title: "Triage failed", message: r.json.error || String(r.status) });
+          triageData = null;
+          if (activeTab === "triage") renderLayout();
+          return;
+        }
+        triageData = r.json;
+        if (activeTab === "triage") renderLayout();
+        UI().toast(`Triage: ${triageData.needsReply?.length ?? 0} need reply`, "ok");
+      }
+
+      async function loadDigest() {
+        if (!selectedAccountId) return;
+        digestLoading = true;
+        if (activeTab === "digest") renderLayout();
+        const r = await api(
+          `/v1/workspace/gmail/digest?accountId=${encodeURIComponent(selectedAccountId)}&sinceHours=24`
+        );
+        digestLoading = false;
+        if (!r.ok) {
+          await UI().alert({ title: "Digest failed", message: r.json.error || String(r.status) });
+          digestData = null;
+          if (activeTab === "digest") renderLayout();
+          return;
+        }
+        digestData = r.json;
+        if (activeTab === "digest") renderLayout();
+        UI().toast(`Digest: ${digestData.items?.length ?? 0} items`, "ok");
+      }
+
+      async function loadRules() {
+        rulesLoading = true;
+        if (activeTab === "rules") renderLayout();
+        const r = await api("/v1/workspace/rules/status");
+        rulesLoading = false;
+        if (!r.ok) {
+          await UI().alert({ title: "Rules failed", message: r.json.error || String(r.status) });
+          if (activeTab === "rules") renderLayout();
+          return;
+        }
+        rulesStatus = r.json;
+        rules = r.json.savedRules || [];
+        if (activeTab === "rules") renderLayout();
+      }
+
+      async function evaluateRules() {
+        if (!selectedAccountId) return;
+        rulesLoading = true;
+        if (activeTab === "rules") renderLayout();
+        const r = await api("/v1/workspace/rules/evaluate", {
+          method: "POST",
+          body: JSON.stringify({ gmailAccountId: selectedAccountId, unreadOnly: true }),
+        });
+        rulesLoading = false;
+        if (!r.ok) {
+          await UI().alert({ title: "Evaluate failed", message: r.json.error || String(r.status) });
+          if (activeTab === "rules") renderLayout();
+          return;
+        }
+        ruleEvalResult = r.json;
+        if (activeTab === "rules") renderLayout();
+        UI().toast(`${ruleEvalResult.hits?.length ?? 0} rule hit(s)`, "ok");
+      }
+
+      async function createRule() {
+        const name = document.getElementById("rule-name")?.value?.trim();
+        const kind = document.getElementById("rule-kind")?.value;
+        if (!name || !kind || !selectedAccountId) {
+          await UI().alert({ title: "Rule", message: "Name and Gmail account are required." });
+          return;
+        }
+        const r = await api("/v1/workspace/rules", {
+          method: "POST",
+          body: JSON.stringify({ name, kind, gmailAccountId: selectedAccountId }),
+        });
+        if (!r.ok) {
+          await UI().alert({ title: "Create rule failed", message: r.json.error || String(r.status) });
+          return;
+        }
+        UI().toast("Rule saved", "ok");
+        ruleEvalResult = null;
+        await loadRules();
+      }
+
+      async function deleteRule(ruleId) {
+        const ok = await UI().confirm({
+          title: "Delete rule?",
+          message: "This removes the saved automation rule.",
+          confirmLabel: "Delete",
+          danger: true,
+        });
+        if (!ok) return;
+        const r = await api(`/v1/workspace/rules/${encodeURIComponent(ruleId)}`, { method: "DELETE" });
+        if (!r.ok) {
+          await UI().alert({ title: "Delete failed", message: r.json.error || String(r.status) });
+          return;
+        }
+        UI().toast("Rule deleted", "ok");
+        await loadRules();
+      }
+
+      async function loadMonitors() {
+        monitorsLoading = true;
+        if (activeTab === "monitors") renderLayout();
+        const r = await api("/v1/workspace/monitors");
+        monitorsLoading = false;
+        if (!r.ok) {
+          await UI().alert({ title: "Monitors failed", message: r.json.error || String(r.status) });
+          if (activeTab === "monitors") renderLayout();
+          return;
+        }
+        monitors = r.json.monitors || [];
+        if (!selectedMonitorId && monitors.length) selectedMonitorId = monitors[0].id;
+        if (selectedMonitorId && !monitors.find((m) => m.id === selectedMonitorId)) {
+          selectedMonitorId = monitors[0]?.id || "";
+          monitorRuns = [];
+        }
+        if (selectedMonitorId) await loadMonitorRuns(selectedMonitorId, false);
+        if (activeTab === "monitors") renderLayout();
+      }
+
+      async function loadMonitorRuns(monitorId, rerender = true) {
+        if (!monitorId) {
+          monitorRuns = [];
+          if (rerender && activeTab === "monitors") renderLayout();
+          return;
+        }
+        const r = await api(`/v1/workspace/monitors/${encodeURIComponent(monitorId)}/runs?limit=15`);
+        if (!r.ok) {
+          monitorRuns = [];
+          if (rerender && activeTab === "monitors") {
+            await UI().alert({ title: "Runs failed", message: r.json.error || String(r.status) });
+            renderLayout();
+          }
+          return;
+        }
+        monitorRuns = r.json.runs || [];
+        if (rerender && activeTab === "monitors") renderLayout();
+      }
+
+      function selectedMonitorRuleKinds() {
+        return [...document.querySelectorAll('input[name="monitor-rule-kind"]:checked')].map((el) => el.value);
+      }
+
+      async function createMonitor() {
+        const name = document.getElementById("monitor-name")?.value?.trim();
+        const scheduleHours = Number(document.getElementById("monitor-hours")?.value || 24);
+        const digestEmail = document.getElementById("monitor-email")?.value?.trim();
+        const ruleKinds = selectedMonitorRuleKinds();
+        if (!name || !selectedAccountId || !digestEmail) {
+          await UI().alert({ title: "Monitor", message: "Name, Gmail account, and digest email are required." });
+          return;
+        }
+        const r = await api("/v1/workspace/monitors", {
+          method: "POST",
+          body: JSON.stringify({
+            name,
+            scheduleHours,
+            gmailAccountId: selectedAccountId,
+            digestEmail,
+            ruleKinds,
+          }),
+        });
+        if (!r.ok) {
+          await UI().alert({ title: "Create monitor failed", message: r.json.error || String(r.status) });
+          return;
+        }
+        UI().toast("Monitor created", "ok");
+        selectedMonitorId = r.json.id;
+        await loadMonitors();
+      }
+
+      async function deleteMonitor(monitorId) {
+        const ok = await UI().confirm({
+          title: "Delete monitor?",
+          message: "Scheduled digest delivery will stop for this monitor.",
+          confirmLabel: "Delete",
+          danger: true,
+        });
+        if (!ok) return;
+        const r = await api(`/v1/workspace/monitors/${encodeURIComponent(monitorId)}`, { method: "DELETE" });
+        if (!r.ok) {
+          await UI().alert({ title: "Delete failed", message: r.json.error || String(r.status) });
+          return;
+        }
+        if (selectedMonitorId === monitorId) {
+          selectedMonitorId = "";
+          monitorRuns = [];
+        }
+        UI().toast("Monitor deleted", "ok");
+        await loadMonitors();
+      }
+
+      async function runMonitor(monitorId) {
+        const r = await api(`/v1/workspace/monitors/${encodeURIComponent(monitorId)}/run`, { method: "POST" });
+        if (!r.ok) {
+          await UI().alert({ title: "Run failed", message: r.json.error || String(r.status) });
+          return;
+        }
+        selectedMonitorId = monitorId;
+        UI().toast(`Monitor run: ${r.json.status || "done"}`, r.json.status === "ok" ? "ok" : "warn");
+        await loadMonitors();
+        await loadMonitorRuns(monitorId);
       }
 
       async function loadSideData() {
@@ -229,15 +765,163 @@
         if (actRes.ok) actions = actRes.json.actions || [];
       }
 
+      async function connectComposeOAuth() {
+        const r = await api("/v1/workspace/gmail/connect-compose?returnTo=/workspace.html");
+        if (!r.ok) {
+          await UI().alert({ title: "Gmail compose OAuth", message: r.json.error || "OAuth not configured" });
+          return;
+        }
+        location.href = r.json.url;
+      }
+
+      async function suggestReminders() {
+        if (!selectedAccountId || !selectedThreadId) return;
+        const r = await api("/v1/workspace/reminders/suggest", {
+          method: "POST",
+          body: JSON.stringify({
+            gmailAccountId: selectedAccountId,
+            gmailThreadId: selectedThreadId,
+          }),
+        });
+        if (!r.ok) {
+          await UI().alert({
+            title: "Suggest reminders failed",
+            message: r.json.error || r.json.fallbackReason || "LLM error",
+          });
+          return;
+        }
+        suggestedReminders = r.json.reminders || [];
+        const panel = document.getElementById("suggest-reminders");
+        if (panel) panel.innerHTML = renderSuggestedReminders();
+        UI().toast(`${suggestedReminders.length} suggestion(s)`, "ok");
+      }
+
+      async function createReminderFromSuggestion(index) {
+        const item = suggestedReminders[index];
+        if (!item?.title) return;
+        const r = await api("/v1/workspace/reminders", {
+          method: "POST",
+          body: JSON.stringify({
+            title: item.title,
+            dueHint: item.dueHint,
+            sourceThreadId: selectedThreadId,
+            sourceMessageId: item.sourceMessageId,
+            source: "gmail_suggest",
+            meta: { reason: item.reason },
+          }),
+        });
+        if (!r.ok) {
+          await UI().alert({ title: "Create reminder failed", message: r.json.error || String(r.status) });
+          return;
+        }
+        await loadSideData();
+        UI().toast("Reminder saved", "ok");
+        if (activeTab === "inbox") renderLayout();
+      }
+
+      async function saveGmailDraft() {
+        if (!selectedAccountId || !selectedThreadId) {
+          await UI().alert({ title: "No thread", message: "Select a thread first." });
+          return;
+        }
+        const account = selectedAccount();
+        if (!accountHasCompose(account)) {
+          const go = await UI().confirm({
+            title: "Gmail compose scope required",
+            message: "Saving drafts needs the <code>gmail.compose</code> OAuth scope. Connect compose access now?",
+            confirmLabel: "Connect compose",
+          });
+          if (go) await connectComposeOAuth();
+          return;
+        }
+
+        const body = document.getElementById("draft-body")?.value?.trim();
+        if (!body) {
+          await UI().alert({ title: "Empty draft", message: "Generate or write a draft first." });
+          return;
+        }
+
+        const dry = await api("/v1/workspace/gmail/execute-draft", {
+          method: "POST",
+          body: JSON.stringify({
+            gmailAccountId: selectedAccountId,
+            threadId: selectedThreadId,
+            body,
+            dryRun: true,
+          }),
+        });
+        if (!dry.ok) {
+          await UI().alert({ title: "Draft preview failed", message: dry.json.error || String(dry.status) });
+          return;
+        }
+        if (!dry.json.decision?.allowed) {
+          await UI().alert({
+            title: "Draft writes disabled",
+            message:
+              dry.json.decision?.reason ||
+              "Admin must enable gmailDraftWrites on workspace policy (PUT /v1/workspace/policy).",
+          });
+          return;
+        }
+
+        const preview = dry.json.preview;
+        const ok = await UI().confirm({
+          title: "Save to Gmail draft?",
+          message: `<strong>To:</strong> ${esc(preview?.to || "—")}<br><strong>Subject:</strong> ${esc(preview?.subject || "—")}<br><br><pre style="white-space:pre-wrap;font-size:12px;margin:0">${esc(preview?.body || body)}</pre>`,
+          confirmLabel: "Save draft",
+        });
+        if (!ok) return;
+
+        const save = await api("/v1/workspace/gmail/execute-draft", {
+          method: "POST",
+          body: JSON.stringify({
+            gmailAccountId: selectedAccountId,
+            threadId: selectedThreadId,
+            body,
+            idempotencyKey: `ws-ui-${selectedThreadId}-${Date.now()}`,
+          }),
+        });
+        if (!save.ok) {
+          await UI().alert({ title: "Save failed", message: save.json.error || String(save.status) });
+          return;
+        }
+        if (save.json.executed) {
+          UI().toast(`Gmail draft saved${save.json.draft?.draftId ? `: ${save.json.draft.draftId}` : ""}`, "ok");
+          await loadSideData();
+          if (activeTab === "inbox") renderLayout();
+        } else {
+          await UI().alert({
+            title: "Draft not saved",
+            message: save.json.decision?.reason || save.json.execution?.denialCode || "Unknown error",
+          });
+        }
+      }
+
       function bindLayout() {
         document.getElementById("gmail-account")?.addEventListener("change", (e) => {
           selectedAccountId = e.target.value;
           selectedThreadId = "";
           threadDetail = null;
+          triageData = null;
+          digestData = null;
+          suggestedReminders = [];
+          ruleEvalResult = null;
+          selectedMonitorId = "";
+          monitorRuns = [];
           loadThreads();
         });
 
-        document.getElementById("reload-threads")?.addEventListener("click", loadThreads);
+        document.getElementById("reload-data")?.addEventListener("click", async () => {
+          triageData = null;
+          digestData = null;
+          ruleEvalResult = null;
+          await loadSideData();
+          if (activeTab === "inbox") await loadThreads();
+          else if (activeTab === "triage") await loadTriage();
+          else if (activeTab === "digest") await loadDigest();
+          else if (activeTab === "rules") await loadRules();
+          else if (activeTab === "monitors") await loadMonitors();
+        });
 
         document.getElementById("gmail-connect")?.addEventListener("click", async (e) => {
           e.preventDefault();
@@ -249,8 +933,53 @@
           location.href = r.json.url;
         });
 
-        out.querySelectorAll(".workspace-thread-item").forEach((btn) => {
-          btn.addEventListener("click", () => loadThread(btn.getAttribute("data-thread-id")));
+        document.getElementById("gmail-connect-compose")?.addEventListener("click", (e) => {
+          e.preventDefault();
+          connectComposeOAuth();
+        });
+
+        out.querySelectorAll(".workspace-tab").forEach((btn) => {
+          btn.addEventListener("click", () => switchTab(btn.getAttribute("data-tab")));
+        });
+
+        document.getElementById("btn-load-triage")?.addEventListener("click", loadTriage);
+        document.getElementById("btn-load-digest")?.addEventListener("click", loadDigest);
+        document.getElementById("btn-create-rule")?.addEventListener("click", createRule);
+        document.getElementById("btn-evaluate-rules")?.addEventListener("click", evaluateRules);
+        document.getElementById("btn-create-monitor")?.addEventListener("click", createMonitor);
+
+        out.querySelectorAll("[data-delete-rule]").forEach((btn) => {
+          btn.addEventListener("click", () => deleteRule(btn.getAttribute("data-delete-rule")));
+        });
+
+        out.querySelectorAll("[data-select-monitor]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            selectedMonitorId = btn.getAttribute("data-select-monitor");
+            await loadMonitorRuns(selectedMonitorId);
+          });
+        });
+
+        out.querySelectorAll("[data-run-monitor]").forEach((btn) => {
+          btn.addEventListener("click", () => runMonitor(btn.getAttribute("data-run-monitor")));
+        });
+
+        out.querySelectorAll("[data-delete-monitor]").forEach((btn) => {
+          btn.addEventListener("click", () => deleteMonitor(btn.getAttribute("data-delete-monitor")));
+        });
+
+        out.querySelectorAll("[data-open-thread]").forEach((btn) => {
+          btn.addEventListener("click", () => openThread(btn.getAttribute("data-open-thread")));
+        });
+
+        out.querySelectorAll(".workspace-thread-item[data-thread-id]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            suggestedReminders = [];
+            loadThread(btn.getAttribute("data-thread-id"));
+          });
+        });
+
+        out.querySelectorAll("[data-create-reminder]").forEach((btn) => {
+          btn.addEventListener("click", () => createReminderFromSuggestion(Number(btn.getAttribute("data-create-reminder"))));
         });
 
         document.getElementById("btn-summarize")?.addEventListener("click", async () => {
@@ -266,8 +995,8 @@
             await UI().alert({ title: "Summarize failed", message: r.json.error || r.json.reason || "LLM error" });
             return;
           }
-          const summary = r.json.summary || "";
-          document.getElementById("draft-body").value = summary || JSON.stringify(r.json, null, 2);
+          document.getElementById("draft-body").value = r.json.summary || JSON.stringify(r.json, null, 2);
+          draftBody = document.getElementById("draft-body").value;
           UI().toast("Summary ready", "ok");
         });
 
@@ -284,9 +1013,16 @@
             await UI().alert({ title: "Draft failed", message: r.json.error || r.json.reason || "LLM error" });
             return;
           }
-          const draft = r.json.draft || r.json.body || r.json.text || "";
-          document.getElementById("draft-body").value = draft;
+          document.getElementById("draft-body").value = r.json.draft || r.json.body || r.json.text || "";
+          draftBody = document.getElementById("draft-body").value;
           UI().toast("Draft generated", "ok");
+        });
+
+        document.getElementById("btn-suggest-reminders")?.addEventListener("click", suggestReminders);
+        document.getElementById("btn-save-gmail-draft")?.addEventListener("click", saveGmailDraft);
+
+        document.getElementById("draft-body")?.addEventListener("input", (e) => {
+          draftBody = e.target.value;
         });
       }
 
@@ -303,8 +1039,7 @@
         ]);
 
         const readiness = modelRes.json?.readiness || modelRes.json;
-        const llmOk = readiness?.configured;
-        if (!llmOk) {
+        if (!readiness?.configured) {
           setBanner(
             `LLM not configured — set DEEPSEEK_API_KEY, QWEN_API_KEY, or local Ollama. <a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/WORKSPACE-LOCAL-LLM.md">Local LLM guide</a>`
           );
@@ -320,6 +1055,16 @@
 
         accounts = accRes.ok ? accRes.json.accounts || [] : [];
         selectedAccountId = accounts[0]?.id || "";
+        activeTab = "inbox";
+        triageData = null;
+        digestData = null;
+        suggestedReminders = [];
+        rulesStatus = null;
+        rules = [];
+        ruleEvalResult = null;
+        monitors = [];
+        selectedMonitorId = "";
+        monitorRuns = [];
 
         await loadSideData();
 

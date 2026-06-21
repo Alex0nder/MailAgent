@@ -16,7 +16,7 @@
         { href: "/#workspace", label: "Workspace Agent", desc: "Summarize, draft, policy-gated send" },
         { href: "/#mcp", label: "MCP tools", desc: "49 agent tools for QA and mail" },
         { href: "/dashboard.html", label: "Console", desc: "Inboxes, keys, audit log" },
-        { href: "/workspace.html", label: "Workspace", desc: "Gmail threads, drafts, reminders" },
+        { href: "/workspace.html", label: "Workspace", desc: "Gmail triage, rules, monitors, drafts" },
       ],
     },
     {
