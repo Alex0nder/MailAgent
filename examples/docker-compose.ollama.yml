@@ -1,0 +1,80 @@
+# MailAgent + Ollama on one machine (local ML, no cloud LLM API).
+#
+# Prereqs:
+#   cp .dev.vars.example .dev.vars   # DATABASE_URL, RESEND_*, API_KEY, INBOX_DOMAIN
+#   npm run db:migrate
+#
+# Run from repo root:
+#   docker compose -f examples/docker-compose.ollama.yml up --build
+#   # or: npm run dev:docker:ollama
+#
+# API:  http://127.0.0.1:8787
+# MCP:  MAILAGENT_API_URL=http://127.0.0.1:8787
+# Ollama (host): http://127.0.0.1:11434
+
+name: mailagent-ollama
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: mailagent-ollama
+    restart: unless-stopped
+    volumes:
+      - ollama_models:/root/.ollama
+    ports:
+      - "11434:11434"
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 10s
+      retries: 12
+      start_period: 15s
+
+  ollama-pull:
+    image: ollama/ollama:latest
+    container_name: mailagent-ollama-pull
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2}
+    entrypoint:
+      - /bin/sh
+      - -ec
+      - |
+        echo "Pulling $${OLLAMA_MODEL} (cached layers reused)..."
+        ollama pull "$${OLLAMA_MODEL}"
+    restart: "no"
+
+  mailagent:
+    build:
+      context: ..
+      dockerfile: examples/ollama/Dockerfile
+    container_name: mailagent-api-local
+    depends_on:
+      ollama:
+        condition: service_healthy
+      ollama-pull:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    env_file:
+      - path: ../.dev.vars
+        required: true
+    environment:
+      WORKSPACE_LLM_PROVIDER: local
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_BASE_URL: http://ollama:11434/v1
+      LOCAL_LLM_BASE_URL: http://ollama:11434/v1
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2}
+      LOCAL_LLM_MODEL: ${OLLAMA_MODEL:-llama3.2}
+    volumes:
+      - ..:/app
+      - mailagent_node_modules:/app/node_modules
+    working_dir: /app
+
+volumes:
+  ollama_models:
+  mailagent_node_modules:

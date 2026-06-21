@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Workspace — MailAgent Console</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="doc-page" data-site="docs" data-doc="workspace">
+    <div id="site-nav"></div>
+
+    <div class="doc-layout">
+      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
+      <article class="doc-content doc-content--wide">
+        <h1>Workspace</h1>
+        <p class="doc-lead">
+          Read-only Gmail threads, LLM summarize/draft, and open reminders.
+          <a href="/docs/agents.html">Agent docs →</a>
+        </p>
+
+        <form class="app-form" id="form" onsubmit="return false">
+          <label for="base">API base</label>
+          <input id="base" type="url" value="https://api.webmailagent.com" />
+          <label for="key">API key</label>
+          <input id="key" type="password" autocomplete="off" placeholder="ma_…" />
+          <button type="button" id="load">Connect</button>
+        </form>
+
+        <div id="status-banner" class="workspace-banner" hidden></div>
+        <div id="out" class="app-card">Enter API key and connect.</div>
+      </article>
+    </div>
+
+    <div id="site-footer"></div>
+    <script src="/console-ui.js"></script>
+    <script src="/site-shell.js" defer></script>
+    <script>
+      /** Workspace console — Gmail threads split-pane + draft/reminders. */
+      const UI = () => window.MailAgentUI;
+      const KEY = "mailagent_dashboard_key";
+      const baseEl = document.getElementById("base");
+      const keyEl = document.getElementById("key");
+      const out = document.getElementById("out");
+      const bannerEl = document.getElementById("status-banner");
+
+      let accounts = [];
+      let selectedAccountId = "";
+      let threads = [];
+      let selectedThreadId = "";
+      let threadDetail = null;
+      let reminders = [];
+      let actions = [];
+
+      if (localStorage.getItem(KEY)) keyEl.value = localStorage.getItem(KEY);
+
+      function esc(s) {
+        return UI()?.esc(s) ?? String(s ?? "");
+      }
+
+      async function api(path, opts) {
+        const base = baseEl.value.replace(/\/$/, "");
+        const r = await fetch(`${base}${path}`, {
+          ...opts,
+          headers: {
+            Authorization: `Bearer ${keyEl.value.trim()}`,
+            "Content-Type": "application/json",
+            ...(opts?.headers || {}),
+          },
+        });
+        const json = await r.json().catch(() => ({}));
+        return { ok: r.ok, status: r.status, json };
+      }
+
+      function setBanner(html) {
+        if (!html) {
+          bannerEl.hidden = true;
+          bannerEl.innerHTML = "";
+          return;
+        }
+        bannerEl.hidden = false;
+        bannerEl.innerHTML = html;
+      }
+
+      function renderReminders() {
+        if (!reminders.length) {
+          return `<p class="console-empty">No open reminders.</p>`;
+        }
+        return `<ul class="workspace-reminder-list">${reminders
+          .map(
+            (r) => `<li>
+              <span>${esc(r.title)}${r.dueAt ? ` <span class="console-meta">· ${esc(new Date(r.dueAt).toLocaleString())}</span>` : ""}</span>
+              ${UI().statusBadge(r.status)}
+            </li>`
+          )
+          .join("")}</ul>`;
+      }
+
+      function renderActions() {
+        if (!actions.length) {
+          return `<p class="console-empty">No recent agent actions.</p>`;
+        }
+        return `<ul class="workspace-reminder-list">${actions
+          .slice(0, 12)
+          .map(
+            (a) => `<li>
+              <span>${esc(a.title || a.actionType)}</span>
+              ${UI().statusBadge(a.actionType)} ${UI().statusBadge(a.status)}
+            </li>`
+          )
+          .join("")}</ul>`;
+      }
+
+      function renderThreadMessages() {
+        const msgs = threadDetail?.messages || [];
+        if (!msgs.length) {
+          return `<p class="inbox-detail__empty">Select a thread to load messages.</p>`;
+        }
+        return msgs
+          .map(
+            (m) => `<article style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+              <div class="console-meta">${esc(m.from || "—")} · ${esc(m.receivedAt ? new Date(m.receivedAt).toLocaleString() : "")}</div>
+              <strong>${esc(m.subject || "(no subject)")}</strong>
+              <pre style="white-space:pre-wrap;margin:8px 0 0;font-size:12px;color:var(--text-muted)">${esc(m.text || m.snippet || "")}</pre>
+            </article>`
+          )
+          .join("");
+      }
+
+      function renderLayout() {
+        const accountOpts = accounts
+          .map(
+            (a) =>
+              `<option value="${esc(a.id)}"${a.id === selectedAccountId ? " selected" : ""}>${esc(a.email)}</option>`
+          )
+          .join("");
+
+        const threadItems = threads
+          .map(
+            (t) => `<li><button type="button" class="workspace-thread-item${
+              t.id === selectedThreadId ? " is-active" : ""
+            }" data-thread-id="${esc(t.id)}">
+              <div>${esc(t.subject || t.snippet || t.id)}</div>
+              <div class="workspace-thread-item__snippet">${esc(t.snippet || "")}</div>
+            </button></li>`
+          )
+          .join("");
+
+        out.innerHTML = `<div class="workspace-actions-row" style="margin-bottom:12px">
+            <label for="gmail-account">Gmail account</label>
+            <select id="gmail-account">${accountOpts || '<option value="">—</option>'}</select>
+            <button type="button" class="app-btn app-btn--ghost" id="reload-threads">Refresh threads</button>
+            <a class="app-btn app-btn--ghost" id="gmail-connect" href="#">Connect Gmail</a>
+          </div>
+          <div class="workspace-layout">
+            <div class="workspace-pane">
+              <div class="workspace-pane__head">Threads</div>
+              <ul class="workspace-thread-list">${threadItems || '<li class="inbox-detail__empty" style="padding:14px">No threads.</li>'}</ul>
+            </div>
+            <div class="workspace-pane">
+              <div class="workspace-pane__head">Thread · draft</div>
+              <div class="workspace-main">
+                <div id="thread-messages">${renderThreadMessages()}</div>
+                <label for="draft-body">Draft reply</label>
+                <textarea id="draft-body" class="workspace-draft" placeholder="Generated draft appears here…"></textarea>
+                <div class="workspace-actions-row">
+                  <button type="button" class="app-btn" id="btn-summarize">Summarize</button>
+                  <button type="button" class="app-btn app-btn--ghost" id="btn-draft">Draft reply</button>
+                </div>
+                <h3 style="margin:8px 0 0;font-size:0.95rem">Open reminders</h3>
+                ${renderReminders()}
+                <h3 style="margin:8px 0 0;font-size:0.95rem">Recent actions</h3>
+                ${renderActions()}
+              </div>
+            </div>
+          </div>`;
+
+        bindLayout();
+      }
+
+      async function loadThread(threadId) {
+        if (!selectedAccountId || !threadId) return;
+        selectedThreadId = threadId;
+        const r = await api(
+          `/v1/workspace/gmail/threads/${encodeURIComponent(threadId)}?accountId=${encodeURIComponent(selectedAccountId)}`
+        );
+        if (!r.ok) {
+          await UI().alert({ title: "Thread load failed", message: r.json.error || String(r.status) });
+          return;
+        }
+        threadDetail = r.json;
+        document.getElementById("thread-messages").innerHTML = renderThreadMessages();
+        out.querySelectorAll(".workspace-thread-item").forEach((btn) => {
+          btn.classList.toggle("is-active", btn.getAttribute("data-thread-id") === threadId);
+        });
+      }
+
+      async function loadThreads() {
+        if (!selectedAccountId) return;
+        const r = await api(
+          `/v1/workspace/gmail/threads?accountId=${encodeURIComponent(selectedAccountId)}&maxResults=25`
+        );
+        if (!r.ok) {
+          await UI().alert({ title: "Threads failed", message: r.json.error || String(r.status) });
+          return;
+        }
+        threads = r.json.threads || [];
+        if (!threads.find((t) => t.id === selectedThreadId)) {
+          selectedThreadId = threads[0]?.id || "";
+          threadDetail = null;
+        }
+        renderLayout();
+        if (selectedThreadId) await loadThread(selectedThreadId);
+      }
+
+      async function loadSideData() {
+        const [remRes, actRes] = await Promise.all([
+          api("/v1/workspace/reminders?status=open&limit=20"),
+          api("/v1/workspace/actions?limit=20"),
+        ]);
+        if (remRes.ok) reminders = remRes.json.reminders || [];
+        if (actRes.ok) actions = actRes.json.actions || [];
+      }
+
+      function bindLayout() {
+        document.getElementById("gmail-account")?.addEventListener("change", (e) => {
+          selectedAccountId = e.target.value;
+          selectedThreadId = "";
+          threadDetail = null;
+          loadThreads();
+        });
+
+        document.getElementById("reload-threads")?.addEventListener("click", loadThreads);
+
+        document.getElementById("gmail-connect")?.addEventListener("click", async (e) => {
+          e.preventDefault();
+          const r = await api("/v1/workspace/gmail/connect?returnTo=/workspace.html");
+          if (!r.ok) {
+            await UI().alert({ title: "Gmail OAuth", message: r.json.error || "OAuth not configured" });
+            return;
+          }
+          location.href = r.json.url;
+        });
+
+        out.querySelectorAll(".workspace-thread-item").forEach((btn) => {
+          btn.addEventListener("click", () => loadThread(btn.getAttribute("data-thread-id")));
+        });
+
+        document.getElementById("btn-summarize")?.addEventListener("click", async () => {
+          if (!selectedAccountId || !selectedThreadId) return;
+          const r = await api("/v1/workspace/summarize", {
+            method: "POST",
+            body: JSON.stringify({
+              gmailAccountId: selectedAccountId,
+              gmailThreadId: selectedThreadId,
+            }),
+          });
+          if (!r.ok) {
+            await UI().alert({ title: "Summarize failed", message: r.json.error || r.json.reason || "LLM error" });
+            return;
+          }
+          const summary = r.json.summary || "";
+          document.getElementById("draft-body").value = summary || JSON.stringify(r.json, null, 2);
+          UI().toast("Summary ready", "ok");
+        });
+
+        document.getElementById("btn-draft")?.addEventListener("click", async () => {
+          if (!selectedAccountId || !selectedThreadId) return;
+          const r = await api("/v1/workspace/draft-reply", {
+            method: "POST",
+            body: JSON.stringify({
+              gmailAccountId: selectedAccountId,
+              gmailThreadId: selectedThreadId,
+            }),
+          });
+          if (!r.ok) {
+            await UI().alert({ title: "Draft failed", message: r.json.error || r.json.reason || "LLM error" });
+            return;
+          }
+          const draft = r.json.draft || r.json.body || r.json.text || "";
+          document.getElementById("draft-body").value = draft;
+          UI().toast("Draft generated", "ok");
+        });
+      }
+
+      async function connect() {
+        const key = keyEl.value.trim();
+        if (!key) return;
+        localStorage.setItem(KEY, key);
+        out.textContent = "Loading…";
+
+        const [modelRes, gmailRes, accRes] = await Promise.all([
+          api("/v1/workspace/models"),
+          api("/v1/workspace/gmail/status"),
+          api("/v1/workspace/gmail/accounts"),
+        ]);
+
+        const readiness = modelRes.json?.readiness || modelRes.json;
+        const llmOk = readiness?.configured;
+        if (!llmOk) {
+          setBanner(
+            `LLM not configured — set DEEPSEEK_API_KEY, QWEN_API_KEY, or local Ollama. <a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/WORKSPACE-LOCAL-LLM.md">Local LLM guide</a>`
+          );
+        } else {
+          setBanner(`Model: ${esc(readiness.model || readiness.provider || "configured")}`);
+        }
+
+        if (!gmailRes.ok || !gmailRes.json?.configured) {
+          out.innerHTML = `<p class="app-err">${esc(gmailRes.json?.hint || "Gmail OAuth not configured on API.")}</p>
+            <p><a href="/docs/agents.html">Workspace Agent docs</a></p>`;
+          return;
+        }
+
+        accounts = accRes.ok ? accRes.json.accounts || [] : [];
+        selectedAccountId = accounts[0]?.id || "";
+
+        await loadSideData();
+
+        if (!accounts.length) {
+          out.innerHTML = `<p>No Gmail accounts linked.</p>
+            <button type="button" class="app-btn" id="gmail-connect-only">Connect Gmail</button>`;
+          document.getElementById("gmail-connect-only")?.addEventListener("click", async () => {
+            const r = await api("/v1/workspace/gmail/connect?returnTo=/workspace.html");
+            if (r.ok) location.href = r.json.url;
+            else await UI().alert({ title: "OAuth", message: r.json.error || "Failed" });
+          });
+          return;
+        }
+
+        await loadThreads();
+      }
+
+      document.getElementById("load").onclick = connect;
+      if (keyEl.value) connect();
+    </script>
+  </body>
+</html>

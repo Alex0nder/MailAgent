@@ -1,6 +1,7 @@
 import type { Env } from "../src/env";
 import {
   configuredWorkspaceProviders,
+  isLocalLlmBaseUrl,
   runWorkspaceLlmJson,
   workspaceProviderInfo,
 } from "../src/services/llm-provider";
@@ -72,6 +73,18 @@ assert(
   "hourly limit is enforced"
 );
 
+assert(isLocalLlmBaseUrl("http://127.0.0.1:11434/v1"), "ollama default url is local");
+assert(!isLocalLlmBaseUrl("https://api.openai.com/v1"), "openai url is not local");
+
+const localProvider = workspaceProviderInfo({
+  WORKSPACE_LLM_PROVIDER: "local",
+  OLLAMA_MODEL: "qwen2.5:3b",
+} as Env);
+assert(localProvider.provider === "local", "local provider label");
+assert(localProvider.model === "qwen2.5:3b", "local model override");
+assert(localProvider.configured, "local provider is configured without cloud api key");
+assert(localProvider.localOnly === true, "local provider marks localOnly");
+
 const provider = workspaceProviderInfo({
   WORKSPACE_LLM_PROVIDER: "deepseek",
   DEEPSEEK_API_KEY: "secret-that-must-not-leak",
@@ -80,7 +93,9 @@ assert(provider.configured, "provider reports configured state");
 assert(!("apiKey" in provider), "public provider metadata does not expose apiKey");
 assert(!("baseUrl" in provider), "public provider metadata does not expose baseUrl");
 assert(provider.providers[0]?.provider === "deepseek", "DeepSeek is the default primary provider");
+assert(provider.model === "deepseek-v4-flash", "DeepSeek default model is cost-optimized flash");
 assert(provider.providers[1]?.provider === "qwen", "Qwen is the default fallback provider");
+assert(provider.providers[1]?.model === "qwen-turbo", "Qwen default model is turbo");
 assert(
   !provider.providers.some((item) => "apiKey" in item || "baseUrl" in item),
   "fallback metadata does not expose private provider configuration"

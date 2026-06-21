@@ -46,7 +46,7 @@ export interface Env {
   SEARCH_EMBED_MODEL?: string;
   /** LLM for structured extract (default @cf/meta/llama-3.1-8b-instruct) */
   EXTRACT_MODEL?: string;
-  /** Workspace Agent LLM provider: deepseek (default), qwen, custom */
+  /** Workspace Agent LLM provider: deepseek (default), qwen, custom, xai, openai, openrouter, local, ollama */
   WORKSPACE_LLM_PROVIDER?: string;
   /** DeepSeek OpenAI-compatible API key */
   DEEPSEEK_API_KEY?: string;
@@ -58,6 +58,24 @@ export interface Env {
   DASHSCOPE_API_KEY?: string;
   /** Qwen model override */
   QWEN_MODEL?: string;
+  /** OpenRouter API key (alias path for custom provider) */
+  OPENROUTER_API_KEY?: string;
+  /** OpenAI API key alias for custom provider (maps to LLM_* when unset) */
+  OPENAI_API_KEY?: string;
+  /** xAI / Grok API key */
+  XAI_API_KEY?: string;
+  /** xAI model override (default grok-3-mini) */
+  XAI_MODEL?: string;
+  /** Local OpenAI-compatible server (Ollama, LM Studio) — dev/self-host only */
+  LOCAL_LLM_BASE_URL?: string;
+  /** Local model name (Ollama tag, e.g. llama3.2) */
+  LOCAL_LLM_MODEL?: string;
+  /** Optional API key for local server (Ollama ignores; LM Studio may require) */
+  LOCAL_LLM_API_KEY?: string;
+  /** Ollama base URL alias (default http://127.0.0.1:11434/v1) */
+  OLLAMA_BASE_URL?: string;
+  /** Ollama model alias */
+  OLLAMA_MODEL?: string;
   /** Custom OpenAI-compatible LLM API key */
   LLM_API_KEY?: string;
   /** Custom OpenAI-compatible base URL */
@@ -66,6 +84,12 @@ export interface Env {
   LLM_MODEL?: string;
   /** Audit log retention in days (default 90, max 365) */
   AUDIT_RETENTION_DAYS?: string;
+  /** Google OAuth client for Gmail read connector (P1) */
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+  /** Aliases for Gmail OAuth */
+  GMAIL_CLIENT_ID?: string;
+  GMAIL_CLIENT_SECRET?: string;
 }
 
 export interface EmailQueueMessage {

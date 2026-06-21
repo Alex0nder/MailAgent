@@ -19,3 +19,6 @@ INBOX_DOMAIN=your-id.resend.app
 # WORKSPACE_LLM_PROVIDER=deepseek
 # DEEPSEEK_API_KEY=
 # QWEN_API_KEY=
+# OpenRouter: WORKSPACE_LLM_PROVIDER=custom + OPENROUTER_API_KEY=sk-or-v1-...
+# Local Ollama stack: npm run dev:docker:ollama — see docs/WORKSPACE-LOCAL-LLM.md
+# Or host Ollama: WORKSPACE_LLM_PROVIDER=local + OLLAMA_MODEL=llama3.2

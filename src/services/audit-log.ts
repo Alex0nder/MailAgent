@@ -18,7 +18,18 @@ export type AuditAction =
   | "team.webhook.configured"
   | "team.webhook.cleared"
   | "workspace.policy_updated"
-  | "workspace.reply_sent";
+  | "workspace.reply_sent"
+  | "workspace.gmail_connected"
+  | "workspace.gmail_revoked"
+  | "workspace.gmail_settings_updated"
+  | "workspace.calendar_connected"
+  | "workspace.calendar_revoked"
+  | "workspace.gmail_draft_created"
+  | "workspace.calendar_event_created"
+  | "workspace.calendar_event_updated"
+  | "workspace.automation_rule_created"
+  | "workspace.monitor_created"
+  | "workspace.monitor_run";
 
 export type AuditContext = {
   teamId: string | null;

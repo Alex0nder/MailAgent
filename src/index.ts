@@ -20,6 +20,7 @@ import { oauthTokenRoutes, wellKnownRoutes } from "./routes/oauth";
 import { webhookRoutes } from "./routes/webhooks";
 import { purgeExpired } from "./services/inbox";
 import { purgeExpiredAuditEvents } from "./services/audit-log";
+import { runDueWorkspaceMonitors } from "./services/workspace-monitor-runner";
 import { auditRoutes } from "./routes/audit";
 import { emailRoutes } from "./routes/emails";
 import { workspaceRoutes } from "./routes/workspace";
@@ -170,6 +171,7 @@ export default {
   async scheduled(_controller: ScheduledController, env: Env): Promise<void> {
     const result = await purgeExpired(env);
     const audit = await purgeExpiredAuditEvents(env);
-    console.log("cron purge", { ...result, auditDeleted: audit.deleted });
+    const monitors = await runDueWorkspaceMonitors(env, 10);
+    console.log("cron purge", { ...result, auditDeleted: audit.deleted, monitorsRan: monitors.ran });
   },
 };

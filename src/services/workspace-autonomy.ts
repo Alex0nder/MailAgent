@@ -12,6 +12,9 @@ export type WorkspaceAutonomyPolicyInput = {
   allowedRecipientDomains?: string[];
   minConfidence?: string;
   maxSendsPerHour?: number;
+  gmailDraftWrites?: boolean;
+  calendarEventWrites?: boolean;
+  automationEnabled?: boolean;
 };
 
 type PolicyRow = {
@@ -19,6 +22,9 @@ type PolicyRow = {
   allowed_recipient_domains: string[];
   min_confidence: WorkspaceConfidence;
   max_sends_per_hour: number;
+  gmail_draft_writes: boolean;
+  calendar_event_writes: boolean;
+  automation_enabled: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -46,6 +52,9 @@ function defaultPolicy() {
     allowedRecipientDomains: [] as string[],
     minConfidence: "high" as const,
     maxSendsPerHour: 5,
+    gmailDraftWrites: false,
+    calendarEventWrites: false,
+    automationEnabled: false,
     persisted: false,
     createdAt: null,
     updatedAt: null,
@@ -58,6 +67,9 @@ function formatPolicy(row: PolicyRow) {
     allowedRecipientDomains: row.allowed_recipient_domains ?? [],
     minConfidence: row.min_confidence,
     maxSendsPerHour: row.max_sends_per_hour,
+    gmailDraftWrites: row.gmail_draft_writes,
+    calendarEventWrites: row.calendar_event_writes,
+    automationEnabled: row.automation_enabled,
     persisted: true,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -100,6 +112,7 @@ export async function getWorkspaceAutonomyPolicy(env: Env, auth: WorkspaceRemind
   const sql = getDb(env);
   const rows = (await sql`
     SELECT mode, allowed_recipient_domains, min_confidence, max_sends_per_hour,
+           gmail_draft_writes, calendar_event_writes, automation_enabled,
            created_at, updated_at
     FROM workspace_autonomy_policies
     WHERE owner_key = ${workspaceOwnerKey(auth)}
@@ -148,14 +161,20 @@ export async function setWorkspaceAutonomyPolicy(
     return { ok: false, status: 400, error: "recipient_allowlist_required" };
   }
   const sql = getDb(env);
+  const existing = await getWorkspaceAutonomyPolicy(env, auth);
+  const gmailDraftWrites = input.gmailDraftWrites ?? existing.gmailDraftWrites;
+  const calendarEventWrites = input.calendarEventWrites ?? existing.calendarEventWrites;
+  const automationEnabled = input.automationEnabled ?? existing.automationEnabled;
   const rows = (await sql`
     INSERT INTO workspace_autonomy_policies (
       owner_key, team_id, api_key_hint, mode, allowed_recipient_domains,
-      min_confidence, max_sends_per_hour
+      min_confidence, max_sends_per_hour, gmail_draft_writes, calendar_event_writes,
+      automation_enabled
     )
     VALUES (
       ${workspaceOwnerKey(auth)}, ${auth.teamId}, ${auth.apiKeyHint}, ${mode},
-      ${domains}, ${minConfidence}, ${maxSendsPerHour}
+      ${domains}, ${minConfidence}, ${maxSendsPerHour}, ${gmailDraftWrites},
+      ${calendarEventWrites}, ${automationEnabled}
     )
     ON CONFLICT (owner_key) DO UPDATE SET
       team_id = EXCLUDED.team_id,
@@ -164,8 +183,12 @@ export async function setWorkspaceAutonomyPolicy(
       allowed_recipient_domains = EXCLUDED.allowed_recipient_domains,
       min_confidence = EXCLUDED.min_confidence,
       max_sends_per_hour = EXCLUDED.max_sends_per_hour,
+      gmail_draft_writes = EXCLUDED.gmail_draft_writes,
+      calendar_event_writes = EXCLUDED.calendar_event_writes,
+      automation_enabled = EXCLUDED.automation_enabled,
       updated_at = NOW()
     RETURNING mode, allowed_recipient_domains, min_confidence, max_sends_per_hour,
+              gmail_draft_writes, calendar_event_writes, automation_enabled,
               created_at, updated_at
   `) as PolicyRow[];
   return { ok: true, policy: formatPolicy(rows[0]!) };

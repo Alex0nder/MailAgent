@@ -13,10 +13,10 @@
       gtag("js", new Date());
       gtag("config", "G-41B4KG53D1");
     </script>
-    <title>MailAgent — Email verification for Playwright, Cypress, and AI agents</title>
+    <title>MailAgent — Email verification and workspace agent for CI and AI agents</title>
     <meta
       name="description"
-      content="Disposable test inboxes for Playwright, Cypress, and AI agents. Verify OTPs and magic links in CI, plan recovery steps, and mint scoped run keys without shared Gmail or manual checks."
+      content="Disposable inboxes for Playwright and AI agents. Verify OTPs and magic links, run Workspace Agent on inbox or Gmail threads, draft replies with DeepSeek/Qwen or local Ollama, and mint scoped run keys — 49 MCP tools."
     />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/styles.css" />
@@ -38,20 +38,17 @@
     <main class="landing">
       <div class="hero-block">
       <section class="hero hero-split">
-        <div class="hero-grid-bg" aria-hidden="true"></div>
         <div class="hero-inner site-container">
           <div class="hero-copy">
-            <div class="pill pill-oss">
-              <span class="pill-dot"></span>
-              Open source · hosted API available
+            <div class="pill-badges pill-oss">
+              <span class="pill-badge">Workspace Agent</span>
+              <span class="pill-badge">49 MCP tools</span>
             </div>
             <h1>Email verification for CI and AI agents</h1>
             <p class="hero-lead">
-              Replace shared test inboxes and manual OTP checks with disposable
-              inboxes per run. MailAgent waits for the email, extracts OTPs,
-              magic links, and safe CTA buttons, then gives your test or agent
-              the next action. Agents can also mint short-lived scoped run keys
-              instead of asking humans for permanent secrets.
+              Disposable inbox per CI run — create, wait, and extract OTP or magic
+              link in one call. Scoped run keys, no shared test mailbox, no human
+              OTP checks.
             </p>
             <div class="hero-ctas">
               <a class="btn btn-primary" href="/docs/qa.html">Start QA setup</a>
@@ -63,20 +60,6 @@
                 >GitHub</a
               >
             </div>
-            <dl class="hero-proof">
-              <div>
-                <dt>29</dt>
-                <dd>MCP tools</dd>
-              </div>
-              <div>
-                <dt>1 call</dt>
-                <dd>create → wait → extract</dd>
-              </div>
-              <div>
-                <dt>0 SMTP</dt>
-                <dd>simulate in CI</dd>
-              </div>
-            </dl>
           </div>
           <div class="code-panel hero-code-panel" data-panel="hero" aria-label="MailAgent launch examples">
             <div class="code-tabs">
@@ -101,32 +84,71 @@
         </div>
       </section>
 
-      <div class="repo-bar">
-        <div class="site-container">
-        <a
-          class="repo-bar-link"
-          href="https://github.com/Alex0nder/MailAgent"
-          rel="noopener noreferrer"
-        >
-          <span class="repo-bar-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path
-                d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"
-              />
-            </svg>
-          </span>
-          <span class="repo-bar-text">
-            <strong>github.com/Alex0nder/MailAgent</strong>
-            <span class="repo-bar-meta">MIT · open source</span>
-          </span>
-          <span class="repo-bar-arrow" aria-hidden="true">→</span>
-        </a>
-        </div>
-      </div>
+      <div class="hero-platform site-container">
+        <div class="hero-platform-panel">
+          <dl class="hero-metrics" aria-label="Platform highlights">
+            <div class="hero-metric">
+              <span class="hero-metric-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3" />
+                  <circle cx="6" cy="6" r="2" />
+                  <circle cx="18" cy="6" r="2" />
+                  <circle cx="6" cy="18" r="2" />
+                  <circle cx="18" cy="18" r="2" />
+                  <path d="M8 6.5h2M14 6.5h2M8 17.5h2M14 17.5h2M6.5 8v2M6.5 14v2M17.5 8v2M17.5 14v2" />
+                </svg>
+              </span>
+              <div class="hero-metric-copy">
+                <dt>49</dt>
+                <dd>MCP tools</dd>
+              </div>
+            </div>
+            <div class="hero-metric">
+              <span class="hero-metric-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z" />
+                </svg>
+              </span>
+              <div class="hero-metric-copy">
+                <dt>1 call</dt>
+                <dd>create · wait · extract</dd>
+              </div>
+            </div>
+            <div class="hero-metric">
+              <span class="hero-metric-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  <path d="M12 15v2" />
+                </svg>
+              </span>
+              <div class="hero-metric-copy">
+                <dt>0 SMTP</dt>
+                <dd>simulate in CI</dd>
+              </div>
+            </div>
+          </dl>
 
-      <div class="stack-strip">
-        <div class="site-container">
-        <div class="stack-inner">
+          <a
+            class="hero-platform-repo"
+            href="https://github.com/Alex0nder/MailAgent"
+            rel="noopener noreferrer"
+          >
+            <span class="repo-bar-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3 .405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"
+                />
+              </svg>
+            </span>
+            <span class="repo-bar-text">
+              <strong>github.com/Alex0nder/MailAgent</strong>
+              <span class="repo-bar-meta">open source</span>
+            </span>
+            <span class="repo-bar-arrow" aria-hidden="true">→</span>
+          </a>
+
+          <div class="hero-platform-stack">
           <p class="stack-label">Runs on</p>
           <ul class="stack-list">
             <li class="stack-chip">
@@ -181,10 +203,237 @@
               Model Context Protocol
             </li>
           </ul>
-        </div>
+          </div>
         </div>
       </div>
       </div>
+
+      <section id="platform" class="page-section platform-section">
+        <div class="site-container">
+          <div class="platform-head">
+            <p class="section-label">Platform</p>
+            <h2 class="section-title">Verify signup and workspace mail</h2>
+            <p class="section-desc">
+              Disposable inboxes and structured extraction for tests — plus
+              Workspace Agent for inbox and Gmail threads, reminders, and
+              policy-gated replies. One MCP server for QA and autonomous mail.
+            </p>
+          </div>
+
+          <div class="bento-grid">
+            <article class="bento-card bento-card--wide">
+              <div class="bento-illustration bento-illustration--verify" aria-hidden="true">
+                <svg class="bento-art" viewBox="0 0 520 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="bento-v-panel" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#333333" stop-opacity="0.14"/>
+                      <stop offset="100%" stop-color="#333333" stop-opacity="0.02"/>
+                    </linearGradient>
+                    <linearGradient id="bento-v-logo" x1="0" y1="0" x2="1" y2="1">
+                      <stop stop-color="#333333"/>
+                      <stop offset="1" stop-color="#1a1a1a"/>
+                    </linearGradient>
+                    <filter id="bento-v-logo-glow" x="-80%" y="-80%" width="260%" height="260%">
+                      <feDropShadow dx="0" dy="0" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.4"/>
+                    </filter>
+                  </defs>
+
+                  <!-- Signup form -->
+                  <g class="art-signup">
+                    <rect x="24" y="20" width="140" height="92" rx="10" fill="url(#bento-v-panel)" stroke="#555555" stroke-opacity="0.38" stroke-width="1.25"/>
+                    <path d="M24 36h140" stroke="#333333" stroke-opacity="0.14"/>
+                    <circle cx="38" cy="28" r="2.5" fill="#ededed" opacity="0.75"/>
+                    <circle cx="48" cy="28" r="2.5" fill="#333333" opacity="0.3"/>
+                    <rect x="40" y="48" width="108" height="7" rx="3.5" fill="#333333" fill-opacity="0.12"/>
+                    <rect x="40" y="62" width="76" height="7" rx="3.5" fill="#333333" fill-opacity="0.07"/>
+                    <rect x="66" y="78" width="56" height="18" rx="9" fill="#1a1a1a" fill-opacity="0.55"/>
+                    <text x="94" y="90" text-anchor="middle" fill="#ededed" font-family="ui-monospace, monospace" font-size="8" font-weight="500">Sign up</text>
+                  </g>
+
+                  <!-- Flow: signup → inbox → extract -->
+                  <g class="art-connector" transform="translate(172 64)">
+                    <line class="art-flow" x1="16" y1="0" x2="168" y2="0" stroke="#444444" stroke-opacity="0.6" stroke-width="1.5" stroke-dasharray="4 6" stroke-linecap="round"/>
+                    <circle cx="16" cy="0" r="2.5" fill="#ededed" opacity="0.5"/>
+                    <circle cx="168" cy="0" r="2.5" fill="#ededed" opacity="0.5"/>
+                    <g class="art-packet">
+                      <rect x="-11" y="-11" width="22" height="22" rx="8" fill="url(#bento-v-logo)" filter="url(#bento-v-logo-glow)"/>
+                      <text x="0" y="0.5" text-anchor="middle" dominant-baseline="middle" fill="#ededed" font-family="Georgia, 'Times New Roman', Times, serif" font-size="12" font-weight="500">@</text>
+                    </g>
+                  </g>
+
+                  <!-- Extracted result -->
+                  <g class="art-result">
+                    <rect x="356" y="20" width="140" height="92" rx="10" fill="url(#bento-v-panel)" stroke="#333333" stroke-opacity="0.38" stroke-width="1.25"/>
+                    <path d="M356 36h140" stroke="#333333" stroke-opacity="0.14"/>
+                    <text x="372" y="30" fill="#888888" font-family="ui-monospace, monospace" font-size="7">primaryAction</text>
+                    <g class="art-check-badge" transform="translate(480 46)">
+                      <circle cx="0" cy="0" r="6" fill="#1a1a1a" fill-opacity="0.45" stroke="#555555" stroke-opacity="0.42"/>
+                      <path class="art-check" d="M-3 0l2 2 5-6" stroke="#ecfef5" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>
+                    </g>
+                    <text x="372" y="56" fill="#ededed" font-family="ui-monospace, monospace" font-size="8">"type": "otp"</text>
+                    <text x="372" y="72" fill="#ededed" font-family="ui-monospace, monospace" font-size="8">"value": "482901"</text>
+                    <rect x="368" y="84" width="116" height="16" rx="8" fill="#333333" fill-opacity="0.1"/>
+                    <text x="426" y="92" text-anchor="middle" dominant-baseline="middle" fill="#888888" font-family="ui-monospace, monospace" font-size="6.5">confidence: high</text>
+                  </g>
+                </svg>
+              </div>
+              <div class="bento-copy">
+                <h3>Verify signup in one call</h3>
+                <p>
+                  Create inbox, wait for the message, extract OTP or magic link, return
+                  <code>agent.primaryAction</code> — no inbox UI scraping.
+                </p>
+              </div>
+              <a class="bento-link" href="/docs/agents.html">Agent docs →</a>
+            </article>
+
+            <article class="bento-card">
+              <div class="bento-illustration bento-illustration--mcp" aria-hidden="true">
+                <svg class="bento-art" viewBox="0 0 220 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle class="art-ring art-ring--1" cx="110" cy="70" r="34" stroke="#333333" stroke-opacity="0.15" stroke-width="1"/>
+                  <circle class="art-ring art-ring--2" cx="110" cy="70" r="44" stroke="#555555" stroke-opacity="0.1" stroke-width="1"/>
+                  <circle class="art-hub" cx="110" cy="70" r="18" fill="#1a1a1a" fill-opacity="0.55" stroke="#555555" stroke-width="1.5"/>
+                  <text x="110" y="74" text-anchor="middle" fill="#ecfef5" font-family="ui-monospace, monospace" font-size="9" font-weight="600">MCP</text>
+                  <g class="art-node art-node--1">
+                    <line x1="110" y1="52" x2="110" y2="28" stroke="#333333" stroke-opacity="0.35"/>
+                    <circle cx="110" cy="22" r="11" fill="#0a0a0a" stroke="#555555" stroke-width="1.3"/>
+                    <path d="M106 22h8M110 18v8" stroke="#555555" stroke-width="1.2" stroke-linecap="round"/>
+                  </g>
+                  <g class="art-node art-node--2">
+                    <line x1="128" y1="70" x2="152" y2="70" stroke="#333333" stroke-opacity="0.35"/>
+                    <circle cx="158" cy="70" r="11" fill="#0a0a0a" stroke="#555555" stroke-width="1.3"/>
+                    <path d="M154 70h8M158 66v8" stroke="#555555" stroke-width="1.2" stroke-linecap="round"/>
+                  </g>
+                  <g class="art-node art-node--3">
+                    <line x1="110" y1="88" x2="110" y2="112" stroke="#333333" stroke-opacity="0.35"/>
+                    <circle cx="110" cy="118" r="11" fill="#0a0a0a" stroke="#555555" stroke-width="1.3"/>
+                    <path d="M106 118h8M110 114v8" stroke="#555555" stroke-width="1.2" stroke-linecap="round"/>
+                  </g>
+                  <g class="art-node art-node--4">
+                    <line x1="92" y1="70" x2="68" y2="70" stroke="#333333" stroke-opacity="0.35"/>
+                    <circle cx="62" cy="70" r="11" fill="#0a0a0a" stroke="#555555" stroke-width="1.3"/>
+                    <path d="M58 70h8M62 66v8" stroke="#555555" stroke-width="1.2" stroke-linecap="round"/>
+                  </g>
+                </svg>
+              </div>
+              <div class="bento-copy">
+                <h3>MCP for Cursor &amp; Codex</h3>
+                <p>49 tools: verify, workspace mail, Gmail read, simulate, scoped keys.</p>
+              </div>
+              <a class="bento-link" href="/#mcp">Browse tools →</a>
+            </article>
+
+            <article class="bento-card">
+              <div class="bento-illustration bento-illustration--qa" aria-hidden="true">
+                <svg class="bento-art" viewBox="0 0 220 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="24" y="26" width="172" height="18" rx="6" fill="#1a1a1a" fill-opacity="0.42" stroke="#444444" stroke-opacity="0.35"/>
+                  <text x="110" y="38" text-anchor="middle" fill="#888888" font-family="ui-monospace, monospace" font-size="7">CI · parallel workers</text>
+
+                  <g class="art-worker art-worker--1">
+                    <rect class="art-worker-frame" x="26" y="56" width="48" height="68" rx="8" fill="#1a1a1a" fill-opacity="0.45" stroke="#444444" stroke-opacity="0.35" stroke-width="1.2"/>
+                    <text x="50" y="72" text-anchor="middle" fill="#888888" font-family="ui-monospace, monospace" font-size="7">pw-0</text>
+                    <rect x="34" y="82" width="32" height="28" rx="5" fill="#333333" fill-opacity="0.22" stroke="#444444" stroke-opacity="0.22" stroke-width="0.8"/>
+                  </g>
+
+                  <g class="art-worker art-worker--2">
+                    <rect class="art-worker-frame" x="86" y="56" width="48" height="68" rx="8" fill="#1a1a1a" fill-opacity="0.45" stroke="#444444" stroke-opacity="0.35" stroke-width="1.2"/>
+                    <text x="110" y="72" text-anchor="middle" fill="#888888" font-family="ui-monospace, monospace" font-size="7">pw-1</text>
+                    <rect x="94" y="82" width="32" height="28" rx="5" fill="#333333" fill-opacity="0.22" stroke="#444444" stroke-opacity="0.22" stroke-width="0.8"/>
+                    <text class="art-otp" x="110" y="99" text-anchor="middle" fill="#ededed" font-family="ui-monospace, monospace" font-size="8" font-weight="600">482901</text>
+                  </g>
+
+                  <g class="art-worker art-worker--3">
+                    <rect class="art-worker-frame" x="146" y="56" width="48" height="68" rx="8" fill="#1a1a1a" fill-opacity="0.45" stroke="#444444" stroke-opacity="0.35" stroke-width="1.2"/>
+                    <text x="170" y="72" text-anchor="middle" fill="#888888" font-family="ui-monospace, monospace" font-size="7">pw-2</text>
+                    <rect x="154" y="82" width="32" height="28" rx="5" fill="#333333" fill-opacity="0.22" stroke="#444444" stroke-opacity="0.22" stroke-width="0.8"/>
+                  </g>
+                </svg>
+              </div>
+              <div class="bento-copy">
+                <h3>Playwright &amp; Cypress</h3>
+                <p>Per-worker labels, <code>subjectContains</code>, simulate without SMTP in CI.</p>
+              </div>
+              <a class="bento-link" href="/docs/qa.html">QA guide →</a>
+            </article>
+
+            <article class="bento-card">
+              <div class="bento-illustration bento-illustration--stack" aria-hidden="true">
+                <svg class="bento-art" viewBox="0 0 220 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path class="art-beam" d="M44 70h132" stroke="#333333" stroke-opacity="0.2" stroke-width="1.5" stroke-dasharray="5 7"/>
+                  <g class="art-layer art-layer--1">
+                    <ellipse cx="44" cy="62" rx="18" ry="6" stroke="#555555" stroke-opacity="0.45" stroke-width="1.2"/>
+                    <path d="M26 62v24c0 3.31 8.06 6 18 6s18-2.69 18-6V62" stroke="#555555" stroke-opacity="0.28" stroke-width="1.1"/>
+                    <ellipse cx="44" cy="86" rx="18" ry="6" stroke="#555555" stroke-opacity="0.22" stroke-width="1.1"/>
+                    <text x="44" y="64" text-anchor="middle" fill="#ededed" font-family="ui-sans-serif, system-ui" font-size="7" font-weight="500">Workers</text>
+                  </g>
+                  <g class="art-layer art-layer--2">
+                    <ellipse cx="110" cy="62" rx="18" ry="6" stroke="#666666" stroke-opacity="0.4" stroke-width="1.2"/>
+                    <path d="M92 62v24c0 3.31 8.06 6 18 6s18-2.69 18-6V62" stroke="#666666" stroke-opacity="0.26" stroke-width="1.1"/>
+                    <ellipse cx="110" cy="86" rx="18" ry="6" stroke="#666666" stroke-opacity="0.2" stroke-width="1.1"/>
+                    <text x="110" y="64" text-anchor="middle" fill="#666666" font-family="ui-sans-serif, system-ui" font-size="7" font-weight="500">Resend</text>
+                  </g>
+                  <g class="art-layer art-layer--3">
+                    <ellipse cx="176" cy="62" rx="18" ry="6" stroke="#333333" stroke-opacity="0.35" stroke-width="1.2"/>
+                    <path d="M158 62v24c0 3.31 8.06 6 18 6s18-2.69 18-6V62" stroke="#333333" stroke-opacity="0.24" stroke-width="1.1"/>
+                    <ellipse cx="176" cy="86" rx="18" ry="6" stroke="#333333" stroke-opacity="0.18" stroke-width="1.1"/>
+                    <text x="176" y="64" text-anchor="middle" fill="#333333" font-family="ui-sans-serif, system-ui" font-size="7" font-weight="500">Neon</text>
+                  </g>
+                  <circle class="art-pulse-dot" cx="44" cy="70" r="4" fill="#ededed"/>
+                </svg>
+              </div>
+              <div class="bento-copy">
+                <h3>Self-host or hosted</h3>
+                <p>MIT on Cloudflare Workers + Resend, or <code>api.webmailagent.com</code> with an API key.</p>
+              </div>
+              <a class="bento-link" href="/docs/integrate.html">Integration guide →</a>
+            </article>
+
+            <article class="bento-card">
+              <div class="bento-illustration bento-illustration--keys" aria-hidden="true">
+                <svg class="bento-art" viewBox="0 0 220 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="32" y="34" width="156" height="72" rx="10" stroke="#333333" stroke-opacity="0.22" stroke-width="1.2"/>
+                  <text x="48" y="56" fill="#888888" font-family="ui-monospace, monospace" font-size="8">runId: ci-4821</text>
+                  <rect x="48" y="66" width="92" height="6" rx="3" fill="#333333" fill-opacity="0.1"/>
+                  <rect class="art-ttl-bar" x="48" y="66" width="92" height="6" rx="3" fill="#ededed" fill-opacity="0.75"/>
+                  <text x="180" y="71" text-anchor="end" fill="#888888" font-family="ui-monospace, monospace" font-size="7">15m</text>
+                  <text x="48" y="90" fill="#ededed" font-family="ui-monospace, monospace" font-size="9">ma_run_···8f2a</text>
+                </svg>
+              </div>
+              <div class="bento-copy">
+                <h3>Scoped run keys</h3>
+                <p>Agents mint short-lived keys per run — no permanent secrets in CI.</p>
+              </div>
+              <a class="bento-link" href="/docs/scoped-keys.html">Scoped keys →</a>
+            </article>
+          </div>
+
+          <div class="trust-strip">
+            <p class="trust-strip-label">Built for agent-native QA and workspace mail</p>
+            <ul class="trust-logos">
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                Cloudflare Workers
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                MCP · 49 tools
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h16v12H4z"/><path d="M4 6l8 7 8-7"/></svg>
+                Resend Inbound
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16v16H4z"/><path d="M22 6l-10 7L2 6"/></svg>
+                Gmail read (OAuth)
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="4"/></svg>
+                DeepSeek · Qwen · Ollama
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
 
       <section id="open-source" class="page-section oss-section">
         <div class="section-inner oss-inner site-container">
@@ -373,6 +622,111 @@
                 <a href="/dashboard.html">Open console →</a>
               </p>
             </article>
+            <article class="feature-card">
+              <div class="feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  <path d="M8 10h8M8 14h5" />
+                </svg>
+              </div>
+              <h3>Workspace Agent</h3>
+              <p>
+                Summarize threads, draft replies, suggest reminders, and execute
+                sends with <code>draft_only</code> or allowlisted auto-send.
+                <a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/WORKSPACE-AUTONOMY.md" rel="noopener noreferrer">Autonomy guide →</a>
+              </p>
+            </article>
+            <article class="feature-card">
+              <div class="feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16v16H4z" />
+                  <path d="m4 4 8 7 8-7" />
+                  <path d="M4 12h16" />
+                </svg>
+              </div>
+              <h3>Gmail read (OAuth)</h3>
+              <p>
+                Connect a mailbox read-only via Google OAuth. Workspace tools
+                load threads from Gmail or stored inboxes — same summarize and
+                draft flow.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="workspace" class="page-section workspace-section">
+        <div class="site-container">
+          <p class="section-label">Workspace Agent</p>
+          <h2 class="section-title">From verification to mail you can act on</h2>
+          <p class="section-desc">
+            After signup QA, agents keep working the thread: summarize context,
+            draft a reply, log actions, and complete reminders. Autonomous sends
+            stay off by default; admins set policy, idempotency keys prevent
+            double-send, and <code>mailagent_workspace_model_status</code> blocks
+            execution when no LLM is configured.
+          </p>
+
+          <div class="workspace-grid">
+            <article class="workspace-card">
+              <h3>Summarize &amp; draft</h3>
+              <p>
+                <code>mailagent_workspace_summarize</code> and
+                <code>mailagent_workspace_draft_reply</code> load mail from an
+                inbox id or connected Gmail account. DeepSeek and Qwen fall back
+                to each other when both keys are set.
+              </p>
+            </article>
+            <article class="workspace-card">
+              <h3>Reminders &amp; audit trail</h3>
+              <p>
+                Suggest, create, and complete reminders. Log every agent step
+                with <code>mailagent_workspace_list_actions</code> so open
+                reminders are not drafted twice.
+              </p>
+            </article>
+            <article class="workspace-card">
+              <h3>Policy-gated send</h3>
+              <p>
+                <code>mailagent_workspace_execute_reply</code> dry-runs first,
+                then sends at most once per idempotency key. Modes:
+                <code>draft_only</code>, <code>auto_send_safe</code>, or
+                <code>full_auto</code> with domain allowlists.
+              </p>
+            </article>
+            <article class="workspace-card">
+              <h3>Local LLM (dev)</h3>
+              <p>
+                <code>WORKSPACE_LLM_PROVIDER=local</code> with Ollama or LM Studio
+                on the same machine as <code>npm run dev</code> — or use
+                <code>npm run dev:docker:ollama</code> for a one-command stack.
+                <a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/WORKSPACE-LOCAL-LLM.md" rel="noopener noreferrer">Local LLM guide →</a>
+              </p>
+            </article>
+          </div>
+
+          <div class="code-panel workspace-code-panel">
+            <div class="code-tabs">
+              <span class="code-tab active">MCP</span>
+            </div>
+            <div class="code-body">
+              <pre><code><span class="t-cm">// Check LLM before workspace work</span>
+<span class="t-kw">await</span> <span class="t-fn">mailagent_workspace_model_status</span>();
+
+<span class="t-cm">// Draft from stored inbound message</span>
+<span class="t-kw">await</span> <span class="t-fn">mailagent_workspace_draft_reply</span>({
+  <span class="t-key">inboxId</span>: <span class="t-str">"inb_…"</span>,
+  <span class="t-key">messageId</span>: <span class="t-str">"msg_…"</span>,
+  <span class="t-key">instruction</span>: <span class="t-str">"Confirm QA review — no new commitments."</span>,
+});
+
+<span class="t-cm">// Send only when policy allows + idempotency key</span>
+<span class="t-kw">await</span> <span class="t-fn">mailagent_workspace_execute_reply</span>({
+  <span class="t-key">inboxId</span>: <span class="t-str">"inb_…"</span>,
+  <span class="t-key">messageId</span>: <span class="t-str">"msg_…"</span>,
+  <span class="t-key">idempotencyKey</span>: <span class="t-str">"run-4821-reply"</span>,
+});</code></pre>
+            </div>
           </div>
         </div>
       </section>
@@ -447,24 +801,44 @@
       <section id="mcp" class="page-section">
         <div class="site-container">
           <p class="section-label">MCP</p>
-          <h2 class="section-title">Agent tools for signup, login, reset, and invites</h2>
+          <h2 class="section-title">49 MCP tools — verify, workspace, Gmail</h2>
           <p class="section-desc">
-            Add <code>mailagent</code> to Cursor or Codex. The agent gets an
-            inbox, submits the address, waits, and follows a structured
-            <code>primaryAction</code> instead of reading inbox UI. When it needs
-            a bounded handoff, it can mint a temporary scoped run key and ask
-            the planner for the next tool.
+            Add <code>mailagent</code> to Cursor or Codex. Signup flows use
+            structured <code>primaryAction</code>; workspace tools summarize
+            inbox or Gmail threads, track reminders, and execute policy-gated
+            replies. Mint scoped run keys and call
+            <code>mailagent_plan_next</code> for recovery when a run stalls.
           </p>
 
           <div class="tools-list">
             <div class="tool-row">
+              <span class="tool-name">mailagent_workspace_model_status</span>
+              <span class="tool-desc">LLM readiness (DeepSeek, Qwen, local) — call before workspace execution</span>
+              <span class="tool-badge">Workspace</span>
+            </div>
+            <div class="tool-row">
+              <span class="tool-name">mailagent_workspace_draft_reply</span>
+              <span class="tool-desc">Draft from stored inbox message or Gmail thread</span>
+              <span class="tool-badge">Workspace</span>
+            </div>
+            <div class="tool-row">
+              <span class="tool-name">mailagent_workspace_execute_reply</span>
+              <span class="tool-desc">Policy-checked send with idempotency — default is deny</span>
+              <span class="tool-badge">Workspace</span>
+            </div>
+            <div class="tool-row">
+              <span class="tool-name">mailagent_gmail_connect</span>
+              <span class="tool-desc">OAuth URL to connect read-only Gmail for workspace tools</span>
+              <span class="tool-badge">Gmail</span>
+            </div>
+            <div class="tool-row">
               <span class="tool-name">mailagent_issue_access</span>
               <span class="tool-desc">Short-lived scoped key for one autonomous run</span>
-              <span class="tool-badge">New</span>
+              <span class="tool-badge">Runs</span>
             </div>
             <div class="tool-row">
               <span class="tool-name">mailagent_plan_next</span>
-              <span class="tool-desc">Return the next MCP tool, payload, and recovery steps</span>
+              <span class="tool-desc">Next MCP tool, payload, and recovery steps</span>
               <span class="tool-badge">Autopilot</span>
             </div>
             <div class="tool-row">
@@ -478,17 +852,19 @@
             </div>
             <div class="tool-row">
               <span class="tool-name">mailagent_simulate_message</span>
-              <span class="tool-desc">Test OTP, magic_link, invite, and attachment scenarios without SMTP</span>
+              <span class="tool-desc">OTP, magic_link, invite, attachments — no SMTP in CI</span>
             </div>
             <div class="tool-row">
               <span class="tool-name">mailagent_diagnose_inbox</span>
               <span class="tool-desc">Explain timeouts and return retry payloads</span>
             </div>
-            <div class="tool-row">
-              <span class="tool-name">mailagent_get_run_timeline</span>
-              <span class="tool-desc">Trace an agent run from inbox creation to extraction</span>
-            </div>
           </div>
+          <p class="qa-docs-link">
+            Full tool list:
+            <a href="https://api.webmailagent.com/v1/agent" rel="noopener noreferrer">GET /v1/agent</a>
+            ·
+            <a href="/docs/agents.html">Agent docs</a>
+          </p>
         </div>
       </section>
 
@@ -582,6 +958,30 @@
                 <td class="compare-muted">Their domain</td>
               </tr>
               <tr>
+                <td>Workspace summarize / draft</td>
+                <td class="compare-yes">MCP + REST</td>
+                <td class="compare-muted">—</td>
+                <td class="compare-muted">—</td>
+              </tr>
+              <tr>
+                <td>Gmail read (OAuth)</td>
+                <td class="compare-yes">Read-only</td>
+                <td class="compare-muted">Varies</td>
+                <td class="compare-muted">—</td>
+              </tr>
+              <tr>
+                <td>Policy-gated auto-reply</td>
+                <td class="compare-yes">Opt-in</td>
+                <td class="compare-muted">—</td>
+                <td class="compare-muted">—</td>
+              </tr>
+              <tr>
+                <td>Local LLM (Ollama)</td>
+                <td class="compare-yes">Self-host dev</td>
+                <td class="compare-muted">—</td>
+                <td class="compare-muted">—</td>
+              </tr>
+              <tr>
                 <td>Long-lived aliases</td>
                 <td class="compare-muted">TTL only</td>
                 <td class="compare-yes">Yes</td>
@@ -626,11 +1026,11 @@
         <div class="cta-glow" aria-hidden="true"></div>
         <div class="site-container">
         <div class="cta-inner">
-          <h2>Give your agent or test suite an inbox</h2>
+          <h2>Give your agent an inbox — and a workspace</h2>
           <p>
-            <strong>Open source:</strong> clone and deploy in minutes.
-            <strong>Hosted API:</strong> optional — email us for a key on the shared
-            endpoint.
+            <strong>Signup QA:</strong> disposable inboxes, OTP extraction, CI simulate.
+            <strong>Workspace:</strong> summarize, draft, reminders, policy-gated send.
+            <strong>Open source</strong> — self-host or use the hosted API.
           </p>
           <div class="cta-buttons">
             <a

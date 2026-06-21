@@ -81,6 +81,56 @@ import {
   type WorkspaceReminderInput,
   type WorkspaceSummarizeInput,
 } from "../services/workspace-agent";
+import { resolveWorkspaceMailContext } from "../services/workspace-mail-context";
+import {
+  buildGmailAuthorizeUrl,
+  gmailOAuthJwtSecret,
+  isGmailOAuthConfigured,
+  listUserMailAccounts,
+  GMAIL_READONLY_SCOPE,
+} from "../services/user-mail-accounts";
+import { signGmailOAuthPending } from "../lib/gmail-oauth-jwt";
+import { listGmailThreads, readGmailThread } from "../services/gmail-read";
+import { buildGmailDailyDigest, triageGmailInbox } from "../services/gmail-triage";
+import {
+  getWorkspaceGmailSettings,
+  setWorkspaceGmailSettings,
+  type WorkspaceGmailSettingsInput,
+} from "../services/workspace-gmail-settings";
+import {
+  buildCalendarAuthorizeUrl,
+  CALENDAR_READONLY_SCOPE,
+  calendarOAuthJwtSecret,
+  isCalendarOAuthConfigured,
+  listUserCalendarAccounts,
+} from "../services/user-calendar-accounts";
+import { signCalendarOAuthPending } from "../lib/gmail-oauth-jwt";
+import {
+  buildCalendarDailyAgenda,
+  checkCalendarConflicts,
+  getCalendarAvailability,
+  listCalendarEventsForAccount,
+  suggestCalendarMeetingFromThread,
+} from "../services/calendar-workspace";
+import {
+  executeWorkspaceCalendarEvent,
+  executeWorkspaceGmailDraft,
+} from "../services/workspace-external-write";
+import { getWorkspaceRulesStatus } from "../services/workspace-automation-rules";
+import {
+  createWorkspaceMonitor,
+  deleteWorkspaceMonitor,
+  getWorkspaceMonitorRow,
+  listWorkspaceMonitorRuns,
+  listWorkspaceMonitors,
+  type WorkspaceMonitorInput,
+} from "../services/workspace-monitors";
+import {
+  evaluateWorkspaceRulesForGmail,
+  runWorkspaceMonitorById,
+} from "../services/workspace-monitor-runner";
+import type { WorkspaceRuleKind } from "../services/workspace-rule-engine";
+import { workspaceOwnerKey } from "../services/workspace-reminders";
 import {
   completeWorkspaceReminder,
   createWorkspaceReminder,
@@ -156,6 +206,32 @@ function bindWaitProgress(ctx?: McpToolContext) {
       },
     };
     ctx.onProgress!(params);
+  };
+}
+
+async function workspaceThreadArgs(
+  env: Env,
+  auth: McpAuth,
+  args: Record<string, unknown>
+) {
+  const resolved = await resolveWorkspaceMailContext(env, {
+    inboxId: args.inboxId as string | undefined,
+    threadId: args.threadId as string | undefined,
+    messageId: args.messageId as string | undefined,
+    messages: args.messages as WorkspaceSummarizeInput["messages"],
+    gmailAccountId: args.gmailAccountId as string | undefined,
+    gmailThreadId: args.gmailThreadId as string | undefined,
+    gmailQuery: args.gmailQuery as string | undefined,
+    apiKeyHint: auth.apiKeyHint,
+    teamId: auth.teamId,
+  });
+  if (!resolved.ok) return { error: resolved.error };
+  return {
+    ...(args as WorkspaceSummarizeInput),
+    threadId: (args.threadId as string | undefined) ?? resolved.context.threadId,
+    messages: resolved.context.messages,
+    mailSource: resolved.context.source,
+    gmailAccountId: resolved.context.gmailAccountId,
   };
 }
 
@@ -283,15 +359,21 @@ export async function executeMcpTool(
     }
 
     case "mailagent_workspace_summarize": {
-      return textResult(await summarizeWorkspaceThread(env, args as WorkspaceSummarizeInput));
+      const input = await workspaceThreadArgs(env, auth, args);
+      if ("error" in input) return textResult({ error: input.error }, true);
+      return textResult(await summarizeWorkspaceThread(env, input));
     }
 
     case "mailagent_workspace_draft_reply": {
-      return textResult(await draftWorkspaceReply(env, args as WorkspaceDraftReplyInput));
+      const input = await workspaceThreadArgs(env, auth, args);
+      if ("error" in input) return textResult({ error: input.error }, true);
+      return textResult(await draftWorkspaceReply(env, input as WorkspaceDraftReplyInput));
     }
 
     case "mailagent_workspace_suggest_reminders": {
-      return textResult(await suggestWorkspaceReminders(env, args as WorkspaceReminderInput));
+      const input = await workspaceThreadArgs(env, auth, args);
+      if ("error" in input) return textResult({ error: input.error }, true);
+      return textResult(await suggestWorkspaceReminders(env, input as WorkspaceReminderInput));
     }
 
     case "mailagent_workspace_create_reminder": {
@@ -401,6 +483,399 @@ export async function executeMcpTool(
         args as WorkspaceExecuteReplyInput
       );
       return textResult(result.ok ? result : { error: result.error }, !result.ok);
+    }
+
+    case "mailagent_gmail_status": {
+      const configured = isGmailOAuthConfigured(env);
+      return textResult({
+        configured,
+        provider: "gmail",
+        readAllowed: configured,
+        writeAllowed: false,
+        scope: GMAIL_READONLY_SCOPE,
+      });
+    }
+
+    case "mailagent_gmail_connect": {
+      if (!isGmailOAuthConfigured(env)) {
+        return textResult({ error: "gmail_oauth_not_configured" }, true);
+      }
+      const apiBase = ctx?.apiBaseUrl?.replace(/\/$/, "") ?? "https://api.webmailagent.com";
+      const redirectUri = `${apiBase}/v1/workspace/gmail/callback`;
+      const state = await signGmailOAuthPending(gmailOAuthJwtSecret(env), {
+        ownerKey: workspaceOwnerKey({
+          teamId: auth.teamId,
+          apiKeyHint: auth.apiKeyHint,
+        }),
+        teamId: auth.teamId,
+        apiKeyHint: auth.apiKeyHint,
+      });
+      const url = buildGmailAuthorizeUrl(env, redirectUri, state);
+      if (!url) return textResult({ error: "gmail_oauth_not_configured" }, true);
+      return textResult({
+        url,
+        redirectUri,
+        scope: GMAIL_READONLY_SCOPE,
+        hint: "Open url in a browser to connect Gmail read-only. Then use mailagent_gmail_list_accounts.",
+      });
+    }
+
+    case "mailagent_gmail_list_accounts": {
+      const accounts = await listUserMailAccounts(env, {
+        teamId: auth.teamId,
+        apiKeyHint: auth.apiKeyHint,
+      });
+      return textResult({ accounts, count: accounts.length });
+    }
+
+    case "mailagent_gmail_list_threads": {
+      const accountId = args.accountId as string | undefined;
+      if (!accountId?.trim()) return textResult({ error: "account_id_required" }, true);
+      const result = await listGmailThreads(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        {
+          accountId,
+          q: args.q as string | undefined,
+          maxResults: Number(args.maxResults ?? 20),
+          pageToken: args.pageToken as string | undefined,
+        }
+      );
+      return textResult(result, "error" in result);
+    }
+
+    case "mailagent_gmail_read_thread": {
+      const accountId = args.accountId as string | undefined;
+      const threadId = args.threadId as string | undefined;
+      if (!accountId?.trim() || !threadId?.trim()) {
+        return textResult({ error: "account_id_and_thread_id_required" }, true);
+      }
+      const result = await readGmailThread(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        { accountId, threadId }
+      );
+      return textResult(result, "error" in result);
+    }
+
+    case "mailagent_gmail_triage": {
+      const accountId = args.accountId as string | undefined;
+      if (!accountId?.trim()) return textResult({ error: "account_id_required" }, true);
+      const result = await triageGmailInbox(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        {
+          accountId,
+          unreadOnly: args.unreadOnly !== false,
+        }
+      );
+      return textResult(result, "error" in result);
+    }
+
+    case "mailagent_gmail_digest": {
+      const accountId = args.accountId as string | undefined;
+      if (!accountId?.trim()) return textResult({ error: "account_id_required" }, true);
+      const result = await buildGmailDailyDigest(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        {
+          accountId,
+          sinceHours: Number(args.sinceHours ?? 24),
+        }
+      );
+      return textResult(result, "error" in result);
+    }
+
+    case "mailagent_gmail_get_settings": {
+      const settings = await getWorkspaceGmailSettings(env, {
+        teamId: auth.teamId,
+        apiKeyHint: auth.apiKeyHint,
+      });
+      return textResult({ settings });
+    }
+
+    case "mailagent_gmail_set_settings": {
+      const adminErr = scopeAdminError(auth.scope);
+      if (adminErr) return textResult(adminErr, true);
+      const result = await setWorkspaceGmailSettings(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        args as WorkspaceGmailSettingsInput
+      );
+      return textResult(result.ok ? { settings: result.settings } : { error: result.error }, !result.ok);
+    }
+
+    case "mailagent_calendar_status": {
+      const configured = isCalendarOAuthConfigured(env);
+      return textResult({
+        configured,
+        provider: "google_calendar",
+        readAllowed: configured,
+        writeAllowed: false,
+        scope: CALENDAR_READONLY_SCOPE,
+      });
+    }
+
+    case "mailagent_calendar_connect": {
+      if (!isCalendarOAuthConfigured(env)) {
+        return textResult({ error: "calendar_oauth_not_configured" }, true);
+      }
+      const apiBase = ctx?.apiBaseUrl?.replace(/\/$/, "") ?? "https://api.webmailagent.com";
+      const redirectUri = `${apiBase}/v1/workspace/calendar/callback`;
+      const state = await signCalendarOAuthPending(calendarOAuthJwtSecret(env), {
+        ownerKey: workspaceOwnerKey({
+          teamId: auth.teamId,
+          apiKeyHint: auth.apiKeyHint,
+        }),
+        teamId: auth.teamId,
+        apiKeyHint: auth.apiKeyHint,
+      });
+      const url = buildCalendarAuthorizeUrl(env, redirectUri, state);
+      if (!url) return textResult({ error: "calendar_oauth_not_configured" }, true);
+      return textResult({
+        url,
+        redirectUri,
+        scope: CALENDAR_READONLY_SCOPE,
+        hint: "Open url in browser, then mailagent_calendar_list_accounts.",
+      });
+    }
+
+    case "mailagent_calendar_list_accounts": {
+      const accounts = await listUserCalendarAccounts(env, {
+        teamId: auth.teamId,
+        apiKeyHint: auth.apiKeyHint,
+      });
+      return textResult({ accounts, count: accounts.length });
+    }
+
+    case "mailagent_calendar_list_events": {
+      const accountId = args.accountId as string | undefined;
+      const timeMin = args.timeMin as string | undefined;
+      const timeMax = args.timeMax as string | undefined;
+      if (!accountId?.trim() || !timeMin?.trim() || !timeMax?.trim()) {
+        return textResult({ error: "account_id_time_min_and_time_max_required" }, true);
+      }
+      const result = await listCalendarEventsForAccount(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        {
+          accountId,
+          timeMin,
+          timeMax,
+          maxResults: Number(args.maxResults ?? 50),
+          pageToken: args.pageToken as string | undefined,
+        }
+      );
+      return textResult(result, "error" in result);
+    }
+
+    case "mailagent_calendar_availability": {
+      const accountId = args.accountId as string | undefined;
+      if (!accountId?.trim()) return textResult({ error: "account_id_required" }, true);
+      const result = await getCalendarAvailability(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        {
+          accountId,
+          timeZone: (args.timeZone ?? args.timezone) as string | undefined,
+          days: Number(args.days ?? 7),
+          durationMinutes: Number(args.durationMinutes ?? 30),
+          workingHoursStart: Number(args.workingHoursStart ?? 9),
+          workingHoursEnd: Number(args.workingHoursEnd ?? 18),
+          maxSlots: Number(args.maxSlots ?? 8),
+        }
+      );
+      return textResult(result, "error" in result);
+    }
+
+    case "mailagent_calendar_check_conflicts": {
+      const accountId = args.accountId as string | undefined;
+      const proposed = args.proposed as Array<{ start: string; end: string }> | undefined;
+      if (!accountId?.trim() || !Array.isArray(proposed) || !proposed.length) {
+        return textResult({ error: "account_id_and_proposed_slots_required" }, true);
+      }
+      const result = await checkCalendarConflicts(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        {
+          accountId,
+          proposed,
+          bufferMinutes: Number(args.bufferMinutes ?? 0),
+        }
+      );
+      return textResult(result, "error" in result);
+    }
+
+    case "mailagent_calendar_suggest_meeting": {
+      const accountId = (args.calendarAccountId ?? args.accountId) as string | undefined;
+      if (!accountId?.trim()) {
+        return textResult({ error: "calendar_account_id_required" }, true);
+      }
+      const resolved = await resolveWorkspaceMailContext(env, {
+        inboxId: args.inboxId as string | undefined,
+        threadId: args.threadId as string | undefined,
+        messageId: args.messageId as string | undefined,
+        messages: args.messages as WorkspaceSummarizeInput["messages"],
+        gmailAccountId: args.gmailAccountId as string | undefined,
+        gmailThreadId: args.gmailThreadId as string | undefined,
+        gmailQuery: args.gmailQuery as string | undefined,
+        apiKeyHint: auth.apiKeyHint,
+        teamId: auth.teamId,
+      });
+      const messages =
+        resolved.ok && resolved.context.messages.length
+          ? resolved.context.messages
+          : (args.messages as WorkspaceSummarizeInput["messages"]);
+      const result = await suggestCalendarMeetingFromThread(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        {
+          accountId,
+          messages,
+          timeZone: (args.timeZone ?? args.timezone) as string | undefined,
+          durationMinutes: Number(args.durationMinutes ?? undefined),
+          days: Number(args.days ?? 7),
+          maxSuggestions: Number(args.maxSuggestions ?? 5),
+        }
+      );
+      return textResult(
+        {
+          ...result,
+          mailSource: resolved.ok ? resolved.context.source : messages?.length ? "payload" : null,
+        },
+        "error" in result
+      );
+    }
+
+    case "mailagent_calendar_agenda": {
+      const accountId = args.accountId as string | undefined;
+      if (!accountId?.trim()) return textResult({ error: "account_id_required" }, true);
+      const result = await buildCalendarDailyAgenda(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        {
+          accountId,
+          date: args.date as string | undefined,
+          timeZone: (args.timeZone ?? args.timezone) as string | undefined,
+        }
+      );
+      return textResult(result, "error" in result);
+    }
+
+    case "mailagent_workspace_execute_gmail_draft": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr) return textResult(writeErr, true);
+      const result = await executeWorkspaceGmailDraft(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        args as Parameters<typeof executeWorkspaceGmailDraft>[2]
+      );
+      return textResult(result.ok ? result : { error: result.error }, !result.ok);
+    }
+
+    case "mailagent_workspace_execute_calendar_event": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr) return textResult(writeErr, true);
+      const result = await executeWorkspaceCalendarEvent(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        args as Parameters<typeof executeWorkspaceCalendarEvent>[2]
+      );
+      return textResult(result.ok ? result : { error: result.error }, !result.ok);
+    }
+
+    case "mailagent_workspace_rules_status": {
+      const status = await getWorkspaceRulesStatus(env, {
+        teamId: auth.teamId,
+        apiKeyHint: auth.apiKeyHint,
+      });
+      return textResult(status);
+    }
+
+    case "mailagent_workspace_rules_evaluate": {
+      const gmailAccountId = args.gmailAccountId as string | undefined;
+      if (!gmailAccountId?.trim()) {
+        return textResult({ error: "gmail_account_id_required" }, true);
+      }
+      const result = await evaluateWorkspaceRulesForGmail(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        {
+          gmailAccountId,
+          ruleKinds: args.ruleKinds as WorkspaceRuleKind[] | undefined,
+          unreadOnly: args.unreadOnly as boolean | undefined,
+        }
+      );
+      return textResult(result, "error" in result);
+    }
+
+    case "mailagent_workspace_list_monitors": {
+      const monitors = await listWorkspaceMonitors(env, {
+        teamId: auth.teamId,
+        apiKeyHint: auth.apiKeyHint,
+      });
+      return textResult({ monitors, count: monitors.length });
+    }
+
+    case "mailagent_workspace_create_monitor": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr) return textResult(writeErr, true);
+      const result = await createWorkspaceMonitor(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        args as WorkspaceMonitorInput
+      );
+      return textResult(
+        result.ok ? result.monitor : { error: result.error },
+        !result.ok
+      );
+    }
+
+    case "mailagent_workspace_delete_monitor": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr) return textResult(writeErr, true);
+      const monitorId = args.monitorId as string | undefined;
+      if (!monitorId?.trim()) return textResult({ error: "monitor_id_required" }, true);
+      const deleted = await deleteWorkspaceMonitor(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        monitorId
+      );
+      if (!deleted) return textResult({ error: "monitor_not_found" }, true);
+      return textResult({ deleted: true });
+    }
+
+    case "mailagent_workspace_run_monitor": {
+      const writeErr = scopeWriteError(auth.scope);
+      if (writeErr) return textResult(writeErr, true);
+      const monitorId = args.monitorId as string | undefined;
+      if (!monitorId?.trim()) return textResult({ error: "monitor_id_required" }, true);
+      const row = await getWorkspaceMonitorRow(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        monitorId
+      );
+      if (!row) return textResult({ error: "monitor_not_found" }, true);
+      const result = await runWorkspaceMonitorById(env, row);
+      return textResult(result);
+    }
+
+    case "mailagent_workspace_list_monitor_runs": {
+      const monitorId = args.monitorId as string | undefined;
+      if (!monitorId?.trim()) return textResult({ error: "monitor_id_required" }, true);
+      const row = await getWorkspaceMonitorRow(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        monitorId
+      );
+      if (!row) return textResult({ error: "monitor_not_found" }, true);
+      const runs = await listWorkspaceMonitorRuns(
+        env,
+        { teamId: auth.teamId, apiKeyHint: auth.apiKeyHint },
+        monitorId,
+        Number(args.limit ?? 20)
+      );
+      return textResult({ monitorId, runs, count: runs.length });
     }
 
     case "mailagent_verify_signup": {

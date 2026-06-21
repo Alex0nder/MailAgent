@@ -37,9 +37,12 @@
     </div>
 
     <div id="site-footer"></div>
+    <script src="/console-ui.js"></script>
     <script src="/site-shell.js" defer></script>
     <script>
+      const UI = () => window.MailAgentUI;
       const KEY = "mailagent_dashboard_key";
+      const MSG_PAGE = 15;
       const params = new URLSearchParams(location.search);
       const inboxId = params.get("inbox");
       const baseEl = document.getElementById("base");
@@ -49,6 +52,8 @@
       const leadEl = document.getElementById("lead");
 
       let lastDetail = null;
+      let msgVisible = MSG_PAGE;
+      let selectedMsgId = null;
 
       if (localStorage.getItem(KEY)) keyEl.value = localStorage.getItem(KEY);
       if (!inboxId) {
@@ -56,11 +61,7 @@
       }
 
       function esc(s) {
-        return String(s ?? "")
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;");
+        return UI()?.esc(s) ?? String(s ?? "");
       }
 
       function apiHeaders() {
@@ -78,6 +79,92 @@
         });
         const json = await r.json().catch(() => ({}));
         return { ok: r.ok, status: r.status, json };
+      }
+
+      function renderMessageDetail(m, d) {
+        if (!m) {
+          return `<div class="inbox-detail"><p class="inbox-detail__empty">Select a message to preview OTP, links, and reply.</p></div>`;
+        }
+        const replyBtn = d.outbound?.enabled
+          ? `<button type="button" class="app-btn" data-reply="${esc(m.id)}" data-from="${esc(m.from)}" data-subject="${esc(m.subject)}">Reply</button>`
+          : "";
+        return `<div class="inbox-detail">
+          <dl>
+            <dt>From</dt><dd>${esc(m.from)}</dd>
+            <dt>Subject</dt><dd>${esc(m.subject)}</dd>
+            <dt>Received</dt><dd>${esc(new Date(m.receivedAt).toLocaleString())}</dd>
+            <dt>OTP</dt><dd>${m.otp ? `<code>${esc(m.otp)}</code>` : "—"}</dd>
+            ${
+              m.primaryLink
+                ? `<dt>Primary link</dt><dd><a href="${esc(m.primaryLink)}" target="_blank" rel="noopener">${esc(m.primaryLink)}</a></dd>`
+                : ""
+            }
+          </dl>
+          <div class="workspace-actions-row">${replyBtn}
+            ${
+              m.hasRaw
+                ? `<a class="app-btn app-btn--ghost" href="${esc(m.rawUrl)}" target="_blank" rel="noopener">Raw MIME</a>`
+                : ""
+            }
+          </div>
+        </div>`;
+      }
+
+      function renderMessageList(d) {
+        const messages = d.messages || [];
+        const slice = messages.slice(0, msgVisible);
+        const items = slice
+          .map(
+            (m) => `<li><button type="button" class="inbox-msg-item${
+              selectedMsgId === m.id ? " is-active" : ""
+            }" data-msg-id="${esc(m.id)}">
+              <div class="inbox-msg-item__from">${esc(m.from)}</div>
+              <div class="inbox-msg-item__subject">${esc(m.subject)}</div>
+              <div class="inbox-msg-item__meta">${esc(new Date(m.receivedAt).toLocaleString())}${
+              m.otp ? ` · OTP ${esc(m.otp)}` : ""
+            }</div>
+            </button></li>`
+          )
+          .join("");
+        const loadMore =
+          msgVisible < messages.length
+            ? `<button type="button" class="inbox-load-more" id="msg-load-more">Load more (${messages.length - msgVisible} remaining)</button>`
+            : "";
+        const selected = messages.find((m) => m.id === selectedMsgId) || slice[0] || null;
+        if (!selectedMsgId && selected) selectedMsgId = selected.id;
+        const active = messages.find((m) => m.id === selectedMsgId) || selected;
+
+        return `<div class="inbox-split">
+          <div class="inbox-split__list">
+            <div class="inbox-split__head"><span>Messages</span><span class="console-meta">${messages.length} total</span></div>
+            <ul class="inbox-msg-list" role="listbox" aria-label="Inbox messages">${items || '<li class="inbox-detail__empty" style="padding:14px">No messages yet.</li>'}</ul>
+            ${loadMore}
+          </div>
+          <div class="inbox-split__detail" id="msg-detail-pane">${renderMessageDetail(active, d)}</div>
+        </div>`;
+      }
+
+      function bindMessageList(d) {
+        out.querySelectorAll(".inbox-msg-item").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            selectedMsgId = btn.getAttribute("data-msg-id");
+            out.querySelectorAll(".inbox-msg-item").forEach((el) => el.classList.remove("is-active"));
+            btn.classList.add("is-active");
+            const m = (d.messages || []).find((row) => row.id === selectedMsgId);
+            const pane = document.getElementById("msg-detail-pane");
+            if (pane) pane.innerHTML = renderMessageDetail(m, d);
+            bindCompose(d);
+          });
+        });
+        document.getElementById("msg-load-more")?.addEventListener("click", () => {
+          msgVisible += MSG_PAGE;
+          const pane = document.getElementById("inbox-split-mount");
+          if (pane) {
+            pane.innerHTML = renderMessageList(d);
+            bindMessageList(d);
+            bindCompose(d);
+          }
+        });
       }
 
       function renderCompose(d) {
@@ -110,17 +197,24 @@
           const subject = document.getElementById("send-subject").value.trim();
           const text = document.getElementById("send-text").value;
           if (!to || !subject) {
-            alert("To and subject required");
+            await UI().alert({ title: "Missing fields", message: "To and subject are required." });
             return;
           }
+          const ok = await UI().confirm({
+            title: "Send email",
+            message: `Send to ${to} with subject "${subject}"?`,
+            confirmLabel: "Send",
+          });
+          if (!ok) return;
           const r = await api(`/v1/inboxes/${encodeURIComponent(inboxId)}/send`, {
             method: "POST",
             body: JSON.stringify({ to, subject, text }),
           });
           if (r.ok) {
+            UI().toast("Message sent", "ok");
             load();
           } else {
-            alert(r.json.error || r.json.message || "Send failed");
+            await UI().alert({ title: "Send failed", message: r.json.error || r.json.message || "Send failed" });
           }
         });
 
@@ -128,15 +222,23 @@
           btn.addEventListener("click", async () => {
             const messageId = btn.getAttribute("data-reply");
             const from = btn.getAttribute("data-from") || "";
-            const subject = btn.getAttribute("data-subject") || "";
-            const text = prompt(`Reply to ${from}:`, "");
-            if (text == null) return;
+            const text = await UI().prompt({
+              title: "Reply",
+              label: `Reply to ${from}`,
+              multiline: true,
+              confirmLabel: "Send reply",
+            });
+            if (text == null || !text.trim()) return;
             const r = await api(
               `/v1/inboxes/${encodeURIComponent(inboxId)}/messages/${encodeURIComponent(messageId)}/reply`,
               { method: "POST", body: JSON.stringify({ text }) }
             );
-            if (r.ok) load();
-            else alert(r.json.error || r.json.message || "Reply failed");
+            if (r.ok) {
+              UI().toast("Reply sent", "ok");
+              load();
+            } else {
+              await UI().alert({ title: "Reply failed", message: r.json.error || r.json.message || "Reply failed" });
+            }
           });
         });
       }
@@ -223,7 +325,7 @@
           body: JSON.stringify(body),
         });
         if (r.ok) load();
-        else alert(r.json.error || r.status || "Simulate failed");
+        else await UI().alert({ title: "Simulate failed", message: r.json.error || String(r.status) || "Simulate failed" });
       }
 
       function bindSimulate(scenarios) {
@@ -272,8 +374,11 @@
 
         html += `<div class="console-key-form" id="search-box">
           <h2>Search messages</h2>
-          <label for="search-q">Query</label>
-          <input id="search-q" type="text" placeholder="verification code" />
+          <div class="search-suggest">
+            <label for="search-q">Query</label>
+            <input id="search-q" type="text" placeholder="verification code" autocomplete="off" />
+            <ul id="search-suggest" class="search-suggest__list" hidden></ul>
+          </div>
           <label for="search-mode">Mode</label>
           <select id="search-mode">
             <option value="auto">auto</option>
@@ -292,25 +397,7 @@
           html += `</ul>`;
         }
 
-        html += `<h2>Messages (${d.messageCount})</h2>`;
-        if (!d.messages?.length) {
-          html += `<p class="console-empty">No messages yet.</p>`;
-        } else {
-          html += `<table class="console-table"><thead><tr><th>From</th><th>Subject</th><th>OTP</th><th>Received</th><th></th></tr></thead><tbody>`;
-          for (const m of d.messages) {
-            const replyBtn = d.outbound?.enabled
-              ? `<button type="button" class="console-reply-btn" data-reply="${esc(m.id)}" data-from="${esc(m.from)}" data-subject="${esc(m.subject)}">Reply</button>`
-              : "";
-            html += `<tr>
-              <td>${esc(m.from)}</td>
-              <td>${esc(m.subject)}</td>
-              <td>${m.otp ? `<code>${esc(m.otp)}</code>` : "—"}</td>
-              <td>${esc(new Date(m.receivedAt).toLocaleString())}</td>
-              <td>${replyBtn}</td>
-            </tr>`;
-          }
-          html += `</tbody></table>`;
-        }
+        html += `<div id="inbox-split-mount">${renderMessageList(d)}</div>`;
 
         html += `<h2>Threads (${d.threads?.length ?? 0})</h2>`;
         if (!d.threads?.length) {
@@ -345,6 +432,7 @@
         </p>`;
         out.innerHTML = html;
         bindCompose(d);
+        bindMessageList(d);
         bindSimulate(scenarios);
         bindSearch();
         document.getElementById("reload-callbacks")?.addEventListener("click", reloadCallbacks);
@@ -356,38 +444,95 @@
         if (d.notifyEmail) reloadNotify();
       }
 
+      const SEARCH_HISTORY_KEY = "mailagent_search_history";
+
+      function loadSearchHistory() {
+        try {
+          return JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY) || "[]");
+        } catch {
+          return [];
+        }
+      }
+
+      function saveSearchQuery(q) {
+        const clean = q.trim();
+        if (!clean) return;
+        const hist = loadSearchHistory().filter((x) => x !== clean);
+        hist.unshift(clean);
+        localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(hist.slice(0, 8)));
+      }
+
+      async function runSearch() {
+        const q = document.getElementById("search-q")?.value.trim();
+        const mode = document.getElementById("search-mode")?.value || "auto";
+        const box = document.getElementById("search-results");
+        const suggest = document.getElementById("search-suggest");
+        if (suggest) suggest.hidden = true;
+        if (!q) {
+          if (box) box.textContent = "Enter a query.";
+          return;
+        }
+        saveSearchQuery(q);
+        if (box) box.textContent = "Searching…";
+        const r = await api(
+          `/v1/inboxes/${encodeURIComponent(inboxId)}/search?q=${encodeURIComponent(q)}&mode=${encodeURIComponent(mode)}&limit=20`
+        );
+        if (!r.ok) {
+          if (box) box.innerHTML = `<span class="app-err">${esc(r.json.error || r.status)}</span>`;
+          return;
+        }
+        const hits = r.json.results || r.json.matches || [];
+        if (!hits.length) {
+          if (box) box.textContent = "No matches.";
+          return;
+        }
+        const rows = hits
+          .map(
+            (h) =>
+              `<tr><td>${esc(h.from || h.from_addr)}</td><td>${esc(h.subject)}</td><td>${esc(h.snippet || h.preview || "—")}</td></tr>`
+          )
+          .join("");
+        if (box) {
+          box.innerHTML = `<table class="console-table"><thead><tr><th>From</th><th>Subject</th><th>Snippet</th></tr></thead><tbody>${rows}</tbody></table>`;
+        }
+      }
+
       function bindSearch() {
-        document.getElementById("search-btn")?.addEventListener("click", async () => {
-          const q = document.getElementById("search-q")?.value.trim();
-          const mode = document.getElementById("search-mode")?.value || "auto";
-          const box = document.getElementById("search-results");
-          if (!q) {
-            if (box) box.textContent = "Enter a query.";
+        const input = document.getElementById("search-q");
+        const suggest = document.getElementById("search-suggest");
+        const debouncedSuggest = UI().debounce(() => {
+          if (!input || !suggest) return;
+          const q = input.value.trim().toLowerCase();
+          const hist = loadSearchHistory().filter((item) => !q || item.toLowerCase().includes(q));
+          if (!hist.length) {
+            suggest.hidden = true;
             return;
           }
-          if (box) box.textContent = "Searching…";
-          const r = await api(
-            `/v1/inboxes/${encodeURIComponent(inboxId)}/search?q=${encodeURIComponent(q)}&mode=${encodeURIComponent(mode)}&limit=20`
-          );
-          if (!r.ok) {
-            if (box) box.innerHTML = `<span class="app-err">${esc(r.json.error || r.status)}</span>`;
-            return;
-          }
-          const hits = r.json.results || r.json.matches || [];
-          if (!hits.length) {
-            if (box) box.textContent = "No matches.";
-            return;
-          }
-          let rows = hits
+          suggest.innerHTML = hist
+            .slice(0, 6)
             .map(
-              (h) =>
-                `<tr><td>${esc(h.from || h.from_addr)}</td><td>${esc(h.subject)}</td><td>${esc(h.snippet || h.preview || "—")}</td></tr>`
+              (item) =>
+                `<li><button type="button" data-suggest="${esc(item)}">${esc(item)}</button></li>`
             )
             .join("");
-          if (box) {
-            box.innerHTML = `<table class="console-table"><thead><tr><th>From</th><th>Subject</th><th>Snippet</th></tr></thead><tbody>${rows}</tbody></table>`;
-          }
+          suggest.hidden = false;
+          suggest.querySelectorAll("[data-suggest]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+              input.value = btn.getAttribute("data-suggest") || "";
+              suggest.hidden = true;
+              runSearch();
+            });
+          });
+        }, 280);
+
+        input?.addEventListener("input", debouncedSuggest);
+        input?.addEventListener("focus", debouncedSuggest);
+        input?.addEventListener("blur", () => {
+          setTimeout(() => {
+            if (suggest) suggest.hidden = true;
+          }, 160);
         });
+        document.getElementById("search-btn")?.addEventListener("click", runSearch);
       }
 
       async function load() {
@@ -403,6 +548,8 @@
           return;
         }
         lastDetail = r.json;
+        msgVisible = MSG_PAGE;
+        selectedMsgId = null;
         await renderDetail(lastDetail);
       }
 

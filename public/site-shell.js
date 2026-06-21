@@ -1,10 +1,45 @@
 /**
- * Shared nav, docs sidebar, and footer — Resend-like layout for static pages.
+ * Shared nav (thirdweb-style dropdowns), docs sidebar, and footer.
  */
 (function () {
   const GITHUB = "https://github.com/Alex0nder/MailAgent";
   const PORTFOLIO = "https://alexyoung33rd.com/";
-  const LOGO_SVG = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><text x="12" y="12.5" text-anchor="middle" dominant-baseline="middle" fill="#0a0a0a" font-family="Georgia, 'Times New Roman', Times, serif" font-size="14" font-weight="500">@</text></svg>`;
+  const LOGO_SVG = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><text x="12" y="12.5" text-anchor="middle" dominant-baseline="middle" fill="#ecfef5" font-family="Georgia, 'Times New Roman', Times, serif" font-size="14" font-weight="500">@</text></svg>`;
+
+  const NAV_DROPDOWNS = [
+    {
+      id: "product",
+      label: "Product",
+      items: [
+        { href: "/#features", label: "Features", desc: "OTP, magic links, safe CTAs" },
+        { href: "/#workspace", label: "Workspace Agent", desc: "Summarize, draft, policy-gated send" },
+        { href: "/#qa", label: "QA / Playwright", desc: "Isolated inboxes per CI worker" },
+        { href: "/#mcp", label: "MCP tools", desc: "49 agent tools for QA and mail" },
+        { href: "/dashboard.html", label: "Console", desc: "Inboxes, keys, audit log" },
+        { href: "/workspace.html", label: "Workspace", desc: "Gmail threads, drafts, reminders" },
+      ],
+    },
+    {
+      id: "developers",
+      label: "Developers",
+      items: [
+        { href: "/docs/", label: "API reference", desc: "REST endpoints and schemas" },
+        { href: "/docs/agents.html", label: "AI agents", desc: "Cursor, Codex, remote MCP" },
+        { href: "/docs/integrate.html", label: "Self-host", desc: "Deploy on Cloudflare Workers" },
+        { href: "https://api.webmailagent.com/v1/openapi.json", label: "OpenAPI", desc: "Machine-readable spec", external: true },
+      ],
+    },
+    {
+      id: "resources",
+      label: "Resources",
+      items: [
+        { href: "/docs/qa.html", label: "QA guide", desc: "Playwright, labels, simulate" },
+        { href: "/docs/autotests.html", label: "Autotests", desc: "Contract tests without SMTP" },
+        { href: "/docs/agent-skills.html", label: "Agent Skills", desc: "Install mailagent skill" },
+        { href: "/status.html", label: "Status", desc: "Hosted API availability" },
+      ],
+    },
+  ];
 
   const DOC_SECTIONS = [
     {
@@ -40,6 +75,7 @@
       title: "Console",
       items: [
         { id: "dashboard", href: "/dashboard.html", label: "Dashboard" },
+        { id: "workspace", href: "/workspace.html", label: "Workspace" },
         { id: "audit", href: "/audit.html", label: "Audit log" },
         { id: "debug", href: "/debug.html", label: "Debug inboxes" },
         { id: "qa-troubleshoot", href: "/docs/qa-troubleshooting.html", label: "Troubleshooting" },
@@ -66,12 +102,26 @@
     return `<a href="${href}"${cur ? ' aria-current="page"' : ""}>${label}</a>`;
   }
 
+  function renderDropdown(group) {
+    const items = group.items
+      .map((item) => {
+        const ext = item.external ? ' target="_blank" rel="noopener noreferrer"' : "";
+        return `<a class="nav-dropdown-item" href="${item.href}"${ext} role="menuitem"><strong>${item.label}</strong><span>${item.desc}</span></a>`;
+      })
+      .join("");
+    return `<div class="nav-dropdown" data-dropdown="${group.id}">
+      <button type="button" class="nav-dropdown-trigger" aria-expanded="false" aria-haspopup="true" aria-controls="nav-panel-${group.id}">
+        ${group.label}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="nav-dropdown-panel" id="nav-panel-${group.id}" role="menu">${items}</div>
+    </div>`;
+  }
+
   function renderNavLinks() {
     if (mode === "marketing") {
-      return `<a href="/#features">Features</a>
-        <a href="/#qa">QA</a>
-        <a href="/#mcp">MCP</a>
-        ${navLink("/docs/", "Docs")}`;
+      const dropdowns = NAV_DROPDOWNS.map(renderDropdown).join("");
+      return `${dropdowns}${navLink("/docs/", "Docs")}`;
     }
     if (mode === "app") {
       return `${navLink("/docs/", "Docs")}
@@ -94,7 +144,7 @@
 
     const links = renderNavLinks();
 
-    return `<header class="nav">
+    return `<header class="nav" id="site-header">
       <div class="nav-inner site-container">
         <div class="nav-start">
           <a href="/" class="logo">
@@ -102,17 +152,21 @@
             MailAgent
           </a>
         </div>
-        <div class="nav-menu" id="nav-menu">
-          <nav class="nav-links" aria-label="Primary">${links}</nav>
+        <nav class="nav-links" id="nav-links" aria-label="Primary">${links}</nav>
+        <div class="nav-end">
           <div class="nav-actions">
             <a class="btn btn-sm btn-ghost nav-github" href="${GITHUB}" rel="noopener noreferrer">GitHub</a>
             ${cta}
           </div>
+          <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="nav-links" id="nav-toggle">
+            <span class="sr-only">Menu</span>
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </button>
         </div>
-        <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="nav-menu" id="nav-toggle">
-          <span class="sr-only">Menu</span>
-          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-        </button>
+        <div class="nav-mobile-actions" id="nav-mobile-actions">
+          <a class="btn btn-sm btn-ghost" href="${GITHUB}" rel="noopener noreferrer">GitHub</a>
+          ${cta}
+        </div>
       </div>
     </header>`;
   }
@@ -136,6 +190,7 @@
           <h4>Product</h4>
           <ul>
             <li><a href="/#features">Features</a></li>
+            <li><a href="/#workspace">Workspace Agent</a></li>
             <li><a href="/#qa">For QA</a></li>
             <li><a href="/#mcp">MCP tools</a></li>
             <li><a href="/#how">How it works</a></li>
@@ -152,6 +207,12 @@
             <li><a href="/docs/integrate.html">Self-host</a></li>
             <li><a href="/docs/">API reference</a></li>
             <li><a href="/docs/agents.html">AI agents &amp; MCP</a></li>
+            <li>
+              <a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/WORKSPACE-AUTONOMY.md" rel="noopener noreferrer">Workspace autonomy</a>
+            </li>
+            <li>
+              <a href="https://github.com/Alex0nder/MailAgent/blob/main/docs/WORKSPACE-LOCAL-LLM.md" rel="noopener noreferrer">Local LLM (Ollama)</a>
+            </li>
             <li><a href="/docs/qa.html">QA / Playwright</a></li>
             <li><a href="/docs/scoped-keys.html">Scoped keys</a></li>
             <li><a href="/docs/raw-mime.html">Raw MIME</a></li>
@@ -172,6 +233,7 @@
           <h4>Console</h4>
           <ul>
             <li><a href="/dashboard.html">Dashboard</a></li>
+            <li><a href="/workspace.html">Workspace</a></li>
             <li><a href="/debug.html">Debug inboxes</a></li>
             <li><a href="/agent-runs.html">Agent runs</a></li>
           </ul>
@@ -308,14 +370,156 @@
     );
   }
 
+  /** WAI-ARIA menu button: keyboard nav, focus return, Escape. */
+  function initNavDropdowns() {
+    const header = document.getElementById("site-header");
+    const dropdowns = header?.querySelectorAll(".nav-dropdown") ?? [];
+    if (!dropdowns.length) return;
+
+    const desktop = () => window.matchMedia("(min-width: 900px)").matches;
+    let keyboardOpened = null;
+
+    function menuItems(dropdown) {
+      return [...dropdown.querySelectorAll(".nav-dropdown-item")];
+    }
+
+    function closeDropdown(dropdown, restoreFocus) {
+      if (!dropdown) return;
+      dropdown.classList.remove("is-open");
+      const trigger = dropdown.querySelector(".nav-dropdown-trigger");
+      trigger?.setAttribute("aria-expanded", "false");
+      if (restoreFocus && keyboardOpened === dropdown) {
+        trigger?.focus();
+        keyboardOpened = null;
+      }
+    }
+
+    function closeAll(except, restoreFocus) {
+      dropdowns.forEach((dropdown) => {
+        if (dropdown === except) return;
+        closeDropdown(dropdown, restoreFocus);
+      });
+    }
+
+    function openDropdown(dropdown, { focusItem, fromKeyboard }) {
+      closeAll(dropdown, false);
+      dropdown.classList.add("is-open");
+      const trigger = dropdown.querySelector(".nav-dropdown-trigger");
+      trigger?.setAttribute("aria-expanded", "true");
+      if (fromKeyboard) keyboardOpened = dropdown;
+      const items = menuItems(dropdown);
+      if (focusItem && items.length) items[0].focus();
+    }
+
+    function focusMenuItem(items, current, delta) {
+      if (!items.length) return;
+      const idx = items.indexOf(current);
+      const next = items[(idx + delta + items.length) % items.length];
+      next?.focus();
+    }
+
+    dropdowns.forEach((dropdown) => {
+      const trigger = dropdown.querySelector(".nav-dropdown-trigger");
+      const panel = dropdown.querySelector(".nav-dropdown-panel");
+      if (!trigger || !panel) return;
+
+      trigger.addEventListener("click", (event) => {
+        const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+        if (finePointer && desktop()) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const open = !dropdown.classList.contains("is-open");
+        if (open) openDropdown(dropdown, { focusItem: true, fromKeyboard: true });
+        else closeDropdown(dropdown, true);
+      });
+
+      trigger.addEventListener("keydown", (event) => {
+        const items = menuItems(dropdown);
+        if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openDropdown(dropdown, { focusItem: true, fromKeyboard: true });
+          return;
+        }
+        if (event.key === "ArrowUp") {
+          event.preventDefault();
+          openDropdown(dropdown, { focusItem: false, fromKeyboard: true });
+          if (items.length) items[items.length - 1].focus();
+        }
+      });
+
+      panel.addEventListener("keydown", (event) => {
+        const panelItems = menuItems(dropdown);
+        const current = document.activeElement;
+        switch (event.key) {
+          case "ArrowDown":
+            event.preventDefault();
+            focusMenuItem(panelItems, current, 1);
+            break;
+          case "ArrowUp":
+            event.preventDefault();
+            focusMenuItem(panelItems, current, -1);
+            break;
+          case "Home":
+            event.preventDefault();
+            panelItems[0]?.focus();
+            break;
+          case "End":
+            event.preventDefault();
+            panelItems[panelItems.length - 1]?.focus();
+            break;
+          case "Escape":
+            event.preventDefault();
+            closeDropdown(dropdown, true);
+            break;
+          case "Tab":
+            closeDropdown(dropdown, false);
+            break;
+          default:
+            break;
+        }
+      });
+
+      menuItems(dropdown).forEach((item) => {
+        item.setAttribute("tabindex", "-1");
+      });
+    });
+
+    document.addEventListener("click", (event) => {
+      if (event.target.closest(".nav-dropdown")) return;
+      closeAll(null, true);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      dropdowns.forEach((dropdown) => closeDropdown(dropdown, true));
+      header?.classList.remove("is-open");
+      document.getElementById("nav-toggle")?.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  function initNavScroll() {
+    const header = document.getElementById("site-header");
+    if (!header) return;
+
+    const sync = () => {
+      header.classList.toggle("is-scrolled", window.scrollY > 12);
+    };
+
+    sync();
+    window.addEventListener("scroll", sync, { passive: true });
+  }
+
   const navMount = document.getElementById("site-nav");
   if (navMount) {
     navMount.outerHTML = renderNav();
+    initNavDropdowns();
+    initNavScroll();
+    const header = document.getElementById("site-header");
     const toggle = document.getElementById("nav-toggle");
-    const menu = document.getElementById("nav-menu");
-    if (toggle && menu) {
+    const links = document.getElementById("nav-links");
+    if (toggle && links && header) {
       toggle.addEventListener("click", () => {
-        const open = menu.classList.toggle("is-open");
+        const open = header.classList.toggle("is-open");
         toggle.setAttribute("aria-expanded", open ? "true" : "false");
       });
     }

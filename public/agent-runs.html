@@ -43,8 +43,10 @@
     </div>
 
     <div id="site-footer"></div>
+    <script src="/console-ui.js"></script>
     <script src="/site-shell.js" defer></script>
     <script>
+      const UI = () => window.MailAgentUI;
       const KEY = "mailagent_dashboard_key";
       const baseEl = document.getElementById("base");
       const keyEl = document.getElementById("key");
@@ -53,40 +55,22 @@
       const listEl = document.getElementById("list");
       if (localStorage.getItem(KEY)) keyEl.value = localStorage.getItem(KEY);
 
-      document.getElementById("load").onclick = async () => {
-        const base = baseEl.value.replace(/\/$/, "");
-        const key = keyEl.value.trim();
-        if (!key) return;
-        localStorage.setItem(KEY, key);
-        listEl.innerHTML = '<p class="app-lead" style="margin-top:24px">Loading…</p>';
-        const q = new URLSearchParams();
-        const runId = filterEl.value.trim();
-        const label = labelFilterEl.value.trim();
-        if (runId) q.set("runId", runId);
-        if (label) q.set("label", label);
-        const path = runId && !label
-          ? `/v1/agent/runs/${encodeURIComponent(runId)}`
-          : `/v1/agent/runs?${q}`;
-        const res = await fetch(`${base}${path}`, {
-          headers: { Authorization: `Bearer ${key}` },
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          listEl.innerHTML = `<p class="app-err">${data.error || res.statusText}</p>`;
-          return;
-        }
-        const runs = data.runs ?? (data.runId ? [data] : []);
+      let cachedRuns = [];
+
+      function esc(value) {
+        return UI()?.esc(value) ?? String(value ?? "");
+      }
+
+      function badgeForTimeline(status) {
+        return UI().statusBadge(status);
+      }
+
+      function renderRuns(runs) {
         if (!runs.length) {
           listEl.innerHTML =
             '<p class="app-lead" style="margin-top:24px">No active agent runs. Use <code>runId</code> in MCP or <code>POST /v1/agent/verify</code>.</p>';
           return;
         }
-        const esc = (value) =>
-          String(value ?? "")
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;");
         const timelineHtml = (timeline) => {
           if (!Array.isArray(timeline) || !timeline.length) {
             return '<p class="meta">No timeline events yet.</p>';
@@ -95,7 +79,8 @@
             .map(
               (e) => `<li>
                 <strong>${esc(e.title || e.type)}</strong>
-                <span class="meta">${esc(e.at)} · ${esc(e.status)}</span>
+                ${badgeForTimeline(e.status)}
+                <span class="meta">${esc(e.at)}</span>
                 ${
                   e.inboxId || e.messageId
                     ? `<div class="meta">${e.inboxId ? `inbox ${esc(e.inboxId)}` : ""}${
@@ -125,7 +110,55 @@
             </div>`
           )
           .join("");
-      };
+      }
+
+      function applyClientFilter() {
+        const runId = filterEl.value.trim().toLowerCase();
+        const label = labelFilterEl.value.trim().toLowerCase();
+        let runs = cachedRuns;
+        if (runId) runs = runs.filter((r) => r.runId.toLowerCase().includes(runId));
+        if (label) {
+          runs = runs.filter((r) =>
+            r.inboxes.some((i) => (i.label || "").toLowerCase().includes(label))
+          );
+        }
+        renderRuns(runs);
+      }
+
+      async function loadRuns() {
+        const base = baseEl.value.replace(/\/$/, "");
+        const key = keyEl.value.trim();
+        if (!key) return;
+        localStorage.setItem(KEY, key);
+        listEl.innerHTML = '<p class="app-lead" style="margin-top:24px">Loading…</p>';
+        const q = new URLSearchParams();
+        const runId = filterEl.value.trim();
+        const label = labelFilterEl.value.trim();
+        if (runId) q.set("runId", runId);
+        if (label) q.set("label", label);
+        const path = runId && !label
+          ? `/v1/agent/runs/${encodeURIComponent(runId)}`
+          : `/v1/agent/runs?${q}`;
+        const res = await fetch(`${base}${path}`, {
+          headers: { Authorization: `Bearer ${key}` },
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          listEl.innerHTML = `<p class="app-err">${esc(data.error || res.statusText)}</p>`;
+          return;
+        }
+        cachedRuns = data.runs ?? (data.runId ? [data] : []);
+        if (runId || label) {
+          renderRuns(cachedRuns);
+        } else {
+          applyClientFilter();
+        }
+      }
+
+      document.getElementById("load").onclick = loadRuns;
+      const debouncedFilter = UI().debounce(applyClientFilter, 320);
+      filterEl.addEventListener("input", debouncedFilter);
+      labelFilterEl.addEventListener("input", debouncedFilter);
     </script>
   </body>
 </html>

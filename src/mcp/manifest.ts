@@ -25,12 +25,36 @@ const workspaceMessageSchema = {
   },
 } as const;
 const workspaceThreadProps = {
+  inboxId: {
+    type: "string",
+    description:
+      "MailAgent inbox id. Loads thread messages from stored mail when messages[] is omitted.",
+  },
+  gmailAccountId: {
+    type: "string",
+    description:
+      "Connected user Gmail account id (from mailagent_gmail_list_accounts). Read-only via gmail.readonly scope.",
+  },
+  gmailThreadId: {
+    type: "string",
+    description: "Gmail thread id when gmailAccountId is set.",
+  },
+  gmailQuery: {
+    type: "string",
+    description:
+      "Gmail search query when gmailAccountId is set without gmailThreadId (default in:inbox).",
+  },
+  messageId: {
+    type: "string",
+    description: "Optional anchor message; loads its thread when inboxId is set.",
+  },
   threadId: { type: "string", description: "Optional source thread id" },
   goal: { type: "string", description: "What the agent should optimize for" },
   messages: {
     type: "array",
     items: workspaceMessageSchema,
-    description: "Supplied mail messages. Preview mode does not connect to Gmail yet.",
+    description:
+      "Optional mail messages. Omit when inboxId or gmailAccountId loads mail automatically.",
   },
 } as const;
 
@@ -452,6 +476,18 @@ export const MCP_TOOLS = [
         allowedRecipientDomains: { type: "array", items: { type: "string" } },
         minConfidence: { type: "string", enum: ["low", "medium", "high"] },
         maxSendsPerHour: { type: "integer", minimum: 1, maximum: 100 },
+        gmailDraftWrites: {
+          type: "boolean",
+          description: "P3: allow approval-gated Gmail draft creation (requires compose OAuth).",
+        },
+        calendarEventWrites: {
+          type: "boolean",
+          description: "P3: allow approval-gated Calendar event create/update (requires events OAuth).",
+        },
+        automationEnabled: {
+          type: "boolean",
+          description: "P4: allow scheduled monitors and autonomous rule evaluation.",
+        },
       },
     },
   },
@@ -470,6 +506,315 @@ export const MCP_TOOLS = [
         instruction: { type: "string", description: "Optional reply objective/context" },
         tone: { type: "string", enum: ["concise", "friendly", "formal"] },
         dryRun: { type: "boolean", description: "Evaluate and draft without sending" },
+      },
+    },
+  },
+  {
+    name: "mailagent_gmail_status",
+    description:
+      "Workspace Agent P1: whether Gmail read-only OAuth is configured on this deployment.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "mailagent_gmail_connect",
+    description:
+      "Workspace Agent P1: get Google OAuth URL to connect a user Gmail mailbox (read-only). Open url in browser; then mailagent_gmail_list_accounts.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "mailagent_gmail_list_accounts",
+    description:
+      "Workspace Agent P1: list Gmail accounts connected for the current team/API key.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "mailagent_gmail_list_threads",
+    description:
+      "Workspace Agent P1: list Gmail threads for a connected account. Uses Gmail search syntax in q.",
+    inputSchema: {
+      type: "object",
+      required: ["accountId"],
+      properties: {
+        accountId: { type: "string" },
+        q: { type: "string", description: "Gmail search, e.g. is:unread in:inbox" },
+        maxResults: { type: "integer", minimum: 1, maximum: 50 },
+        pageToken: { type: "string" },
+      },
+    },
+  },
+  {
+    name: "mailagent_gmail_read_thread",
+    description:
+      "Workspace Agent P1: read full Gmail thread messages (redacted text suitable for summarize/draft).",
+    inputSchema: {
+      type: "object",
+      required: ["accountId", "threadId"],
+      properties: {
+        accountId: { type: "string" },
+        threadId: { type: "string" },
+      },
+    },
+  },
+  {
+    name: "mailagent_gmail_triage",
+    description:
+      "Workspace Agent P1: unread triage with needs_reply / waiting_on_them / fyi / automated buckets.",
+    inputSchema: {
+      type: "object",
+      required: ["accountId"],
+      properties: {
+        accountId: { type: "string" },
+        unreadOnly: { type: "boolean", description: "Default true" },
+      },
+    },
+  },
+  {
+    name: "mailagent_gmail_digest",
+    description:
+      "Workspace Agent P1: daily unread digest with rule-based summaries and action items.",
+    inputSchema: {
+      type: "object",
+      required: ["accountId"],
+      properties: {
+        accountId: { type: "string" },
+        sinceHours: { type: "integer", minimum: 1, maximum: 168, description: "Default 24" },
+      },
+    },
+  },
+  {
+    name: "mailagent_gmail_get_settings",
+    description:
+      "Workspace Agent P1: Gmail read retention and scan limits for the current team/API key.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "mailagent_gmail_set_settings",
+    description:
+      "Admin-only: configure Gmail thread lookback days and scan/digest limits.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        threadLookbackDays: { type: "integer", minimum: 1, maximum: 90 },
+        maxThreadsPerScan: { type: "integer", minimum: 5, maximum: 50 },
+        digestMaxThreads: { type: "integer", minimum: 5, maximum: 30 },
+      },
+    },
+  },
+  {
+    name: "mailagent_calendar_status",
+    description: "Workspace Agent P2: Google Calendar read-only OAuth readiness.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "mailagent_calendar_connect",
+    description:
+      "Workspace Agent P2: OAuth URL to connect Google Calendar (read-only). Open in browser.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "mailagent_calendar_list_accounts",
+    description: "Workspace Agent P2: list connected Google Calendar accounts.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "mailagent_calendar_list_events",
+    description: "Workspace Agent P2: list calendar events in a time range.",
+    inputSchema: {
+      type: "object",
+      required: ["accountId", "timeMin", "timeMax"],
+      properties: {
+        accountId: { type: "string" },
+        timeMin: { type: "string", description: "ISO timestamp" },
+        timeMax: { type: "string", description: "ISO timestamp" },
+        maxResults: { type: "integer", minimum: 1, maximum: 100 },
+        pageToken: { type: "string" },
+      },
+    },
+  },
+  {
+    name: "mailagent_calendar_availability",
+    description:
+      "Workspace Agent P2: free meeting slots from calendar busy blocks and working hours.",
+    inputSchema: {
+      type: "object",
+      required: ["accountId"],
+      properties: {
+        accountId: { type: "string" },
+        timeZone: { type: "string", description: "IANA timezone, e.g. Europe/Berlin" },
+        days: { type: "integer", minimum: 1, maximum: 14 },
+        durationMinutes: { type: "integer", minimum: 15, maximum: 240 },
+        workingHoursStart: { type: "integer", minimum: 0, maximum: 23 },
+        workingHoursEnd: { type: "integer", minimum: 1, maximum: 24 },
+        maxSlots: { type: "integer", minimum: 1, maximum: 20 },
+      },
+    },
+  },
+  {
+    name: "mailagent_calendar_check_conflicts",
+    description: "Workspace Agent P2: detect overlaps between proposed slots and calendar events.",
+    inputSchema: {
+      type: "object",
+      required: ["accountId", "proposed"],
+      properties: {
+        accountId: { type: "string" },
+        proposed: {
+          type: "array",
+          items: {
+            type: "object",
+            required: ["start", "end"],
+            properties: {
+              start: { type: "string" },
+              end: { type: "string" },
+            },
+          },
+        },
+        bufferMinutes: { type: "integer", minimum: 0, maximum: 120 },
+      },
+    },
+  },
+  {
+    name: "mailagent_calendar_suggest_meeting",
+    description:
+      "Workspace Agent P2: propose meeting slots from email thread context + calendar availability.",
+    inputSchema: {
+      type: "object",
+      required: ["calendarAccountId"],
+      properties: {
+        calendarAccountId: { type: "string" },
+        ...workspaceThreadProps,
+        timeZone: { type: "string" },
+        durationMinutes: { type: "integer", minimum: 15, maximum: 240 },
+        days: { type: "integer", minimum: 1, maximum: 14 },
+        maxSuggestions: { type: "integer", minimum: 1, maximum: 10 },
+      },
+    },
+  },
+  {
+    name: "mailagent_calendar_agenda",
+    description: "Workspace Agent P2: daily agenda digest with conflict flags.",
+    inputSchema: {
+      type: "object",
+      required: ["accountId"],
+      properties: {
+        accountId: { type: "string" },
+        date: { type: "string", description: "YYYY-MM-DD, default today in timezone" },
+        timeZone: { type: "string" },
+      },
+    },
+  },
+  {
+    name: "mailagent_workspace_execute_gmail_draft",
+    description:
+      "P3 approval-gated: create a Gmail draft (never send). Requires admin gmailDraftWrites policy, compose OAuth, dryRun first, then idempotencyKey.",
+    inputSchema: {
+      type: "object",
+      required: ["gmailAccountId"],
+      properties: {
+        gmailAccountId: { type: "string" },
+        threadId: { type: "string" },
+        to: { type: "string" },
+        subject: { type: "string" },
+        body: { type: "string" },
+        instruction: { type: "string" },
+        tone: { type: "string", enum: ["concise", "friendly", "formal"] },
+        dryRun: { type: "boolean" },
+        idempotencyKey: { type: "string" },
+      },
+    },
+  },
+  {
+    name: "mailagent_workspace_execute_calendar_event",
+    description:
+      "P3 approval-gated: create or update a Google Calendar event. Requires admin calendarEventWrites policy, events OAuth, dryRun first, then idempotencyKey.",
+    inputSchema: {
+      type: "object",
+      required: ["accountId", "summary", "start", "end"],
+      properties: {
+        accountId: { type: "string" },
+        summary: { type: "string" },
+        start: { type: "string", description: "ISO datetime" },
+        end: { type: "string", description: "ISO datetime" },
+        timeZone: { type: "string" },
+        description: { type: "string" },
+        location: { type: "string" },
+        eventId: { type: "string", description: "When set, updates existing event" },
+        dryRun: { type: "boolean" },
+        idempotencyKey: { type: "string" },
+      },
+    },
+  },
+  {
+    name: "mailagent_workspace_rules_status",
+    description:
+      "P4: rule kinds, saved automation rules, and whether automationEnabled is on in admin policy.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "mailagent_workspace_rules_evaluate",
+    description:
+      "P4: scan a connected Gmail inbox and return invoice/support/meeting/follow-up rule hits.",
+    inputSchema: {
+      type: "object",
+      required: ["gmailAccountId"],
+      properties: {
+        gmailAccountId: { type: "string" },
+        ruleKinds: { type: "array", items: { type: "string" } },
+        unreadOnly: { type: "boolean" },
+      },
+    },
+  },
+  {
+    name: "mailagent_workspace_list_monitors",
+    description: "P4: list scheduled workspace monitors for digest delivery.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "mailagent_workspace_create_monitor",
+    description:
+      "P4: create a scheduled monitor (webhook or email digest). Requires write scope.",
+    inputSchema: {
+      type: "object",
+      required: ["name"],
+      properties: {
+        name: { type: "string" },
+        enabled: { type: "boolean" },
+        scheduleHours: { type: "integer", minimum: 1, maximum: 168 },
+        gmailAccountId: { type: "string" },
+        calendarAccountId: { type: "string" },
+        digestWebhookUrl: { type: "string" },
+        digestEmail: { type: "string" },
+        ruleKinds: { type: "array", items: { type: "string" } },
+      },
+    },
+  },
+  {
+    name: "mailagent_workspace_delete_monitor",
+    description: "P4: delete a workspace monitor by id.",
+    inputSchema: {
+      type: "object",
+      required: ["monitorId"],
+      properties: { monitorId: { type: "string" } },
+    },
+  },
+  {
+    name: "mailagent_workspace_run_monitor",
+    description:
+      "P4: run a monitor immediately (rules + digest). Requires automationEnabled admin policy.",
+    inputSchema: {
+      type: "object",
+      required: ["monitorId"],
+      properties: { monitorId: { type: "string" } },
+    },
+  },
+  {
+    name: "mailagent_workspace_list_monitor_runs",
+    description: "P4: list recent run history for a workspace monitor.",
+    inputSchema: {
+      type: "object",
+      required: ["monitorId"],
+      properties: {
+        monitorId: { type: "string" },
+        limit: { type: "integer", minimum: 1, maximum: 50 },
       },
     },
   },

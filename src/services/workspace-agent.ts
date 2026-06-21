@@ -30,9 +30,15 @@ function normalizeReceivedAt(value?: string | Date): string | undefined {
 }
 
 export type WorkspaceSummarizeInput = {
+  inboxId?: string;
+  messageId?: string;
   threadId?: string;
   messages?: WorkspaceMailMessage[];
   goal?: string;
+  /** Connected Gmail account (P1 read connector) */
+  gmailAccountId?: string;
+  gmailThreadId?: string;
+  gmailQuery?: string;
 };
 
 export type WorkspaceDraftReplyInput = WorkspaceSummarizeInput & {
