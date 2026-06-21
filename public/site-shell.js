@@ -12,8 +12,8 @@
       label: "Product",
       items: [
         { href: "/#features", label: "Features", desc: "OTP, magic links, safe CTAs" },
-        { href: "/#workspace", label: "Workspace Agent", desc: "Summarize, draft, policy-gated send" },
         { href: "/#qa", label: "QA / Playwright", desc: "Isolated inboxes per CI worker" },
+        { href: "/#workspace", label: "Workspace Agent", desc: "Summarize, draft, policy-gated send" },
         { href: "/#mcp", label: "MCP tools", desc: "49 agent tools for QA and mail" },
         { href: "/dashboard.html", label: "Console", desc: "Inboxes, keys, audit log" },
         { href: "/workspace.html", label: "Workspace", desc: "Gmail threads, drafts, reminders" },
@@ -190,8 +190,8 @@
           <h4>Product</h4>
           <ul>
             <li><a href="/#features">Features</a></li>
-            <li><a href="/#workspace">Workspace Agent</a></li>
             <li><a href="/#qa">For QA</a></li>
+            <li><a href="/#workspace">Workspace Agent</a></li>
             <li><a href="/#mcp">MCP tools</a></li>
             <li><a href="/#how">How it works</a></li>
             <li><a href="/playwright-email-verification.html">Playwright QA</a></li>
@@ -280,12 +280,11 @@
     </footer>`;
   }
 
-  /** Wordmark: split letters + fit width (from Navorina footer pattern). */
+  /** Wordmark: split letters + in-view gradient reveal. */
   function initFooterWordmark() {
     const footer = document.querySelector(".footer");
     const logo = footer?.querySelector("#footerWordmark");
-    const box = footer?.querySelector(".site-container");
-    if (!logo || !box || logo.dataset.split === "1") return;
+    if (!logo || logo.dataset.split === "1") return;
 
     const text = (logo.textContent || "").trim();
     if (!text) return;
@@ -302,34 +301,6 @@
     }
 
     const link = footer.querySelector(".footer-wordmark-link");
-
-    function fit() {
-      logo.style.fontSize = "";
-      logo.style.letterSpacing = "";
-      const boxWidth = box.clientWidth;
-      if (boxWidth < 1) return;
-      let size = parseFloat(getComputedStyle(logo).fontSize) || 48;
-      const pad =
-        parseFloat(getComputedStyle(logo).paddingLeft) +
-        parseFloat(getComputedStyle(logo).paddingRight);
-      const target = Math.min(Math.max(boxWidth - pad, 200), 520);
-      let guard = 0;
-      while (logo.scrollWidth <= target * 0.97 && size < 104 && guard++ < 64) {
-        size *= 1.04;
-        logo.style.fontSize = `${size}px`;
-      }
-      guard = 0;
-      while (logo.scrollWidth > target && size > 18 && guard++ < 80) {
-        size *= 0.96;
-        logo.style.fontSize = `${size}px`;
-      }
-      const chars = logo.querySelectorAll(".footer-wordmark-char");
-      const gap = target - logo.scrollWidth;
-      if (gap > 0.5 && chars.length > 1) {
-        logo.style.letterSpacing = `${gap / (chars.length - 1) / size}em`;
-      }
-      logo.classList.add("is-fitted");
-    }
 
     function bindInview() {
       if (logo.classList.contains("is-inview")) return;
@@ -356,18 +327,7 @@
       observer.observe(target);
     }
 
-    fit();
     bindInview();
-    if (document.fonts?.ready) document.fonts.ready.then(fit);
-    let resizeTimer;
-    window.addEventListener(
-      "resize",
-      () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(fit, 120);
-      },
-      { passive: true }
-    );
   }
 
   /** WAI-ARIA menu button: keyboard nav, focus return, Escape. */
