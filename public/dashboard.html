@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Console — MailAgent</title>
+    <title>Dashboard — MailAgent</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta name="theme-color" content="#000000" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -14,49 +14,37 @@
     />
     <link rel="stylesheet" href="/styles.css" />
   </head>
-  <body class="doc-page" data-site="docs" data-doc="dashboard">
+  <body class="app-page" data-site="app" data-doc="dashboard">
     <div id="site-nav"></div>
 
-    <div class="doc-layout">
-      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
-      <article class="doc-content">
-        <h1>Console</h1>
-        <p class="doc-lead">Plan, usage, inboxes, domains, team keys, and billing.</p>
-
-        <form class="app-form" id="form" onsubmit="return false">
-          <label for="base">API base</label>
-          <input id="base" type="url" value="https://api.webmailagent.com" />
-          <label for="key">API key</label>
-          <input id="key" type="password" autocomplete="off" placeholder="ma_…" />
-          <button type="button" id="load">Refresh</button>
-        </form>
-
-        <div class="app-card" id="out">Enter API key and refresh.</div>
-      </article>
-    </div>
+    <main class="dash-main">
+      <div class="dash-container dash-container--wide">
+        <div id="out"></div>
+      </div>
+    </main>
 
     <div id="site-footer"></div>
     <script src="/site-shell.js" defer></script>
+    <script src="/app-connect-gate.js" defer></script>
+    <script src="/app-insights.js" defer></script>
+    <script src="/app-session.js" defer></script>
     <script>
-      const KEY = "mailagent_dashboard_key";
-      const baseEl = document.getElementById("base");
-      const keyEl = document.getElementById("key");
+      const App = () => window.MailAgentApp;
       const out = document.getElementById("out");
-      if (localStorage.getItem(KEY)) keyEl.value = localStorage.getItem(KEY);
 
       function stat(label, value, suffix) {
-        return `<div class="console-metric">
-          <div class="console-metric__label">${label}</div>
-          <div class="console-metric__value">${value}${suffix ?? ""}</div>
+        return `<div class="dash-metric">
+          <div class="dash-metric__label">${label}</div>
+          <div class="dash-metric__value">${value}${suffix ?? ""}</div>
         </div>`;
       }
 
       function meter(label, used, max, suffix) {
         const pct = max > 0 ? Math.min(100, Math.round((used / max) * 100)) : 0;
-        return `<div class="console-metric">
-          <div class="console-metric__label">${label}</div>
-          <div class="console-metric__value">${used}${suffix ?? ""} <span>/ ${max}${suffix ?? ""}</span></div>
-          <div class="console-meter" aria-hidden="true"><div class="console-meter__fill" style="width:${pct}%"></div></div>
+        return `<div class="dash-metric">
+          <div class="dash-metric__label">${label}</div>
+          <div class="dash-metric__value">${used}${suffix ?? ""} <span>/ ${max}${suffix ?? ""}</span></div>
+          <div class="dash-metric__bar" aria-hidden="true"><span style="width:${pct}%"></span></div>
         </div>`;
       }
 
@@ -69,24 +57,85 @@
       }
 
       async function api(path, opts) {
-        const base = baseEl.value.replace(/\/$/, "");
-        const key = keyEl.value.trim();
-        const r = await fetch(`${base}${path}`, {
-          ...opts,
-          headers: {
-            Authorization: `Bearer ${key}`,
-            ...(opts?.headers || {}),
-          },
-        });
-        const json = await r.json().catch(() => ({}));
-        return { ok: r.ok, status: r.status, json };
+        return App().api(path, opts);
       }
 
+      function showEmptyState() {
+        document.body.classList.add("dash-onboard-active");
+        out.innerHTML = `<div class="dash-onboard">
+          <div class="dash-onboard__left">
+            <div class="dash-onboard__hero">
+              <p class="dash-onboard__eyebrow">Console</p>
+              <h1>Connect your API key</h1>
+              <p>Temporary inboxes for agent verification, QA, and workspace triage. Keys stay in your browser — no signup.</p>
+            </div>
+            <div class="dash-onboard__card">
+              <label for="onboard-key">API key</label>
+              <input id="onboard-key" type="password" autocomplete="off" placeholder="ma_…" spellcheck="false" autofocus />
+              <details class="dash-onboard__advanced">
+                <summary>Self-hosted API base</summary>
+                <input id="onboard-base" type="url" value="https://api.webmailagent.com" aria-label="API base URL" />
+              </details>
+              <button type="button" class="dash-btn dash-btn--primary" id="onboard-connect">Connect</button>
+              <p class="dash-onboard__hint">Stored in localStorage. Clear from the sidebar after connecting.</p>
+              <div class="dash-onboard__links">
+                <a href="mailto:hello@webmailagent.com?subject=MailAgent%20API%20key">Request hosted key</a>
+                <a href="/docs/integrate.html">Self-host</a>
+                <a href="/docs/agents.html">Agent setup</a>
+              </div>
+            </div>
+            <ol class="dash-onboard__steps">
+              <li><span class="dash-onboard__step-num">1</span><span>Paste your <code>ma_…</code> key and connect</span></li>
+              <li><span class="dash-onboard__step-num">2</span><span>Create an inbox or open <a href="/workspace.html">Workspace</a></span></li>
+              <li><span class="dash-onboard__step-num">3</span><span>Wire MCP tools from Cursor or Codex</span></li>
+            </ol>
+          </div>
+        </div>`;
+
+        document.dispatchEvent(new CustomEvent("mailagent:onboard-ready"));
+
+        const onboardKey = document.getElementById("onboard-key");
+        const onboardBase = document.getElementById("onboard-base");
+        const sidebarKey = document.getElementById("app-session-key");
+        const sidebarBase = document.getElementById("app-session-base");
+        if (sidebarKey?.value) onboardKey.value = sidebarKey.value;
+        if (sidebarBase?.value && onboardBase) onboardBase.value = sidebarBase.value;
+
+        function syncToSidebar() {
+          if (sidebarKey) sidebarKey.value = onboardKey?.value || "";
+          if (sidebarBase && onboardBase) sidebarBase.value = onboardBase.value.trim() || "https://api.webmailagent.com";
+        }
+
+        onboardKey?.addEventListener("input", syncToSidebar);
+        onboardBase?.addEventListener("input", syncToSidebar);
+        document.getElementById("onboard-connect")?.addEventListener("click", () => {
+          syncToSidebar();
+          App()?.connect();
+        });
+        onboardKey?.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            syncToSidebar();
+            App()?.connect();
+          }
+        });
+      }
+
+      document.addEventListener("mailagent:session-ready", () => {
+        if (!App()?.getKey()) showEmptyState();
+        else load();
+      });
+      document.addEventListener("mailagent:connect", load);
+
       async function load() {
-        const key = keyEl.value.trim();
-        if (!key) return;
-        localStorage.setItem(KEY, key);
-        out.textContent = "Loading…";
+        if (!App()?.getKey()) {
+          showEmptyState();
+          return;
+        }
+        document.body.classList.remove("dash-onboard-active");
+        document.dispatchEvent(new CustomEvent("mailagent:onboard-dismiss"));
+        App()?.syncStatus?.();
+        out.innerHTML = `<p class="app-empty-state">Loading overview…</p>`;
 
         const [res, agentRes] = await Promise.all([
           api("/v1/console/summary"),
@@ -104,20 +153,20 @@
         const u = d.usage;
         const l = d.limits;
 
-        let html = `<div class="console-head">
+        let html = `<div class="dash-toolbar">
           <div>
-            <span class="console-plan">${esc(d.plan)}</span>
-            ${d.team?.name ? `<span class="console-team">${esc(d.team.name)}</span>` : ""}
+            <h1>Overview</h1>
+            <p class="dash-toolbar__sub"><span class="console-plan">${esc(d.plan)}</span>${d.team?.name ? ` · ${esc(d.team.name)}` : ""}</p>
           </div>
-          <div class="console-actions">`;
+          <div class="dash-toolbar__actions">`;
 
         if (d.billing?.canUpgrade) {
-          html += `<button type="button" class="app-btn" id="upgrade">Upgrade to Pro</button>`;
+          html += `<button type="button" class="dash-btn dash-btn--primary dash-btn--sm" id="upgrade">Upgrade to Pro</button>`;
         }
         if (d.billing?.canManagePortal) {
-          html += `<button type="button" class="app-btn app-btn--ghost" id="portal">Manage billing</button>`;
+          html += `<button type="button" class="dash-btn dash-btn--sm" id="portal">Billing</button>`;
         }
-        html += `<a class="app-btn app-btn--ghost" href="/workspace.html">Workspace</a>`;
+        html += `<a class="dash-btn dash-btn--sm" href="/workspace.html">Workspace</a>`;
         html += `</div></div>`;
 
         const ob = d.capabilities?.outbound;
@@ -140,7 +189,7 @@
           html += `</p>`;
         }
 
-        html += `<div class="console-grid">
+        html += `<div class="dash-metrics">
           ${meter("Active inboxes", u.activeInboxes, l.maxActiveInboxes)}
           ${stat("Messages (24h)", u.messagesLast24h)}
           ${meter("Notify relays (24h)", u.notifyEmailsLast24h || 0, l.notifyEmailsPerDay)}
@@ -159,9 +208,11 @@
         }
         html += `</p>`;
 
-        html += `<h2>Recent threads</h2>`;
+        html += `<section class="dash-section">
+          <h2 class="dash-section__title">Recent threads</h2>
+          <div class="dash-panel"><div class="dash-panel__body">`;
         if (!d.recentThreads?.length) {
-          html += `<p class="console-empty">No conversations yet.</p>`;
+          html += `<p class="app-empty-state">No conversations yet.</p>`;
         } else {
           html += `<table class="console-table"><thead><tr><th>Subject</th><th>Inbox</th><th>Msgs</th><th>Updated</th></tr></thead><tbody>`;
           for (const t of d.recentThreads) {
@@ -174,8 +225,11 @@
           }
           html += `</tbody></table>`;
         }
+        html += `</div></div></section>`;
 
-        html += `<h2>Recent inboxes</h2>`;
+        html += `<section class="dash-section">
+          <h2 class="dash-section__title">Recent inboxes</h2>
+          <div class="dash-panel"><div class="dash-panel__body">`;
         const canCreateInbox = !scope?.readOnly && (u.inboxesRemaining ?? 0) > 0;
         if (canCreateInbox) {
           html += `<form class="console-key-form" id="create-inbox-form">
@@ -207,21 +261,25 @@
           }
           html += `</tbody></table>`;
         }
+        html += `</div></div></section>`;
 
         if (!scope?.readOnly) {
-          html += `<h2>Bulk cleanup</h2>
+          html += `<section class="dash-section">
+            <h2 class="dash-section__title">Bulk cleanup</h2>
+            <div class="dash-panel"><div class="dash-panel__body dash-panel__body--padded">
             <form class="console-key-form" id="bulk-delete-form">
               <label for="bulk-prefix">Label prefix (min 3 chars)</label>
               <input id="bulk-prefix" type="text" maxlength="64" placeholder="ci-" />
               <button type="submit" class="console-revoke-btn">Delete matching inboxes</button>
             </form>
-            <p class="console-meta">API: <code>DELETE /v1/inboxes?labelPrefix=…</code> — respects scoped key prefix.</p>`;
+            <p class="console-meta">API: <code>DELETE /v1/inboxes?labelPrefix=…</code> — respects scoped key prefix.</p>
+            </div></div></section>`;
         }
 
         if (d.teamId && (d.plan === "enterprise" || d.dedicatedResend?.configured)) {
           const dr = d.dedicatedResend;
           const canManageDr = d.team?.canManageKeys;
-          html += `<h2>Dedicated Resend</h2>`;
+          html += `<section class="dash-section"><h2 class="dash-section__title">Dedicated Resend</h2><div class="dash-panel"><div class="dash-panel__body dash-panel__body--padded">`;
           if (d.plan !== "enterprise") {
             html += `<p class="console-empty">Enterprise plan required. Contact <a href="mailto:hello@webmailagent.com">hello@webmailagent.com</a>.</p>`;
           } else if (dr?.configured) {
@@ -249,9 +307,10 @@
           } else {
             html += `<p class="console-empty">Not configured — use an admin team key to set up dedicated Resend.</p>`;
           }
+          html += `</div></div></section>`;
         }
 
-        html += `<h2>Custom domains</h2>`;
+        html += `<section class="dash-section"><h2 class="dash-section__title">Custom domains</h2><div class="dash-panel"><div class="dash-panel__body dash-panel__body--padded">`;
         const canWriteDomains = !scope?.readOnly;
         if (canWriteDomains && (u.domainsRemaining ?? 0) > 0) {
           html += `<form class="console-key-form" id="add-domain-form">
@@ -279,9 +338,10 @@
           }
           html += `</tbody></table>`;
         }
+        html += `</div></div></section>`;
 
         if (d.team) {
-          html += `<h2>Team keys</h2>`;
+          html += `<section class="dash-section"><h2 class="dash-section__title">Team keys</h2><div class="dash-panel"><div class="dash-panel__body dash-panel__body--padded">`;
           if (!d.team.canManageKeys) {
             html += `<p class="console-empty">Scoped key — create/revoke requires an unrestricted admin key.</p>`;
           } else if ((d.usage.teamKeysRemaining ?? 0) <= 0) {
@@ -325,14 +385,18 @@
             }
             html += `</tbody></table>`;
           }
+          html += `</div></div></section>`;
         } else if (!d.teamId) {
-          html += `<h2>Team keys</h2>
-            <p class="console-empty">Legacy hosted key — run <code>npm run issue:key:db</code> for team invites and scoped keys. See <a href="/docs/teams.html">Teams &amp; keys</a>.</p>`;
+          html += `<section class="dash-section"><h2 class="dash-section__title">Team keys</h2>
+            <div class="dash-panel"><div class="dash-panel__body dash-panel__body--padded">
+            <p class="console-empty">Legacy hosted key — run <code>npm run issue:key:db</code> for team invites and scoped keys. See <a href="/docs/teams.html">Teams &amp; keys</a>.</p>
+            </div></div></section>`;
         }
 
         if (d.teamId && d.team?.canManageKeys && !scope?.readOnly) {
           const wh = d.teamWebhook;
-          html += `<h2>Team event webhook</h2>
+          html += `<section class="dash-section"><h2 class="dash-section__title">Team event webhook</h2>
+            <div class="dash-panel"><div class="dash-panel__body dash-panel__body--padded">
             <p class="console-meta">POST <code>message.received</code> for every inbox created with team keys (HTTPS). Per-inbox <code>callbackUrl</code> still works separately.</p>`;
           if (wh?.configured) {
             html += `<p class="console-meta">Configured: <code>${esc(wh.urlMasked || "…")}</code></p>`;
@@ -342,13 +406,18 @@
             <input id="team-webhook-url" type="url" placeholder="https://hooks.example.com/mailagent" />
             <button type="submit" class="app-btn app-btn--ghost">Save</button>
             ${wh?.configured ? `<button type="button" class="console-revoke-btn" id="team-webhook-clear">Clear</button>` : ""}
-          </form>`;
+          </form>
+          </div></div></section>`;
         }
 
-        html += `<h2>Agent runs</h2>
-          <p class="console-meta"><a href="/agent-runs.html">Open run explorer →</a> filter by <code>runId</code> or <code>label</code></p>`;
+        html += `<section class="dash-section"><h2 class="dash-section__title">Agent runs</h2>
+          <div class="dash-panel"><div class="dash-panel__body dash-panel__body--padded">
+          <p class="console-meta"><a href="/agent-runs.html">Open run explorer →</a> filter by <code>runId</code> or <code>label</code></p>
+          </div></div></section>`;
 
-        html += `<h2>Audit log</h2><p><a href="/audit.html">Full audit log →</a></p>`;
+        html += `<section class="dash-section"><h2 class="dash-section__title">Audit log</h2>
+          <div class="dash-panel"><div class="dash-panel__body">`;
+        html += `<div class="dash-panel__head"><span>Recent events</span><a href="/audit.html">View all →</a></div>`;
         if (!d.recentAudit?.length) {
           html += `<p class="console-empty">No events yet.</p>`;
         } else {
@@ -365,6 +434,7 @@
           }
           html += `</tbody></table>`;
         }
+        html += `</div></div></section>`;
 
         html += `<p class="console-links"><a href="/debug.html">Debug inboxes</a> · <a href="/agent-runs.html">Agent runs</a> · <a href="/status.html">Status</a> · <a href="/docs/BILLING.html">Billing docs</a></p>`;
 
@@ -565,7 +635,11 @@
         out.prepend(wrap);
       }
 
-      document.getElementById("load").onclick = load;
+      document.addEventListener("mailagent:connect", load);
+      document.addEventListener("mailagent:disconnect", () => {
+        showEmptyState();
+        App()?.syncStatus?.();
+      });
       const billing = new URLSearchParams(location.search).get("billing");
       if (billing === "success" || billing === "portal") {
         setTimeout(load, 500);

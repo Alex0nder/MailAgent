@@ -34,40 +34,41 @@
       .debug-mono { font-family: ui-monospace, monospace; font-size: 0.8rem; word-break: break-all; }
     </style>
   </head>
-  <body class="doc-page" data-site="docs" data-doc="debug">
+  <body class="app-page" data-site="app" data-doc="debug">
     <div id="site-nav"></div>
 
-    <div class="doc-layout">
-      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
-      <article class="doc-content doc-content--wide">
-      <h1>Debug inboxes</h1>
-      <p class="doc-lead">
-        QA view: inboxes for your API key. Open via
-        <code>?inbox=INBOX_ID</code> from CI errors or <code>@mailagent/qa</code> debug URL.
-      </p>
-
-      <form class="app-form" id="form">
-        <label for="base">API base URL</label>
-        <input id="base" type="url" value="https://api.webmailagent.com" required />
-        <label for="key">Bearer API key</label>
-        <input id="key" type="password" placeholder="mak_…" required autocomplete="off" />
-        <label for="label">Label filter (optional)</label>
-        <input id="label" type="text" placeholder="ci-12345" />
-        <button type="submit">Load inboxes</button>
-      </form>
-
-      <p class="app-err" id="err" hidden></p>
-      <ul class="app-list" id="list"></ul>
-      <div class="app-card" id="detail" hidden></div>
-      </article>
-    </div>
+    <main class="dash-main">
+      <div class="dash-container dash-container--wide">
+        <div id="connect-gate"></div>
+        <header class="dash-toolbar" data-gate-hide>
+          <div>
+            <h1>Debug</h1>
+            <p class="dash-toolbar__sub">Inspect inboxes, simulate messages, and diagnose delivery.</p>
+          </div>
+        </header>
+        <div class="dash-panel" data-gate-hide>
+          <div class="dash-panel__body dash-panel__body--padded">
+          <div class="workspace-form-grid" style="margin-bottom:12px">
+            <label for="label">Label filter (optional)<input id="label" type="text" placeholder="ci-12345" /></label>
+          </div>
+          <button type="button" class="app-btn app-btn--ghost" id="reload-inboxes">Load inboxes</button>
+          <p class="app-err" id="err" hidden></p>
+          <ul class="app-list" id="list"></ul>
+          <div id="detail" hidden></div>
+          </div>
+        </div>
+      </div>
+    </main>
 
     <div id="site-footer"></div>
     <script src="/site-shell.js" defer></script>
+    <script src="/app-connect-gate.js" defer></script>
+    <script src="/app-insights.js" defer></script>
+    <script src="/app-session.js" defer></script>
     <script>
-      const STORAGE_KEY = "mailagent_debug_key";
-      const baseEl = document.getElementById("base");
-      const keyEl = document.getElementById("key");
+      const App = () => window.MailAgentApp;
+      const Gate = () => window.MailAgentConnectGate;
+      const gateEl = document.getElementById("connect-gate");
       const labelEl = document.getElementById("label");
       const errEl = document.getElementById("err");
       const listEl = document.getElementById("list");
@@ -76,15 +77,34 @@
       const params = new URLSearchParams(location.search);
       const deepInbox = params.get("inbox");
 
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) keyEl.value = saved;
-
       if (params.get("label")) labelEl.value = params.get("label");
 
-      document.getElementById("form").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        await loadInboxList();
+      function showGate() {
+        Gate()?.renderConnectGate(gateEl, {
+          title: "Connect to Debug",
+          desc: "Inspect inboxes, simulate OTP messages, and diagnose delivery after connecting.",
+        });
+        listEl.innerHTML = "";
+        detailEl.hidden = true;
+        errEl.hidden = true;
+      }
+
+      document.addEventListener("mailagent:session-ready", () => {
+        if (!App()?.getKey()) showGate();
+        else {
+          Gate()?.clearConnectGate(gateEl);
+          loadInboxList();
+          if (deepInbox) loadInboxDetail(deepInbox, null);
+        }
       });
+
+      document.getElementById("reload-inboxes").addEventListener("click", () => loadInboxList());
+      document.addEventListener("mailagent:connect", () => {
+        Gate()?.clearConnectGate(gateEl);
+        loadInboxList();
+        if (deepInbox) loadInboxDetail(deepInbox, null);
+      });
+      document.addEventListener("mailagent:disconnect", showGate);
 
       let simulateScenarios = null;
 
@@ -125,9 +145,8 @@
       }
 
       async function authFetch(path, init) {
-        const base = baseEl.value.replace(/\/$/, "");
-        const key = keyEl.value.trim();
-        localStorage.setItem(STORAGE_KEY, key);
+        const base = App().getBase();
+        const key = App().getKey();
         const res = await fetch(`${base}${path}`, {
           ...init,
           headers: {
@@ -140,6 +159,11 @@
       }
 
       async function loadInboxList() {
+        if (!App()?.getKey()) {
+          showGate();
+          return;
+        }
+        Gate()?.clearConnectGate(gateEl);
         errEl.hidden = true;
         detailEl.hidden = true;
         listEl.innerHTML = "";
@@ -254,7 +278,7 @@
       }
 
       function copyCurl(base, inboxId, kind) {
-        const key = keyEl.value.trim();
+        const key = App().getKey();
         const path =
           kind === "wait"
             ? `/v1/inboxes/${inboxId}/wait?timeout=120`
@@ -269,14 +293,9 @@
         return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
       }
 
-      if (deepInbox && keyEl.value) {
-        loadInboxDetail(deepInbox, null);
-      } else if (deepInbox) {
+      if (deepInbox && !App()?.getKey()) {
         detailEl.hidden = false;
-        detailEl.innerHTML = `<p class="doc-note">Enter API key and reload, or submit the form — inbox <code>${esc(deepInbox)}</code> will open automatically.</p>`;
-        keyEl.addEventListener("change", () => {
-          if (keyEl.value.trim()) loadInboxDetail(deepInbox, null);
-        });
+        detailEl.innerHTML = `<p class="doc-note">Connect with your API key above — inbox <code>${esc(deepInbox)}</code> will open automatically.</p>`;
       }
     </script>
   </body>

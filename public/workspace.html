@@ -14,42 +14,37 @@
     />
     <link rel="stylesheet" href="/styles.css" />
   </head>
-  <body class="doc-page" data-site="docs" data-doc="workspace">
+  <body class="app-page" data-site="app" data-doc="workspace">
     <div id="site-nav"></div>
 
-    <div class="doc-layout">
-      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
-      <article class="doc-content doc-content--wide">
-        <h1>Workspace</h1>
-        <p class="doc-lead">
-          Gmail triage, digest, automation rules, monitors, drafts, and reminders.
-          <a href="/docs/agents.html">Agent docs →</a>
-        </p>
-
-        <form class="app-form" id="form" onsubmit="return false">
-          <label for="base">API base</label>
-          <input id="base" type="url" value="https://api.webmailagent.com" />
-          <label for="key">API key</label>
-          <input id="key" type="password" autocomplete="off" placeholder="ma_…" />
-          <button type="button" id="load">Connect</button>
-        </form>
-
-        <div id="status-banner" class="workspace-banner" hidden></div>
-        <div id="out" class="app-card">Enter API key and connect.</div>
-      </article>
-    </div>
+    <main class="dash-main">
+      <div class="dash-container dash-container--wide">
+        <div id="connect-gate"></div>
+        <header class="dash-toolbar" data-gate-hide>
+          <div>
+            <h1>Workspace</h1>
+            <p class="dash-toolbar__sub">Gmail triage, calendar, rules, and autonomous drafts.</p>
+          </div>
+        </header>
+        <div id="status-banner" class="workspace-banner" data-gate-hide hidden></div>
+        <div id="out" data-gate-hide></div>
+      </div>
+    </main>
 
     <div id="site-footer"></div>
     <script src="/console-ui.js"></script>
     <script src="/site-shell.js" defer></script>
+    <script src="/app-connect-gate.js" defer></script>
+    <script src="/app-insights.js" defer></script>
+    <script src="/app-session.js" defer></script>
     <script>
-      /** Workspace console — Inbox / Triage / Digest / Rules / Monitors. */
+      /** Workspace console — Inbox / Triage / Digest / Calendar / Rules / Monitors. */
       const UI = () => window.MailAgentUI;
-      const KEY = "mailagent_dashboard_key";
+      const App = () => window.MailAgentApp;
+      const Gate = () => window.MailAgentConnectGate;
+      const gateEl = document.getElementById("connect-gate");
       const COMPOSE_SCOPE = "gmail.compose";
       const RULE_KINDS = ["invoice", "support", "meeting", "follow_up"];
-      const baseEl = document.getElementById("base");
-      const keyEl = document.getElementById("key");
       const out = document.getElementById("out");
       const bannerEl = document.getElementById("status-banner");
 
@@ -76,7 +71,52 @@
       let monitorRuns = [];
       let monitorsLoading = false;
 
-      if (localStorage.getItem(KEY)) keyEl.value = localStorage.getItem(KEY);
+      let calendarAccounts = [];
+      let selectedCalendarAccountId = "";
+      let agendaData = null;
+      let agendaLoading = false;
+      let availabilityData = null;
+      let availabilityLoading = false;
+      let meetingSuggestData = null;
+      let meetingSuggestLoading = false;
+      let openAgendaAfterConnect = false;
+
+      function showSetupState() {
+        out.innerHTML = `<div class="ws-setup">
+          <div class="ws-setup__card">
+            <p class="dash-onboard__eyebrow">Workspace</p>
+            <h2 class="ws-setup__title">Connect Gmail to start</h2>
+            <p class="ws-setup__desc">Triage inbox, draft replies, calendar agenda, and rules require a linked Google account.</p>
+            <button type="button" class="dash-btn dash-btn--primary" id="gmail-connect-only">Connect Gmail</button>
+            <button type="button" class="dash-btn" id="calendar-connect-setup">Connect Calendar</button>
+            <p class="dash-onboard__hint"><a href="/docs/agents.html">Workspace Agent docs</a> · LLM keys on the API worker</p>
+          </div>
+        </div>`;
+        document.getElementById("gmail-connect-only")?.addEventListener("click", connectGmailOAuth);
+        document.getElementById("calendar-connect-setup")?.addEventListener("click", connectCalendarOAuth);
+      }
+
+      async function connectGmailOAuth() {
+        const r = await api("/v1/workspace/gmail/connect?returnTo=/workspace.html");
+        if (r.ok) location.href = r.json.url;
+        else await UI().alert({ title: "OAuth", message: r.json.error || "Failed" });
+      }
+
+      function showEmptyState() {
+        Gate()?.renderConnectGate(gateEl, {
+          title: "Connect to Workspace",
+          desc: "Link Gmail and Calendar after connecting your API key. Triage, drafts, and rules live here.",
+        });
+        out.innerHTML = "";
+        setBanner("");
+      }
+
+      document.addEventListener("mailagent:session-ready", () => {
+        if (!App()?.getKey()) showEmptyState();
+        else connect();
+      });
+      document.addEventListener("mailagent:connect", connect);
+      document.addEventListener("mailagent:disconnect", showEmptyState);
 
       function esc(s) {
         return UI()?.esc(s) ?? String(s ?? "");
@@ -86,22 +126,33 @@
         return accounts.find((a) => a.id === selectedAccountId) || null;
       }
 
+      function selectedCalendarAccount() {
+        return calendarAccounts.find((a) => a.id === selectedCalendarAccountId) || null;
+      }
+
+      function applyOAuthReturnParams() {
+        const params = new URLSearchParams(location.search);
+        const gmailId = params.get("gmailAccountId")?.trim();
+        const calId = params.get("calendarAccountId")?.trim();
+        const email = params.get("email")?.trim();
+        if (!gmailId && !calId) return;
+        if (gmailId) selectedAccountId = gmailId;
+        if (calId) {
+          selectedCalendarAccountId = calId;
+          openAgendaAfterConnect = true;
+        }
+        history.replaceState({}, "", location.pathname);
+        if (email) UI().toast(`Connected ${email}`, "ok");
+      }
+
+      applyOAuthReturnParams();
+
       function accountHasCompose(account) {
         return (account?.scopes || []).some((s) => s.includes(COMPOSE_SCOPE));
       }
 
       async function api(path, opts) {
-        const base = baseEl.value.replace(/\/$/, "");
-        const r = await fetch(`${base}${path}`, {
-          ...opts,
-          headers: {
-            Authorization: `Bearer ${keyEl.value.trim()}`,
-            "Content-Type": "application/json",
-            ...(opts?.headers || {}),
-          },
-        });
-        const json = await r.json().catch(() => ({}));
-        return { ok: r.ok, status: r.status, json };
+        return App().api(path, opts);
       }
 
       function setBanner(html) {
@@ -248,6 +299,97 @@
             .join("")}</div>`;
       }
 
+      function renderAgendaPanel() {
+        if (!selectedCalendarAccountId) {
+          return `<div class="workspace-empty-panel">
+              <p>Link Google Calendar to see today&apos;s agenda.</p>
+              <button type="button" class="app-btn" id="calendar-connect-panel">Connect Calendar</button>
+            </div>`;
+        }
+        if (agendaLoading) {
+          return `<div class="workspace-empty-panel">Loading agenda…</div>`;
+        }
+        if (!agendaData) {
+          return `<div class="workspace-empty-panel">
+              <p>Daily event list with conflict highlights for ${esc(selectedCalendarAccount()?.email || "selected account")}.</p>
+              <button type="button" class="app-btn" id="btn-load-agenda">Load agenda</button>
+            </div>`;
+        }
+        const items = agendaData.items || [];
+        const itemRows = items.length
+          ? `<ul class="workspace-hit-list">${items
+              .map(
+                (item) => `<li>
+                  <div><strong>${esc(item.label || item.summary)}</strong>${item.hasConflict ? ' <span class="sync-badge sync-badge--warn">conflict</span>' : ""}</div>
+                  <div class="console-meta">${esc(item.summary)}${item.location ? ` · ${esc(item.location)}` : ""}</div>
+                </li>`
+              )
+              .join("")}</ul>`
+          : `<div class="workspace-empty-panel">No events on ${esc(agendaData.date)}.</div>`;
+        return `<p class="workspace-triage-meta">${esc(agendaData.accountEmail)} · ${esc(agendaData.date)} · ${esc(agendaData.timeZone)} · ${esc(agendaData.eventCount)} events${agendaData.conflictCount ? ` · ${esc(agendaData.conflictCount)} conflicts` : ""}</p>
+          <p class="workspace-digest-item__summary">${esc(agendaData.summary || "")}</p>
+          ${itemRows}
+          <button type="button" class="app-btn app-btn--ghost" id="btn-load-agenda">Refresh agenda</button>`;
+      }
+
+      function renderAvailabilityPanel() {
+        if (!selectedCalendarAccountId) {
+          return `<div class="workspace-empty-panel">
+              <p>Link Google Calendar to scan free slots in working hours.</p>
+              <button type="button" class="app-btn" id="calendar-connect-panel">Connect Calendar</button>
+            </div>`;
+        }
+        if (availabilityLoading) {
+          return `<div class="workspace-empty-panel">Scanning availability…</div>`;
+        }
+        const controls = `<div class="workspace-form-grid">
+            <label>Days ahead<input id="avail-days" type="number" min="1" max="14" value="7" /></label>
+            <label>Slot length (min)<input id="avail-duration" type="number" min="15" max="240" step="15" value="30" /></label>
+          </div>
+          <button type="button" class="app-btn" id="btn-load-availability">Find free slots</button>`;
+        if (!availabilityData) {
+          return `<div class="workspace-empty-panel">
+              <p>Working-hours free/busy for ${esc(selectedCalendarAccount()?.email || "selected account")}.</p>
+              ${controls}
+            </div>`;
+        }
+        const slots = availabilityData.freeSlots || [];
+        const slotList = slots.length
+          ? `<ul class="workspace-hit-list">${slots
+              .map(
+                (slot) => `<li>
+                  <div><strong>${esc(slot.label || slot.start)}</strong></div>
+                  <div class="console-meta">${esc(new Date(slot.start).toLocaleString())} – ${esc(new Date(slot.end).toLocaleTimeString())}</div>
+                </li>`
+              )
+              .join("")}</ul>`
+          : `<div class="workspace-empty-panel">No open slots in the next ${esc(availabilityData.daysScanned ?? 7)} days.</div>`;
+        return `<p class="workspace-triage-meta">${esc(availabilityData.timeZone)} · ${esc(availabilityData.durationMinutes)} min slots · ${esc(availabilityData.busyEvents ?? 0)} busy events · hours ${esc(availabilityData.workingHours?.start ?? 9)}–${esc(availabilityData.workingHours?.end ?? 18)}</p>
+          ${slotList}
+          ${controls}`;
+      }
+
+      function renderMeetingSuggestions() {
+        if (meetingSuggestLoading) {
+          return `<div class="workspace-empty-panel">Finding meeting slots…</div>`;
+        }
+        if (!meetingSuggestData) return "";
+        const parsed = meetingSuggestData.parsedFromThread || {};
+        const meta = `<p class="workspace-triage-meta">${esc(meetingSuggestData.durationMinutes)} min · ${esc(meetingSuggestData.timeZone)}${parsed.meetingKeywords ? " · meeting language in thread" : ""}</p>`;
+        const suggestions = meetingSuggestData.suggestions || [];
+        if (!suggestions.length) {
+          return `${meta}<div class="workspace-empty-panel">No open slots in the requested window.</div>`;
+        }
+        return `${meta}<ul class="workspace-hit-list">${suggestions
+          .map(
+            (slot, index) => `<li>
+              <div><strong>${index + 1}. ${esc(slot.label || slot.start)}</strong> ${UI().statusBadge(slot.confidence)}</div>
+              <div class="console-meta">${esc(slot.reason?.replace(/_/g, " ") || "")}</div>
+            </li>`
+          )
+          .join("")}</ul>`;
+      }
+
       function renderRuleEvalHits() {
         const hits = ruleEvalResult?.hits || [];
         if (!hits.length) {
@@ -392,6 +534,10 @@
             return renderTriagePanel();
           case "digest":
             return renderDigestPanel();
+          case "agenda":
+            return renderAgendaPanel();
+          case "availability":
+            return renderAvailabilityPanel();
           case "rules":
             return renderRulesPanel();
           case "monitors":
@@ -417,6 +563,13 @@
           ? ""
           : `<button type="button" class="app-btn app-btn--ghost" id="gmail-connect-compose">Enable Gmail drafts</button>`;
 
+        const meetingBtnDisabled = !selectedCalendarAccountId || !selectedThreadId;
+        const meetingBtnTitle = !selectedCalendarAccountId
+          ? "Connect Calendar in the toolbar first"
+          : !selectedThreadId
+            ? "Select a thread first"
+            : "";
+
         return `<div class="workspace-layout">
             <div class="workspace-pane">
               <div class="workspace-pane__head">Threads</div>
@@ -432,9 +585,11 @@
                   <button type="button" class="app-btn" id="btn-summarize">Summarize</button>
                   <button type="button" class="app-btn app-btn--ghost" id="btn-draft">Draft reply</button>
                   <button type="button" class="app-btn app-btn--ghost" id="btn-suggest-reminders">Suggest reminders</button>
+                  <button type="button" class="app-btn app-btn--ghost" id="btn-suggest-meeting"${meetingBtnDisabled ? " disabled" : ""}${meetingBtnTitle ? ` title="${esc(meetingBtnTitle)}"` : ""}>Suggest meeting times</button>
                   <button type="button" class="app-btn app-btn--ghost" id="btn-save-gmail-draft">Save to Gmail draft</button>
                   ${composeHint}
                 </div>
+                <div id="meeting-suggestions">${renderMeetingSuggestions()}</div>
                 <div id="suggest-reminders">${renderSuggestedReminders()}</div>
                 <h3 style="margin:8px 0 0;font-size:0.95rem">Open reminders</h3>
                 ${renderReminders()}
@@ -459,10 +614,19 @@
           )
           .join("");
 
+        const calendarOpts = calendarAccounts
+          .map(
+            (a) =>
+              `<option value="${esc(a.id)}"${a.id === selectedCalendarAccountId ? " selected" : ""}>${esc(a.email)}</option>`
+          )
+          .join("");
+
         const tabs = [
           { id: "inbox", label: "Inbox" },
           { id: "triage", label: "Triage" },
           { id: "digest", label: "Digest" },
+          { id: "agenda", label: "Agenda" },
+          { id: "availability", label: "Availability" },
           { id: "rules", label: "Rules" },
           { id: "monitors", label: "Monitors" },
         ];
@@ -470,8 +634,11 @@
         out.innerHTML = `<div class="workspace-toolbar">
             <label for="gmail-account">Gmail</label>
             <select id="gmail-account">${accountOpts || '<option value="">—</option>'}</select>
+            <label for="calendar-account">Calendar</label>
+            <select id="calendar-account">${calendarOpts || '<option value="">—</option>'}</select>
             <button type="button" class="app-btn app-btn--ghost" id="reload-data">Refresh</button>
             <a class="app-btn app-btn--ghost" id="gmail-connect" href="#">Connect Gmail</a>
+            <a class="app-btn app-btn--ghost" id="calendar-connect" href="#">Connect Calendar</a>
           </div>
           <nav class="workspace-tabs" aria-label="Workspace views">
             ${tabs
@@ -494,6 +661,8 @@
         renderLayout();
         if (tab === "triage" && !triageData && !triageLoading) loadTriage();
         if (tab === "digest" && !digestData && !digestLoading) loadDigest();
+        if (tab === "agenda" && !agendaData && !agendaLoading && selectedCalendarAccountId) loadAgenda();
+        if (tab === "availability" && !availabilityData && !availabilityLoading && selectedCalendarAccountId) loadAvailability();
         if (tab === "rules" && !rulesStatus && !rulesLoading) loadRules();
         if (tab === "monitors" && !monitors.length && !monitorsLoading) loadMonitors();
       }
@@ -774,6 +943,88 @@
         location.href = r.json.url;
       }
 
+      async function connectCalendarOAuth() {
+        const r = await api("/v1/workspace/calendar/connect?returnTo=/workspace.html");
+        if (!r.ok) {
+          await UI().alert({ title: "Calendar OAuth", message: r.json.error || "OAuth not configured" });
+          return;
+        }
+        location.href = r.json.url;
+      }
+
+      async function loadAgenda() {
+        if (!selectedCalendarAccountId) return;
+        agendaLoading = true;
+        if (activeTab === "agenda") renderLayout();
+        const r = await api(
+          `/v1/workspace/calendar/agenda?accountId=${encodeURIComponent(selectedCalendarAccountId)}`
+        );
+        agendaLoading = false;
+        if (!r.ok) {
+          await UI().alert({ title: "Agenda failed", message: r.json.error || String(r.status) });
+          agendaData = null;
+          if (activeTab === "agenda") renderLayout();
+          return;
+        }
+        agendaData = r.json;
+        if (activeTab === "agenda") renderLayout();
+        UI().toast(`Agenda: ${agendaData.eventCount ?? 0} events`, "ok");
+      }
+
+      async function loadAvailability() {
+        if (!selectedCalendarAccountId) return;
+        availabilityLoading = true;
+        if (activeTab === "availability") renderLayout();
+        const days = Number(document.getElementById("avail-days")?.value || 7);
+        const durationMinutes = Number(document.getElementById("avail-duration")?.value || 30);
+        const r = await api(
+          `/v1/workspace/calendar/availability?accountId=${encodeURIComponent(selectedCalendarAccountId)}&days=${days}&durationMinutes=${durationMinutes}`
+        );
+        availabilityLoading = false;
+        if (!r.ok) {
+          await UI().alert({ title: "Availability failed", message: r.json.error || String(r.status) });
+          availabilityData = null;
+          if (activeTab === "availability") renderLayout();
+          return;
+        }
+        availabilityData = r.json;
+        if (activeTab === "availability") renderLayout();
+        UI().toast(`${availabilityData.freeSlots?.length ?? 0} free slot(s)`, "ok");
+      }
+
+      async function suggestMeeting() {
+        if (!selectedCalendarAccountId) {
+          await UI().alert({ title: "Calendar", message: "Connect Google Calendar in the toolbar first." });
+          return;
+        }
+        if (!selectedAccountId || !selectedThreadId) {
+          await UI().alert({ title: "Thread", message: "Select a Gmail thread first." });
+          return;
+        }
+        meetingSuggestLoading = true;
+        meetingSuggestData = null;
+        if (activeTab === "inbox") renderLayout();
+        const r = await api("/v1/workspace/calendar/suggest-meeting", {
+          method: "POST",
+          body: JSON.stringify({
+            calendarAccountId: selectedCalendarAccountId,
+            gmailAccountId: selectedAccountId,
+            gmailThreadId: selectedThreadId,
+          }),
+        });
+        meetingSuggestLoading = false;
+        if (!r.ok) {
+          await UI().alert({ title: "Meeting suggestions failed", message: r.json.error || String(r.status) });
+          if (activeTab === "inbox") renderLayout();
+          return;
+        }
+        meetingSuggestData = r.json;
+        const panel = document.getElementById("meeting-suggestions");
+        if (panel) panel.innerHTML = renderMeetingSuggestions();
+        else if (activeTab === "inbox") renderLayout();
+        UI().toast(`${meetingSuggestData.suggestions?.length ?? 0} slot(s) suggested`, "ok");
+      }
+
       async function suggestReminders() {
         if (!selectedAccountId || !selectedThreadId) return;
         const r = await api("/v1/workspace/reminders/suggest", {
@@ -905,20 +1156,36 @@
           triageData = null;
           digestData = null;
           suggestedReminders = [];
+          meetingSuggestData = null;
           ruleEvalResult = null;
           selectedMonitorId = "";
           monitorRuns = [];
           loadThreads();
         });
 
+        document.getElementById("calendar-account")?.addEventListener("change", (e) => {
+          selectedCalendarAccountId = e.target.value;
+          agendaData = null;
+          availabilityData = null;
+          meetingSuggestData = null;
+          if (activeTab === "agenda") loadAgenda();
+          else if (activeTab === "availability") loadAvailability();
+          else if (activeTab === "inbox") renderLayout();
+        });
+
         document.getElementById("reload-data")?.addEventListener("click", async () => {
           triageData = null;
           digestData = null;
+          agendaData = null;
+          availabilityData = null;
+          meetingSuggestData = null;
           ruleEvalResult = null;
           await loadSideData();
           if (activeTab === "inbox") await loadThreads();
           else if (activeTab === "triage") await loadTriage();
           else if (activeTab === "digest") await loadDigest();
+          else if (activeTab === "agenda") await loadAgenda();
+          else if (activeTab === "availability") await loadAvailability();
           else if (activeTab === "rules") await loadRules();
           else if (activeTab === "monitors") await loadMonitors();
         });
@@ -933,6 +1200,16 @@
           location.href = r.json.url;
         });
 
+        document.getElementById("calendar-connect")?.addEventListener("click", (e) => {
+          e.preventDefault();
+          connectCalendarOAuth();
+        });
+
+        document.getElementById("calendar-connect-panel")?.addEventListener("click", (e) => {
+          e.preventDefault();
+          connectCalendarOAuth();
+        });
+
         document.getElementById("gmail-connect-compose")?.addEventListener("click", (e) => {
           e.preventDefault();
           connectComposeOAuth();
@@ -944,6 +1221,8 @@
 
         document.getElementById("btn-load-triage")?.addEventListener("click", loadTriage);
         document.getElementById("btn-load-digest")?.addEventListener("click", loadDigest);
+        document.getElementById("btn-load-agenda")?.addEventListener("click", loadAgenda);
+        document.getElementById("btn-load-availability")?.addEventListener("click", loadAvailability);
         document.getElementById("btn-create-rule")?.addEventListener("click", createRule);
         document.getElementById("btn-evaluate-rules")?.addEventListener("click", evaluateRules);
         document.getElementById("btn-create-monitor")?.addEventListener("click", createMonitor);
@@ -974,6 +1253,7 @@
         out.querySelectorAll(".workspace-thread-item[data-thread-id]").forEach((btn) => {
           btn.addEventListener("click", () => {
             suggestedReminders = [];
+            meetingSuggestData = null;
             loadThread(btn.getAttribute("data-thread-id"));
           });
         });
@@ -1019,6 +1299,7 @@
         });
 
         document.getElementById("btn-suggest-reminders")?.addEventListener("click", suggestReminders);
+        document.getElementById("btn-suggest-meeting")?.addEventListener("click", suggestMeeting);
         document.getElementById("btn-save-gmail-draft")?.addEventListener("click", saveGmailDraft);
 
         document.getElementById("draft-body")?.addEventListener("input", (e) => {
@@ -1027,15 +1308,18 @@
       }
 
       async function connect() {
-        const key = keyEl.value.trim();
-        if (!key) return;
-        localStorage.setItem(KEY, key);
+        if (!App()?.getKey()) {
+          showEmptyState();
+          return;
+        }
+        Gate()?.clearConnectGate(gateEl);
         out.textContent = "Loading…";
 
-        const [modelRes, gmailRes, accRes] = await Promise.all([
+        const [modelRes, gmailRes, accRes, calAccRes] = await Promise.all([
           api("/v1/workspace/models"),
           api("/v1/workspace/gmail/status"),
           api("/v1/workspace/gmail/accounts"),
+          api("/v1/workspace/calendar/accounts"),
         ]);
 
         const readiness = modelRes.json?.readiness || modelRes.json;
@@ -1054,10 +1338,26 @@
         }
 
         accounts = accRes.ok ? accRes.json.accounts || [] : [];
-        selectedAccountId = accounts[0]?.id || "";
+        calendarAccounts = calAccRes.ok ? calAccRes.json.accounts || [] : [];
+        if (
+          selectedCalendarAccountId &&
+          !calendarAccounts.find((a) => a.id === selectedCalendarAccountId)
+        ) {
+          selectedCalendarAccountId = calendarAccounts[0]?.id || "";
+        } else if (!selectedCalendarAccountId) {
+          selectedCalendarAccountId = calendarAccounts[0]?.id || "";
+        }
+        if (selectedAccountId && !accounts.find((a) => a.id === selectedAccountId)) {
+          selectedAccountId = accounts[0]?.id || "";
+        } else if (!selectedAccountId) {
+          selectedAccountId = accounts[0]?.id || "";
+        }
         activeTab = "inbox";
         triageData = null;
         digestData = null;
+        agendaData = null;
+        availabilityData = null;
+        meetingSuggestData = null;
         suggestedReminders = [];
         rulesStatus = null;
         rules = [];
@@ -1069,21 +1369,16 @@
         await loadSideData();
 
         if (!accounts.length) {
-          out.innerHTML = `<p>No Gmail accounts linked.</p>
-            <button type="button" class="app-btn" id="gmail-connect-only">Connect Gmail</button>`;
-          document.getElementById("gmail-connect-only")?.addEventListener("click", async () => {
-            const r = await api("/v1/workspace/gmail/connect?returnTo=/workspace.html");
-            if (r.ok) location.href = r.json.url;
-            else await UI().alert({ title: "OAuth", message: r.json.error || "Failed" });
-          });
+          showSetupState();
           return;
         }
 
         await loadThreads();
+        if (openAgendaAfterConnect && selectedCalendarAccountId) {
+          openAgendaAfterConnect = false;
+          switchTab("agenda");
+        }
       }
-
-      document.getElementById("load").onclick = connect;
-      if (keyEl.value) connect();
     </script>
   </body>
 </html>

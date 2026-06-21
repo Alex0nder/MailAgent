@@ -14,46 +14,45 @@
     />
     <link rel="stylesheet" href="/styles.css" />
   </head>
-  <body class="doc-page" data-site="docs" data-doc="agent-runs">
+  <body class="app-page" data-site="app" data-doc="agent-runs">
     <div id="site-nav"></div>
 
-    <div class="doc-layout">
-      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
-      <article class="doc-content doc-content--wide">
-      <h1>Agent runs</h1>
-      <p class="doc-lead">
-        Active inboxes grouped by <code>runId</code> (<code>label=agent-{runId}</code>).
-        <a href="/docs/agents.html">Agent docs →</a>
-      </p>
-
-      <form class="app-form" id="form" onsubmit="return false">
-        <label for="base">API base</label>
-        <input id="base" type="url" value="https://api.webmailagent.com" />
-        <label for="key">API key</label>
-        <input id="key" type="password" autocomplete="off" placeholder="ma_…" />
-        <label for="filter">Filter runId (optional)</label>
-        <input id="filter" type="text" placeholder="cursor-session-42" />
-        <label for="label-filter">Filter label prefix (optional)</label>
-        <input id="label-filter" type="text" placeholder="ci-" />
-        <button type="button" id="load">Load runs</button>
-      </form>
-
-      <div id="list"></div>
-      </article>
-    </div>
+    <main class="dash-main">
+      <div class="dash-container dash-container--wide">
+        <div id="connect-gate"></div>
+        <header class="dash-toolbar" data-gate-hide>
+          <div>
+            <h1>Runs</h1>
+            <p class="dash-toolbar__sub">Autonomous agent sessions, timelines, and tool traces.</p>
+          </div>
+        </header>
+        <div class="dash-panel" data-gate-hide>
+          <div class="dash-panel__body dash-panel__body--padded">
+          <div class="workspace-form-grid" style="margin-bottom:16px">
+            <label for="filter">Filter runId (optional)<input id="filter" type="text" placeholder="cursor-session-42" /></label>
+            <label for="label-filter">Filter label prefix (optional)<input id="label-filter" type="text" placeholder="ci-" /></label>
+          </div>
+          <button type="button" class="app-btn app-btn--ghost" id="reload-runs">Refresh</button>
+          <div id="list"></div>
+          </div>
+        </div>
+      </div>
+    </main>
 
     <div id="site-footer"></div>
     <script src="/console-ui.js"></script>
     <script src="/site-shell.js" defer></script>
+    <script src="/app-connect-gate.js" defer></script>
+    <script src="/app-insights.js" defer></script>
+    <script src="/app-session.js" defer></script>
     <script>
       const UI = () => window.MailAgentUI;
-      const KEY = "mailagent_dashboard_key";
-      const baseEl = document.getElementById("base");
-      const keyEl = document.getElementById("key");
+      const App = () => window.MailAgentApp;
+      const Gate = () => window.MailAgentConnectGate;
+      const gateEl = document.getElementById("connect-gate");
       const filterEl = document.getElementById("filter");
       const labelFilterEl = document.getElementById("label-filter");
       const listEl = document.getElementById("list");
-      if (localStorage.getItem(KEY)) keyEl.value = localStorage.getItem(KEY);
 
       let cachedRuns = [];
 
@@ -125,11 +124,25 @@
         renderRuns(runs);
       }
 
+      function showEmptyState() {
+        Gate()?.renderConnectGate(gateEl, {
+          title: "Connect to view runs",
+          desc: "Autonomous agent sessions, timelines, and tool traces load after you connect.",
+        });
+        listEl.innerHTML = "";
+      }
+
+      document.addEventListener("mailagent:session-ready", () => {
+        if (!App()?.getKey()) showEmptyState();
+        else loadRuns();
+      });
+
       async function loadRuns() {
-        const base = baseEl.value.replace(/\/$/, "");
-        const key = keyEl.value.trim();
-        if (!key) return;
-        localStorage.setItem(KEY, key);
+        if (!App()?.getKey()) {
+          showEmptyState();
+          return;
+        }
+        Gate()?.clearConnectGate(gateEl);
         listEl.innerHTML = '<p class="app-lead" style="margin-top:24px">Loading…</p>';
         const q = new URLSearchParams();
         const runId = filterEl.value.trim();
@@ -139,12 +152,10 @@
         const path = runId && !label
           ? `/v1/agent/runs/${encodeURIComponent(runId)}`
           : `/v1/agent/runs?${q}`;
-        const res = await fetch(`${base}${path}`, {
-          headers: { Authorization: `Bearer ${key}` },
-        });
-        const data = await res.json();
+        const res = await App().api(path);
+        const data = res.json;
         if (!res.ok) {
-          listEl.innerHTML = `<p class="app-err">${esc(data.error || res.statusText)}</p>`;
+          listEl.innerHTML = `<p class="app-err">${esc(data.error || res.status)}</p>`;
           return;
         }
         cachedRuns = data.runs ?? (data.runId ? [data] : []);
@@ -155,7 +166,9 @@
         }
       }
 
-      document.getElementById("load").onclick = loadRuns;
+      document.getElementById("reload-runs").onclick = loadRuns;
+      document.addEventListener("mailagent:connect", loadRuns);
+      document.addEventListener("mailagent:disconnect", showEmptyState);
       const debouncedFilter = UI().debounce(applyClientFilter, 320);
       filterEl.addEventListener("input", debouncedFilter);
       labelFilterEl.addEventListener("input", debouncedFilter);

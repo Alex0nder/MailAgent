@@ -14,39 +14,37 @@
     />
     <link rel="stylesheet" href="/styles.css" />
   </head>
-  <body class="doc-page" data-site="docs" data-doc="dashboard">
+  <body class="app-page" data-site="app" data-doc="dashboard">
     <div id="site-nav"></div>
 
-    <div class="doc-layout">
-      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
-      <article class="doc-content">
-        <p><a href="/dashboard.html">← Console</a></p>
-        <h1 id="title">Inbox</h1>
-        <p class="doc-lead" id="lead">Loading…</p>
-
-        <form class="app-form" id="form" onsubmit="return false">
-          <label for="base">API base</label>
-          <input id="base" type="url" value="https://api.webmailagent.com" />
-          <label for="key">API key</label>
-          <input id="key" type="password" autocomplete="off" placeholder="ma_…" />
-          <button type="button" id="load">Refresh</button>
-        </form>
-
-        <div class="app-card" id="out">Enter API key.</div>
-      </article>
-    </div>
+    <main class="dash-main">
+      <div class="dash-container">
+        <div id="connect-gate"></div>
+        <header class="dash-toolbar" data-gate-hide>
+          <div>
+            <p class="console-meta" style="margin:0 0 6px"><a href="/dashboard.html">← Overview</a></p>
+            <h1 id="title">Inbox</h1>
+            <p class="dash-toolbar__sub" id="lead">Loading…</p>
+          </div>
+        </header>
+        <div class="dash-panel" id="out-wrap" data-gate-hide><div class="dash-panel__body dash-panel__body--padded" id="out"></div></div>
+      </div>
+    </main>
 
     <div id="site-footer"></div>
     <script src="/console-ui.js"></script>
     <script src="/site-shell.js" defer></script>
+    <script src="/app-connect-gate.js" defer></script>
+    <script src="/app-insights.js" defer></script>
+    <script src="/app-session.js" defer></script>
     <script>
       const UI = () => window.MailAgentUI;
-      const KEY = "mailagent_dashboard_key";
+      const App = () => window.MailAgentApp;
+      const Gate = () => window.MailAgentConnectGate;
+      const gateEl = document.getElementById("connect-gate");
       const MSG_PAGE = 15;
       const params = new URLSearchParams(location.search);
       const inboxId = params.get("inbox");
-      const baseEl = document.getElementById("base");
-      const keyEl = document.getElementById("key");
       const out = document.getElementById("out");
       const titleEl = document.getElementById("title");
       const leadEl = document.getElementById("lead");
@@ -55,7 +53,6 @@
       let msgVisible = MSG_PAGE;
       let selectedMsgId = null;
 
-      if (localStorage.getItem(KEY)) keyEl.value = localStorage.getItem(KEY);
       if (!inboxId) {
         leadEl.textContent = "Missing ?inbox=INBOX_ID in URL.";
       }
@@ -64,21 +61,8 @@
         return UI()?.esc(s) ?? String(s ?? "");
       }
 
-      function apiHeaders() {
-        return {
-          Authorization: `Bearer ${keyEl.value.trim()}`,
-          "Content-Type": "application/json",
-        };
-      }
-
       async function api(path, opts) {
-        const base = baseEl.value.replace(/\/$/, "");
-        const r = await fetch(`${base}${path}`, {
-          ...opts,
-          headers: { ...apiHeaders(), ...(opts?.headers || {}) },
-        });
-        const json = await r.json().catch(() => ({}));
-        return { ok: r.ok, status: r.status, json };
+        return App().api(path, opts);
       }
 
       function renderMessageDetail(m, d) {
@@ -535,11 +519,21 @@
         document.getElementById("search-btn")?.addEventListener("click", runSearch);
       }
 
+      function showGate() {
+        Gate()?.renderConnectGate(gateEl, {
+          title: "Connect to open inbox",
+          desc: "Paste your API key to load messages, attachments, and simulate OTP for this inbox.",
+        });
+        out.innerHTML = "";
+      }
+
       async function load() {
         if (!inboxId) return;
-        const key = keyEl.value.trim();
-        if (!key) return;
-        localStorage.setItem(KEY, key);
+        if (!App()?.getKey()) {
+          showGate();
+          return;
+        }
+        Gate()?.clearConnectGate(gateEl);
         out.textContent = "Loading…";
 
         const r = await api(`/v1/console/inboxes/${encodeURIComponent(inboxId)}`);
@@ -553,8 +547,12 @@
         await renderDetail(lastDetail);
       }
 
-      document.getElementById("load").onclick = load;
-      if (inboxId && keyEl.value) load();
+      document.addEventListener("mailagent:session-ready", () => {
+        if (inboxId && !App()?.getKey()) showGate();
+        else if (inboxId) load();
+      });
+      document.addEventListener("mailagent:connect", load);
+      document.addEventListener("mailagent:disconnect", showGate);
     </script>
   </body>
 </html>

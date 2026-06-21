@@ -15,7 +15,7 @@
         { href: "/#qa", label: "QA / Playwright", desc: "Isolated inboxes per CI worker" },
         { href: "/#workspace", label: "Workspace Agent", desc: "Summarize, draft, policy-gated send" },
         { href: "/#mcp", label: "MCP tools", desc: "49 agent tools for QA and mail" },
-        { href: "/dashboard.html", label: "Console", desc: "Inboxes, keys, audit log" },
+        { href: "/dashboard.html", label: "Dashboard", desc: "Plan, inboxes, keys, billing" },
         { href: "/workspace.html", label: "Workspace", desc: "Gmail triage, rules, monitors, drafts" },
       ],
     },
@@ -41,12 +41,54 @@
     },
   ];
 
+  /** App sidebar nav — Resend / Vercel pattern (Mobbin refs). */
+  const CONSOLE_ITEMS = [
+    {
+      id: "dashboard",
+      href: "/dashboard.html",
+      label: "Overview",
+      icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>`,
+    },
+    {
+      id: "workspace",
+      href: "/workspace.html",
+      label: "Workspace",
+      icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2.5 4.5h11v7a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-7Z"/><path d="M2.5 4.5 8 8.5l5.5-4"/></svg>`,
+    },
+    {
+      id: "audit",
+      href: "/audit.html",
+      label: "Logs",
+      icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 3h10v10H3z"/><path d="M5.5 6.5h5M5.5 9h5"/></svg>`,
+    },
+    {
+      id: "debug",
+      href: "/debug.html",
+      label: "Debug",
+      icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6.5 3.5 3 7l3.5 3.5M9.5 3.5 13 7l-3.5 3.5"/></svg>`,
+    },
+    {
+      id: "agent-runs",
+      href: "/agent-runs.html",
+      label: "Runs",
+      icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 3.5v9M4 8h6.5l-2.5-2.5L10.5 8l-2.5 2.5"/></svg>`,
+    },
+  ];
+
+  /** Docs sidebar: guides + entry points into console (not full tool list). */
   const DOC_SECTIONS = [
     {
       title: "Start",
       items: [
         { id: "api", href: "/docs/", label: "API reference" },
         { id: "integrate", href: "/docs/integrate.html", label: "Self-host" },
+      ],
+    },
+    {
+      title: "Console",
+      items: [
+        { id: "dashboard", href: "/dashboard.html", label: "Dashboard" },
+        { id: "workspace", href: "/workspace.html", label: "Workspace" },
       ],
     },
     {
@@ -69,17 +111,7 @@
         { id: "enterprise", href: "/docs/enterprise.html", label: "Enterprise" },
         { id: "sla", href: "/docs/sla.html", label: "SLA (draft)" },
         { id: "security", href: "/docs/security.html", label: "Security" },
-      ],
-    },
-    {
-      title: "Console",
-      items: [
-        { id: "dashboard", href: "/dashboard.html", label: "Dashboard" },
-        { id: "workspace", href: "/workspace.html", label: "Workspace" },
-        { id: "audit", href: "/audit.html", label: "Audit log" },
-        { id: "debug", href: "/debug.html", label: "Debug inboxes" },
         { id: "qa-troubleshoot", href: "/docs/qa-troubleshooting.html", label: "Troubleshooting" },
-        { id: "agent-runs", href: "/agent-runs.html", label: "Agent runs" },
       ],
     },
   ];
@@ -118,30 +150,58 @@
     </div>`;
   }
 
+  function renderAppSidebarLink(item) {
+    const cur = docId === item.id || isActive(item.href);
+    return `<a href="${item.href}" class="dash-nav__link${cur ? " is-active" : ""}"${cur ? ' aria-current="page"' : ""}>
+      <span class="dash-nav__icon">${item.icon}</span>
+      <span>${item.label}</span>
+    </a>`;
+  }
+
+  function renderAppInsightsRail() {
+    return `<aside class="dash-rail" id="dash-insights-rail" aria-label="Usage overview">
+      <div id="dash-insights"></div>
+    </aside>`;
+  }
+
+  function renderAppNav() {
+    const links = CONSOLE_ITEMS.map(renderAppSidebarLink).join("");
+    return `<aside class="dash-sidebar" id="site-header">
+      <div class="dash-sidebar__brand">
+        <a href="/dashboard.html" class="dash-sidebar__logo">
+          <span class="logo-mark">${LOGO_SVG}</span>
+          <span>MailAgent</span>
+        </a>
+      </div>
+      <nav class="dash-nav" aria-label="Console">${links}</nav>
+      <div class="dash-sidebar__foot">
+        <div id="app-session-slot"></div>
+        <div class="dash-sidebar__links">
+          <a href="/docs/">Documentation</a>
+          <a href="${GITHUB}" rel="noopener noreferrer">GitHub</a>
+        </div>
+      </div>
+    </aside>`;
+  }
+
   function renderNavLinks() {
     if (mode === "marketing") {
       const dropdowns = NAV_DROPDOWNS.map(renderDropdown).join("");
-      return `${dropdowns}${navLink("/docs/", "Docs")}`;
-    }
-    if (mode === "app") {
-      return `${navLink("/docs/", "Docs")}
-        ${navLink("/docs/integrate.html", "Self-host")}
-        ${navLink("/docs/agents.html", "Agents")}
-        ${navLink("/dashboard.html", "Dashboard")}
-        ${navLink("/debug.html", "Debug")}
-        ${navLink("/agent-runs.html", "Agent runs")}`;
+      return `${dropdowns}${navLink("/docs/", "Docs")}${navLink("/dashboard.html", "Console")}`;
     }
     return `${navLink("/docs/", "Docs")}
       ${navLink("/docs/integrate.html", "Self-host")}
-      ${navLink("/docs/agents.html", "Agents")}`;
+      ${navLink("/docs/agents.html", "Agents")}
+      ${navLink("/dashboard.html", "Dashboard")}
+      ${navLink("/workspace.html", "Workspace")}`;
   }
 
   function renderNav() {
-    const cta =
-      mode === "app"
-        ? `<a class="btn btn-sm btn-outline" href="/docs/">Docs</a>`
-        : `<a class="btn btn-sm btn-nav-cta" href="/docs/qa.html">Start QA setup</a>`;
+    if (mode === "app") return renderAppNav();
 
+    const consoleCta = `<a class="btn btn-sm btn-primary btn-nav-console" href="/dashboard.html">Console</a>`;
+    const qaCta = `<a class="btn btn-sm btn-ghost" href="/docs/qa.html">Start QA setup</a>`;
+    const navCtas = `${qaCta}${consoleCta}`;
     const links = renderNavLinks();
 
     return `<header class="nav" id="site-header">
@@ -156,7 +216,7 @@
         <div class="nav-end">
           <div class="nav-actions">
             <a class="btn btn-sm btn-ghost nav-github" href="${GITHUB}" rel="noopener noreferrer">GitHub</a>
-            ${cta}
+            ${navCtas}
           </div>
           <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="nav-links" id="nav-toggle">
             <span class="sr-only">Menu</span>
@@ -165,22 +225,32 @@
         </div>
         <div class="nav-mobile-actions" id="nav-mobile-actions">
           <a class="btn btn-sm btn-ghost" href="${GITHUB}" rel="noopener noreferrer">GitHub</a>
-          ${cta}
+          ${navCtas}
         </div>
       </div>
     </header>`;
   }
 
+  function renderSidebarLinks(items, linkClass) {
+    return items
+      .map((item) => {
+        const cur = docId === item.id || isActive(item.href);
+        const cls = [linkClass, cur ? "is-active" : ""].filter(Boolean).join(" ");
+        return `<li><a href="${item.href}"${cls ? ` class="${cls}"` : ""}${cur ? ' aria-current="page"' : ""}>${item.label}</a></li>`;
+      })
+      .join("");
+  }
+
+  function renderSidebarSection(title, items) {
+    return `<div class="doc-sidebar-group"><p class="doc-sidebar-title">${title}</p><ul>${renderSidebarLinks(items, "")}</ul></div>`;
+  }
+
   function renderDocSidebar() {
-    return DOC_SECTIONS.map((section) => {
-      const links = section.items
-        .map((item) => {
-          const cur = docId === item.id || isActive(item.href);
-          return `<li><a href="${item.href}"${cur ? ' class="is-active" aria-current="page"' : ""}>${item.label}</a></li>`;
-        })
-        .join("");
-      return `<div class="doc-sidebar-group"><p class="doc-sidebar-title">${section.title}</p><ul>${links}</ul></div>`;
-    }).join("");
+    return DOC_SECTIONS.map((section) => renderSidebarSection(section.title, section.items)).join("");
+  }
+
+  function renderAppFooter() {
+    return "";
   }
 
   /** Full landing footer — single source for all pages. */
@@ -234,6 +304,7 @@
           <ul>
             <li><a href="/dashboard.html">Dashboard</a></li>
             <li><a href="/workspace.html">Workspace</a></li>
+            <li><a href="/audit.html">Audit log</a></li>
             <li><a href="/debug.html">Debug inboxes</a></li>
             <li><a href="/agent-runs.html">Agent runs</a></li>
           </ul>
@@ -495,8 +566,25 @@
   const navMount = document.getElementById("site-nav");
   if (navMount) {
     navMount.outerHTML = renderNav();
-    initNavDropdowns();
-    initNavScroll();
+    if (mode === "app") {
+      const sidebar = document.getElementById("site-header");
+      const main = document.querySelector(".dash-main");
+      if (sidebar && main && !document.querySelector(".dash-app")) {
+        const shell = document.createElement("div");
+        shell.className = "dash-app";
+        sidebar.parentNode.insertBefore(shell, sidebar);
+        shell.appendChild(sidebar);
+
+        const frame = document.createElement("div");
+        frame.className = "dash-frame";
+        frame.appendChild(main);
+        frame.insertAdjacentHTML("beforeend", renderAppInsightsRail());
+        shell.appendChild(frame);
+      }
+    } else {
+      initNavDropdowns();
+      initNavScroll();
+    }
     const header = document.getElementById("site-header");
     const toggle = document.getElementById("nav-toggle");
     const links = document.getElementById("nav-links");
@@ -514,7 +602,8 @@
   }
 
   const footMount = document.getElementById("site-footer");
-  if (footMount) footMount.outerHTML = renderFooter();
-
-  initFooterWordmark();
+  if (footMount) {
+    footMount.outerHTML = mode === "app" ? renderAppFooter() : renderFooter();
+    if (mode !== "app") initFooterWordmark();
+  }
 })();

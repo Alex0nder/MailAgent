@@ -14,45 +14,49 @@
     />
     <link rel="stylesheet" href="/styles.css" />
   </head>
-  <body class="doc-page" data-site="docs" data-doc="audit">
+  <body class="app-page" data-site="app" data-doc="audit">
     <div id="site-nav"></div>
 
-    <div class="doc-layout">
-      <aside class="doc-sidebar" id="site-doc-nav" aria-label="Documentation"></aside>
-      <article class="doc-content doc-content--wide">
-        <h1>Audit log</h1>
-        <p class="doc-lead">
-          Team and key-scoped events — inbox, domain, billing, and key lifecycle.
-          <a href="/docs/enterprise.html">Enterprise →</a>
-        </p>
-
-        <form class="app-form" id="form" onsubmit="return false">
-          <label for="base">API base</label>
-          <input id="base" type="url" value="https://api.webmailagent.com" />
-          <label for="key">API key</label>
-          <input id="key" type="password" autocomplete="off" placeholder="ma_…" />
-          <button type="button" id="load">Refresh</button>
-        </form>
-
-        <div id="meta" class="console-meta"></div>
-        <div id="list"></div>
-        <div class="console-actions" id="pager" hidden>
-          <button type="button" class="app-btn app-btn--ghost" id="more">Load older</button>
+    <main class="dash-main">
+      <div class="dash-container dash-container--wide">
+        <div id="connect-gate"></div>
+        <header class="dash-toolbar" data-gate-hide>
+          <div>
+            <h1>Logs</h1>
+            <p class="dash-toolbar__sub">Team audit trail · streamed like a terminal.</p>
+          </div>
+        </header>
+        <div class="log-terminal" data-gate-hide>
+          <div class="log-terminal__bar">
+            <span class="log-terminal__dots" aria-hidden="true">
+              <i class="log-terminal__dot log-terminal__dot--red"></i>
+              <i class="log-terminal__dot log-terminal__dot--yellow"></i>
+              <i class="log-terminal__dot log-terminal__dot--green"></i>
+            </span>
+            <span class="log-terminal__title">audit.log</span>
+            <span class="log-terminal__meta" id="meta"></span>
+          </div>
+          <div class="log-terminal__body" id="list" tabindex="0" aria-live="polite"></div>
+          <div class="log-terminal__foot" id="pager" hidden>
+            <button type="button" class="log-terminal__more" id="more">↑ load older</button>
+          </div>
         </div>
-      </article>
-    </div>
+      </div>
+    </main>
 
     <div id="site-footer"></div>
     <script src="/site-shell.js" defer></script>
+    <script src="/app-connect-gate.js" defer></script>
+    <script src="/app-insights.js" defer></script>
+    <script src="/app-session.js" defer></script>
     <script>
-      const KEY = "mailagent_dashboard_key";
-      const baseEl = document.getElementById("base");
-      const keyEl = document.getElementById("key");
+      const App = () => window.MailAgentApp;
+      const Gate = () => window.MailAgentConnectGate;
+      const gateEl = document.getElementById("connect-gate");
       const metaEl = document.getElementById("meta");
       const listEl = document.getElementById("list");
       const pagerEl = document.getElementById("pager");
       const moreBtn = document.getElementById("more");
-      if (localStorage.getItem(KEY)) keyEl.value = localStorage.getItem(KEY);
 
       let nextBefore = null;
       let rows = [];
@@ -66,49 +70,78 @@
       }
 
       async function api(path) {
-        const base = baseEl.value.replace(/\/$/, "");
-        const key = keyEl.value.trim();
-        const r = await fetch(`${base}${path}`, {
-          headers: { Authorization: `Bearer ${key}` },
-        });
-        const json = await r.json().catch(() => ({}));
-        return { ok: r.ok, status: r.status, json };
+        return App().api(path);
       }
 
-      function renderTable() {
+      function showEmptyState() {
+        Gate()?.renderConnectGate(gateEl, {
+          title: "Connect to view logs",
+          desc: "Audit events for API actions on your team appear here after you connect.",
+        });
+        listEl.innerHTML = "";
+        metaEl.textContent = "";
+        pagerEl.hidden = true;
+      }
+
+      document.addEventListener("mailagent:session-ready", () => {
+        if (!App()?.getKey()) showEmptyState();
+        else fetchPage(null, false);
+      });
+      document.addEventListener("mailagent:connect", () => fetchPage(null, false));
+
+      function formatTs(iso) {
+        const d = new Date(iso);
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+      }
+
+      function renderTerminal() {
         if (!rows.length) {
-          listEl.innerHTML = `<p class="console-empty">No audit events yet.</p>`;
+          listEl.innerHTML = `<div class="log-terminal__prompt">
+            <span class="log-prompt">$</span>
+            <span class="log-muted">mailagent audit --tail</span>
+          </div>
+          <p class="log-empty">No events yet. API actions on your team will appear here.</p>`;
           return;
         }
-        let html = `<table class="console-table"><thead><tr>
-          <th>Time</th><th>Action</th><th>Resource</th><th>Key</th><th>Meta</th>
-        </tr></thead><tbody>`;
+
+        let html = `<div class="log-terminal__prompt">
+          <span class="log-prompt">$</span>
+          <span class="log-muted">mailagent audit --tail · ${rows.length} events</span>
+        </div>`;
+
         for (const ev of rows) {
-          const res = ev.resourceId
-            ? `${esc(ev.resourceType || "")} <code>${esc(ev.resourceId)}</code>`
-            : "—";
+          const resource =
+            ev.resourceId
+              ? `${esc(ev.resourceType || "resource")}:${esc(ev.resourceId)}`
+              : "—";
           const meta =
             ev.meta && typeof ev.meta === "object" && Object.keys(ev.meta).length
-              ? `<code>${esc(JSON.stringify(ev.meta))}</code>`
-              : "—";
-          html += `<tr>
-            <td>${esc(new Date(ev.createdAt).toLocaleString())}</td>
-            <td><code>${esc(ev.action)}</code></td>
-            <td>${res}</td>
-            <td><code>${esc(ev.apiKeyHint || "—")}</code></td>
-            <td>${meta}</td>
-          </tr>`;
+              ? esc(JSON.stringify(ev.meta))
+              : "";
+          html += `<div class="log-line">
+            <time class="log-ts">${esc(formatTs(ev.createdAt))}</time>
+            <span class="log-action">${esc(ev.action)}</span>
+            <span class="log-resource">${resource}</span>
+            <span class="log-key">${esc(ev.apiKeyHint || "—")}</span>
+            ${meta ? `<span class="log-meta">${meta}</span>` : ""}
+          </div>`;
         }
-        html += `</tbody></table>`;
         listEl.innerHTML = html;
       }
 
       async function fetchPage(before, append) {
-        const key = keyEl.value.trim();
-        if (!key) return;
-        localStorage.setItem(KEY, key);
+        if (!App()?.getKey()) {
+          showEmptyState();
+          return;
+        }
+        Gate()?.clearConnectGate(gateEl);
         if (!append) {
-          listEl.textContent = "Loading…";
+          listEl.innerHTML = `<div class="log-terminal__prompt">
+            <span class="log-prompt">$</span>
+            <span class="log-muted">mailagent audit --tail</span>
+            <span class="log-cursor" aria-hidden="true"></span>
+          </div>`;
           rows = [];
           nextBefore = null;
         } else {
@@ -119,7 +152,7 @@
         if (before) q.set("before", before);
         const res = await api(`/v1/audit?${q}`);
         if (!res.ok) {
-          listEl.innerHTML = `<p class="app-err">${esc(res.json.error || res.status)}</p>`;
+          listEl.innerHTML = `<p class="log-err">error: ${esc(res.json.error || res.status)}</p>`;
           pagerEl.hidden = true;
           return;
         }
@@ -128,13 +161,13 @@
         rows = append ? rows.concat(events) : events;
         nextBefore = res.json.nextBefore || null;
         const days = res.json.policies?.auditRetentionDays ?? 90;
-        metaEl.textContent = `${rows.length} event(s) loaded · retention ${days} days`;
-        renderTable();
+        metaEl.textContent = `retention ${days}d`;
+        renderTerminal();
         pagerEl.hidden = !nextBefore;
         moreBtn.disabled = false;
       }
 
-      document.getElementById("load").onclick = () => fetchPage(null, false);
+      document.addEventListener("mailagent:disconnect", showEmptyState);
       moreBtn.onclick = () => {
         if (nextBefore) fetchPage(nextBefore, true);
       };
