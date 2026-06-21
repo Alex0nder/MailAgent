@@ -162,4 +162,36 @@
   });
 
   initCodeCopyButtons();
+
+  /** Подсветка точек по кругу вокруг курсора */
+  function initDotSurfaceHover() {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    document.querySelectorAll(".hero-block, .value-block, #mcp").forEach((block) => {
+      let layer = block.querySelector(".dot-surface-hover");
+      if (!layer) {
+        layer = document.createElement("div");
+        layer.className = "dot-surface-hover";
+        layer.setAttribute("aria-hidden", "true");
+        block.prepend(layer);
+      }
+
+      let raf = 0;
+      const onMove = (e) => {
+        if (raf) return;
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          const rect = block.getBoundingClientRect();
+          block.style.setProperty("--surface-dot-x", `${e.clientX - rect.left}px`);
+          block.style.setProperty("--surface-dot-y", `${e.clientY - rect.top}px`);
+          block.classList.add("is-dot-hover");
+        });
+      };
+
+      block.addEventListener("pointermove", onMove);
+      block.addEventListener("pointerleave", () => block.classList.remove("is-dot-hover"));
+    });
+  }
+
+  initDotSurfaceHover();
 })();

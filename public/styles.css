@@ -25,6 +25,8 @@
   --grid-line: rgba(255, 255, 255, 0.06);
   --grid-line-strong: rgba(255, 255, 255, 0.1);
   --grid-dot: rgba(255, 255, 255, 0.12);
+  --surface-dot-gap: 32px;
+  --surface-dot-hover-r: 128px;
   --code-green: #7ee787;
   --code-blue: #79c0ff;
   --code-purple: #d2a8ff;
@@ -563,10 +565,82 @@ body[data-site="marketing"] .hero-block .hero {
 }
 
 .hero-block {
+  --surface-dot-x: -999px;
+  --surface-dot-y: -999px;
   position: relative;
   isolation: isolate;
   padding-bottom: 0;
   background: var(--bg);
+}
+
+/* Слой белых точек по кругу у курсора (hero + value-block) */
+.dot-surface-hover {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.95) 1px, transparent 1px);
+  background-size: var(--surface-dot-gap) var(--surface-dot-gap);
+  background-position: 0 0;
+  transition: opacity 0.2s ease;
+  -webkit-mask-image: radial-gradient(
+    circle var(--surface-dot-hover-r) at var(--surface-dot-x) var(--surface-dot-y),
+    #000 0%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    circle var(--surface-dot-hover-r) at var(--surface-dot-x) var(--surface-dot-y),
+    #000 0%,
+    transparent 100%
+  );
+}
+
+.hero-block .dot-surface-hover {
+  -webkit-mask-image:
+    radial-gradient(
+      circle var(--surface-dot-hover-r) at var(--surface-dot-x) var(--surface-dot-y),
+      #000 0%,
+      transparent 100%
+    ),
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      #000 calc(var(--nav-h) + 32px),
+      #000 36%,
+      rgba(0, 0, 0, 0.85) 48%,
+      rgba(0, 0, 0, 0.45) 58%,
+      rgba(0, 0, 0, 0.12) 68%,
+      transparent 76%
+    );
+  mask-image:
+    radial-gradient(
+      circle var(--surface-dot-hover-r) at var(--surface-dot-x) var(--surface-dot-y),
+      #000 0%,
+      transparent 100%
+    ),
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      #000 calc(var(--nav-h) + 32px),
+      #000 36%,
+      rgba(0, 0, 0, 0.85) 48%,
+      rgba(0, 0, 0, 0.45) 58%,
+      rgba(0, 0, 0, 0.12) 68%,
+      transparent 76%
+    );
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+.is-dot-hover .dot-surface-hover {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot-surface-hover {
+    display: none;
+  }
 }
 
 .hero-block::before {
@@ -577,13 +651,11 @@ body[data-site="marketing"] .hero-block .hero {
   pointer-events: none;
   background-image:
     radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.07), transparent 42%),
-    linear-gradient(var(--grid-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    radial-gradient(circle, var(--grid-dot) 1px, transparent 1px);
   background-size:
     100% 100%,
-    var(--grid-size) var(--grid-size),
-    var(--grid-size) var(--grid-size);
-  background-position: center top, center top, center top;
+    var(--surface-dot-gap) var(--surface-dot-gap);
+  background-position: center top, 0 0;
   mask-image: linear-gradient(
     to bottom,
     transparent 0%,
@@ -615,7 +687,7 @@ body[data-site="marketing"] .hero-block .hero {
   );
 }
 
-.hero-block > * {
+.hero-block > *:not(.dot-surface-hover) {
   position: relative;
   z-index: 1;
 }
@@ -956,8 +1028,7 @@ main.landing .qa-pain-card h3 {
 }
 
 .page-section::before,
-.cta-block::before,
-.value-block::before {
+.cta-block::before {
   content: "";
   position: absolute;
   top: 0;
@@ -967,6 +1038,12 @@ main.landing .qa-pain-card h3 {
   transform: translateX(-50%);
   pointer-events: none;
   background: var(--divider-gradient);
+}
+
+.value-block + .page-section::before,
+#mcp.page-section::before,
+#mcp + .page-section::before {
+  display: none;
 }
 
 .section-label {
@@ -1115,9 +1192,34 @@ main.landing .section-head .section-desc {
   }
 }
 
+/* —— Dot surfaces: value-block, MCP section —— */
+.value-block,
+#mcp.page-section {
+  --surface-dot-x: -999px;
+  --surface-dot-y: -999px;
+  isolation: isolate;
+}
+
+.value-block::after,
+#mcp.page-section::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, var(--grid-dot) 1px, transparent 1px);
+  background-size: var(--surface-dot-gap) var(--surface-dot-gap);
+  background-position: 0 0;
+}
+
+.value-block > *:not(.dot-surface-hover),
+#mcp.page-section > *:not(.dot-surface-hover) {
+  position: relative;
+  z-index: 1;
+}
+
 /* —— Value block (Sessy-style positioning) —— */
 .value-block {
-  position: relative;
   border-top: none;
   padding-block: clamp(64px, 10vw, 96px);
   background: var(--bg);
