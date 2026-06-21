@@ -55,6 +55,26 @@
     color-mix(in srgb, var(--text) 6%, transparent) 88%,
     transparent 100%
   );
+  --heading-gradient: linear-gradient(
+    165deg,
+    #ffffff 0%,
+    #ececec 32%,
+    #b8b8b8 72%,
+    #8a8a8a 100%
+  );
+  --heading-gradient-hero: linear-gradient(
+    155deg,
+    #ffffff 0%,
+    #f4f4f4 18%,
+    #d6d6d6 52%,
+    #9a9a9a 100%
+  );
+  --heading-gradient-subtle: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.96) 0%,
+    rgba(255, 255, 255, 0.82) 45%,
+    rgba(255, 255, 255, 0.64) 100%
+  );
 }
 
 @media (min-width: 768px) {
@@ -704,8 +724,52 @@ h1 {
   letter-spacing: -0.02em;
 }
 
-.landing .hero-copy h1 {
-  color: var(--text);
+/* Градиентные заголовки лендинга (один элемент — background-clip безопасен) */
+main.landing .hero-copy h1,
+main.landing .section-title,
+main.landing .value-block-title,
+main.landing .cta-inner h2 {
+  background-image: var(--heading-gradient);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+main.landing .hero-copy h1 {
+  background-image: var(--heading-gradient-hero);
+}
+
+main.landing .bento-copy h3,
+main.landing .step h3,
+main.landing .feature-card h3,
+main.landing .workspace-card h3,
+main.landing .qa-pain-card h3 {
+  background-image: var(--heading-gradient-subtle);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+@supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+  main.landing .hero-copy h1,
+  main.landing .section-title,
+  main.landing .value-block-title,
+  main.landing .cta-inner h2,
+  main.landing .bento-copy h3,
+  main.landing .step h3,
+  main.landing .feature-card h3,
+  main.landing .workspace-card h3,
+  main.landing .qa-pain-card h3 {
+    color: var(--text);
+    background: none;
+    -webkit-text-fill-color: unset;
+  }
 }
 
 .hero-lead {
