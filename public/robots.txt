@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+Disallow: /dashboard.html
+Disallow: /console-inbox.html
+Disallow: /workspace.html
+Disallow: /audit.html
+Disallow: /debug.html
+Disallow: /agent-runs.html
+
+Sitemap: https://webmailagent.com/sitemap.xml
