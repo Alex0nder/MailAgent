@@ -100,6 +100,7 @@ import {
 import {
   buildCalendarAuthorizeUrl,
   CALENDAR_READONLY_SCOPE,
+  CALENDAR_CONNECT_SCOPES,
   calendarOAuthJwtSecret,
   isCalendarOAuthConfigured,
   listUserCalendarAccounts,
@@ -635,7 +636,7 @@ export async function executeMcpTool(
       return textResult({
         url,
         redirectUri,
-        scope: CALENDAR_READONLY_SCOPE,
+        scope: CALENDAR_CONNECT_SCOPES,
         hint: "Open url in browser, then mailagent_calendar_list_accounts.",
       });
     }

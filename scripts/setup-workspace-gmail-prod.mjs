@@ -8,7 +8,10 @@ import "./load-env.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const devVars = join(root, ".dev.vars");
-const PROD_API = "https://api.webmailagent.com";
+const envFile = join(root, ".env");
+const PROD_API = (
+  process.env.MAILAGENT_API_URL?.trim() || "https://api.webmailagent.com"
+).replace(/\/$/, "");
 
 function parse(path) {
   const out = {};
@@ -23,7 +26,7 @@ function parse(path) {
   return out;
 }
 
-const vars = { ...parse(devVars), ...process.env };
+const vars = { ...parse(devVars), ...parse(envFile), ...process.env };
 const clientId = vars.GOOGLE_CLIENT_ID?.trim() || vars.GMAIL_CLIENT_ID?.trim();
 const clientSecret =
   vars.GOOGLE_CLIENT_SECRET?.trim() || vars.GMAIL_CLIENT_SECRET?.trim();

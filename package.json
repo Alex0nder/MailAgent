@@ -38,6 +38,8 @@
     "setup:stripe-prod": "node scripts/setup-stripe-prod.mjs",
     "setup:oidc-prod": "node scripts/setup-oidc-prod.mjs",
     "setup:workspace-gmail-prod": "node scripts/setup-workspace-gmail-prod.mjs",
+    "setup:workspace-gmail-complete": "node scripts/setup-workspace-gmail-complete.mjs",
+    "patch:google-oauth-redirects": "node scripts/patch-google-oauth-redirects.mjs",
     "rotate:oidc": "node scripts/setup-oidc-prod.mjs",
     "deploy": "wrangler deploy",
     "check": "tsc --noEmit",

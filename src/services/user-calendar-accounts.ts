@@ -14,6 +14,9 @@ import {
 
 export const CALENDAR_READONLY_SCOPE = "https://www.googleapis.com/auth/calendar.readonly";
 export const CALENDAR_EVENTS_SCOPE = "https://www.googleapis.com/auth/calendar.events";
+export const USERINFO_EMAIL_SCOPE = "https://www.googleapis.com/auth/userinfo.email";
+/** OAuth connect: calendar + email (userinfo / account binding). */
+export const CALENDAR_CONNECT_SCOPES = `${CALENDAR_READONLY_SCOPE} ${USERINFO_EMAIL_SCOPE}`;
 export const CALENDAR_WRITE_SCOPES = `${CALENDAR_READONLY_SCOPE} ${CALENDAR_EVENTS_SCOPE}`;
 
 export type UserCalendarAccount = {
@@ -177,10 +180,43 @@ export async function refreshCalendarAccessToken(
   return refreshGmailAccessToken(env, refreshToken);
 }
 
+async function resolveCalendarAccountEmail(
+  env: Env,
+  accessToken: string,
+  ownerKey?: string
+): Promise<string | null> {
+  const profileRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const profile = (await profileRes.json()) as { email?: string };
+  if (profileRes.ok && profile.email?.trim()) {
+    return profile.email.trim().toLowerCase();
+  }
+
+  const calRes = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const cal = (await calRes.json()) as { id?: string };
+  if (calRes.ok && cal.id?.includes("@")) {
+    return cal.id.trim().toLowerCase();
+  }
+
+  if (!ownerKey) return null;
+  const sql = getDb(env);
+  const rows = (await sql`
+    SELECT email FROM user_mail_accounts
+    WHERE owner_key = ${ownerKey} AND provider = 'gmail' AND revoked_at IS NULL
+    ORDER BY connected_at DESC
+    LIMIT 1
+  `) as { email: string }[];
+  return rows[0]?.email?.trim().toLowerCase() ?? null;
+}
+
 export async function exchangeCalendarOAuthCode(
   env: Env,
   code: string,
-  redirectUri: string
+  redirectUri: string,
+  ownerKey?: string
 ): Promise<
   | { email: string; refreshToken: string; scopes: string[] }
   | { error: string }
@@ -216,22 +252,33 @@ export async function exchangeCalendarOAuthCode(
     };
   }
 
-  if (!tokenJson.refresh_token) {
-    return { error: "calendar_refresh_token_missing" };
+  const email = await resolveCalendarAccountEmail(env, tokenJson.access_token, ownerKey);
+  if (!email) {
+    return { error: "calendar_profile_failed" };
   }
 
-  const profileRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
-    headers: { Authorization: `Bearer ${tokenJson.access_token}` },
-  });
-  const profile = (await profileRes.json()) as { email?: string; error?: { message?: string } };
-  if (!profileRes.ok || !profile.email) {
-    return { error: profile.error?.message ?? "calendar_profile_failed" };
+  let refreshToken = tokenJson.refresh_token?.trim();
+  if (!refreshToken && ownerKey) {
+    const sql = getDb(env);
+    const rows = (await sql`
+      SELECT refresh_token_cipher FROM user_mail_accounts
+      WHERE owner_key = ${ownerKey} AND provider = 'gmail' AND email = ${email}
+        AND revoked_at IS NULL
+      LIMIT 1
+    `) as { refresh_token_cipher: string }[];
+    if (rows[0]) {
+      refreshToken = (await decryptTeamSecret(env, rows[0].refresh_token_cipher)) ?? undefined;
+    }
+  }
+
+  if (!refreshToken) {
+    return { error: "calendar_refresh_token_missing" };
   }
 
   const scopes = tokenJson.scope?.split(" ").filter(Boolean) ?? [CALENDAR_READONLY_SCOPE];
   return {
-    email: profile.email,
-    refreshToken: tokenJson.refresh_token,
+    email,
+    refreshToken,
     scopes,
   };
 }
@@ -248,7 +295,7 @@ export function buildCalendarAuthorizeUrl(
     client_id: client.clientId,
     redirect_uri: redirectUri,
     response_type: "code",
-    scope: CALENDAR_READONLY_SCOPE,
+    scope: CALENDAR_CONNECT_SCOPES,
     access_type: "offline",
     prompt: "consent",
     state,

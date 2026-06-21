@@ -32,12 +32,18 @@
         <li><strong>Temporary inbox content</strong> — email messages delivered to disposable addresses you create (subject, body, headers, attachments within plan limits) until deleted or expired.</li>
         <li><strong>Audit &amp; operations</strong> — API actions your keys perform (timestamps, resource ids, IP-derived rate-limit keys) per <a href="/docs/security.html">audit retention</a>.</li>
         <li><strong>Enterprise secrets</strong> — Resend API keys you provide are encrypted at rest; we do not log plaintext keys.</li>
+        <li><strong>Connected Gmail &amp; Calendar (Workspace)</strong> — if you choose
+          <a href="/workspace.html">Connect Gmail</a> or Connect Calendar, we store an encrypted OAuth refresh token,
+          your Google account email, granted scopes, and sync metadata. We read mailbox threads and calendar events
+          only to power Workspace features (triage, digest, summarize, draft reply, availability, agenda).
+          We do not sell this data or use it for advertising.</li>
         <li><strong>Website analytics</strong> — Google Analytics on the marketing site (page views, coarse device/browser data). Docs and console pages may load the same tag when embedded from the landing setup.</li>
       </ul>
 
       <h2>Why we use it</h2>
       <ul class="doc-list">
         <li>Provide temporary inboxes, OTP/magic-link extraction, MCP tools, and console features.</li>
+        <li>Operate optional Workspace Gmail/Calendar connectors when you explicitly connect your Google account.</li>
         <li>Enforce plan limits, rate limits, and abuse prevention.</li>
         <li>Operate enterprise features (custom domains, dedicated Resend, outbound send).</li>
         <li>Improve reliability and understand aggregate product usage.</li>
@@ -50,6 +56,8 @@
         <li><strong>Neon</strong> — Postgres (teams, inboxes, audit, domains metadata).</li>
         <li><strong>Resend</strong> — inbound/outbound email for hosted and per-team enterprise mail.</li>
         <li><strong>Auth0</strong> — optional OIDC browser login for MCP (identity tokens only; no mailbox content).</li>
+        <li><strong>Google (Workspace OAuth)</strong> — Gmail API and Google Calendar API when you connect a mailbox or calendar in Workspace. Google’s use of data is also governed by
+          <a href="https://policies.google.com/privacy">Google Privacy Policy</a>.</li>
         <li><strong>Google Analytics</strong> — marketing analytics as described above.</li>
       </ul>
       <p>We do not sell personal data.</p>
@@ -59,11 +67,23 @@
         <li><strong>Inboxes &amp; messages</strong> — until you delete the inbox or messages age out per plan/TTL.</li>
         <li><strong>Audit events</strong> — configurable retention (default 90 days); see <code>AUDIT_RETENTION_DAYS</code> in self-host docs.</li>
         <li><strong>API keys</strong> — until revoked.</li>
+        <li><strong>Workspace OAuth tokens</strong> — until you disconnect Gmail/Calendar in Workspace or revoke access in your
+          <a href="https://myaccount.google.com/permissions">Google Account permissions</a>.</li>
+      </ul>
+
+      <h2>Workspace Gmail &amp; Calendar</h2>
+      <p>If you use Workspace connectors:</p>
+      <ul class="doc-list">
+        <li><strong>Scopes</strong> — read-only by default (<code>gmail.readonly</code>, <code>calendar.readonly</code>, <code>userinfo.email</code>). Optional compose/events scopes only if you enable draft or event features.</li>
+        <li><strong>Access</strong> — only your team API key can use tokens you connected; tokens are encrypted at rest (AES-GCM).</li>
+        <li><strong>Revoke</strong> — disconnect in <a href="/workspace.html">Workspace</a>, delete the account via API, or remove MailAgent in Google Account → Third-party access.</li>
+        <li><strong>No sharing</strong> — we do not share mailbox or calendar content with other customers or third parties except infrastructure processors listed above.</li>
       </ul>
 
       <h2>Your choices</h2>
       <ul class="doc-list">
         <li>Delete inboxes and team keys via API or <a href="/dashboard.html">dashboard</a>.</li>
+        <li>Disconnect Gmail/Calendar in <a href="/workspace.html">Workspace</a> or revoke OAuth in Google Account settings.</li>
         <li>Self-host with no hosted data transfer: <a href="/docs/integrate.html">Integrate guide</a>.</li>
         <li>Request access, correction, or deletion of hosted account data:
           <a href="mailto:hello@webmailagent.com">hello@webmailagent.com</a>.</li>

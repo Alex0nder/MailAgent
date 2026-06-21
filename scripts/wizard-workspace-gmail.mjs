@@ -6,10 +6,12 @@ import { fileURLToPath } from "node:url";
 import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { spawnSync } from "node:child_process";
+import "./load-env.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const devVarsPath = join(root, ".dev.vars");
 const PROD_API = "https://api.webmailagent.com";
+const customApi = (process.env.MAILAGENT_API_URL || "").replace(/\/$/, "");
 
 const GMAIL_CALLBACKS = [
   `${PROD_API}/v1/workspace/gmail/callback`,
@@ -19,6 +21,10 @@ const CALENDAR_CALLBACKS = [
   `${PROD_API}/v1/workspace/calendar/callback`,
   "http://127.0.0.1:8787/v1/workspace/calendar/callback",
 ];
+if (customApi.startsWith("http") && customApi !== PROD_API) {
+  GMAIL_CALLBACKS.unshift(`${customApi}/v1/workspace/gmail/callback`);
+  CALENDAR_CALLBACKS.unshift(`${customApi}/v1/workspace/calendar/callback`);
+}
 
 const OAUTH_KEYS = ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"];
 

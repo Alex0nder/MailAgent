@@ -40,7 +40,7 @@ import {
   type WorkspaceSummarizeInput,
 } from "../services/workspace-agent";
 import { resolveWorkspaceMailContext } from "../services/workspace-mail-context";
-import { publicOriginFromUrl } from "../lib/public-origin";
+import { publicOriginFromUrl, resolveWorkspaceReturnTo } from "../lib/public-origin";
 import {
   buildGmailAuthorizeUrl,
   exchangeGmailOAuthCode,
@@ -67,6 +67,7 @@ import {
   buildCalendarAuthorizeUrl,
   buildCalendarWriteAuthorizeUrl,
   CALENDAR_READONLY_SCOPE,
+  CALENDAR_CONNECT_SCOPES,
   CALENDAR_EVENTS_SCOPE,
   CALENDAR_WRITE_SCOPES,
   calendarOAuthJwtSecret,
@@ -153,7 +154,7 @@ workspaceRoutes.get("/gmail/callback", async (c) => {
   );
 
   if (pending.returnTo) {
-    const url = new URL(pending.returnTo);
+    const url = resolveWorkspaceReturnTo(pending.returnTo, c.req.url);
     url.searchParams.set("gmailAccountId", account.id);
     url.searchParams.set("email", account.email);
     return c.redirect(url.toString(), 302);
@@ -183,7 +184,7 @@ workspaceRoutes.get("/calendar/callback", async (c) => {
 
   const origin = publicOriginFromUrl(c.req.url);
   const redirectUri = `${origin}/v1/workspace/calendar/callback`;
-  const exchanged = await exchangeCalendarOAuthCode(c.env, code, redirectUri);
+  const exchanged = await exchangeCalendarOAuthCode(c.env, code, redirectUri, pending.ownerKey);
   if ("error" in exchanged) return c.json({ error: exchanged.error }, 502);
 
   const account = await upsertCalendarAccount(
@@ -204,7 +205,7 @@ workspaceRoutes.get("/calendar/callback", async (c) => {
   );
 
   if (pending.returnTo) {
-    const url = new URL(pending.returnTo);
+    const url = resolveWorkspaceReturnTo(pending.returnTo, c.req.url);
     url.searchParams.set("calendarAccountId", account.id);
     url.searchParams.set("email", account.email);
     return c.redirect(url.toString(), 302);
@@ -700,7 +701,7 @@ workspaceRoutes.get("/calendar/connect", async (c) => {
   });
   const url = buildCalendarAuthorizeUrl(c.env, redirectUri, state);
   if (!url) return c.json({ error: "calendar_oauth_not_configured" }, 503);
-  return c.json({ url, redirectUri, scope: CALENDAR_READONLY_SCOPE });
+  return c.json({ url, redirectUri, scope: CALENDAR_CONNECT_SCOPES });
 });
 
 workspaceRoutes.get("/calendar/connect-write", async (c) => {
