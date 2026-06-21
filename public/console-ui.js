@@ -132,6 +132,15 @@
       .replace(/"/g, "&quot;");
   }
 
+  /** Decode API/HTML entities, then escape for safe text display. */
+  function textHtml(s) {
+    const raw = String(s ?? "");
+    if (!raw) return "";
+    const el = document.createElement("textarea");
+    el.innerHTML = raw;
+    return escHtml(el.value);
+  }
+
   function alertModal({ title, message }) {
     return new Promise((resolve) => {
       const { dialog, close } = openModal({
@@ -220,5 +229,6 @@
     debounce,
     statusBadge,
     esc: escHtml,
+    text: textHtml,
   };
 })();

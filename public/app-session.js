@@ -1,5 +1,5 @@
 /**
- * Resend-style session — API key in sidebar footer, no signup.
+ * Sidebar session — connect once, sign out when done (no duplicate form).
  */
 (function () {
   const KEY_STORAGE = "mailagent_dashboard_key";
@@ -20,7 +20,15 @@
         </div>
         <p class="dash-session__idle-hint" id="dash-session-idle-hint">Enter your API key below.</p>
       </div>
-      <div class="dash-session__connect" id="dash-session-connect-ui">
+      <div id="dash-session-connected-ui" hidden>
+        <div class="dash-session__card dash-session__card--connected">
+          <span class="dash-session__label">Session</span>
+          <p class="dash-session__who">Connected as <code id="app-session-status"></code></p>
+          <button type="button" class="dash-btn dash-btn--sm" id="app-session-clear">Sign out</button>
+          <button type="button" class="dash-session__link" id="app-session-edit">Change API key</button>
+        </div>
+      </div>
+      <div class="dash-session__connect" id="dash-session-connect-ui" hidden>
         <span class="dash-session__label">API key</span>
         <input id="app-session-key" class="dash-session__input" type="password" autocomplete="off" placeholder="ma_…" spellcheck="false" aria-label="API key" />
         <button type="button" class="dash-btn dash-btn--primary" id="app-session-connect">Connect</button>
@@ -28,14 +36,7 @@
           <summary>Custom API base</summary>
           <input id="app-session-base" class="dash-session__input" type="url" value="${DEFAULT_BASE}" aria-label="API base URL" />
         </details>
-      </div>
-      <div id="dash-session-connected-ui" hidden>
-        <span class="dash-session__label">Connected</span>
-        <div class="dash-session__connected">
-          <span class="dash-session__badge" id="app-session-status"></span>
-          <button type="button" class="dash-session__gear" id="app-session-edit" title="Change API key" aria-label="Change API key">⋯</button>
-          <button type="button" class="dash-session__clear" id="app-session-clear" title="Clear key" aria-label="Clear API key">×</button>
-        </div>
+        <button type="button" class="dash-session__link" id="app-session-cancel" hidden>Cancel</button>
       </div>
     </div>`;
 
@@ -45,9 +46,12 @@
   const connectBtn = document.getElementById("app-session-connect");
   const clearBtn = document.getElementById("app-session-clear");
   const editBtn = document.getElementById("app-session-edit");
+  const cancelBtn = document.getElementById("app-session-cancel");
   const connectUi = document.getElementById("dash-session-connect-ui");
   const connectedUi = document.getElementById("dash-session-connected-ui");
   const idleUi = document.getElementById("dash-session-idle-ui");
+
+  let editing = false;
 
   function usesMainOnboard() {
     return (
@@ -82,9 +86,13 @@
     const key = getKey();
     const connected = Boolean(key);
     const onboardMain = usesMainOnboard();
-    connectUi.hidden = connected || onboardMain;
-    idleUi.hidden = connected || !onboardMain;
-    connectedUi.hidden = !connected;
+    const showForm = (!connected && !onboardMain) || editing;
+
+    connectUi.hidden = !showForm;
+    idleUi.hidden = connected || !onboardMain || editing;
+    connectedUi.hidden = !connected || editing;
+    cancelBtn.hidden = !editing;
+
     syncSidebarMode();
     if (connected) {
       statusEl.textContent = keyHint(key);
@@ -100,6 +108,7 @@
       DEFAULT_BASE;
     if (key) keyEl.value = key;
     if (baseEl) baseEl.value = base;
+    editing = false;
     syncStatus();
   }
 
@@ -110,6 +119,7 @@
     localStorage.setItem(KEY_STORAGE, key);
     localStorage.setItem(BASE_STORAGE, base);
     localStorage.setItem(BASE_LEGACY, base);
+    editing = false;
     syncStatus();
     return true;
   }
@@ -117,6 +127,7 @@
   function clearSession() {
     localStorage.removeItem(KEY_STORAGE);
     keyEl.value = "";
+    editing = false;
     syncStatus();
     document.dispatchEvent(new CustomEvent("mailagent:disconnect"));
   }
@@ -157,15 +168,24 @@
   connectBtn?.addEventListener("click", connect);
   clearBtn?.addEventListener("click", clearSession);
   editBtn?.addEventListener("click", () => {
-    connectUi.hidden = false;
-    connectedUi.hidden = true;
+    editing = true;
+    syncStatus();
     keyEl.focus();
     keyEl.select();
+  });
+  cancelBtn?.addEventListener("click", () => {
+    editing = false;
+    loadFromStorage();
   });
   keyEl?.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
       connect();
+    }
+    if (event.key === "Escape" && editing) {
+      event.preventDefault();
+      editing = false;
+      loadFromStorage();
     }
   });
 

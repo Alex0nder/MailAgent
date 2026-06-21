@@ -189,24 +189,15 @@
           html += `</p>`;
         }
 
-        html += `<div class="dash-metrics">
-          ${meter("Active inboxes", u.activeInboxes, l.maxActiveInboxes)}
-          ${stat("Messages (24h)", u.messagesLast24h)}
-          ${meter("Notify relays (24h)", u.notifyEmailsLast24h || 0, l.notifyEmailsPerDay)}
-          ${meter("Custom domains", u.customDomains, l.maxCustomDomains)}
-          ${d.teamId && u.teamKeysRemaining != null ? meter("Team keys", u.teamKeys, l.maxTeamKeys) : ""}
-          ${d.rateLimit ? meter("API rate (this min)", d.rateLimit.used, d.rateLimit.limitPerMinute) : ""}
-        </div>`;
-
-        html += `<p class="console-meta">Rate limit: ${l.rateLimitPerMinute} req/min`;
+        html += `<p class="console-meta dash-overview-meta">`;
         if (d.rateLimit) {
-          html += ` · <strong>${d.rateLimit.remaining}</strong> left · resets in ${d.rateLimit.resetsInSeconds}s`;
+          html += `API rate: <strong>${d.rateLimit.remaining}</strong> left · resets ${d.rateLimit.resetsInSeconds}s`;
         }
-        if (d.teamId) html += ` · Team <code>${esc(d.teamId)}</code>`;
+        if (d.teamId) html += `${d.rateLimit ? " · " : ""}Team <code>${esc(d.teamId)}</code>`;
         if (d.policies?.auditRetentionDays) {
-          html += ` · Audit retention: ${d.policies.auditRetentionDays}d`;
+          html += ` · Audit ${d.policies.auditRetentionDays}d`;
         }
-        html += `</p>`;
+        html += ` · Metrics in the panel →</p>`;
 
         html += `<section class="dash-section">
           <h2 class="dash-section__title">Recent threads</h2>
@@ -439,6 +430,7 @@
         html += `<p class="console-links"><a href="/debug.html">Debug inboxes</a> · <a href="/agent-runs.html">Agent runs</a> · <a href="/status.html">Status</a> · <a href="/docs/BILLING.html">Billing docs</a></p>`;
 
         out.innerHTML = html;
+        window.MailAgentInsights?.refresh?.();
 
         document.getElementById("upgrade")?.addEventListener("click", async () => {
           const r = await api("/v1/billing/checkout", {

@@ -95,6 +95,13 @@
         return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
       }
 
+      function formatMeta(meta) {
+        if (!meta || typeof meta !== "object" || !Object.keys(meta).length) return "";
+        const full = JSON.stringify(meta);
+        if (full.length <= 64) return esc(full);
+        return esc(`${full.slice(0, 61)}…`);
+      }
+
       function renderTerminal() {
         if (!rows.length) {
           listEl.innerHTML = `<div class="log-terminal__prompt">
@@ -115,11 +122,12 @@
             ev.resourceId
               ? `${esc(ev.resourceType || "resource")}:${esc(ev.resourceId)}`
               : "—";
-          const meta =
+          const metaRaw =
             ev.meta && typeof ev.meta === "object" && Object.keys(ev.meta).length
-              ? esc(JSON.stringify(ev.meta))
+              ? JSON.stringify(ev.meta)
               : "";
-          html += `<div class="log-line">
+          const meta = formatMeta(ev.meta);
+          html += `<div class="log-line"${metaRaw ? ` title="${esc(metaRaw)}"` : ""}>
             <time class="log-ts">${esc(formatTs(ev.createdAt))}</time>
             <span class="log-action">${esc(ev.action)}</span>
             <span class="log-resource">${resource}</span>
