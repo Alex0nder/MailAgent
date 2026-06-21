@@ -266,7 +266,7 @@
 
   function renderFooterWordmark() {
     return `<a href="/" class="footer-wordmark-link" aria-label="MailAgent — home">
-        <span class="footer-wordmark" id="footerWordmark">MAILAGENT</span>
+        <span class="footer-wordmark" id="footerWordmark">MailAgent</span>
       </a>`;
   }
 
@@ -328,6 +328,29 @@
     }
 
     bindInview();
+    const fit = () => fitFooterWordmarkWidth(logo, link);
+    requestAnimationFrame(fit);
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(fit).catch(() => {});
+    }
+
+    let resizeTimer;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => fitFooterWordmarkWidth(logo, link), 120);
+    });
+  }
+
+  /** Увеличивает font-size wordmark до ширины контейнера, без разрыва между буквами. */
+  function fitFooterWordmarkWidth(logo, link) {
+    if (!logo || !link) return;
+    logo.style.fontSize = "";
+    const avail = link.clientWidth;
+    const width = logo.scrollWidth;
+    if (!avail || !width || width >= avail) return;
+    const base = parseFloat(getComputedStyle(logo).fontSize);
+    if (!Number.isFinite(base) || base <= 0) return;
+    logo.style.fontSize = `${base * (avail / width) * 0.985}px`;
   }
 
   /** WAI-ARIA menu button: keyboard nav, focus return, Escape. */
