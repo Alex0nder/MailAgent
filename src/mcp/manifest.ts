@@ -33,16 +33,16 @@ const workspaceThreadProps = {
   gmailAccountId: {
     type: "string",
     description:
-      "Connected user Gmail account id (from mailagent_gmail_list_accounts). Read-only via gmail.readonly scope.",
+      "Deprecated/disabled in hosted app: Google Gmail OAuth is not requested.",
   },
   gmailThreadId: {
     type: "string",
-    description: "Gmail thread id when gmailAccountId is set.",
+    description: "Deprecated/disabled in hosted app: Google Gmail OAuth is not requested.",
   },
   gmailQuery: {
     type: "string",
     description:
-      "Gmail search query when gmailAccountId is set without gmailThreadId (default in:inbox).",
+      "Deprecated/disabled in hosted app: Google Gmail OAuth is not requested.",
   },
   messageId: {
     type: "string",
@@ -54,7 +54,7 @@ const workspaceThreadProps = {
     type: "array",
     items: workspaceMessageSchema,
     description:
-      "Optional mail messages. Omit when inboxId or gmailAccountId loads mail automatically.",
+      "Optional mail messages. Omit when inboxId loads mail automatically.",
   },
 } as const;
 
@@ -512,31 +512,31 @@ export const MCP_TOOLS = [
   {
     name: "mailagent_gmail_status",
     description:
-      "Workspace Agent P1: whether Gmail read-only OAuth is configured on this deployment.",
+      "Deprecated/disabled in hosted app: Google Gmail OAuth is not requested.",
     inputSchema: { type: "object", properties: {} },
   },
   {
     name: "mailagent_gmail_connect",
     description:
-      "Workspace Agent P1: get Google OAuth URL to connect a user Gmail mailbox (read-only). Open url in browser; then mailagent_gmail_list_accounts.",
+      "Deprecated/disabled in hosted app: returns google_workspace_oauth_disabled.",
     inputSchema: { type: "object", properties: {} },
   },
   {
     name: "mailagent_gmail_list_accounts",
     description:
-      "Workspace Agent P1: list Gmail accounts connected for the current team/API key.",
+      "Deprecated/disabled in hosted app: returns an empty account list.",
     inputSchema: { type: "object", properties: {} },
   },
   {
     name: "mailagent_gmail_list_threads",
     description:
-      "Workspace Agent P1: list Gmail threads for a connected account. Uses Gmail search syntax in q.",
+      "Deprecated/disabled in hosted app: Google Gmail OAuth is not requested.",
     inputSchema: {
       type: "object",
       required: ["accountId"],
       properties: {
         accountId: { type: "string" },
-        q: { type: "string", description: "Gmail search, e.g. is:unread in:inbox" },
+        q: { type: "string", description: "Deprecated/disabled in hosted app" },
         maxResults: { type: "integer", minimum: 1, maximum: 50 },
         pageToken: { type: "string" },
       },
@@ -545,7 +545,7 @@ export const MCP_TOOLS = [
   {
     name: "mailagent_gmail_read_thread",
     description:
-      "Workspace Agent P1: read full Gmail thread messages (redacted text suitable for summarize/draft).",
+      "Deprecated/disabled in hosted app: Google Gmail OAuth is not requested.",
     inputSchema: {
       type: "object",
       required: ["accountId", "threadId"],
@@ -558,7 +558,7 @@ export const MCP_TOOLS = [
   {
     name: "mailagent_gmail_triage",
     description:
-      "Workspace Agent P1: unread triage with needs_reply / waiting_on_them / fyi / automated buckets.",
+      "Deprecated/disabled in hosted app: use MailAgent inbox messages instead.",
     inputSchema: {
       type: "object",
       required: ["accountId"],
@@ -571,7 +571,7 @@ export const MCP_TOOLS = [
   {
     name: "mailagent_gmail_digest",
     description:
-      "Workspace Agent P1: daily unread digest with rule-based summaries and action items.",
+      "Deprecated/disabled in hosted app: use MailAgent inbox messages instead.",
     inputSchema: {
       type: "object",
       required: ["accountId"],
@@ -584,13 +584,13 @@ export const MCP_TOOLS = [
   {
     name: "mailagent_gmail_get_settings",
     description:
-      "Workspace Agent P1: Gmail read retention and scan limits for the current team/API key.",
+      "Deprecated/disabled in hosted app: Google Gmail OAuth is not requested.",
     inputSchema: { type: "object", properties: {} },
   },
   {
     name: "mailagent_gmail_set_settings",
     description:
-      "Admin-only: configure Gmail thread lookback days and scan/digest limits.",
+      "Deprecated/disabled in hosted app: Google Gmail OAuth is not requested.",
     inputSchema: {
       type: "object",
       properties: {
@@ -602,23 +602,23 @@ export const MCP_TOOLS = [
   },
   {
     name: "mailagent_calendar_status",
-    description: "Workspace Agent P2: Google Calendar read-only OAuth readiness.",
+    description: "Deprecated/disabled in hosted app: Google Calendar OAuth is not requested.",
     inputSchema: { type: "object", properties: {} },
   },
   {
     name: "mailagent_calendar_connect",
     description:
-      "Workspace Agent P2: OAuth URL to connect Google Calendar (read-only). Open in browser.",
+      "Deprecated/disabled in hosted app: returns google_workspace_oauth_disabled.",
     inputSchema: { type: "object", properties: {} },
   },
   {
     name: "mailagent_calendar_list_accounts",
-    description: "Workspace Agent P2: list connected Google Calendar accounts.",
+    description: "Deprecated/disabled in hosted app: returns an empty account list.",
     inputSchema: { type: "object", properties: {} },
   },
   {
     name: "mailagent_calendar_list_events",
-    description: "Workspace Agent P2: list calendar events in a time range.",
+    description: "Deprecated/disabled in hosted app: Google Calendar OAuth is not requested.",
     inputSchema: {
       type: "object",
       required: ["accountId", "timeMin", "timeMax"],
@@ -634,7 +634,7 @@ export const MCP_TOOLS = [
   {
     name: "mailagent_calendar_availability",
     description:
-      "Workspace Agent P2: free meeting slots from calendar busy blocks and working hours.",
+      "Deprecated/disabled in hosted app: Google Calendar OAuth is not requested.",
     inputSchema: {
       type: "object",
       required: ["accountId"],
@@ -651,7 +651,7 @@ export const MCP_TOOLS = [
   },
   {
     name: "mailagent_calendar_check_conflicts",
-    description: "Workspace Agent P2: detect overlaps between proposed slots and calendar events.",
+    description: "Deprecated/disabled in hosted app: Google Calendar OAuth is not requested.",
     inputSchema: {
       type: "object",
       required: ["accountId", "proposed"],
@@ -675,7 +675,7 @@ export const MCP_TOOLS = [
   {
     name: "mailagent_calendar_suggest_meeting",
     description:
-      "Workspace Agent P2: propose meeting slots from email thread context + calendar availability.",
+      "Deprecated/disabled in hosted app: Google Calendar OAuth is not requested.",
     inputSchema: {
       type: "object",
       required: ["calendarAccountId"],
@@ -691,7 +691,7 @@ export const MCP_TOOLS = [
   },
   {
     name: "mailagent_calendar_agenda",
-    description: "Workspace Agent P2: daily agenda digest with conflict flags.",
+    description: "Deprecated/disabled in hosted app: Google Calendar OAuth is not requested.",
     inputSchema: {
       type: "object",
       required: ["accountId"],
@@ -705,7 +705,7 @@ export const MCP_TOOLS = [
   {
     name: "mailagent_workspace_execute_gmail_draft",
     description:
-      "P3 approval-gated: create a Gmail draft (never send). Requires admin gmailDraftWrites policy, compose OAuth, dryRun first, then idempotencyKey.",
+      "Deprecated/disabled in hosted app: Google Gmail OAuth is not requested.",
     inputSchema: {
       type: "object",
       required: ["gmailAccountId"],
@@ -725,7 +725,7 @@ export const MCP_TOOLS = [
   {
     name: "mailagent_workspace_execute_calendar_event",
     description:
-      "P3 approval-gated: create or update a Google Calendar event. Requires admin calendarEventWrites policy, events OAuth, dryRun first, then idempotencyKey.",
+      "Deprecated/disabled in hosted app: Google Calendar OAuth is not requested.",
     inputSchema: {
       type: "object",
       required: ["accountId", "summary", "start", "end"],
@@ -752,7 +752,7 @@ export const MCP_TOOLS = [
   {
     name: "mailagent_workspace_rules_evaluate",
     description:
-      "P4: scan a connected Gmail inbox and return invoice/support/meeting/follow-up rule hits.",
+      "Deprecated/disabled in hosted app: connected Gmail scanning is not available.",
     inputSchema: {
       type: "object",
       required: ["gmailAccountId"],
@@ -771,7 +771,7 @@ export const MCP_TOOLS = [
   {
     name: "mailagent_workspace_create_monitor",
     description:
-      "P4: create a scheduled monitor (webhook or email digest). Requires write scope.",
+      "Deprecated/disabled in hosted app: connected Gmail monitors are not available.",
     inputSchema: {
       type: "object",
       required: ["name"],
@@ -799,7 +799,7 @@ export const MCP_TOOLS = [
   {
     name: "mailagent_workspace_run_monitor",
     description:
-      "P4: run a monitor immediately (rules + digest). Requires automationEnabled admin policy.",
+      "Deprecated/disabled in hosted app: connected Gmail monitors are not available.",
     inputSchema: {
       type: "object",
       required: ["monitorId"],

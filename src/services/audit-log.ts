@@ -29,7 +29,8 @@ export type AuditAction =
   | "workspace.calendar_event_updated"
   | "workspace.automation_rule_created"
   | "workspace.monitor_created"
-  | "workspace.monitor_run";
+  | "workspace.monitor_run"
+  | "workspace.candidate_decided";
 
 export type AuditContext = {
   teamId: string | null;

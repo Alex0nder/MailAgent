@@ -13,6 +13,7 @@ import {
   type MonitorRow,
 } from "./workspace-monitors";
 import { evaluateThreadsAgainstRules, type WorkspaceRuleKind } from "./workspace-rule-engine";
+import { upsertGmailRuleCandidates } from "./workspace-action-candidates";
 
 export async function evaluateWorkspaceRulesForGmail(
   env: Env,
@@ -120,6 +121,21 @@ async function runSingleMonitor(env: Env, row: MonitorRow) {
   }
 
   const ruleHits = ruleEvaluation && !("error" in ruleEvaluation) ? ruleEvaluation.hits : [];
+  const candidates = row.gmail_account_id
+    ? await upsertGmailRuleCandidates(
+        env,
+        auth,
+        ruleHits.map((hit) => ({
+          accountId: row.gmail_account_id!,
+          monitorId: row.id,
+          threadId: hit.threadId,
+          subject: hit.subject,
+          snippet: hit.snippet,
+          from: hit.from,
+          match: hit.match,
+        }))
+      )
+    : [];
   const summaryText = [
     `Workspace monitor "${row.name}"`,
     ruleHits.length ? `${ruleHits.length} rule hit(s)` : "No rule hits",
@@ -135,6 +151,7 @@ async function runSingleMonitor(env: Env, row: MonitorRow) {
     monitorName: row.name,
     summary: summaryText,
     ruleHits,
+    actionCandidates: candidates,
     gmailDigest,
     calendarAgenda,
   };
@@ -157,6 +174,7 @@ async function runSingleMonitor(env: Env, row: MonitorRow) {
     status: delivery.ok ? "ok" : "delivery_failed",
     summary: {
       ruleHitCount: ruleHits.length,
+      actionCandidateCount: candidates.length,
       delivery,
       gmailUnread: gmailDigest?.unreadCount ?? null,
       calendarEvents: calendarAgenda?.eventCount ?? null,
@@ -171,6 +189,7 @@ async function runSingleMonitor(env: Env, row: MonitorRow) {
     monitor: formatMonitor(row),
     delivery,
     ruleHits,
+    actionCandidates: candidates,
   };
 }
 

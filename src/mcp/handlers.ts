@@ -179,6 +179,15 @@ function textResult(data: unknown, isError = false) {
   };
 }
 
+const GOOGLE_WORKSPACE_OAUTH_DISABLED = true;
+
+function googleWorkspaceOAuthDisabledResult() {
+  return {
+    error: "google_workspace_oauth_disabled",
+    hint: "Google Gmail/Calendar OAuth is disabled while MailAgent runs without sensitive or restricted Google scopes.",
+  };
+}
+
 function parseLinks(raw: unknown): string[] {
   if (Array.isArray(raw)) return raw as string[];
   if (typeof raw === "string") {
@@ -487,6 +496,17 @@ export async function executeMcpTool(
     }
 
     case "mailagent_gmail_status": {
+      if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+        return textResult({
+          configured: false,
+          provider: "gmail",
+          readAllowed: false,
+          writeAllowed: false,
+          scope: null,
+          disabled: true,
+          hint: googleWorkspaceOAuthDisabledResult().hint,
+        });
+      }
       const configured = isGmailOAuthConfigured(env);
       return textResult({
         configured,
@@ -498,6 +518,9 @@ export async function executeMcpTool(
     }
 
     case "mailagent_gmail_connect": {
+      if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+        return textResult(googleWorkspaceOAuthDisabledResult(), true);
+      }
       if (!isGmailOAuthConfigured(env)) {
         return textResult({ error: "gmail_oauth_not_configured" }, true);
       }
@@ -517,11 +540,12 @@ export async function executeMcpTool(
         url,
         redirectUri,
         scope: GMAIL_READONLY_SCOPE,
-        hint: "Open url in a browser to connect Gmail read-only. Then use mailagent_gmail_list_accounts.",
+        hint: "Google Gmail OAuth is disabled while MailAgent runs without sensitive or restricted Google scopes.",
       });
     }
 
     case "mailagent_gmail_list_accounts": {
+      if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return textResult({ accounts: [], count: 0, disabled: true });
       const accounts = await listUserMailAccounts(env, {
         teamId: auth.teamId,
         apiKeyHint: auth.apiKeyHint,
@@ -530,6 +554,9 @@ export async function executeMcpTool(
     }
 
     case "mailagent_gmail_list_threads": {
+      if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+        return textResult(googleWorkspaceOAuthDisabledResult(), true);
+      }
       const accountId = args.accountId as string | undefined;
       if (!accountId?.trim()) return textResult({ error: "account_id_required" }, true);
       const result = await listGmailThreads(
@@ -546,6 +573,9 @@ export async function executeMcpTool(
     }
 
     case "mailagent_gmail_read_thread": {
+      if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+        return textResult(googleWorkspaceOAuthDisabledResult(), true);
+      }
       const accountId = args.accountId as string | undefined;
       const threadId = args.threadId as string | undefined;
       if (!accountId?.trim() || !threadId?.trim()) {
@@ -560,6 +590,9 @@ export async function executeMcpTool(
     }
 
     case "mailagent_gmail_triage": {
+      if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+        return textResult(googleWorkspaceOAuthDisabledResult(), true);
+      }
       const accountId = args.accountId as string | undefined;
       if (!accountId?.trim()) return textResult({ error: "account_id_required" }, true);
       const result = await triageGmailInbox(
@@ -574,6 +607,9 @@ export async function executeMcpTool(
     }
 
     case "mailagent_gmail_digest": {
+      if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+        return textResult(googleWorkspaceOAuthDisabledResult(), true);
+      }
       const accountId = args.accountId as string | undefined;
       if (!accountId?.trim()) return textResult({ error: "account_id_required" }, true);
       const result = await buildGmailDailyDigest(
@@ -607,6 +643,17 @@ export async function executeMcpTool(
     }
 
     case "mailagent_calendar_status": {
+      if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+        return textResult({
+          configured: false,
+          provider: "google_calendar",
+          readAllowed: false,
+          writeAllowed: false,
+          scope: null,
+          disabled: true,
+          hint: googleWorkspaceOAuthDisabledResult().hint,
+        });
+      }
       const configured = isCalendarOAuthConfigured(env);
       return textResult({
         configured,
@@ -618,6 +665,9 @@ export async function executeMcpTool(
     }
 
     case "mailagent_calendar_connect": {
+      if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+        return textResult(googleWorkspaceOAuthDisabledResult(), true);
+      }
       if (!isCalendarOAuthConfigured(env)) {
         return textResult({ error: "calendar_oauth_not_configured" }, true);
       }
@@ -642,6 +692,7 @@ export async function executeMcpTool(
     }
 
     case "mailagent_calendar_list_accounts": {
+      if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return textResult({ accounts: [], count: 0, disabled: true });
       const accounts = await listUserCalendarAccounts(env, {
         teamId: auth.teamId,
         apiKeyHint: auth.apiKeyHint,
@@ -650,6 +701,9 @@ export async function executeMcpTool(
     }
 
     case "mailagent_calendar_list_events": {
+      if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+        return textResult(googleWorkspaceOAuthDisabledResult(), true);
+      }
       const accountId = args.accountId as string | undefined;
       const timeMin = args.timeMin as string | undefined;
       const timeMax = args.timeMax as string | undefined;
@@ -671,6 +725,9 @@ export async function executeMcpTool(
     }
 
     case "mailagent_calendar_availability": {
+      if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+        return textResult(googleWorkspaceOAuthDisabledResult(), true);
+      }
       const accountId = args.accountId as string | undefined;
       if (!accountId?.trim()) return textResult({ error: "account_id_required" }, true);
       const result = await getCalendarAvailability(
@@ -690,6 +747,9 @@ export async function executeMcpTool(
     }
 
     case "mailagent_calendar_check_conflicts": {
+      if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+        return textResult(googleWorkspaceOAuthDisabledResult(), true);
+      }
       const accountId = args.accountId as string | undefined;
       const proposed = args.proposed as Array<{ start: string; end: string }> | undefined;
       if (!accountId?.trim() || !Array.isArray(proposed) || !proposed.length) {
@@ -708,6 +768,9 @@ export async function executeMcpTool(
     }
 
     case "mailagent_calendar_suggest_meeting": {
+      if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+        return textResult(googleWorkspaceOAuthDisabledResult(), true);
+      }
       const accountId = (args.calendarAccountId ?? args.accountId) as string | undefined;
       if (!accountId?.trim()) {
         return textResult({ error: "calendar_account_id_required" }, true);
@@ -749,6 +812,9 @@ export async function executeMcpTool(
     }
 
     case "mailagent_calendar_agenda": {
+      if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+        return textResult(googleWorkspaceOAuthDisabledResult(), true);
+      }
       const accountId = args.accountId as string | undefined;
       if (!accountId?.trim()) return textResult({ error: "account_id_required" }, true);
       const result = await buildCalendarDailyAgenda(
@@ -764,6 +830,9 @@ export async function executeMcpTool(
     }
 
     case "mailagent_workspace_execute_gmail_draft": {
+      if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+        return textResult(googleWorkspaceOAuthDisabledResult(), true);
+      }
       const writeErr = scopeWriteError(auth.scope);
       if (writeErr) return textResult(writeErr, true);
       const result = await executeWorkspaceGmailDraft(
@@ -775,6 +844,9 @@ export async function executeMcpTool(
     }
 
     case "mailagent_workspace_execute_calendar_event": {
+      if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+        return textResult(googleWorkspaceOAuthDisabledResult(), true);
+      }
       const writeErr = scopeWriteError(auth.scope);
       if (writeErr) return textResult(writeErr, true);
       const result = await executeWorkspaceCalendarEvent(
@@ -794,6 +866,9 @@ export async function executeMcpTool(
     }
 
     case "mailagent_workspace_rules_evaluate": {
+      if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+        return textResult(googleWorkspaceOAuthDisabledResult(), true);
+      }
       const gmailAccountId = args.gmailAccountId as string | undefined;
       if (!gmailAccountId?.trim()) {
         return textResult({ error: "gmail_account_id_required" }, true);
@@ -819,6 +894,9 @@ export async function executeMcpTool(
     }
 
     case "mailagent_workspace_create_monitor": {
+      if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+        return textResult(googleWorkspaceOAuthDisabledResult(), true);
+      }
       const writeErr = scopeWriteError(auth.scope);
       if (writeErr) return textResult(writeErr, true);
       const result = await createWorkspaceMonitor(
@@ -847,6 +925,9 @@ export async function executeMcpTool(
     }
 
     case "mailagent_workspace_run_monitor": {
+      if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+        return textResult(googleWorkspaceOAuthDisabledResult(), true);
+      }
       const writeErr = scopeWriteError(auth.scope);
       if (writeErr) return textResult(writeErr, true);
       const monitorId = args.monitorId as string | undefined;

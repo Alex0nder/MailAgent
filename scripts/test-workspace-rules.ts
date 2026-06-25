@@ -62,6 +62,7 @@ assert.deepEqual(
   hits.map((hit) => hit.match.kind).sort(),
   ["invoice", "meeting"]
 );
+assert.equal(hits[0]?.snippet, "Your billing payment");
 
 const filtered = evaluateThreadsAgainstRules({
   threads: [

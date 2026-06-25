@@ -360,8 +360,8 @@
           <h2>Search messages</h2>
           <div class="search-suggest">
             <label for="search-q">Query</label>
-            <input id="search-q" type="text" placeholder="verification code" autocomplete="off" />
-            <ul id="search-suggest" class="search-suggest__list" hidden></ul>
+            <input id="search-q" type="text" placeholder="verification code" autocomplete="off" aria-autocomplete="list" aria-controls="search-suggest" aria-expanded="false" />
+            <ul id="search-suggest" class="search-suggest__list" role="listbox" hidden></ul>
           </div>
           <label for="search-mode">Mode</label>
           <select id="search-mode">
@@ -484,36 +484,62 @@
       function bindSearch() {
         const input = document.getElementById("search-q");
         const suggest = document.getElementById("search-suggest");
+        const setSuggestOpen = (open) => {
+          if (suggest) suggest.hidden = !open;
+          input?.setAttribute("aria-expanded", open ? "true" : "false");
+        };
         const debouncedSuggest = UI().debounce(() => {
           if (!input || !suggest) return;
           const q = input.value.trim().toLowerCase();
           const hist = loadSearchHistory().filter((item) => !q || item.toLowerCase().includes(q));
           if (!hist.length) {
-            suggest.hidden = true;
+            setSuggestOpen(false);
             return;
           }
           suggest.innerHTML = hist
             .slice(0, 6)
             .map(
               (item) =>
-                `<li><button type="button" data-suggest="${esc(item)}">${esc(item)}</button></li>`
+                `<li role="presentation"><button type="button" role="option" data-suggest="${esc(item)}">${esc(item)}</button></li>`
             )
             .join("");
-          suggest.hidden = false;
+          setSuggestOpen(true);
           suggest.querySelectorAll("[data-suggest]").forEach((btn) => {
             btn.addEventListener("click", () => {
               input.value = btn.getAttribute("data-suggest") || "";
-              suggest.hidden = true;
+              setSuggestOpen(false);
               runSearch();
+            });
+            btn.addEventListener("keydown", (event) => {
+              const options = [...suggest.querySelectorAll("[data-suggest]")];
+              const index = options.indexOf(btn);
+              if (event.key === "ArrowDown") {
+                event.preventDefault();
+                options[(index + 1) % options.length]?.focus();
+              } else if (event.key === "ArrowUp") {
+                event.preventDefault();
+                options[(index - 1 + options.length) % options.length]?.focus();
+              } else if (event.key === "Escape") {
+                setSuggestOpen(false);
+                input.focus();
+              }
             });
           });
         }, 280);
 
         input?.addEventListener("input", debouncedSuggest);
         input?.addEventListener("focus", debouncedSuggest);
+        input?.addEventListener("keydown", (event) => {
+          if (event.key === "ArrowDown" && suggest && !suggest.hidden) {
+            event.preventDefault();
+            suggest.querySelector("[data-suggest]")?.focus();
+          } else if (event.key === "Escape") {
+            setSuggestOpen(false);
+          }
+        });
         input?.addEventListener("blur", () => {
           setTimeout(() => {
-            if (suggest) suggest.hidden = true;
+            if (!suggest?.contains(document.activeElement)) setSuggestOpen(false);
           }, 160);
         });
         document.getElementById("search-btn")?.addEventListener("click", runSearch);

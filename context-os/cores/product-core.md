@@ -85,7 +85,7 @@ Welcome email часто приходит раньше verify → `subjectContai
 | 11 | `README.md` | API table |
 
 Sync markers (`<!-- sync:mcp-tools:start -->
-44 tools (MCP server `0.8.2`):
+70 tools (MCP server `0.8.2`):
 
 - `mailagent_issue_access`
 - `mailagent_plan_next`
@@ -105,6 +105,32 @@ Sync markers (`<!-- sync:mcp-tools:start -->
 - `mailagent_workspace_model_status`
 - `mailagent_workspace_set_policy`
 - `mailagent_workspace_execute_reply`
+- `mailagent_gmail_status`
+- `mailagent_gmail_connect`
+- `mailagent_gmail_list_accounts`
+- `mailagent_gmail_list_threads`
+- `mailagent_gmail_read_thread`
+- `mailagent_gmail_triage`
+- `mailagent_gmail_digest`
+- `mailagent_gmail_get_settings`
+- `mailagent_gmail_set_settings`
+- `mailagent_calendar_status`
+- `mailagent_calendar_connect`
+- `mailagent_calendar_list_accounts`
+- `mailagent_calendar_list_events`
+- `mailagent_calendar_availability`
+- `mailagent_calendar_check_conflicts`
+- `mailagent_calendar_suggest_meeting`
+- `mailagent_calendar_agenda`
+- `mailagent_workspace_execute_gmail_draft`
+- `mailagent_workspace_execute_calendar_event`
+- `mailagent_workspace_rules_status`
+- `mailagent_workspace_rules_evaluate`
+- `mailagent_workspace_list_monitors`
+- `mailagent_workspace_create_monitor`
+- `mailagent_workspace_delete_monitor`
+- `mailagent_workspace_run_monitor`
+- `mailagent_workspace_list_monitor_runs`
 - `mailagent_verify_signup`
 - `mailagent_create_inbox`
 - `mailagent_wait_and_extract`

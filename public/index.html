@@ -16,7 +16,7 @@
     <title>MailAgent — Email verification and workspace agent for CI and AI agents</title>
     <meta
       name="description"
-      content="Disposable inboxes for Playwright and AI agents. Verify OTPs and magic links, run Workspace Agent on inbox or Gmail threads, draft replies with DeepSeek/Qwen or local Ollama, and mint scoped run keys — 49 MCP tools."
+      content="Disposable inboxes for Playwright and AI agents. Verify OTPs and magic links, run Workspace Agent on MailAgent inbox messages, draft replies with DeepSeek/Qwen or local Ollama, and mint scoped run keys."
     />
     <link rel="canonical" href="https://webmailagent.com/" />
     <meta name="robots" content="index, follow, max-image-preview:large" />
@@ -29,7 +29,7 @@
     />
     <meta
       property="og:description"
-      content="Disposable inboxes for Playwright and AI agents. Verify OTPs and magic links, Workspace Agent on Gmail threads, 49 MCP tools, scoped CI keys."
+      content="Disposable inboxes for Playwright and AI agents. Verify OTPs and magic links, Workspace Agent on MailAgent inbox messages, MCP tools, scoped CI keys."
     />
     <meta property="og:image" content="https://webmailagent.com/logo-512.png" />
     <meta property="og:image:width" content="512" />
@@ -217,7 +217,7 @@
             <h2 class="section-title">Verify signup and workspace mail</h2>
             <p class="section-desc">
               Disposable inboxes and structured extraction for tests — plus
-              Workspace Agent for inbox and Gmail threads, reminders, and
+              Workspace Agent for MailAgent inbox messages, reminders, and
               policy-gated replies. One MCP server for QA and autonomous mail.
             </p>
           </div>
@@ -320,7 +320,7 @@
               </div>
               <div class="bento-copy">
                 <h3>MCP for Cursor &amp; Codex</h3>
-                <p>49 tools: verify, workspace mail, Gmail read, simulate, scoped keys.</p>
+                <p>MCP tools: verify, workspace mail, simulate, scoped keys.</p>
               </div>
               <a class="bento-link" href="/#mcp">Browse tools →</a>
             </article>
@@ -445,7 +445,7 @@
               </li>
               <li>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16v16H4z"/><path d="M22 6l-10 7L2 6"/></svg>
-                Gmail read (OAuth)
+                Forwarded mail
               </li>
               <li>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="4"/></svg>
@@ -687,11 +687,10 @@
                   <path d="M4 12h16" />
                 </svg>
               </div>
-              <h3>Gmail read (OAuth)</h3>
+              <h3>Forwarded mail workflow</h3>
               <p>
-                Connect a mailbox read-only via Google OAuth. Workspace tools
-                load threads from Gmail or stored inboxes — same summarize and
-                draft flow.
+                Forward or send mail into a MailAgent inbox. Workspace tools
+                summarize stored messages and draft replies without Gmail API access.
               </p>
             </article>
           </div>
@@ -787,7 +786,7 @@
               <p>
                 <code>mailagent_workspace_summarize</code> and
                 <code>mailagent_workspace_draft_reply</code> load mail from an
-                inbox id or connected Gmail account. DeepSeek and Qwen fall back
+                inbox id or supplied message payload. DeepSeek and Qwen fall back
                 to each other when both keys are set.
               </p>
             </article>
@@ -849,11 +848,11 @@
         <div class="site-container">
           <div class="section-head">
             <p class="section-label">MCP</p>
-            <h2 class="section-title">49 MCP tools. Verify, workspace, Gmail</h2>
+            <h2 class="section-title">MCP tools. Verify, workspace, simulate</h2>
             <p class="section-desc">
               Add <code>mailagent</code> to Cursor or Codex. Signup flows use
               structured <code>primaryAction</code>; workspace tools summarize
-              inbox or Gmail threads, track reminders, and execute policy-gated
+              MailAgent inbox messages, track reminders, and execute policy-gated
               replies. Mint scoped run keys and call
               <code>mailagent_plan_next</code> for recovery when a run stalls.
             </p>
@@ -876,7 +875,7 @@
                 </tr>
                 <tr>
                   <td class="tool-name">mailagent_workspace_draft_reply</td>
-                  <td>Draft from stored inbox message or Gmail thread</td>
+                  <td>Draft from stored MailAgent inbox message or supplied payload</td>
                   <td>Workspace</td>
                 </tr>
                 <tr>
@@ -885,9 +884,9 @@
                   <td>Workspace</td>
                 </tr>
                 <tr>
-                  <td class="tool-name">mailagent_gmail_connect</td>
-                  <td>OAuth URL to connect read-only Gmail for workspace tools</td>
-                  <td>Gmail</td>
+                  <td class="tool-name">mailagent_simulate_message</td>
+                  <td>Inject realistic test email without SMTP</td>
+                  <td>QA</td>
                 </tr>
                 <tr>
                   <td class="tool-name">mailagent_issue_access</td>
@@ -996,8 +995,8 @@
                 <td class="compare-muted">—</td>
               </tr>
               <tr>
-                <td>Gmail read (OAuth)</td>
-                <td class="compare-yes">Read-only</td>
+                <td>Google Gmail OAuth</td>
+                <td class="compare-muted">Disabled</td>
                 <td class="compare-muted">Varies</td>
                 <td class="compare-muted">—</td>
               </tr>

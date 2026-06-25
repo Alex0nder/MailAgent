@@ -1,5 +1,6 @@
 /** Workspace Agent API: safe mail/calendar assistant primitives. */
 import { Hono } from "hono";
+import type { Context } from "hono";
 import type { Env } from "../env";
 import type { ApiVariables } from "../lib/api-context";
 import { requireApiKey } from "../lib/auth";
@@ -112,11 +113,31 @@ import {
   runWorkspaceMonitorById,
 } from "../services/workspace-monitor-runner";
 import type { WorkspaceRuleKind } from "../services/workspace-rule-engine";
+import {
+  decideWorkspaceActionCandidate,
+  listWorkspaceActionCandidates,
+  type WorkspaceCandidateStatus,
+} from "../services/workspace-action-candidates";
 
 export const workspaceRoutes = new Hono<{ Bindings: Env; Variables: ApiVariables }>();
 
+const GOOGLE_WORKSPACE_OAUTH_DISABLED = true;
+
+function googleWorkspaceOAuthDisabled(
+  c: Context<{ Bindings: Env; Variables: ApiVariables }>
+) {
+  return c.json(
+    {
+      error: "google_workspace_oauth_disabled",
+      hint: "Google Gmail/Calendar OAuth is disabled while CASA assessment is not being pursued.",
+    },
+    410
+  );
+}
+
 /** Public OAuth callbacks — validated via signed state JWT */
 workspaceRoutes.get("/gmail/callback", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return googleWorkspaceOAuthDisabled(c);
   const code = c.req.query("code")?.trim();
   const state = c.req.query("state")?.trim();
   const oauthError = c.req.query("error")?.trim();
@@ -168,6 +189,7 @@ workspaceRoutes.get("/gmail/callback", async (c) => {
 });
 
 workspaceRoutes.get("/calendar/callback", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return googleWorkspaceOAuthDisabled(c);
   const code = c.req.query("code")?.trim();
   const state = c.req.query("state")?.trim();
   const oauthError = c.req.query("error")?.trim();
@@ -284,6 +306,8 @@ workspaceRoutes.get("/", (c) => {
       monitorsDelete: "DELETE /v1/workspace/monitors/:id",
       monitorsRun: "POST /v1/workspace/monitors/:id/run",
       monitorsRuns: "GET /v1/workspace/monitors/:id/runs",
+      today: "GET /v1/workspace/today",
+      todayDecision: "POST /v1/workspace/today/:id/decision",
     },
     roadmap: "https://github.com/Alex0nder/MailAgent/blob/main/docs/WORKSPACE-AGENT-PBR.md",
   });
@@ -436,6 +460,29 @@ workspaceRoutes.post("/reminders/suggest", async (c) => {
 });
 
 workspaceRoutes.get("/gmail/status", (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+    return c.json({
+      configured: false,
+      provider: "gmail",
+      phase: "disabled",
+      readAllowed: false,
+      writeAllowed: false,
+      scope: null,
+      capabilities: {
+        connect: false,
+        listThreads: false,
+        readThread: false,
+        triage: false,
+        digest: false,
+        classify: false,
+        summarize: false,
+        draftReply: false,
+        send: "disabled",
+        draftWrite: false,
+      },
+      hint: "Google Gmail OAuth is disabled while CASA assessment is not being pursued.",
+    });
+  }
   const configured = isGmailOAuthConfigured(c.env);
   return c.json({
     configured,
@@ -465,6 +512,7 @@ workspaceRoutes.get("/gmail/status", (c) => {
 });
 
 workspaceRoutes.get("/gmail/connect", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return googleWorkspaceOAuthDisabled(c);
   if (!isGmailOAuthConfigured(c.env)) {
     return c.json({ error: "gmail_oauth_not_configured" }, 503);
   }
@@ -486,6 +534,7 @@ workspaceRoutes.get("/gmail/connect", async (c) => {
 });
 
 workspaceRoutes.get("/gmail/accounts", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return c.json({ accounts: [], count: 0, disabled: true });
   const accounts = await listUserMailAccounts(c.env, {
     teamId: c.get("teamId"),
     apiKeyHint: c.get("apiKeyHint"),
@@ -511,6 +560,7 @@ workspaceRoutes.delete("/gmail/accounts/:id", async (c) => {
 });
 
 workspaceRoutes.get("/gmail/threads", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return googleWorkspaceOAuthDisabled(c);
   const accountId = c.req.query("accountId")?.trim();
   if (!accountId) return c.json({ error: "account_id_required" }, 400);
   const result = await listGmailThreads(
@@ -528,6 +578,7 @@ workspaceRoutes.get("/gmail/threads", async (c) => {
 });
 
 workspaceRoutes.get("/gmail/threads/:threadId", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return googleWorkspaceOAuthDisabled(c);
   const accountId = c.req.query("accountId")?.trim();
   const threadId = c.req.param("threadId")?.trim();
   if (!accountId || !threadId) {
@@ -543,6 +594,7 @@ workspaceRoutes.get("/gmail/threads/:threadId", async (c) => {
 });
 
 workspaceRoutes.get("/gmail/triage", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return googleWorkspaceOAuthDisabled(c);
   const accountId = c.req.query("accountId")?.trim();
   if (!accountId) return c.json({ error: "account_id_required" }, 400);
   const unreadOnly = c.req.query("unreadOnly") !== "false";
@@ -556,6 +608,7 @@ workspaceRoutes.get("/gmail/triage", async (c) => {
 });
 
 workspaceRoutes.get("/gmail/digest", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return googleWorkspaceOAuthDisabled(c);
   const accountId = c.req.query("accountId")?.trim();
   if (!accountId) return c.json({ error: "account_id_required" }, 400);
   const result = await buildGmailDailyDigest(
@@ -613,6 +666,7 @@ workspaceRoutes.put("/gmail/settings", async (c) => {
 });
 
 workspaceRoutes.get("/gmail/connect-compose", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return googleWorkspaceOAuthDisabled(c);
   if (!isGmailOAuthConfigured(c.env)) {
     return c.json({ error: "gmail_oauth_not_configured" }, 503);
   }
@@ -634,6 +688,7 @@ workspaceRoutes.get("/gmail/connect-compose", async (c) => {
 });
 
 workspaceRoutes.post("/gmail/execute-draft", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return googleWorkspaceOAuthDisabled(c);
   const writeErr = scopeWriteDenied(c);
   if (writeErr) return writeErr;
   let body: Parameters<typeof executeWorkspaceGmailDraft>[2] = {};
@@ -659,6 +714,26 @@ workspaceRoutes.post("/gmail/execute-draft", async (c) => {
 });
 
 workspaceRoutes.get("/calendar/status", (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+    return c.json({
+      configured: false,
+      provider: "google_calendar",
+      phase: "disabled",
+      readAllowed: false,
+      writeAllowed: false,
+      scope: null,
+      capabilities: {
+        connect: false,
+        listEvents: false,
+        availability: false,
+        conflictDetection: false,
+        meetingSuggestions: false,
+        agendaDigest: false,
+        eventWrite: false,
+      },
+      hint: "Google Calendar OAuth is disabled while CASA assessment is not being pursued.",
+    });
+  }
   const configured = isCalendarOAuthConfigured(c.env);
   return c.json({
     configured,
@@ -684,6 +759,7 @@ workspaceRoutes.get("/calendar/status", (c) => {
 });
 
 workspaceRoutes.get("/calendar/connect", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return googleWorkspaceOAuthDisabled(c);
   if (!isCalendarOAuthConfigured(c.env)) {
     return c.json({ error: "calendar_oauth_not_configured" }, 503);
   }
@@ -705,6 +781,7 @@ workspaceRoutes.get("/calendar/connect", async (c) => {
 });
 
 workspaceRoutes.get("/calendar/connect-write", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return googleWorkspaceOAuthDisabled(c);
   if (!isCalendarOAuthConfigured(c.env)) {
     return c.json({ error: "calendar_oauth_not_configured" }, 503);
   }
@@ -731,6 +808,7 @@ workspaceRoutes.get("/calendar/connect-write", async (c) => {
 });
 
 workspaceRoutes.get("/calendar/accounts", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return c.json({ accounts: [], count: 0, disabled: true });
   const accounts = await listUserCalendarAccounts(c.env, {
     teamId: c.get("teamId"),
     apiKeyHint: c.get("apiKeyHint"),
@@ -756,6 +834,7 @@ workspaceRoutes.delete("/calendar/accounts/:id", async (c) => {
 });
 
 workspaceRoutes.get("/calendar/events", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return googleWorkspaceOAuthDisabled(c);
   const accountId = c.req.query("accountId")?.trim();
   const timeMin = c.req.query("timeMin")?.trim();
   const timeMax = c.req.query("timeMax")?.trim();
@@ -778,6 +857,7 @@ workspaceRoutes.get("/calendar/events", async (c) => {
 });
 
 workspaceRoutes.get("/calendar/availability", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return googleWorkspaceOAuthDisabled(c);
   const accountId = c.req.query("accountId")?.trim();
   if (!accountId) return c.json({ error: "account_id_required" }, 400);
   const result = await getCalendarAvailability(
@@ -798,6 +878,7 @@ workspaceRoutes.get("/calendar/availability", async (c) => {
 });
 
 workspaceRoutes.post("/calendar/conflicts", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return googleWorkspaceOAuthDisabled(c);
   let body: {
     accountId?: string;
     proposed?: Array<{ start: string; end: string }>;
@@ -825,6 +906,7 @@ workspaceRoutes.post("/calendar/conflicts", async (c) => {
 });
 
 workspaceRoutes.post("/calendar/suggest-meeting", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return googleWorkspaceOAuthDisabled(c);
   let body: WorkspaceSummarizeInput & {
     calendarAccountId?: string;
     timeZone?: string;
@@ -871,6 +953,7 @@ workspaceRoutes.post("/calendar/suggest-meeting", async (c) => {
 });
 
 workspaceRoutes.get("/calendar/agenda", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return googleWorkspaceOAuthDisabled(c);
   const accountId = c.req.query("accountId")?.trim();
   if (!accountId) return c.json({ error: "account_id_required" }, 400);
   const result = await buildCalendarDailyAgenda(
@@ -887,6 +970,7 @@ workspaceRoutes.get("/calendar/agenda", async (c) => {
 });
 
 workspaceRoutes.post("/calendar/execute-event", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return googleWorkspaceOAuthDisabled(c);
   const writeErr = scopeWriteDenied(c);
   if (writeErr) return writeErr;
   let body: Parameters<typeof executeWorkspaceCalendarEvent>[2] = {
@@ -973,6 +1057,7 @@ workspaceRoutes.delete("/rules/:id", async (c) => {
 });
 
 workspaceRoutes.post("/rules/evaluate", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return googleWorkspaceOAuthDisabled(c);
   let body: {
     gmailAccountId?: string;
     ruleKinds?: string[];
@@ -1007,6 +1092,7 @@ workspaceRoutes.get("/monitors", async (c) => {
 });
 
 workspaceRoutes.post("/monitors", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return googleWorkspaceOAuthDisabled(c);
   const writeErr = scopeWriteDenied(c);
   if (writeErr) return writeErr;
   let body: WorkspaceMonitorInput = {};
@@ -1043,6 +1129,7 @@ workspaceRoutes.delete("/monitors/:id", async (c) => {
 });
 
 workspaceRoutes.post("/monitors/:id/run", async (c) => {
+  if (GOOGLE_WORKSPACE_OAUTH_DISABLED) return googleWorkspaceOAuthDisabled(c);
   const writeErr = scopeWriteDenied(c);
   if (writeErr) return writeErr;
   const row = await getWorkspaceMonitorRow(
@@ -1076,6 +1163,46 @@ workspaceRoutes.get("/monitors/:id/runs", async (c) => {
     Number(c.req.query("limit") ?? 20)
   );
   return c.json({ monitorId, runs, count: runs.length });
+});
+
+workspaceRoutes.get("/today", async (c) => {
+  const rawStatus = c.req.query("status")?.trim();
+  const allowed = new Set(["open", "all", "new", "approved", "dismissed", "completed", "blocked"]);
+  const status = (allowed.has(rawStatus ?? "") ? rawStatus : "open") as
+    | WorkspaceCandidateStatus
+    | "open"
+    | "all";
+  const candidates = await listWorkspaceActionCandidates(
+    c.env,
+    { teamId: c.get("teamId"), apiKeyHint: c.get("apiKeyHint") },
+    { status, limit: Number(c.req.query("limit") ?? 50) }
+  );
+  return c.json({ candidates, count: candidates.length, status });
+});
+
+workspaceRoutes.post("/today/:id/decision", async (c) => {
+  const writeErr = scopeWriteDenied(c);
+  if (writeErr) return writeErr;
+  let body: { decision?: string } = {};
+  try {
+    body = await c.req.json<{ decision?: string }>();
+  } catch {
+    body = {};
+  }
+  const result = await decideWorkspaceActionCandidate(
+    c.env,
+    { teamId: c.get("teamId"), apiKeyHint: c.get("apiKeyHint") },
+    c.req.param("id"),
+    body.decision ?? ""
+  );
+  if (!result.ok) return c.json({ error: result.error }, result.status);
+  auditRoute(c, {
+    action: "workspace.candidate_decided",
+    resourceType: "workspace_action_candidate",
+    resourceId: result.candidate.id,
+    meta: { decision: result.candidate.status, kind: result.candidate.kind },
+  });
+  return c.json(result.candidate);
 });
 
 workspaceRoutes.get("/reminders", async (c) => {

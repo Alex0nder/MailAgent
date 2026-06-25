@@ -23,10 +23,10 @@
         <header class="dash-toolbar" data-gate-hide>
           <div>
             <h1>Workspace</h1>
-            <p class="dash-toolbar__sub">Gmail triage, calendar, rules, and autonomous drafts.</p>
+            <p class="dash-toolbar__sub">Workspace automation without Google Gmail or Calendar OAuth.</p>
           </div>
+          <div id="status-banner" class="workspace-banner" hidden></div>
         </header>
-        <div id="status-banner" class="workspace-banner" data-gate-hide hidden></div>
         <div id="out" data-gate-hide></div>
       </div>
     </main>
@@ -43,6 +43,7 @@
       const App = () => window.MailAgentApp;
       const Gate = () => window.MailAgentConnectGate;
       const gateEl = document.getElementById("connect-gate");
+      const GOOGLE_WORKSPACE_OAUTH_DISABLED = true;
       const COMPOSE_SCOPE = "gmail.compose";
       const RULE_KINDS = ["invoice", "support", "meeting", "follow_up"];
       const out = document.getElementById("out");
@@ -54,6 +55,8 @@
       let threads = [];
       let selectedThreadId = "";
       let threadDetail = null;
+      let threadLoading = false;
+      let threadLoadError = "";
       let reminders = [];
       let actions = [];
       let triageData = null;
@@ -70,6 +73,9 @@
       let selectedMonitorId = "";
       let monitorRuns = [];
       let monitorsLoading = false;
+      let todayCandidates = [];
+      let todayLoading = false;
+      let todayStatus = "open";
 
       let calendarAccounts = [];
       let selectedCalendarAccountId = "";
@@ -82,13 +88,24 @@
       let openAgendaAfterConnect = false;
 
       function showSetupState() {
+        if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+          out.innerHTML = `<div class="ws-setup">
+            <div class="ws-setup__card">
+              <p class="dash-onboard__eyebrow">Workspace</p>
+              <h2 class="ws-setup__title">Google Workspace OAuth is disabled</h2>
+              <p class="ws-setup__desc">Gmail and Calendar connections are paused while MailAgent runs without sensitive or restricted Google scopes.</p>
+              <p class="dash-onboard__hint"><a href="/docs/agents.html">Workspace Agent docs</a></p>
+            </div>
+          </div>`;
+          return;
+        }
         out.innerHTML = `<div class="ws-setup">
           <div class="ws-setup__card">
             <p class="dash-onboard__eyebrow">Workspace</p>
-            <h2 class="ws-setup__title">Connect Gmail to start</h2>
-            <p class="ws-setup__desc">Triage inbox, draft replies, calendar agenda, and rules require a linked Google account.</p>
-            <button type="button" class="dash-btn dash-btn--primary" id="gmail-connect-only">Connect Gmail</button>
-            <button type="button" class="dash-btn" id="calendar-connect-setup">Connect Calendar</button>
+            <h2 class="ws-setup__title">Google Workspace OAuth is disabled</h2>
+            <p class="ws-setup__desc">Use MailAgent inbox messages or supplied payloads for workspace summaries and drafts.</p>
+            <button type="button" class="dash-btn dash-btn--primary" id="gmail-connect-only">Google OAuth disabled</button>
+            <button type="button" class="dash-btn" id="calendar-connect-setup">Calendar OAuth disabled</button>
             <p class="dash-onboard__hint"><a href="/docs/agents.html">Workspace Agent docs</a> · LLM keys on the API worker</p>
           </div>
         </div>`;
@@ -97,6 +114,13 @@
       }
 
       async function connectGmailOAuth() {
+        if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+          await UI().alert({
+            title: "Google Workspace OAuth disabled",
+            message: "Gmail and Calendar connections are paused while MailAgent runs without sensitive or restricted Google scopes.",
+          });
+          return;
+        }
         const r = await api("/v1/workspace/gmail/connect?returnTo=/workspace.html");
         if (r.ok) location.href = r.json.url;
         else await UI().alert({ title: "OAuth", message: r.json.error || "Failed" });
@@ -212,15 +236,26 @@
       }
 
       function renderThreadMessages() {
+        if (threadLoading) {
+          return `<div class="workspace-message workspace-message--loading" role="status" aria-label="Loading thread">
+            <span class="workspace-loading-line workspace-loading-line--short"></span>
+            <span class="workspace-loading-line"></span>
+            <span class="workspace-loading-line"></span>
+            <span class="workspace-loading-line workspace-loading-line--medium"></span>
+          </div>`;
+        }
+        if (threadLoadError) {
+          return `<div class="workspace-thread-state workspace-thread-state--error">${esc(threadLoadError)}</div>`;
+        }
         const msgs = threadDetail?.messages || [];
         if (!msgs.length) {
           return `<p class="inbox-detail__empty">Select a thread to load messages.</p>`;
         }
         return msgs
           .map(
-            (m) => `<article style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)">
-              <div class="console-meta">${esc(m.from || "—")} · ${esc(m.receivedAt ? new Date(m.receivedAt).toLocaleString() : "")}</div>
-              <strong>${esc(m.subject || "(no subject)")}</strong>
+            (m) => `<article class="workspace-message">
+              <div class="workspace-message__meta">${esc(m.from || "—")} · ${esc(m.receivedAt ? new Date(m.receivedAt).toLocaleString() : "")}</div>
+              <strong class="workspace-message__subject">${esc(m.subject || "(no subject)")}</strong>
               <pre class="workspace-msg-body">${esc(m.text || m.snippet || "")}</pre>
             </article>`
           )
@@ -303,7 +338,7 @@
         if (!selectedCalendarAccountId) {
           return `<div class="workspace-empty-panel">
               <p>Link Google Calendar to see today&apos;s agenda.</p>
-              <button type="button" class="app-btn" id="calendar-connect-panel">Connect Calendar</button>
+              <button type="button" class="app-btn" id="calendar-connect-panel">Calendar OAuth disabled</button>
             </div>`;
         }
         if (agendaLoading) {
@@ -336,7 +371,7 @@
         if (!selectedCalendarAccountId) {
           return `<div class="workspace-empty-panel">
               <p>Link Google Calendar to scan free slots in working hours.</p>
-              <button type="button" class="app-btn" id="calendar-connect-panel">Connect Calendar</button>
+              <button type="button" class="app-btn" id="calendar-connect-panel">Calendar OAuth disabled</button>
             </div>`;
         }
         if (availabilityLoading) {
@@ -444,7 +479,7 @@
           </div>
           <div class="workspace-panel-card">
             <h3>Evaluate rules</h3>
-            <p class="console-meta">Scan unread Gmail threads against invoice / support / meeting / follow-up patterns.</p>
+            <p class="console-meta">Google inbox scanning is disabled while MailAgent runs without sensitive or restricted Google scopes.</p>
             <div class="workspace-actions-row">
               <button type="button" class="app-btn" id="btn-evaluate-rules">Run evaluation</button>
             </div>
@@ -526,8 +561,68 @@
           </div>`;
       }
 
+      function renderTodayPanel() {
+        const filterOptions = [
+          ["open", "Open"],
+          ["new", "New"],
+          ["approved", "Approved"],
+          ["dismissed", "Dismissed"],
+          ["all", "All"],
+        ]
+          .map(([value, label]) => `<option value="${value}"${todayStatus === value ? " selected" : ""}>${label}</option>`)
+          .join("");
+        const content = todayLoading
+          ? `<div class="workspace-empty-panel">Loading action queue…</div>`
+          : todayCandidates.length
+            ? `<div class="workspace-today-list">${todayCandidates
+                .map((candidate) => {
+                  const sender = candidate.meta?.from || "Gmail";
+                  const isNew = candidate.status === "new";
+                  return `<article class="workspace-today-item">
+                    <div class="workspace-today-item__top">
+                      <div class="workspace-today-item__badges">
+                        ${UI().statusBadge(candidate.kind)}
+                        ${UI().statusBadge(candidate.confidence)}
+                        ${UI().statusBadge(candidate.status)}
+                      </div>
+                      <time>${esc(new Date(candidate.updatedAt).toLocaleString())}</time>
+                    </div>
+                    <h3>${esc(candidate.title)}</h3>
+                    <p class="workspace-today-item__source">${esc(sender)}</p>
+                    ${candidate.summary ? `<p class="workspace-today-item__summary">${esc(candidate.summary)}</p>` : ""}
+                    <div class="workspace-today-item__proposal">
+                      <span>Proposed action</span>
+                      <p>${esc(candidate.suggestedAction)}</p>
+                    </div>
+                    <div class="workspace-actions-row">
+                      ${candidate.sourceType === "gmail_thread" ? `<button type="button" class="app-btn" data-open-candidate="${esc(candidate.id)}">Open thread</button>` : ""}
+                      ${isNew ? `<button type="button" class="app-btn app-btn--ghost" data-candidate-decision="approved" data-candidate-id="${esc(candidate.id)}">Approve</button>
+                        <button type="button" class="app-btn app-btn--ghost" data-candidate-decision="dismissed" data-candidate-id="${esc(candidate.id)}">Dismiss</button>` : ""}
+                    </div>
+                  </article>`;
+                })
+                .join("")}</div>`
+            : `<div class="workspace-empty-panel">
+                <h3>Nothing needs attention</h3>
+                <p>Scheduled monitors add invoice, support, meeting, and follow-up proposals here.</p>
+              </div>`;
+
+        return `<div class="workspace-today">
+          <div class="workspace-today__head">
+            <div>
+              <h2>Today</h2>
+              <p class="console-meta">Review proposed actions before anything is executed.</p>
+            </div>
+            <label class="workspace-today__filter">Status<select id="today-status">${filterOptions}</select></label>
+          </div>
+          ${content}
+        </div>`;
+      }
+
       function renderActivePanel() {
         switch (activeTab) {
+          case "today":
+            return renderTodayPanel();
           case "inbox":
             return renderInboxPanel();
           case "triage":
@@ -559,13 +654,11 @@
           )
           .join("");
 
-        const composeHint = accountHasCompose(selectedAccount())
-          ? ""
-          : `<button type="button" class="app-btn app-btn--ghost" id="gmail-connect-compose">Enable Gmail drafts</button>`;
+        const canCompose = accountHasCompose(selectedAccount());
 
         const meetingBtnDisabled = !selectedCalendarAccountId || !selectedThreadId;
         const meetingBtnTitle = !selectedCalendarAccountId
-          ? "Connect Calendar in the toolbar first"
+          ? "Calendar OAuth is disabled"
           : !selectedThreadId
             ? "Select a thread first"
             : "";
@@ -581,20 +674,25 @@
                 <div id="thread-messages">${renderThreadMessages()}</div>
                 <label for="draft-body">Draft reply</label>
                 <textarea id="draft-body" class="workspace-draft" placeholder="Generated draft appears here…"></textarea>
-                <div class="workspace-actions-row">
+                <div class="workspace-actions-row workspace-actions-row--ai">
                   <button type="button" class="app-btn" id="btn-summarize">Summarize</button>
                   <button type="button" class="app-btn app-btn--ghost" id="btn-draft">Draft reply</button>
                   <button type="button" class="app-btn app-btn--ghost" id="btn-suggest-reminders">Suggest reminders</button>
                   <button type="button" class="app-btn app-btn--ghost" id="btn-suggest-meeting"${meetingBtnDisabled ? " disabled" : ""}${meetingBtnTitle ? ` title="${esc(meetingBtnTitle)}"` : ""}>Suggest meeting times</button>
-                  <button type="button" class="app-btn app-btn--ghost" id="btn-save-gmail-draft">Save to Gmail draft</button>
-                  ${composeHint}
+                </div>
+                <div class="workspace-actions-row workspace-actions-row--external">
+                  <button type="button" class="app-btn app-btn--ghost" id="btn-save-gmail-draft"${canCompose ? "" : ' disabled title="Enable Gmail drafts in the toolbar first"'}>Save to Gmail draft</button>
                 </div>
                 <div id="meeting-suggestions">${renderMeetingSuggestions()}</div>
                 <div id="suggest-reminders">${renderSuggestedReminders()}</div>
-                <h3 style="margin:8px 0 0;font-size:0.95rem">Open reminders</h3>
-                ${renderReminders()}
-                <h3 style="margin:8px 0 0;font-size:0.95rem">Recent actions</h3>
-                ${renderActions()}
+                <section class="workspace-subsection">
+                  <h3>Open reminders</h3>
+                  ${renderReminders()}
+                </section>
+                <section class="workspace-subsection">
+                  <h3>Recent actions</h3>
+                  ${renderActions()}
+                </section>
               </div>
             </div>
           </div>`;
@@ -610,7 +708,7 @@
         const accountOpts = accounts
           .map(
             (a) =>
-              `<option value="${esc(a.id)}"${a.id === selectedAccountId ? " selected" : ""}>${esc(a.email)}${accountHasCompose(a) ? "" : " (read-only)"}</option>`
+              `<option value="${esc(a.id)}"${a.id === selectedAccountId ? " selected" : ""}>${esc(a.email)}</option>`
           )
           .join("");
 
@@ -621,7 +719,23 @@
           )
           .join("");
 
+        const gmailAccount = selectedAccount();
+        const gmailMode = gmailAccount
+          ? accountHasCompose(gmailAccount)
+            ? "Drafts enabled"
+            : "Read only"
+          : "Not connected";
+        const gmailConnectLabel = gmailAccount
+          ? accountHasCompose(gmailAccount)
+            ? "Add Gmail"
+            : "Enable drafts"
+          : "Google OAuth disabled";
+        const calendarConnectLabel = selectedCalendarAccountId
+          ? "Add Calendar"
+          : "Calendar OAuth disabled";
+
         const tabs = [
+          { id: "today", label: `Today${todayCandidates.length ? ` · ${todayCandidates.length}` : ""}` },
           { id: "inbox", label: "Inbox" },
           { id: "triage", label: "Triage" },
           { id: "digest", label: "Digest" },
@@ -632,13 +746,19 @@
         ];
 
         out.innerHTML = `<div class="workspace-toolbar">
-            <label for="gmail-account">Gmail</label>
-            <select id="gmail-account">${accountOpts || '<option value="">—</option>'}</select>
-            <label for="calendar-account">Calendar</label>
-            <select id="calendar-account">${calendarOpts || '<option value="">—</option>'}</select>
-            <button type="button" class="app-btn app-btn--ghost" id="reload-data">Refresh</button>
-            <a class="app-btn app-btn--ghost" id="gmail-connect" href="#">Connect Gmail</a>
-            <a class="app-btn app-btn--ghost" id="calendar-connect" href="#">Connect Calendar</a>
+            <div class="workspace-toolbar__field">
+              <label for="gmail-account">Gmail account <span class="workspace-field-badge">${gmailMode}</span></label>
+              <select id="gmail-account">${accountOpts || '<option value="">—</option>'}</select>
+            </div>
+            <div class="workspace-toolbar__field">
+              <label for="calendar-account">Calendar</label>
+              <select id="calendar-account">${calendarOpts || '<option value="">—</option>'}</select>
+            </div>
+            <div class="workspace-toolbar__actions">
+              <button type="button" class="app-btn app-btn--ghost" id="reload-data">Refresh</button>
+              <a class="app-btn app-btn--ghost" id="gmail-connect" href="#">${gmailConnectLabel}</a>
+              <a class="app-btn app-btn--ghost" id="calendar-connect" href="#">${calendarConnectLabel}</a>
+            </div>
           </div>
           <nav class="workspace-tabs" aria-label="Workspace views">
             ${tabs
@@ -665,33 +785,82 @@
         if (tab === "availability" && !availabilityData && !availabilityLoading && selectedCalendarAccountId) loadAvailability();
         if (tab === "rules" && !rulesStatus && !rulesLoading) loadRules();
         if (tab === "monitors" && !monitors.length && !monitorsLoading) loadMonitors();
+        if (tab === "today" && !todayCandidates.length && !todayLoading) loadToday();
       }
 
       async function openThread(threadId) {
         if (!threadId) return;
         activeTab = "inbox";
         selectedThreadId = threadId;
+        threadDetail = null;
+        threadLoading = true;
+        threadLoadError = "";
         suggestedReminders = [];
         renderLayout();
         await loadThread(threadId);
       }
 
+      async function loadToday() {
+        todayLoading = true;
+        if (activeTab === "today") renderLayout();
+        const r = await api(`/v1/workspace/today?status=${encodeURIComponent(todayStatus)}&limit=50`);
+        todayLoading = false;
+        if (!r.ok) {
+          todayCandidates = [];
+          if (activeTab === "today") {
+            await UI().alert({ title: "Today queue failed", message: r.json.error || String(r.status) });
+            renderLayout();
+          }
+          return;
+        }
+        todayCandidates = r.json.candidates || [];
+        if (activeTab === "today") renderLayout();
+      }
+
+      async function decideCandidate(candidateId, decision) {
+        const r = await api(`/v1/workspace/today/${encodeURIComponent(candidateId)}/decision`, {
+          method: "POST",
+          body: JSON.stringify({ decision }),
+        });
+        if (!r.ok) {
+          await UI().alert({ title: "Decision failed", message: r.json.error || String(r.status) });
+          return;
+        }
+        UI().toast(decision === "approved" ? "Action approved" : "Action dismissed", "ok");
+        await loadToday();
+      }
+
       async function loadThread(threadId) {
         if (!selectedAccountId || !threadId) return;
         selectedThreadId = threadId;
-        const r = await api(
-          `/v1/workspace/gmail/threads/${encodeURIComponent(threadId)}?accountId=${encodeURIComponent(selectedAccountId)}`
-        );
-        if (!r.ok) {
-          await UI().alert({ title: "Thread load failed", message: r.json.error || String(r.status) });
-          return;
-        }
-        threadDetail = r.json;
+        threadDetail = null;
+        threadLoading = true;
+        threadLoadError = "";
         const messagesEl = document.getElementById("thread-messages");
         if (messagesEl) messagesEl.innerHTML = renderThreadMessages();
         out.querySelectorAll(".workspace-thread-item[data-thread-id]").forEach((btn) => {
           btn.classList.toggle("is-active", btn.getAttribute("data-thread-id") === threadId);
         });
+        out.querySelectorAll(".workspace-actions-row button").forEach((btn) => {
+          btn.disabled = true;
+        });
+        const r = await api(
+          `/v1/workspace/gmail/threads/${encodeURIComponent(threadId)}?accountId=${encodeURIComponent(selectedAccountId)}`
+        );
+        threadLoading = false;
+        if (!r.ok) {
+          threadLoadError = r.json.error || `Thread load failed (${r.status})`;
+          if (messagesEl) messagesEl.innerHTML = renderThreadMessages();
+          await UI().alert({ title: "Thread load failed", message: r.json.error || String(r.status) });
+          return;
+        }
+        threadDetail = r.json;
+        if (messagesEl) messagesEl.innerHTML = renderThreadMessages();
+        out.querySelectorAll(".workspace-actions-row--ai button").forEach((btn) => {
+          btn.disabled = false;
+        });
+        const saveDraftBtn = document.getElementById("btn-save-gmail-draft");
+        if (saveDraftBtn) saveDraftBtn.disabled = !accountHasCompose(selectedAccount());
       }
 
       async function loadThreads() {
@@ -935,6 +1104,13 @@
       }
 
       async function connectComposeOAuth() {
+        if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+          await UI().alert({
+            title: "Google Workspace OAuth disabled",
+            message: "Gmail draft OAuth is disabled while MailAgent runs without sensitive or restricted Google scopes.",
+          });
+          return;
+        }
         const r = await api("/v1/workspace/gmail/connect-compose?returnTo=/workspace.html");
         if (!r.ok) {
           await UI().alert({ title: "Gmail compose OAuth", message: r.json.error || "OAuth not configured" });
@@ -944,6 +1120,13 @@
       }
 
       async function connectCalendarOAuth() {
+        if (GOOGLE_WORKSPACE_OAUTH_DISABLED) {
+          await UI().alert({
+            title: "Google Workspace OAuth disabled",
+            message: "Calendar OAuth is disabled while MailAgent runs without sensitive or restricted Google scopes.",
+          });
+          return;
+        }
         const r = await api("/v1/workspace/calendar/connect?returnTo=/workspace.html");
         if (!r.ok) {
           await UI().alert({ title: "Calendar OAuth", message: r.json.error || "OAuth not configured" });
@@ -1188,6 +1371,7 @@
           else if (activeTab === "availability") await loadAvailability();
           else if (activeTab === "rules") await loadRules();
           else if (activeTab === "monitors") await loadMonitors();
+          else if (activeTab === "today") await loadToday();
         });
 
         document.getElementById("gmail-connect")?.addEventListener("click", async (e) => {
@@ -1226,6 +1410,25 @@
         document.getElementById("btn-create-rule")?.addEventListener("click", createRule);
         document.getElementById("btn-evaluate-rules")?.addEventListener("click", evaluateRules);
         document.getElementById("btn-create-monitor")?.addEventListener("click", createMonitor);
+        document.getElementById("today-status")?.addEventListener("change", (e) => {
+          todayStatus = e.target.value;
+          loadToday();
+        });
+
+        out.querySelectorAll("[data-candidate-decision]").forEach((btn) => {
+          btn.addEventListener("click", () =>
+            decideCandidate(btn.getAttribute("data-candidate-id"), btn.getAttribute("data-candidate-decision"))
+          );
+        });
+
+        out.querySelectorAll("[data-open-candidate]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const candidate = todayCandidates.find((item) => item.id === btn.getAttribute("data-open-candidate"));
+            if (!candidate) return;
+            if (candidate.accountId) selectedAccountId = candidate.accountId;
+            openThread(candidate.sourceId);
+          });
+        });
 
         out.querySelectorAll("[data-delete-rule]").forEach((btn) => {
           btn.addEventListener("click", () => deleteRule(btn.getAttribute("data-delete-rule")));
@@ -1331,6 +1534,18 @@
           setBanner(`Model: ${esc(readiness.model || readiness.provider || "configured")}`);
         }
 
+        if (gmailRes.json?.phase === "disabled") {
+          out.innerHTML = `<div class="ws-setup">
+            <div class="ws-setup__card">
+              <p class="dash-onboard__eyebrow">Workspace</p>
+              <h2 class="ws-setup__title">Google Workspace OAuth is disabled</h2>
+              <p class="ws-setup__desc">${esc(gmailRes.json.hint || "Gmail and Calendar connections are paused while MailAgent runs without sensitive or restricted Google scopes.")}</p>
+              <p class="dash-onboard__hint"><a href="/docs/agents.html">Workspace Agent docs</a></p>
+            </div>
+          </div>`;
+          return;
+        }
+
         if (!gmailRes.ok || !gmailRes.json?.configured) {
           out.innerHTML = `<p class="app-err">${esc(gmailRes.json?.hint || "Gmail OAuth not configured on API.")}</p>
             <p><a href="/docs/agents.html">Workspace Agent docs</a></p>`;
@@ -1365,6 +1580,8 @@
         monitors = [];
         selectedMonitorId = "";
         monitorRuns = [];
+        todayCandidates = [];
+        todayStatus = "open";
 
         await loadSideData();
 

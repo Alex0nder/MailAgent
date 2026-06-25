@@ -167,13 +167,15 @@
   function renderAppNav() {
     const links = CONSOLE_ITEMS.map(renderAppSidebarLink).join("");
     return `<aside class="dash-sidebar" id="site-header">
-      <div class="dash-sidebar__brand">
-        <a href="/dashboard.html" class="dash-sidebar__logo">
-          <span class="logo-mark">${LOGO_SVG}</span>
-          <span>MailAgent</span>
-        </a>
+      <div class="dash-sidebar__nav-island">
+        <div class="dash-sidebar__brand">
+          <a href="/dashboard.html" class="dash-sidebar__logo">
+            <span class="logo-mark">${LOGO_SVG}</span>
+            <span>MailAgent</span>
+          </a>
+        </div>
+        <nav class="dash-nav" aria-label="Console">${links}</nav>
       </div>
-      <nav class="dash-nav" aria-label="Console">${links}</nav>
       <div class="dash-sidebar__foot">
         <div id="app-session-slot"></div>
         <div class="dash-sidebar__links">

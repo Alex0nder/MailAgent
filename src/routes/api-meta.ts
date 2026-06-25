@@ -31,6 +31,8 @@ apiMetaRoutes.get("/", (c) => {
       executeReply: "POST /v1/workspace/execute-reply",
       models: "GET /v1/workspace/models",
       modelProbe: "POST /v1/workspace/models/probe",
+      today: "GET /v1/workspace/today",
+      todayDecision: "POST /v1/workspace/today/:id/decision",
       status: "autonomy_preview",
       docs: "https://github.com/Alex0nder/MailAgent/blob/main/docs/WORKSPACE-AGENT-PBR.md",
     },

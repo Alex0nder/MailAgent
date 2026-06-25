@@ -44,12 +44,12 @@
     mount.innerHTML = `<div class="dash-preview dash-preview--rail">
       <div class="dash-preview__toolbar">
         <span class="dash-preview__title">Overview</span>
-        <span class="dash-preview__pill dash-preview__pill--ghost">—</span>
+        <span class="dash-preview__toolbar-skeleton" aria-hidden="true"></span>
       </div>
       <div class="dash-preview__metrics">
-        <div class="dash-preview__metric"><span>Active inboxes</span><strong>—</strong><i style="width:0"></i></div>
-        <div class="dash-preview__metric"><span>Messages (24h)</span><strong>—</strong><i style="width:0"></i></div>
-        <div class="dash-preview__metric"><span>Custom domains</span><strong>—</strong><i style="width:0"></i></div>
+        <div class="dash-preview__metric"><span>Active inboxes</span><span class="dash-preview__metric-skeleton" aria-hidden="true"></span></div>
+        <div class="dash-preview__metric"><span>Messages (24h)</span><span class="dash-preview__metric-skeleton" aria-hidden="true"></span></div>
+        <div class="dash-preview__metric"><span>Custom domains</span><span class="dash-preview__metric-skeleton" aria-hidden="true"></span></div>
       </div>
       <div class="dash-preview__panel">
         <div class="dash-preview__panel-head">Recent inboxes</div>

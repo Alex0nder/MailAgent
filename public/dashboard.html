@@ -64,12 +64,9 @@
         document.body.classList.add("dash-onboard-active");
         out.innerHTML = `<div class="dash-onboard">
           <div class="dash-onboard__left">
-            <div class="dash-onboard__hero">
-              <p class="dash-onboard__eyebrow">Console</p>
-              <h1>Connect your API key</h1>
-              <p>Temporary inboxes for agent verification, QA, and workspace triage. Keys stay in your browser — no signup.</p>
-            </div>
-            <div class="dash-onboard__card">
+            <div class="dash-onboard__card dash-gate__card">
+              <h1 class="dash-gate__title">Connect your API key</h1>
+              <p class="dash-gate__desc">Temporary inboxes for agent verification, QA, and workspace triage. Keys stay in your browser — no signup.</p>
               <label for="onboard-key">API key</label>
               <input id="onboard-key" type="password" autocomplete="off" placeholder="ma_…" spellcheck="false" autofocus />
               <details class="dash-onboard__advanced">

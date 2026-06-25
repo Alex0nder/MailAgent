@@ -110,6 +110,7 @@ export function evaluateThreadsAgainstRules(input: {
 }): Array<{
   threadId: string;
   subject: string | null;
+  snippet: string | null;
   from: string | null;
   match: WorkspaceRuleMatch;
 }> {
@@ -117,6 +118,7 @@ export function evaluateThreadsAgainstRules(input: {
   const hits: Array<{
     threadId: string;
     subject: string | null;
+    snippet: string | null;
     from: string | null;
     match: WorkspaceRuleMatch;
   }> = [];
@@ -131,6 +133,7 @@ export function evaluateThreadsAgainstRules(input: {
     hits.push({
       threadId: thread.threadId,
       subject: thread.subject ?? null,
+      snippet: thread.snippet ?? null,
       from: thread.from ?? null,
       match,
     });

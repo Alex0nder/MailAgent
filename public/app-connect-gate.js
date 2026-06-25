@@ -56,12 +56,10 @@
     const desc =
       options?.desc ??
       "Paste your MailAgent key to load this page. Stored locally — no signup.";
-    const eyebrow = options?.eyebrow ?? "Console";
 
     document.body.classList.add("dash-gate-active");
     mount.innerHTML = `<div class="dash-gate">
         <div class="dash-gate__card">
-          <p class="dash-onboard__eyebrow">${eyebrow}</p>
           <h1 class="dash-gate__title">${title}</h1>
           <p class="dash-gate__desc">${desc}</p>
           <label for="gate-key-input">API key</label>
